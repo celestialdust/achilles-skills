@@ -41,7 +41,9 @@ Refuse-to-run (fail-safe deny) unless these resolve:
   the Spec sign-off. Do NOT invent scenarios; do NOT grade against the implementer's tests in its place.
 - **REQUIRED for a UI slice — `docs/features/<slug>/design-contract.md`, `status: signed`** (from
   `frontend-design`). If a UI slice's contract is absent/`draft` → run behavioral grading, but the **design
-  gate refuses** and the slice cannot pass clean (record the missing-contract block in `qa.md`).
+  gate refuses** and the slice cannot pass clean (record the missing-contract block in `qa.md`). The signed
+  contract must carry a **`## Prototype`** section naming the reference-spec mockup — without it the fidelity
+  grade has no target to bind to, and the design gate refuses the same way.
 - **REQUIRED — a running build of the slice** in its worktree (the orchestrator provides it). If it will not
   start, that is a `verify` failure, not a qa skip — route to `debugging-and-error-recovery`.
 
@@ -103,9 +105,11 @@ Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa
 Run only when the slice has UI and a signed `design-contract.md`. **Two non-overlapping sources** (do not let
 them collapse into one "looks good"):
 
-- **(i) Prototype fidelity** — compare the built UI against `frontend-design`'s committed prototype
-  (screenshot diff via the browser engine). The prototype IS the build target; material divergence is a design
-  fail.
+- **(i) Prototype fidelity** — read the contract's **`## Prototype`** section to locate the committed
+  **reference-spec mockup** (`docs/features/<slug>/prototype/index.html`), then screenshot-diff the rendered
+  surface against the mockup at that path (via the browser engine). The mockup is the reference spec
+  production re-implements; material divergence from it is a design fail. Records the same
+  `prototype-fidelity: pass|fail` field — its target is now the named reference-spec mockup.
 - **(ii) The seven-axis rubric** — `Distinctiveness · Typography · Structure-as-information · Motion · Quality
   floor · Restraint · Copy-as-design-material`. Grade each axis against the contract's recorded decision.
   - **Objective subset (check mechanically via the engine):** *responsive* (resize viewport down to mobile —
@@ -202,7 +206,8 @@ signed BDD contract binds to the running app.
 - **Emits `qa.md`** (registry) at `docs/features/<slug>/qa.md`. Stable sections consumers depend on:
   - `## Behavioral ledger` — table keyed by scenario id:
     `id · realizes(story) · class · status{exercised-pass|exercised-fail|not-reachable} · evidence`.
-  - `## Design gate` (UI only) — `prototype-fidelity: pass|fail`; per-axis rubric verdict; objective subset
+  - `## Design gate` (UI only) — `prototype-fidelity: pass|fail` (graded against the committed reference-spec
+    mockup named in the contract's `## Prototype` section); per-axis rubric verdict; objective subset
     `responsive · visible-focus · reduced-motion` each `pass|fail`.
   - `## Verdict` — `overall: pass|halted`; `rounds: <n>/3`; `frozen-artifact check: ok|eroded`;
     `not-reachable ids requiring human-ack: <ids|none>`.
