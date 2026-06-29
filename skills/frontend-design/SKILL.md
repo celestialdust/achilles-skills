@@ -1,6 +1,6 @@
 ---
 name: frontend-design
-description: Use whenever you build or reshape ANY UI surface — a page, screen, component, or flow. Explore throwaway variants, commit ONE high-fidelity prototype as the build target, and write the signed design contract that Verify grades against. Invoke BEFORE any production UI; don't reach for a cream-serif-terracotta default.
+description: Use whenever you build or reshape ANY UI surface — a page, screen, component, or flow. Explore throwaway variants, commit ONE high-fidelity prototype as the reference-spec build target, and write the signed design contract that Verify grades against. Invoke BEFORE any production UI; don't reach for a cream-serif-terracotta default.
 ---
 
 # Frontend Design
@@ -8,7 +8,7 @@ description: Use whenever you build or reshape ANY UI surface — a page, screen
 ## Purpose
 **Stage: Spec (UI only).** This is the ONE skill that owns the UI. It does two things with a single
 thesis: it **explores** throwaway variants to answer "what should this look like," then **commits ONE
-high-fidelity prototype** = the build target — and writes the **design contract** that records the aesthetic
+high-fidelity prototype** = the reference-spec build target production re-implements — and writes the **design contract** that records the aesthetic
 decisions in durable form. The same design thesis that authors the prototype here supplies the grading rubric
 `quality-verification` uses in Verify: one mind writes the UI and checks the UI. Approach this as the design lead
 at a small studio known for giving every client a visual identity that could not be mistaken for anyone
@@ -79,19 +79,25 @@ produce for any similar page (work through a similar prompt to see if you land s
 a choice made for THIS brief — revise it, and say what you changed and why. Only after confirming relative
 uniqueness do you write code, deriving every color and type decision from the revised plan.
 
-### Phase 3 — Commit ONE high-fidelity prototype (the build target)
-Build the chosen direction to a real quality floor — this committed prototype IS the build target Implement
-works to, not a throwaway. When writing CSS, watch selector specificity: type-based (`.section`) vs
+### Phase 3 — Commit ONE high-fidelity prototype (the reference-spec mockup)
+Build the chosen direction to a real quality floor — this committed prototype is the **reference-spec build
+target that production re-implements**: the design source-of-truth Verify grades fidelity against, not a
+throwaway, and not shipped code itself (production re-implements it in the target's real stack — the
+degenerate exception is a target that genuinely is static HTML). It is the single mockup the human agreed on
+in the **visual companion** (Phase 1), now promoted to the committed
+`docs/features/<slug>/prototype/index.html`; the companion's throwaway *screens* are discarded, this one
+mockup survives. When writing CSS, watch selector specificity: type-based (`.section`) vs
 element-based (`.cta`) selectors easily cancel each other out, especially section paddings/margins. Critique
 your own work as you build — take screenshots if your environment supports it (a picture is worth 1000
 tokens). Apply Chanel's rule: before you ship it, remove one accessory.
 
 ### Phase 4 — Write the design contract
-Record the locked decisions as the **design contract** (see the section below), `status: draft`. This is the
-ONLY home for design floors/rubric/fidelity — none of it goes into `acceptance.md`. The human signs it
-at the Spec gate (`status: signed`).
+Record the locked decisions as the **design contract** (see the sections below), `status: draft` — the seven
+rubric axes plus the **`## Prototype`** section that names the committed reference-spec mockup and its fidelity
+bar. This is the ONLY home for design floors/rubric/fidelity — none of it goes into `acceptance.md`. The human
+signs it at the Spec gate (`status: signed`).
 
-## Design rubric (= the design contract's stable sections AND the Verify grading axes)
+## Design rubric (= the design contract's seven rubric sections AND the Verify grading axes)
 These seven axes are written here in Spec and **re-read by `quality-verification` in Verify**: quality-verification grades the built UI
 against (i) fidelity to this committed prototype and (ii) these axes. Fill every one in the contract.
 
@@ -119,6 +125,23 @@ against (i) fidelity to this committed prototype and (ii) these axes. Fill every
 7. **Copy as design material.** Words exist to make the design easier to understand and use — design material,
    not decoration (see the writing section below).
 
+## The contract's `## Prototype` section (the reference-spec mockup)
+Alongside the seven rubric axes, the design contract carries one more stable section, **`## Prototype`**. It
+names the committed **reference-spec mockup** and the bar Verify grades fidelity against:
+
+```md
+## Prototype
+- path: `docs/features/<slug>/prototype/index.html` (committed in the TARGET project) — a reference spec, NOT shipped code
+- meaning: production **re-implements** this mockup in the target's real stack; the HTML mockup itself never
+  ships (degenerate exception: a target that genuinely is static HTML).
+- fidelity bar: <what "looks like what we agreed" means for THIS surface — the concrete things the built UI
+  must match>
+```
+
+The single mockup the human agreed on in the visual companion (Phase 1) is the one promoted here to the
+committed `prototype/index.html`; the companion's throwaway *screens* are discarded. `quality-verification`
+reads this section in Verify to locate the mockup and grade the built UI's fidelity against it.
+
 ## More on writing in design
 Bring the same intentionality to copy as to spacing and color. Write from the end user's side of the screen:
 name things by what people control and recognize, never by how the system is built (a person manages
@@ -138,8 +161,11 @@ register conversational and tuned — plain verbs, sentence case, no filler. Let
 - *"I'll put the accessibility/responsive requirements in acceptance.md so quality-verification tests them."* → No. ALL design
   floors live in this contract; `acceptance.md` is behavioral-only. quality-verification reads the contract for the design
   gate.
-- *"The exploration variants are good code, I'll keep them around."* → Exploration is throwaway. Delete
-  the losers and the switcher; only the committed prototype survives.
+- *"The exploration variants are good code, I'll keep them around."* → Exploration is throwaway. The throwaway
+  *screens* live in the gitignored `.frontend-design/` working dir and are discarded; only the one agreed
+  mockup survives — promoted to the named, committed **reference-spec mockup**
+  `docs/features/<slug>/prototype/index.html`, not rewritten from memory. (The `?variant=` switcher is the
+  escalation path, not a committed artifact.)
 - *"Not taking a risk is the safe move."* → Not taking a risk is itself a risk; the client already rejected
   templated proposals.
 
@@ -149,18 +175,23 @@ register conversational and tuned — plain verbs, sentence case, no filler. Let
 - Landing on one of the three AI-default clusters on a free axis without a stated reason.
 - Numbered markers / eyebrows / dividers used as decoration on content that isn't actually a sequence.
 - Design requirements written into `acceptance.md` instead of the contract.
-- Shipping an exploration variant straight to production (it was written under prototype constraints — rewrite
-  it when you commit the build target).
+- Shipping an exploration screen — or the committed reference-spec mockup HTML itself — straight to
+  production. Throwaway screens are discarded; the committed mockup is a reference spec that production
+  **re-implements** in the real stack (it is not itself shipped, except a genuinely static-HTML target).
 - Two or more competing "signature" elements (boldness not spent in one place).
-- A design contract missing any of the seven stable sections, or with the quality-floor trio unaddressed.
+- A design contract missing any of the seven stable sections **or the `## Prototype` section**, or with the
+  quality-floor trio unaddressed.
 
 ## Verification (ending criteria)
 Done when ALL hold:
-- Exactly **ONE** high-fidelity prototype is committed as the build target (exploration variants + switcher
-  deleted or absorbed); it runs and meets the quality floor (responsive · visible focus · reduced motion).
+- Exactly **ONE** high-fidelity prototype is committed as the **reference-spec mockup** at
+  `docs/features/<slug>/prototype/index.html` (the throwaway companion *screens* discarded from the gitignored
+  `.frontend-design/` working dir; the `?variant=` switcher is the escalation path now, not a committed
+  artifact); it runs and meets the quality floor (responsive · visible focus · reduced motion).
 - A **design contract** exists with all seven stable sections filled (`Distinctiveness · Typography ·
-  Structure-as-information · Motion · Quality floor · Restraint · Copy-as-design-material`), `status: draft`,
-  naming which AI-default cluster (if any) was used and why it's a choice.
+  Structure-as-information · Motion · Quality floor · Restraint · Copy-as-design-material`) **plus the
+  `## Prototype` section naming the committed reference-spec mockup**, `status: draft`, naming which AI-default
+  cluster (if any) was used and why it's a choice.
 - **No** design content leaked into `acceptance.md` (behavioral-only). The contract is the sole design
   home.
 - The contract is a **separable artifact** `quality-verification` can re-read cold in Verify (where the design gate binds).
@@ -168,14 +199,18 @@ Done when ALL hold:
   unsigned or absent contract.)
 
 ## Outputs & handoff contract
-- **Emits:** (1) a committed high-fidelity prototype = the build target; (2) the **design contract** — the
+- **Emits:** (1) a committed high-fidelity prototype = the **reference-spec build target that production
+  re-implements**, at `docs/features/<slug>/prototype/index.html`; (2) the **design contract** — the
   **5th** signed Spec artifact (UI-only) — written to `docs/features/<slug>/design-contract.md`.
 - **Stable sections** (consumers depend on these names): `Distinctiveness · Typography ·
   Structure-as-information · Motion · Quality floor (responsive/visible-focus/reduced-motion) · Restraint ·
-  Copy-as-design-material`; plus `status: draft|signed`. Change a section's shape → update `quality-verification`'s design-gate
-  reader in the same commit.
-- **Consumed by:** `quality-verification` (Verify design gate: prototype-fidelity + these seven axes), and gating `test-driven-development`/`quality-verification`
-  (both refuse to run against an unsigned/absent contract).
+  Copy-as-design-material · Prototype (the committed reference-spec mockup + its fidelity bar)`; plus
+  `status: draft|signed`. Change a section's shape → update `quality-verification`'s design-gate reader in the
+  same commit.
+- **Consumed by:** `quality-verification` (Verify design gate: reads the `## Prototype` section to locate the
+  committed reference-spec mockup and grades the built UI's fidelity against it, plus these seven axes), and
+  gating `test-driven-development`/`quality-verification` (both refuse to run against an unsigned/absent
+  contract).
 - **Re-invalidation rule:** any edit to `prd.md` flips the contract back to `status: draft` (it must be
   re-signed) — design floors can't silently drift from the product they were signed against.
 - **STATE.md:** the feature stays in `spec`; set `gate: you` so the human signs intent + prd + acceptance +
