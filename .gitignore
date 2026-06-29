@@ -1,1 +1,10 @@
 .DS_Store
+
+# Private working/handoff docs — owner-only, never published with the skill suite.
+.handoff/
+
+# Vendored visual-companion test harness deps (test-only; see skills/frontend-design/scripts/VENDORED.md).
+skills/frontend-design/scripts/node_modules/
+
+# Visual-companion session working dir — holds a live 0600 session key; never commit (SEC-FDM-1, defense-in-depth).
+**/.frontend-design/
