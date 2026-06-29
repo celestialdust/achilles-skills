@@ -181,7 +181,7 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 |---|---|
 | [spec-grilling](./skills/spec-grilling/SKILL.md) | Design the product from intent → ADRs + `CONTEXT.md` glossary |
 | [to-prd](./skills/to-prd/SKILL.md) | Light dual-audience PRD at product altitude; references the ADRs |
-| [frontend-design](./skills/frontend-design/SKILL.md) | The one UI skill: explore variants → commit a prototype + design contract |
+| [frontend-design](./skills/frontend-design/SKILL.md) | The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract |
 | [acceptance-criteria](./skills/acceptance-criteria/SKILL.md) | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | [environment-manifest](./skills/environment-manifest/SKILL.md) | Typed-kind environment manifest (no values, no commands) |
 | [spec-review](./skills/spec-review/SKILL.md) | Fresh code-cold agent fixes the spec before the user reviews it |
