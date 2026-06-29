@@ -1,0 +1,23 @@
+description = "Review stage quality gate — five-axis code-review with a parallel fan-out to code-simplification, security-and-hardening, and performance-optimization. Runs before merge; surfaces findings, never auto-merges."
+
+prompt = """
+Review stage (agent-run, the sixth stage of Ideate → Spec → Plan → Implement → Verify → Review → Ship).
+
+Invoke the `code-review` skill as the spine, with a parallel fan-out to `code-simplification`, `security-and-hardening`, and `performance-optimization`.
+
+1. `code-review` — the five-axis pass (correctness, readability incl. test quality, architecture, security, performance). Label every finding Critical / Important / Suggestion with a `file:line` citation.
+2. Fan out in parallel — these are read-only passes with no shared writes, so dispatch them concurrently, each as its fresh-context code-cold persona subagent:
+   - `code-simplification` — behavior-preserving reduction; respect Chesterton's Fence.
+   - `security-and-hardening` — OWASP Top 10, secrets, dependency audit (persona: `security-auditor`).
+   - `performance-optimization` — measure-first; hot paths, data fetching, bundle/render cost (persona: `performance-auditor`).
+3. Consolidate the four streams into one ranked review, de-duplicated, ordered Critical → Important → Suggestion.
+
+## Mode
+
+Agent-run quality gate before merge. Runs autonomously and never halts mid-run — it reports findings, it does not edit, merge, or push on its own. This is the gate `/ship` depends on.
+
+## Notes
+
+- `doubt-driven-development` is deliberately NOT part of this gate — it is in-flight adversarial review, reached for during `/implement`, not here.
+- Hand off: route Critical / Important findings back to `/implement` to fix; when the review comes back clean, proceed to `/ship`.
+"""

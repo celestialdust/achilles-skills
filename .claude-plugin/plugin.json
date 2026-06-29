@@ -1,0 +1,19 @@
+{
+  "name": "achilles-skills",
+  "description": "Independent, self-contained skill suite automating Ideate → Spec → Plan → Implement → Verify → Review → Ship. The human owns Ideate+Spec+Plan; the agent runs Implement→Ship fully autonomously, terminating at risk-banded open draft PRs for async human merge.",
+  "author": {
+    "name": "Joey"
+  },
+  "homepage": "https://github.com/celestialdust/achilles-skills",
+  "repository": "https://github.com/celestialdust/achilles-skills",
+  "license": "MIT",
+  "commands": ["./commands"],
+  "skills": "./skills",
+  "agents": [
+    "./agents/code-reviewer.md",
+    "./agents/security-auditor.md",
+    "./agents/test-engineer.md",
+    "./agents/performance-auditor.md",
+    "./agents/adversarial-reviewer.md"
+  ]
+}

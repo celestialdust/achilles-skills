@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "achilles-skills",
+  "description": "Production-grade engineering skills for AI coding agents — the full Ideate → Spec → Plan → Implement → Verify → Review → Ship lifecycle, with an autonomous wave-parallel orchestrator that terminates at risk-banded draft PRs.",
+  "owner": {
+    "name": "Joey",
+    "url": "https://github.com/celestialdust"
+  },
+  "plugins": [
+    {
+      "name": "achilles-skills",
+      "source": {
+        "source": "github",
+        "repo": "celestialdust/achilles-skills"
+      },
+      "description": "36 lifecycle skills, 5 review personas, and 9 lifecycle commands — covering spec, plan, implement, verify, review, and ship, with maker≠checker discipline throughout.",
+      "homepage": "https://github.com/celestialdust/achilles-skills",
+      "license": "MIT",
+      "keywords": ["skills", "agents", "engineering", "spec", "tdd", "review", "ship", "autonomous", "orchestrator", "lifecycle"]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "achilles-skills",
+  "version": "1.0.0",
+  "description": "Production-grade, self-contained skill suite automating Ideate → Spec → Plan → Implement → Verify → Review → Ship for AI coding agents."
+}
