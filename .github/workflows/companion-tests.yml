@@ -1,0 +1,47 @@
+# CI for the vendored visual-companion engine (skills/frontend-design/scripts).
+# Closes the risk-report gap: the hand-rolled WebSocket + browser-launcher carry cross-platform code
+# paths that were only verified on darwin locally. This runs the suite on Linux and macOS so the
+# non-darwin paths actually get exercised on every change.
+#
+# Scope note: Windows is deferred. The Node suite's `npm test` relies on shell glob expansion
+# (`tests/*.test.js`), which cmd.exe does not expand, and `windows-lifecycle.test.sh` carries multi-minute
+# sleeps; verifying the real Windows runtime path is a larger follow-up. Linux is the primary gap and is
+# covered here.
+name: companion-tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/frontend-design/scripts/**'
+      - '.github/workflows/companion-tests.yml'
+  pull_request:
+    paths:
+      - 'skills/frontend-design/scripts/**'
+      - '.github/workflows/companion-tests.yml'
+
+jobs:
+  test:
+    name: companion tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: skills/frontend-design/scripts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install test-only deps (ws)
+        run: npm ci
+      - name: Node suite (node --test)
+        run: npm test
+      - name: Bash launcher tests
+        shell: bash
+        run: |
+          bash tests/start-server.test.sh
+          bash tests/stop-server.test.sh
