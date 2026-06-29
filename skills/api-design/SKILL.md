@@ -19,14 +19,14 @@ Design stable, well-documented interfaces that are hard to misuse. Good interfac
 
 ## Inputs
 
-api-design is a **referenced discipline**, not a sequential stage (D23). During the human-led Plan
+api-design is a **referenced discipline**, not a sequential stage. During the human-led Plan
 stage, `plan-breakdown` reaches for it whenever a slice crosses a public interface; the contract it
 produces lands **inside `plan.md`**, never in a standalone artifact. It is also invokable standalone
 for a pure interface refactor.
 
 **Consumes:**
 - `prd.md` — sections `## Solution` and `## Implementation Decisions`: the product-altitude statement
-  of what surfaces/endpoints/boundaries exist (product altitude only — per D18, `prd.md` carries no
+  of what surfaces/endpoints/boundaries exist (product altitude only — `prd.md` carries no
   file paths or signatures; api-design is where those get pinned).
 - `research.md` — the codebase/DB as-is, so new interfaces match existing conventions instead of
   forking a second style.
@@ -322,7 +322,7 @@ error envelope, resource/endpoint shapes, discriminated unions, and branded IDs 
 slices that build to them can read the exact signatures cold. api-design owns **no standalone artifact
 file**; `plan-breakdown` owns `plan.md` and the slice DAG.
 
-**ADR escalation (D23/D18):** any **hard-to-reverse** interface decision — REST vs GraphQL vs tRPC, the
+**ADR escalation:** any **hard-to-reverse** interface decision — REST vs GraphQL vs tRPC, the
 shape of a public API surface, a versioning strategy, the product-wide error-envelope standard — is
 written as an ADR at `docs/adr/ADR-<NNN>-*.md` using the `documentation-and-adrs` standard and
 **referenced by id** from `plan.md`. Reversible interface detail stays inline in `plan.md`. This is the
@@ -337,8 +337,8 @@ single load-bearing dependency on `documentation-and-adrs`.
 discipline; `plan-breakdown` seeds the feature's slice rows + DAG into `STATE.md`. api-design only
 contributes contract content into `plan.md` (and, when warranted, one ADR).
 
-**Change-the-shape rule (D10):** if a published interface contract later changes shape, update its
+**Change-the-shape rule:** if a published interface contract later changes shape, update its
 consumers (`incremental-implementation` + `test-driven-development` + the `pull-request` design anchor) in the **same commit**. If the decision was
 promoted to an ADR, **supersede** the ADR via a link and update its referrers in the same commit —
-never delete it (D10 ADR cross-ref rule). This is the artifact-level expression of the skill's own
+never delete it (ADR cross-ref rule). This is the artifact-level expression of the skill's own
 "Prefer Addition Over Modification" principle.

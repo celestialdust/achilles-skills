@@ -5,13 +5,13 @@ description: Drives the autonomous Implement→Verify→Review→Ship loop once 
 
 ## Purpose
 
-**Stage: cross-cutting engine (the autonomous span, D15/D29).** The human owns Ideate +
+**Stage: cross-cutting engine (the autonomous span).** The human owns Ideate +
 Spec + Plan — all the thinking. Once they sign the Spec and author the plan, *something*
 has to actually build it: run every slice through Implement → Verify → Review → Ship with
 no human babysitting, in parallel where the dependency graph allows, and stop at a state a
 human can review async. That something is this skill. It exists because the alternative —
 the controlling agent hand-running slices one at a time, checking in between each — throws
-away the parallelism the slice DAG was designed for and reintroduces the human halt D29
+away the parallelism the slice DAG was designed for and reintroduces the human halt
 deliberately removed. The orchestrator is the only skill that reads the *whole* board and
 moves slices across it.
 
@@ -38,7 +38,7 @@ Refuse to run (CRISPY refuse-to-run) unless ALL are present:
   column IS the slice DAG. There must be a feature at `feature: building` with at least one
   slice row in `impl`. Absent / no building feature → refuse.
 - **`preflight-readiness` verdict = GREEN** — every `environment.md` row provisioned. Red or
-  un-attested amber → refuse to start the wave (D16).
+  un-attested amber → refuse to start the wave.
 - **`plan.md` + slices** (`docs/features/<slug>/`) — each slice's concrete steps, exact
   tests, declared `Regression surface`, and `Files (owned)` ownership. Missing file-ownership
   on a slice that shares a wave → refuse (the disjoint-file guard cannot run blind).
@@ -62,7 +62,7 @@ contract paths, not the session history.
 3. **Select the ready wave.** A slice is ready when every blocker is `done`. Apply the
    **disjoint-file guard** (below) to the ready set before dispatching.
 4. **Provision isolation.** Each ready slice gets its own clean worktree (the `worktree`
-   mechanism this skill owns, D15). Platform-adaptive (below).
+   mechanism this skill owns). Platform-adaptive (below).
 5. **Run the per-slice loop** for every ready slice — in parallel (one dispatch call per
    slice, all in one response = concurrent execution): `incremental-implementation` (applies `test-driven-development`) → `quality-verification`
    (Verify, fresh code-cold) → **Review fan-out** (`code-review` + `code-simplification` + `security-and-hardening` +
@@ -102,11 +102,11 @@ The wave model is substrate-agnostic; only the dispatch primitive changes:
 - **Codex → parallel subagents** (each in its own worktree).
 Pick the substrate at run start; the DAG, barrier, gates, and guard are identical either way.
 
-## The three agent-internal gates (none human, D29)
+## The three agent-internal gates (none human)
 
 Per slice, AND-combined — SHIP requires all three plus the circuit-breaker floors:
-1. **`quality-verification` / Verify** (D14/D20) — behavioral acceptance tests + the design gate.
-2. **Review fan-out** (D25) — `code-review` + `code-simplification` + `security-and-hardening` + `performance-optimization`, each a fresh
+1. **`quality-verification` / Verify** — behavioral acceptance tests + the design gate.
+2. **Review fan-out** — `code-review` + `code-simplification` + `security-and-hardening` + `performance-optimization`, each a fresh
    code-cold subagent on an independent axis (maker≠checker; personas DISSOLVE into skills —
    no role-play).
 3. **Evaluator floors** — correctness≥8, testing_strategy≥7, plan_adherence≥8,
@@ -135,7 +135,7 @@ mechanical invariants, not a human halt:
    narrowing), surfaced ALONGSIDE the halts — to draw the human's scarce attention to the
    quiet greens where unattended defects actually ship.
 
-## Autonomy boundaries (D29)
+## Autonomy boundaries
 
 - **No mid-run human halt.** The human owns Spec+Plan upstream; do not check in or summarize
   progress between waves (subagent-driven-development §Continuous execution). The only stops
@@ -180,7 +180,7 @@ mechanical invariants, not a human halt:
 
 ## Verification (ending criteria)
 
-The run terminates on **exactly one** predicate (D29):
+The run terminates on **exactly one** predicate:
 - **DONE:** DAG complete ∧ every slice passed `quality-verification` ∧ Review fan-out ∧ evaluator floors → all
   PRs OPEN and risk-banded.
 - **BLOCKED:** no agent-actionable slice remains (every not-done slice is `blocked`/`halted`).
@@ -196,7 +196,7 @@ AND the slice sits as an OPEN risk-banded PR (a DRAFT promoted by a code-cold ve
   depends on: the **slice table** (per-slice `State` column moving `impl→verify→review→ship→
   done|blocked|halted`) and the **`gate` column** (`you|agent|done`). Every transition is
   written as it happens — `STATE.md` is the resume spine; a fresh agent resumes the run cold
-  from it (D13). Change the table's shape → update every reader in the same commit.
+  from it. Change the table's shape → update every reader in the same commit.
 - **Progress ledger** updated per terminal slice (`Slice <id>: terminal=<state> (commits
   <base7>..<head7>, PR #<n>)`), so a compacted controller never re-dispatches completed work.
 - **Inverted risk report** appended at run terminal, alongside the halts.

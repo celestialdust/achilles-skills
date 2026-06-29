@@ -228,7 +228,7 @@ Stable hand-off surfaces other skills depend on:
 - **Into the diff** → `incremental-implementation` / `test-driven-development`: every new endpoint, external dependency, queue, and retry
   path carries telemetry in the commit that adds it (instrument-as-you-build).
 - **Into the PR** → `pull-request`: the observability evidence (the on-call questions, the RED metrics added,
-  the alerts test-fired) feeds the design-anchored PR summary and the **risk band (D29)** — a slice
+  the alerts test-fired) feeds the design-anchored PR summary and the **risk band** — a slice
   with retries/queues/external calls and zero new telemetry is a HIGH-risk signal in the inverted
   risk report.
 - **Into the pre-launch gate** → `shipping-and-launch`: the **Pre-Launch Gate** section of

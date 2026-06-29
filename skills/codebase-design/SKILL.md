@@ -5,7 +5,7 @@ description: Shared vocabulary and method for designing deep modules — a lot o
 
 ## Purpose
 
-**Stage: Plan — referenced discipline (D23), not a sequential stage.** `plan-breakdown` owns the plan;
+**Stage: Plan — referenced discipline, not a sequential stage.** `plan-breakdown` owns the plan;
 this skill is the design language and method it (or a standalone refactor) applies when shaping a module's
 interface.
 
@@ -168,7 +168,7 @@ Good interfaces make testing natural:
 - *"It's a small module, depth doesn't matter."* → Depth is leverage per unit of interface, independent of
   size. A small module with a needlessly large interface is still shallow.
 - *"This boundary decision is fine left in plan.md prose."* → If it's hard-to-reverse, it belongs in an
-  ADR, or it gets rubber-stamped unseen at the single Spec/Plan gate (D18).
+  ADR, or it gets rubber-stamped unseen at the single Spec/Plan gate.
 - *"I'll just call it a component / service / boundary."* → Inconsistent vocabulary is the exact failure
   mode this skill exists to prevent. Use the Glossary words.
 
@@ -197,12 +197,12 @@ Good interfaces make testing natural:
 
 - **Emits:** deep-module **interfaces in `plan.md`** (under the slice/step that owns the module) — the
   registry artifact for this discipline. There is **no standalone artifact** and **no `STATE.md` row
-  transition**: this is a referenced discipline (D23), not a slice.
+  transition**: this is a referenced discipline, not a slice.
 - **Stable surface `plan-breakdown` consumes:** for each module, the interface description (signature +
   invariants + ordering + error modes + performance) and its seam/adapter plan (dependency category +
   prod/test adapters).
 - **Hard-to-reverse decisions** → `docs/adr/ADR-<NNN>-<slug>.md` via `documentation-and-adrs`; `plan.md`
   references them by id. "Change the shape → update the referrer in the same commit" extends to ADRs.
-- **Going deeper (carried references, D28):** deepening a cluster given its dependencies →
+- **Going deeper (carried references):** deepening a cluster given its dependencies →
   `references/DEEPENING.md`; exploring alternative interfaces with parallel sub-agents →
   `references/DESIGN-IT-TWICE.md`. `SKILL.md` points to both.

@@ -263,16 +263,10 @@ Quick-reference checklists in [`references/`](./references/) that skills pull in
 achilles-skills stands on the shoulders of the open-source agent-skills community. It is modeled on — and owes
 a real debt to — the work of:
 
-- **Matt Pocock — [mattpocock/skills](https://github.com/mattpocock/skills)** — the skills format and the
-  grilling / domain-modeling alignment discipline that shaped how this suite reaches agreement *before* it builds.
-- **Jesse Vincent — [obra/superpowers](https://github.com/obra/superpowers)** — the skill architecture and the
-  brainstorming → planning → TDD → subagent-driven disciplines this suite is built on.
-- **Addy Osmani — [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills)** — the multi-agent
-  plugin packaging (the `agents/` + `commands/` + marketplace layout and per-agent setup guides) that makes
-  these skills installable across almost any coding agent.
-- **[multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)** — the behavioral
-  `CLAUDE.md` guidelines (after Andrej Karpathy's notes on LLM coding pitfalls) that `project-setup` seeds when it
-  creates a fresh `CLAUDE.md` (for a repo that has neither a `CLAUDE.md` nor an `AGENTS.md` yet).
+- **Matt Pocock — [mattpocock/skills](https://github.com/mattpocock/skills)**
+- **Jesse Vincent — [obra/superpowers](https://github.com/obra/superpowers)**
+- **Addy Osmani — [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills)**
+- **[multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)**
 
 And a sincere thank-you to the broader **open-source community** — the authors, maintainers, and contributors
 whose tools, patterns, and hard-won lessons make work like this possible.

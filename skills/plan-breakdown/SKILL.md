@@ -9,10 +9,10 @@ description: THE planner — turns a signed prd.md + research.md into a concrete
 
 Decompose work into small, verifiable tasks with explicit acceptance criteria. Good task breakdown is the difference between an agent that completes work reliably and one that produces a tangled mess. Every task should be small enough to implement, test, and verify in a single focused session.
 
-**Stage: Plan** — the last human-owned stage (D29); the human signs the plan before the orchestrator runs.
+**Stage: Plan** — the last human-owned stage; the human signs the plan before the orchestrator runs.
 plan-breakdown is **THE planner**: the single skill that turns `prd.md` + `research.md` into a concrete,
 vertically-sliced, agent-executable `plan.md`. `codebase-design` (deep modules) and `api-design`
-(contract-first) are **referenced disciplines applied here**, not separate stages (D23); the dropped
+(contract-first) are **referenced disciplines applied here**, not separate stages; the dropped
 `structure` stage folds in as the vertical-slice + horizontal-plan-rejection discipline below, while its
 stub→mock→wire→fill build-order folds into `incremental-implementation`. The plan IS the slices + the DAG.
 
@@ -35,7 +35,7 @@ required input cannot be resolved — a plan invented without the PRD or the cod
 **Required:**
 1. `prd.md` — sections `## Problem` · `## Solution` · `## User Stories` · `## Implementation Decisions` ·
    `## Testing Decisions` · `## Out of Scope`. The PRD is product-altitude and carries **no file paths or
-   signatures** (D18) — plan-breakdown is exactly where that product intent gets pinned to concrete files,
+   signatures** — plan-breakdown is exactly where that product intent gets pinned to concrete files,
    line ranges, and snippets. Every slice back-references a `## User Stories` id.
 2. `research.md` — `## Codebase map` · `## Dependency facts` · `## External APIs` · `## Prior art in the
    codebase` · `## Open items for Plan`. This is the goal-blind as-is map; every `file`/`lines` your steps
@@ -150,7 +150,7 @@ defined in some step, and any code step missing its `snippet`.
 
 ## Vertical slices & the dependency DAG (→ STATE.md)
 
-The plan IS a list of **vertical tracer-bullet slices** (D23). Each slice is a thin end-to-end cut that:
+The plan IS a list of **vertical tracer-bullet slices**. Each slice is a thin end-to-end cut that:
 - is **independently demoable** and touches **≥2 layers** (a slice whose files are all one layer is a
   horizontal phase — rewrite it, see `## Horizontal-plan rejection`);
 - has a **PRD-namespaced id** (e.g. `PWR-1`, `PWR-2`) back-referencing a `prd.md` user-story id;
@@ -159,14 +159,13 @@ The plan IS a list of **vertical tracer-bullet slices** (D23). Each slice is a t
 - names a **`Blocked-by`** list of the sibling slice ids it depends on.
 
 The `Blocked-by` edges form the **dependency DAG** the orchestrator wave-schedules from. **Verify the DAG is
-acyclic** before handing off. Write one row per slice into `STATE.md` under the feature's block (§4.1):
+acyclic** before handing off. Write one row per slice into `STATE.md` under the feature's block:
 initial slice state `impl`, gate `you` (the human signs the plan first), `Blocked-by` = the DAG edges,
 Artifacts = `—`. Slices are **born here** — a feature still in spec/plan has no slice rows until now.
 
 ## Referenced disciplines & the ADR trigger
 
-plan-breakdown **applies** two design disciplines while planning — it does not spawn them as separate stages
-(D23):
+plan-breakdown **applies** two design disciplines while planning — it does not spawn them as separate stages:
 - **`codebase-design`** (deep modules / deletion test) — shape each module so depth > surface; the concrete
   interfaces land **inline in plan.md** (File Structure + step snippets).
 - **`api-design`** (contract-first) — define the interface contract before the implementation; the contract
@@ -175,7 +174,7 @@ plan-breakdown **applies** two design disciplines while planning — it does not
 Both remain standalone-invokable skills (for a pure refactor). Any **hard-to-reverse** interface/boundary
 decision — one that is hard to reverse ∧ surprising ∧ a real trade-off — is drafted as an ADR at
 `docs/adr/ADR-<NNN>-<slug>.md` (using the `documentation-and-adrs` standard) and **referenced by id** from
-plan.md; never restate its rationale in the plan (D18). Load-bearing decisions stay durable + visible at the
+plan.md; never restate its rationale in the plan. Load-bearing decisions stay durable + visible at the
 gate; reversible detail stays ordinary inline in plan.md.
 
 ## Horizontal-plan rejection (self-check — run it, it is not optional)
@@ -315,12 +314,12 @@ dependency DAG materialized as slice rows in `STATE.md`. Any hard-to-reverse dec
 `docs/adr/ADR-<NNN>-<slug>.md`, referenced by id from plan.md.
 
 **Stable sections the consumer (`incremental-implementation`, driven by the orchestrator) reads cold — change the shape,
-update the consumer in the same commit (D10a):**
+update the consumer in the same commit:**
 - **Plan header** — Goal · Architecture · Tech Stack · File Structure (one-line responsibility per file).
   Sets `incremental-implementation`'s working context.
 - **`## Vertical slices`** table — columns (canonical, per registry): Slice id (PRD-namespaced) · Story-ref ·
   **Files (owned, disjoint)** (cross-layer; the disjoint-file guard the orchestrator parallelizes on) ·
-  **Regression surface** (blast-radius set, frozen under retry per D29) · Checkpoint (observable) · Blocked-by.
+  **Regression surface** (blast-radius set, frozen under retry) · Checkpoint (observable) · Blocked-by.
   The orchestrator reads `Blocked-by` as the wave DAG, `Files (owned)` for the disjoint-file guard, and
   `Regression surface` as the immutable-under-retry contract `incremental-implementation`/`test-driven-development`/`quality-verification`/`git-workflow` consume.
 - **Per-step `file` · `lines` · `snippet` · `test`** on every non-trivial step. `incremental-implementation` pulls these
@@ -328,10 +327,10 @@ update the consumer in the same commit (D10a):**
 - **Referenced interfaces** — `codebase-design` deep-module interfaces + `api-design` contracts, inline in
   plan.md (no standalone file).
 
-**STATE.md update (§4.1):** under `## <PRD-id> · <feature title>`, write one row per slice — initial state
+**STATE.md update:** under `## <PRD-id> · <feature title>`, write one row per slice — initial state
 `impl`, gate `you` (the human signs the plan; on sign-off the orchestrator flips the feature to `building`
 and the gates to `agent`, then runs incremental-implementation → quality-verification → review → pull-request per slice, wave-parallel along the
-`Blocked-by` DAG, **fully autonomously**, D29). Slices are born here; record `plan.md` under the feature's
+`Blocked-by` DAG, **fully autonomously**). Slices are born here; record `plan.md` under the feature's
 `origin:`.
 
 **Handoff:** Plan is the last human-owned stage. Hand the signed plan + DAG to the orchestrator.

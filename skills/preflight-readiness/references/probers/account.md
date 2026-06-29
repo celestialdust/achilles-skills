@@ -37,4 +37,4 @@ check would cost money or hit a paid path, do **not** run it — that is the un-
 - **Amber denies until attested.** The `manual:` line is the *only* path from amber to go, and the
   attestation is the human's — captured before the wave, never fabricated by preflight.
 - A new no-spend check primitive for a specific provider is a NEW prober file + enum member if it is
-  genuinely a different kind — not an `if`-branch grafted onto this one (OCP, D21).
+  genuinely a different kind — not an `if`-branch grafted onto this one (OCP).

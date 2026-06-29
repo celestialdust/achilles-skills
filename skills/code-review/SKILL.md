@@ -7,7 +7,7 @@ description: Five-axis code review — correctness, readability, architecture, s
 
 ## Purpose
 
-**Stage: Review (agent fan-out, D25).** Dispatched by the orchestrator as a fresh, code-cold subagent on the review axis — in parallel with code-simplification / security-and-hardening / performance-optimization. You ARE the review skill; do not role-play a "reviewer" persona. You also carry the **test-quality lens** (there is no separate test-review skill): judging whether tests assert observable behavior is part of axis 1 and Review Step 2.
+**Stage: Review (agent fan-out).** Dispatched by the orchestrator as a fresh, code-cold subagent on the review axis — in parallel with code-simplification / security-and-hardening / performance-optimization. You ARE the review skill; do not role-play a "reviewer" persona. You also carry the **test-quality lens** (there is no separate test-review skill): judging whether tests assert observable behavior is part of axis 1 and Review Step 2.
 
 Multi-dimensional code review with quality gates. Every change gets reviewed before merge — no exceptions. Review covers five axes: correctness, readability, architecture, security, and performance.
 
@@ -31,7 +31,7 @@ Refuse to run if there is **no diff** to review — with nothing changed there i
 
 **Read-only context (FROZEN — never edit any of these during a review):**
 - `plan.md` + the slice's row (from `plan-breakdown`) — grade the **plan first, then the diff**: a diff that faithfully executes the wrong plan is still a fail.
-- `acceptance.md` (the signed behavioral contract) — the human-anchored oracle, frozen under the slice's retry loop (D29 inv. 1). You are dispatched **code-cold**: you see `acceptance.md`, not the conversation that wrote the code, so the oracle never drifts.
+- `acceptance.md` (the signed behavioral contract) — the human-anchored oracle, frozen under the slice's retry loop. You are dispatched **code-cold**: you see `acceptance.md`, not the conversation that wrote the code, so the oracle never drifts.
 - `STATE.md` slice row — the PRD-namespaced id of the slice you are reviewing.
 
 **Dispatch contract:** the orchestrator runs you as a **fresh, code-cold subagent on the review axis, in parallel with `code-simplification` / `security-and-hardening` / `performance-optimization`** (maker≠checker; parallelism.md mech f). No persona role-play.
@@ -405,11 +405,11 @@ After review is complete:
 - **`Findings`** — ordered by leverage (correctness & security first, then structural regressions & missed simplifications, then nits). EVERY finding carries a `path:line` citation and a severity prefix (`Critical:` | *(no prefix = Required)* | `Optional:` / `Consider:` | `Nit:` | `FYI`). A few high-conviction comments beat a long list; one structural problem buried under ten nits means the structural problem IS the review.
 - **`Verification story`** — what the author ran (tests / build / manual) and whether it holds up.
 
-**Gate role (D29):** this skill is the **Review-fan-out leg** — ONE of three AND-combined agent-internal gates (quality-verification + Review fan-out + evaluator floors). It does NOT flip `STATE.md` and does NOT open or promote a PR. The orchestrator aggregates all legs; a passing slice stops at a **DRAFT PR** that a separate fresh code-cold verifier later promotes. A `Request changes` verdict routes the slice back to `incremental-implementation` (bounded rounds), not forward.
+**Gate role:** this skill is the **Review-fan-out leg** — ONE of three AND-combined agent-internal gates (quality-verification + Review fan-out + evaluator floors). It does NOT flip `STATE.md` and does NOT open or promote a PR. The orchestrator aggregates all legs; a passing slice stops at a **DRAFT PR** that a separate fresh code-cold verifier later promotes. A `Request changes` verdict routes the slice back to `incremental-implementation` (bounded rounds), not forward.
 
-**Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion, deletes/narrows a RED test, or shrinks the declared `Regression surface` while the implementation is materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**. Never `Approve` a diff that moved the goalposts instead of the code (D29 inv. 1–2; testing-strategy AP1–AP2).
+**Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion, deletes/narrows a RED test, or shrinks the declared `Regression surface` while the implementation is materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**. Never `Approve` a diff that moved the goalposts instead of the code (testing-strategy AP1–AP2).
 
-**Security escalation:** a CRITICAL/HIGH vuln or a secret in the diff is a hard `Critical:` + STOP — the slice gets no PR (D29 security leg); place it at the top of `Findings`.
+**Security escalation:** a CRITICAL/HIGH vuln or a secret in the diff is a hard `Critical:` + STOP — the slice gets no PR (security leg); place it at the top of `Findings`.
 
 **STATE.md:** unchanged by this skill (the orchestrator owns slice-state transitions). Return the `review` output to the orchestrator for aggregation.
 

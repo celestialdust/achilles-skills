@@ -50,7 +50,7 @@ ADRs capture the reasoning behind significant technical decisions. They're the h
 
 **Write an ADR SPARINGLY — only when all three hold: hard-to-reverse ∧ surprising ∧ a real trade-off.**
 A reversible or obvious choice does not earn an ADR. ADRs live in `docs/adr/` repo-wide (cross-feature);
-they are NOT per-feature and NEVER go into `prd.md` (which references them by id — see D18).
+they are NOT per-feature and NEVER go into `prd.md` (which references them by id).
 
 - Choosing a framework, library, or major dependency
 - Designing a data model or database schema
@@ -322,7 +322,7 @@ references ADRs by id ("see ADR-007") and never restates their rationale; `spec-
 **open every referenced ADR** so design isn't rubber-stamped unseen; `pull-request` anchors its summary to the
 prd + these ADR ids.
 
-**Append-only / immutable (D10):** never edit or delete an accepted ADR's decision body. A changed
+**Append-only / immutable:** never edit or delete an accepted ADR's decision body. A changed
 decision is a NEW ADR that flips the old one's `## Status` to `Superseded by ADR-<MMM>` and links both
 ways. Renaming/superseding → update every referrer in the **same commit**.
 

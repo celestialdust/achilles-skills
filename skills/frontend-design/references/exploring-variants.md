@@ -3,7 +3,7 @@
 This is the Phase 1 exploration mechanism for `frontend-design`: generate **several radically different UI
 variations** on a single route, switchable from a floating bottom bar. Flip between variants in the browser,
 pick one (or steal bits from each), then throw the rest away. Exploration is **scratch you discard** — only
-the one committed prototype survives (D19). Non-UI feasibility spikes are ordinary throwaway experiments, not
+the one committed prototype survives. Non-UI feasibility spikes are ordinary throwaway experiments, not
 this skill.
 
 ## When this is the right shape

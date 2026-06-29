@@ -76,7 +76,7 @@ Row schema — exactly these columns: `| kind | name | purpose | required-by | p
 - `attest` — blank = auto-probed by `preflight-readiness`'s per-kind value-blind prober; `manual: <question>` =
   un-probeable amber escape hatch.
 
-**Two columns that must never exist** (D21, security fail-safe):
+**Two columns that must never exist** (security fail-safe):
 - **No `value` column.** Secrets are structurally unrepresentable — a key can never leak into this committed
   file because there is nowhere to put it.
 - **No `command`/`verify` column.** A free-text command cell is an unreviewed shell string that `preflight-readiness`

@@ -26,7 +26,7 @@ artifact and has no refuse-to-run on the artifact chain. What it needs to run:
   task does not forbid it, `git init` first — never commit into a non-repo.
 - The **changes to be committed** (staged or unstaged) plus the slice/feature context that
   produced them, so the message can explain the *why*, not just the *what*.
-- When invoked inside an autonomous slice loop (D29): the slice's declared `Regression surface`
+- When invoked inside an autonomous slice loop: the slice's declared `Regression surface`
   and the **frozen** `acceptance.md` + RED tests are **read-only** here. Git never amends,
   rebases, force-pushes, or re-stages to widen a surface or weaken a test under retry — that is a
   gate-erosion **HALT** the orchestrator enforces. Git's job is to record the change, not to edit
@@ -186,7 +186,7 @@ ls ../
 git worktree remove ../project-feature-a
 ```
 
-> NOTE (D29): in achilles, NEVER auto-merge — the terminal state is an open, risk-banded PR for async human
+> NOTE: in achilles, NEVER auto-merge — the terminal state is an open, risk-banded PR for async human
 > merge. See ## Outputs & handoff contract.
 
 Benefits:
@@ -332,12 +332,12 @@ the rest of the suite anchors to**:
 - **Atomic commits on the cluster branch** (`cluster/<id>` per `branch-naming.md`), each a
   save-point doing one logical thing, ~100 lines, message in `<type>: <why>` form. **Never** a
   commit to `main`/`master` — the autonomous run terminates at an open PR for async human merge,
-  not a direct push (D29 fail-safe).
+  not a direct push (fail-safe).
 - **A clean working tree at each save-point**, so a failed slice can revert to the last green
   commit (`git reset --hard HEAD`) without disturbing any other slice's work.
 - **A secret-free diff** — the pre-commit scan (`git diff --staged | grep -i
   "password\|secret\|api_key\|token"`) is clean before every commit. A hit is a hard STOP +
-  PushNotification and is **never** committed (security.md / D29 secret circuit-breaker).
+  PushNotification and is **never** committed (security.md / secret circuit-breaker).
 
 **Stable handles downstream skills depend on:**
 - `pull-request` reads the commit history (`git log`, `git diff <base>...HEAD`) to anchor the PR summary to

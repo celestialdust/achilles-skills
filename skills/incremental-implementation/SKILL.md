@@ -7,9 +7,9 @@ description: Builds one assigned slice as thin, individually-tested vertical inc
 
 ## Purpose
 
-**Stage: Implement (agent — per slice, inside a worktree).** THE implementer workhorse (D24). It *applies*
+**Stage: Implement (agent — per slice, inside a worktree).** THE implementer workhorse. It *applies*
 `test-driven-development` as its rigid core loop and `source-driven-development` as a referenced discipline; the `worktree` isolation
-mechanism is owned by the orchestrator (D15) — implement runs in the worktree it is handed, it does not make
+mechanism is owned by the orchestrator — implement runs in the worktree it is handed, it does not make
 its own.
 
 Build in thin vertical slices — implement one piece, test it, verify it, then expand. Avoid implementing an
@@ -27,7 +27,7 @@ execution discipline that makes large features manageable.
 
 ## Inputs
 
-Implement runs **per slice, inside the worktree the orchestrator hands it** (D15 — it does not create its own
+Implement runs **per slice, inside the worktree the orchestrator hands it** (it does not create its own
 isolation; that is `worktree`, owned upstream). It consumes the Plan-stage contract cold and **refuses to run**
 if a load-bearing input is missing.
 
@@ -41,7 +41,7 @@ if a load-bearing input is missing.
 **Disciplines it applies** (consulted, not stages it consumes): `test-driven-development` (RED-GREEN-REFACTOR; test-first order is
 hook-enforced), `source-driven-development` (ground any framework/library decision in fetched official docs, as needed),
 `debugging-and-error-recovery` (five-step triage when a slice's tests break). It does **not** re-derive the
-plan, re-open the spec, or re-slice — the plan handed to it is already vertical (D23).
+plan, re-open the spec, or re-slice — the plan handed to it is already vertical.
 
 ## The Increment Cycle
 
@@ -91,7 +91,7 @@ Each slice delivers working end-to-end functionality.
 ### Skeleton-First (stub → mock → wire → fill)
 
 Within a vertical slice, build the skeleton end-to-end first, then fill it in — absorbed from cr-structure's
-build-order (D24). Each step is independently observable:
+build-order. Each step is independently observable:
 
 - **Stub** — every layer the slice touches returns a hardcoded value; the end-to-end path already runs.
 - **Mock** — swap stubs for mocks at the real boundaries; the shape of the data flows through.
@@ -100,7 +100,7 @@ build-order (D24). Each step is independently observable:
 
 This is the antidote to horizontal building (all DB, then all API, then all UI), which yields code that does
 not work end-to-end until the last step and gives you nothing to debug from in between. The plan you were
-handed is already sliced vertically (D23); skeleton-first is how you build *each* slice without silently
+handed is already sliced vertically; skeleton-first is how you build *each* slice without silently
 re-horizontalizing it. The Increment Cycle's "Verify" step is the slice's **checkpoint** — a specific
 observable fact ("submitting the form shows the inline error"), never "it compiles".
 
@@ -296,20 +296,20 @@ Per-increment verification is the local check. Before declaring a task done, app
   cold, alongside the running app and `acceptance.md`.
 - **Stable guarantees the consumer depends on:**
   - The diff stays **inside the slice's declared `Regression surface`** (from `plan.md`). Narrowing or
-    widening that surface to pass is a **gate-erosion HALT** (D29 invariant 1), not a fix.
+    widening that surface to pass is a **gate-erosion HALT**, not a fix.
   - Tests land **test-first** (the `test-driven-development` order hook enforces it) and assert **observable behavior**, never
     mock calls (testing-strategy AP1).
   - The worktree is **compilable and green at every increment checkpoint** — never left broken between slices.
-  - The slice diff stays within the **≤400 LOC** cluster cap (D29 auto-halt tripwire); if it cannot, the
+  - The slice diff stays within the **≤400 LOC** cluster cap; if it cannot, the
     slice was mis-sliced — stop and surface, do not stretch the cap.
-- **Frozen-under-retry (D29 silent-false-green defense — non-negotiable):** during this slice's bounded retry
+- **Frozen-under-retry (silent-false-green defense — non-negotiable):** during this slice's bounded retry
   rounds, `acceptance.md`, the RED tests, and the declared `Regression surface` are **immutable**. A retry
   diff that weakens an assertion, deletes a test, or narrows the surface = **HALT** (gate-erosion + reward-hack
   tripwire: the failure signature must not move only because a test/acceptance was edited while impl is
   materially unchanged). The way to green is to fix the impl (via `debugging-and-error-recovery`), never to
-  move the goalposts. No `--no-verify`, no hook edits, no `SKIP_HOOKS` (security.md / CLAUDE.md §5).
+  move the goalposts. No `--no-verify`, no hook edits, no `SKIP_HOOKS` (security.md / CLAUDE.md).
 - **`STATE.md` update:** on a green slice checkpoint, flip the slice **`impl → verify`** (gate stays `agent`)
   and hand off to `quality-verification`. If the slice cannot pass after the bounded rounds (3 implement→verify→review cycles),
   flip it **`impl → halted`** and **flip its gate `agent → you`** — the failure-escalation path is the only
-  place a human gate survives the autonomous run (D29).
+  place a human gate survives the autonomous run.
 - **Consumer:** `quality-verification` (Verify). Change the shape of what you emit → update `quality-verification` in the same commit.

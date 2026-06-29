@@ -39,5 +39,5 @@ this check at reachability.
 
 - **Reachable ≠ authorized.** This prober only proves the service is up. Whether your token is
   accepted is the job of the matching `env-var` row + the slice's own integration test, not this gate.
-- A `verify:` or `command:` cell in the manifest is **structurally illegal** (D21) — you derive the
+- A `verify:` or `command:` cell in the manifest is **structurally illegal** — you derive the
   host:port from the row's declared location, you never run a command string the manifest hands you.

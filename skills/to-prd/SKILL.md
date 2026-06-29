@@ -56,8 +56,8 @@ run `project-setup` first.
 2. **Sketch the testing seams — at product altitude.** Name the *behavioral boundaries* at which the
    feature will be proven (the public HTTP surface, a module's public interface, a CLI command's
    contract). Prefer existing seams to new ones; use the **highest** seam possible — the fewer seams, the
-   better (ideal: one). Express them as *interfaces/behaviors*, never as file paths or function signatures
-   (D18). Check with the user that these seams match their expectations (Spec is human-led).
+   better (ideal: one). Express them as *interfaces/behaviors*, never as file paths or function signatures.
+   Check with the user that these seams match their expectations (Spec is human-led).
 
 3. **Write `prd.md` from the template below**, save it to `docs/features/<slug>/prd.md`, and update
    STATE.md (see Outputs). Do **not** publish to any external issue tracker — the local STATE.md board is
@@ -104,7 +104,7 @@ State product decisions plainly ("email is the reset channel"; "tokens expire in
 is encoded by a committed prototype, reference the prototype ("as committed in the frontend-design
 prototype") — do not inline its code.
 
-HARD BOUNDARY (D18): this section — and the whole PRD — must NOT contain file paths, function/type
+HARD BOUNDARY: this section — and the whole PRD — must NOT contain file paths, function/type
 signatures, schemas-as-code, or driver/library internals. Those live in ADRs, the prototype, and later in
 plan.md. The PRD is the narrow, stable interface; the design is the deep hidden body.
 
@@ -129,7 +129,7 @@ Stop signals disguised as good reasons:
 
 - "Let me just ask the user one quick question." → No. If you need to ask, an upstream stage was skipped.
   Synthesize from `intent.md` + ADRs, or send the user back upstream. This skill never interviews.
-- "Pasting the handler signature / the file path will help the dev." → No. D18 makes that structurally
+- "Pasting the handler signature / the file path will help the dev." → No. That's structurally
   illegal in `prd.md`; it goes stale and turns the narrow interface into a shallow module. Reference the
   ADR/prototype instead.
 - "Let me re-explain *why* we chose email, the ADR is terse." → No. Restating ADR rationale duplicates a
@@ -155,21 +155,21 @@ Stop and fix before saving if any are true:
 Done when ALL hold:
 
 - `docs/features/<slug>/prd.md` exists with all six stable headers present, in order.
-- **D18 grep gate is clean:** `grep -nE '(\b[a-zA-Z0-9_]+/[a-zA-Z0-9_]+|\.ts\b|\.py\b|\.tsx\b|function |def |=> |: [A-Z][a-zA-Z]+<)' docs/features/<slug>/prd.md` returns nothing (no paths/signatures/types).
+- **grep gate is clean:** `grep -nE '(\b[a-zA-Z0-9_]+/[a-zA-Z0-9_]+|\.ts\b|\.py\b|\.tsx\b|function |def |=> |: [A-Z][a-zA-Z]+<)' docs/features/<slug>/prd.md` returns nothing (no paths/signatures/types).
 - Every `ADR-<NNN>` referenced resolves to a file in `docs/adr/`.
 - Every domain term used appears verbatim in `CONTEXT.md`.
 - The User Stories list is extensive and every entry is in `As an <actor>, I want <feature>, so that
   <benefit>` form.
 - No clarifying question was asked to make a decision (synthesis-only).
 - The Spec **gate stays `you`** — to-prd does not sign the PRD; the human signs it at the Spec gate.
-  (`spec-review` re-runs the grep gate + ADR-link check before the human reviews; D22.)
+  (`spec-review` re-runs the grep gate + ADR-link check before the human reviews.)
 
 ## Outputs & handoff contract
 
 - **Emits:** `docs/features/<slug>/prd.md` with stable sections `## Problem` · `## Solution` ·
   `## User Stories` · `## Implementation Decisions` · `## Testing Decisions` · `## Out of Scope`.
   Change a section's shape → update its consumer in the same commit (`acceptance-criteria`, `plan-breakdown`, `pull-request`).
-- **Structural invariant (D18):** `prd.md` contains no file paths, signatures, schemas-as-code, or
+- **Structural invariant:** `prd.md` contains no file paths, signatures, schemas-as-code, or
   driver/library internals; mechanism rationale is referenced by ADR id; CONTEXT.md terms used verbatim.
   ADRs + CONTEXT.md are referenced *substrate*, not chain links (no extra resume hop).
 - **STATE.md update:** add `prd.md` to the feature's `origin:` line; feature state stays `spec`; gate

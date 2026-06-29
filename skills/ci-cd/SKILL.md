@@ -35,7 +35,7 @@ modify the quality-gate pipeline.
 
 **Optional / opportunistic inputs (read value-blind if present):**
 - `environment.md` (from the `environment-manifest` skill; **Spec+Plan**) — its `env-var · service · account` rows name
-  the secrets and services the pipeline must wire into the secrets manager. Per D21 the manifest has **no value
+  the secrets and services the pipeline must wire into the secrets manager. The manifest has **no value
   column and no command column**, so you wire secret *names* to GitHub Secrets / the vault and **never** read or
   embed a literal. A row here is the only authorization to reference a secret in CI.
 - `STATE.md` slice rows — to know which slice/feature the pipeline change accompanies (execution is otherwise
@@ -212,7 +212,7 @@ Build error → Agent checks config and dependencies
 
 ## Deployment Strategies
 
-> **achilles (D29/D27):** auto-deploy is OUT of v1. The patterns below are reference scaffolding the agent
+> **achilles:** auto-deploy is OUT of v1. The patterns below are reference scaffolding the agent
 > configures but never triggers autonomously — deploy actions are fenced behind the human PR merge.
 
 ### Preview Deployments
@@ -328,7 +328,7 @@ Designate someone responsible for keeping CI green. When the build breaks, the B
 - **Required status checks:** CI must pass before merge
 - **Branch protection:** No force-pushes to main
 - **Auto-merge:** If all checks pass and approved, merge automatically
-  > NOTE (D29): in achilles, NEVER auto-merge — the terminal state is an open, risk-banded PR for async human
+  > NOTE: in achilles, NEVER auto-merge — the terminal state is an open, risk-banded PR for async human
   > merge. See ## Outputs & handoff contract.
 
 ## CI Optimization
@@ -422,17 +422,17 @@ and the **quality-gate verdict** those workflows compute on each PR/push.
 
 **How its output is consumed:**
 - The quality-gate results (lint · types · tests · build · audit · bundle-size) are the CI-side mirror of the
-  three agent-internal gates (qa · review fan-out · evaluator floors, D29); a red gate **blocks merge** via
+  three agent-internal gates (qa · review fan-out · evaluator floors); a red gate **blocks merge** via
   branch protection.
-- **Failure feedback loops to `debugging-and-error-recovery`** (D26): on a red gate the failure output is fed
+- **Failure feedback loops to `debugging-and-error-recovery`**: on a red gate the failure output is fed
   back — lint → `--fix` + commit; type/build → fix at the error site; **test failure → hand to
   `debugging-and-error-recovery`'s five-step triage**, never silence or skip the test.
 
-**Autonomy fencing (D29 — load-bearing):** the achilles agent runs Implement→Ship autonomously but terminates
+**Autonomy fencing (load-bearing):** the achilles agent runs Implement→Ship autonomously but terminates
 at an **OPEN, risk-banded PR** for async human merge. This skill's **auto-merge and deploy actions are
 reference patterns only and are FENCED behind the human merge** — the agent configures the gates and the
 rollback/flag scaffolding but **never auto-merges to `main` (branch-naming.md) and never auto-deploys
-(auto-deploy is OUT of v1)**. Secrets are wired by name only (D21); a secret literal reaching a workflow file
+(auto-deploy is OUT of v1)**. Secrets are wired by name only; a secret literal reaching a workflow file
 is a security **STOP** (security.md), not a CI-config bug.
 
 **STATE.md update:** none directly (referenced discipline). Pipeline-green is recorded as part of the slice's

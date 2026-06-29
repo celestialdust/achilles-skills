@@ -374,7 +374,7 @@ Emit **findings** (the perf axis) to `docs/features/<slug>/reviews/<SLICE-ID>-pe
   - `pass` = measured, within budget, no anti-pattern in the changed paths.
 - `## Findings` — a list; each item carries: severity (`blocker` | `major` | `minor`), a `file:line` citation into the diff, the **before/after measurement** that justifies it (numbers, not adjectives), and a recommended fix. No finding without a measurement or a named anti-pattern.
 
-Handoff: you do **not** flip `STATE.md` — the orchestrator owns the board (§4.1 / D13). It AND-combines the four Review lenses' verdicts into the slice's review gate; any `block` halts the slice's PR promotion (D29). Your contract ends at the findings file.
+Handoff: you do **not** flip `STATE.md` — the orchestrator owns the board. It AND-combines the four Review lenses' verdicts into the slice's review gate; any `block` halts the slice's PR promotion. Your contract ends at the findings file.
 
 ## Subagents
 

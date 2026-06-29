@@ -6,11 +6,11 @@ description: Use whenever you build or reshape ANY UI surface — a page, screen
 # Frontend Design
 
 ## Purpose
-**Stage: Spec (UI only).** This is the ONE skill that owns the UI (D19). It does two things with a single
+**Stage: Spec (UI only).** This is the ONE skill that owns the UI. It does two things with a single
 thesis: it **explores** throwaway variants to answer "what should this look like," then **commits ONE
 high-fidelity prototype** = the build target — and writes the **design contract** that records the aesthetic
 decisions in durable form. The same design thesis that authors the prototype here supplies the grading rubric
-`quality-verification` uses in Verify (D14 symmetry): one mind writes the UI and checks the UI. Approach this as the design lead
+`quality-verification` uses in Verify: one mind writes the UI and checks the UI. Approach this as the design lead
 at a small studio known for giving every client a visual identity that could not be mistaken for anyone
 else's — make deliberate, opinionated choices about palette, typography, and layout specific to this brief,
 and take one real aesthetic risk you can justify.
@@ -29,7 +29,7 @@ and take one real aesthetic risk you can justify.
 ## Inputs
 - **`prd.md`** (from `to-prd`) — read `Solution` and `User Stories` for what the surface must do and for whom;
   read `Out of Scope` for what NOT to design. **Refuse to run** if `prd.md` is absent (nothing to design
-  against). `prd.md` carries no file paths or signatures by contract (D18), so design freely.
+  against). `prd.md` carries no file paths or signatures by contract, so design freely.
 - **`intent.md`** (optional, from `interview-me`) — `Outcome · User · Why` ground the subject. If memory holds
   the human's preferences or prior designs, use them as a hint.
 - If `prd.md` describes **no UI surface**, emit nothing and hand back "no UI — skip frontend-design."
@@ -52,7 +52,7 @@ full mechanism (sub-shapes, the switcher, NODE_ENV gating, cleanup) is in
 `references/exploring-variants.md`. The interesting feedback is usually "the header from B with the sidebar
 from C" — that's the actual design. Do most of this iteration in your thinking; only show the user ideas you
 have high confidence will delight them. **Exploration is scratch you discard** — only the committed prototype
-survives (D19).
+survives.
 
 ### Phase 2 — Plan the design (two-pass)
 First, brainstorm a compact **token system** for the chosen direction:
@@ -77,11 +77,11 @@ tokens). Apply Chanel's rule: before you ship it, remove one accessory.
 
 ### Phase 4 — Write the design contract
 Record the locked decisions as the **design contract** (see the section below), `status: draft`. This is the
-ONLY home for design floors/rubric/fidelity (D20) — none of it goes into `acceptance.md`. The human signs it
+ONLY home for design floors/rubric/fidelity — none of it goes into `acceptance.md`. The human signs it
 at the Spec gate (`status: signed`).
 
 ## Design rubric (= the design contract's stable sections AND the Verify grading axes)
-These seven axes are written here in Spec and **re-read by `quality-verification` in Verify** (D14/D20): quality-verification grades the built UI
+These seven axes are written here in Spec and **re-read by `quality-verification` in Verify**: quality-verification grades the built UI
 against (i) fidelity to this committed prototype and (ii) these axes. Fill every one in the contract.
 
 1. **Distinctiveness / not-an-AI-default.** The hero is a thesis: open with the most characteristic thing in
@@ -125,9 +125,9 @@ register conversational and tuned — plain verbs, sentence case, no filler. Let
   the look is genuinely open, structurally-different variants are how you find the non-obvious answer; "three
   tweaked card grids isn't a prototype, it's wallpaper."
 - *"I'll put the accessibility/responsive requirements in acceptance.md so quality-verification tests them."* → No. ALL design
-  floors live in this contract (D20); `acceptance.md` is behavioral-only. quality-verification reads the contract for the design
+  floors live in this contract; `acceptance.md` is behavioral-only. quality-verification reads the contract for the design
   gate.
-- *"The exploration variants are good code, I'll keep them around."* → Exploration is throwaway (D19). Delete
+- *"The exploration variants are good code, I'll keep them around."* → Exploration is throwaway. Delete
   the losers and the switcher; only the committed prototype survives.
 - *"Not taking a risk is the safe move."* → Not taking a risk is itself a risk; the client already rejected
   templated proposals.
@@ -150,15 +150,15 @@ Done when ALL hold:
 - A **design contract** exists with all seven stable sections filled (`Distinctiveness · Typography ·
   Structure-as-information · Motion · Quality floor · Restraint · Copy-as-design-material`), `status: draft`,
   naming which AI-default cluster (if any) was used and why it's a choice.
-- **No** design content leaked into `acceptance.md` (behavioral-only — D20). The contract is the sole design
+- **No** design content leaked into `acceptance.md` (behavioral-only). The contract is the sole design
   home.
 - The contract is a **separable artifact** `quality-verification` can re-read cold in Verify (where the design gate binds).
 - Handed to the human for sign-off at the Spec gate; on sign-off `status: signed`. (`test-driven-development`/`quality-verification` refuse an
-  unsigned or absent contract — D20.)
+  unsigned or absent contract.)
 
 ## Outputs & handoff contract
 - **Emits:** (1) a committed high-fidelity prototype = the build target; (2) the **design contract** — the
-  **5th** signed Spec artifact (UI-only; D20) — written to `docs/features/<slug>/design-contract.md`.
+  **5th** signed Spec artifact (UI-only) — written to `docs/features/<slug>/design-contract.md`.
 - **Stable sections** (consumers depend on these names): `Distinctiveness · Typography ·
   Structure-as-information · Motion · Quality floor (responsive/visible-focus/reduced-motion) · Restraint ·
   Copy-as-design-material`; plus `status: draft|signed`. Change a section's shape → update `quality-verification`'s design-gate

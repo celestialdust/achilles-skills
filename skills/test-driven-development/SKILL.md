@@ -7,7 +7,7 @@ description: Rigid RED-GREEN-REFACTOR test-first loop. Use when implementing ANY
 
 ## Purpose
 
-**Stage: Implement — the rigid core loop, applied inside every `incremental-implementation` slice (D24).**
+**Stage: Implement — the rigid core loop, applied inside every `incremental-implementation` slice.**
 
 Write the test first. Watch it fail. Write minimal code to pass.
 
@@ -16,7 +16,7 @@ Write the test first. Watch it fail. Write minimal code to pass.
 This is the suite's one non-negotiable loop. Everything upstream (intent → prd → `acceptance.md`)
 converges here: each signed Given/When/Then scenario becomes a *failing* test before a line of
 production code exists, realized by judgment in the project's real test framework — there is **no
-Cucumber/step-def engine** (D12). In the autonomous run (D29) no human watches you code, so the only
+Cucumber/step-def engine**. In the autonomous run no human watches you code, so the only
 proof a test tests something real is that you saw it go RED first.
 
 **Violating the letter of the rules is violating the spirit of the rules.**
@@ -239,7 +239,7 @@ Next failing test for the next scenario / feature.
 | **Clear** | Name describes behavior + scenario id | `test('test1')` |
 | **Shows intent** | Demonstrates desired API | Obscures what code should do |
 
-## Frozen artifacts under retry (D29 — gate-erosion is a HALT)
+## Frozen artifacts under retry (gate-erosion is a HALT)
 
 In the autonomous run no human watches you grade your own work, so the RED tests are a human-anchored
 oracle that must not drift. Three things are **immutable while a slice is in its retry loop**:
@@ -288,7 +288,7 @@ this do?"; tests-first answer "what should this do?" Tests-after are biased by y
 | "Test hard = design unclear" | Listen to the test. Hard to test = hard to use. |
 | "TDD will slow me down" | TDD faster than debugging. Pragmatic = test-first. |
 | "Existing code has no tests" | You're improving it. Add tests for existing code. |
-| "Just relax the assertion so the slice ships" | **Gate-erosion HALT (D29).** The RED test is frozen. Fix the code or halt the slice. |
+| "Just relax the assertion so the slice ships" | **Gate-erosion HALT.** The RED test is frozen. Fix the code or halt the slice. |
 
 ## Red flags
 
@@ -383,8 +383,8 @@ PASS
 ### Debugging Integration
 
 Bug found? Write a failing test reproducing it, then follow the TDD cycle. The test proves the fix and
-prevents regression. **Never fix bugs without a test** — this also feeds `debugging-and-error-recovery`
-(D26): the reproducer test is the "guard" step.
+prevents regression. **Never fix bugs without a test** — this also feeds `debugging-and-error-recovery`:
+the reproducer test is the "guard" step.
 
 ### Final Rule
 
@@ -408,7 +408,7 @@ Otherwise → not TDD
 - The RED tests + `acceptance.md` + `Regression surface` are now the slice's **frozen oracle** (see
   *Frozen artifacts under retry*).
 - A scenario **not reachable** in this slice is **not silently skipped** — record its id so `qa.md` and
-  the PR body carry the required not-reachable ack (D29).
+  the PR body carry the required not-reachable ack.
 
 **STATE.md:** `test-driven-development` does not drive the board itself (the `orchestrator` owns `STATE.md`). It runs while
 the slice is `impl`; on green-and-pristine the slice is ready for `incremental-implementation` to complete and hand to

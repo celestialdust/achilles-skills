@@ -46,7 +46,7 @@ Refuse to run unless ALL of these resolve:
   converges on the house style instead of imposing a foreign one (Principle 2). Simplification that
   breaks project consistency is churn, not simplification.
 
-**Frozen under this skill (D29 silent-false-green invariant):** `acceptance.md`, the RED/passing tests,
+**Frozen under this skill (silent-false-green invariant):** `acceptance.md`, the RED/passing tests,
 and the declared `Regression surface` are IMMUTABLE here. A "simplification" that edits a test, weakens
 an assertion, or widens/narrows the surface is **gate-erosion → HALT**: stop, flip the slice's gate
 column to `you`, and surface it. The whole point of this skill is to make the code simpler until the
@@ -376,5 +376,5 @@ changed; no error handling removed or weakened; the "after" is genuinely easier 
 **STATE.md:** this skill writes **no** `STATE.md` row of its own. The orchestrator owns the slice's
 `review` state and advances it only when every review axis (this skill, `code-review`, `security-and-hardening`,
 `performance-optimization`) returns non-blocking; a `halt` from this axis bounces the slice back to Implement (bounded
-rounds, D29). Stable sections other skills depend on: none beyond the `## Verification` checklist
+rounds). Stable sections other skills depend on: none beyond the `## Verification` checklist
 below, which is the done-predicate.

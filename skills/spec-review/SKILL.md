@@ -5,7 +5,7 @@ description: Use this LAST in the Spec stage, before the human signs off — a f
 
 ## Purpose
 
-**Stage: Spec — the last skill before the human Spec sign-off.** In the D29 autonomy model the
+**Stage: Spec — the last skill before the human Spec sign-off.** In the autonomy model the
 downstream run is fully autonomous: `acceptance.md` (plus the rest of the signed bundle) is the **sole
 human-anchored oracle** the agent cannot out-vote. A human reviewing a spec littered with stray file
 paths, dangling ADR refs, placeholder TODOs, and coverage gaps burns scarce attention on mechanical
@@ -13,7 +13,7 @@ defects instead of the judgment calls only a human can make. `spec-review` is a 
 (maker≠checker)** — never the agent that authored the spec — that **fixes the spec before the human sees
 it**: decidable facts are silently corrected; contestable judgment is corrected **and flagged inline**.
 The human then reviews a clean spec and spends attention where it counts. The silent-re-authoring risk is
-resolved by making judgment changes **visible**, not by withholding the fix (D22).
+resolved by making judgment changes **visible**, not by withholding the fix.
 
 ## When to use / when to skip
 
@@ -56,7 +56,7 @@ this stage exists").
    to-prd. Read the bundle in the order above — `intent.md` first.
 2. **Grade relationally.** For each downstream artifact ask: does it deliver what `intent.md` asked for?
    Walk the four classic axes (placeholders · internal consistency · scope · ambiguity) PLUS the
-   artifact-boundary rules (D18/D20/D21) and the coverage ledger (D29).
+   artifact-boundary rules and the coverage ledger.
 3. **Classify every issue** as **Decidable (fact)** or **Contestable (judgment)** — see the split table.
 4. **Decidable facts → auto-fix in place**, then re-run the **deterministic re-check** (grep) until it
    converges. Greppable, so it converges cheaply. No inline flag — it was simply wrong.
@@ -71,18 +71,18 @@ this stage exists").
 
 | Issue | Class | Action |
 |---|---|---|
-| File path / signature / driver-or-library internal appears in `prd.md` (D18: prd MUST NOT contain these) | **Decidable** | Strip it; re-home to an ADR reference. Re-check: grep `prd.md` for paths/extensions/signatures. |
+| File path / signature / driver-or-library internal appears in `prd.md` (prd MUST NOT contain these) | **Decidable** | Strip it; re-home to an ADR reference. Re-check: grep `prd.md` for paths/extensions/signatures. |
 | Dangling `see ADR-NNN` — referenced ADR file does not exist | **Decidable** | Fix the ref or create the missing ADR pointer. Re-check: cross every `ADR-\d+` in prd.md against `docs/adr/`. |
-| `CONTEXT.md` `## Glossary` term used non-verbatim in `prd.md` | **Decidable** | Normalize to the exact `## Glossary` term (D18: prd uses CONTEXT terms verbatim). |
+| `CONTEXT.md` `## Glossary` term used non-verbatim in `prd.md` | **Decidable** | Normalize to the exact `## Glossary` term (prd uses CONTEXT terms verbatim). |
 | Placeholder / `TODO` / `TBD` / incomplete section | **Decidable** | Fill from context or remove. |
-| Value or command embedded in `environment.md` (D21: no value column, no command column — structurally illegal) | **Decidable** | Remove. If it is a real secret → also a security STOP (see Red flags). |
-| `acceptance.md` scenario contains a file path / signature / table (D20: behavioral-only) | **Decidable** | Rewrite as an observable outcome. |
-| Acceptance **coverage gap**: a `prd.md` user story or `intent.md` success-criterion with no scenario (D29: every story must map to ≥1 reachable scenario) | **Contestable** | Draft the missing scenario; **flag it inline**. |
+| Value or command embedded in `environment.md` (no value column, no command column — structurally illegal) | **Decidable** | Remove. If it is a real secret → also a security STOP (see Red flags). |
+| `acceptance.md` scenario contains a file path / signature / table (behavioral-only) | **Decidable** | Rewrite as an observable outcome. |
+| Acceptance **coverage gap**: a `prd.md` user story or `intent.md` success-criterion with no scenario (every story must map to ≥1 reachable scenario) | **Contestable** | Draft the missing scenario; **flag it inline**. |
 | **ADR-worthiness**: a hard-to-reverse ∧ surprising decision buried in prd prose instead of an ADR | **Contestable** | Propose extracting an ADR; **flag**. |
 | **One feature or two**: `intent.md` describes two independent subsystems crammed into one spec | **Contestable** | Propose the split; **flag**. |
 | Internal contradiction between `prd.md` and an ADR or `acceptance.md` | **Contestable** | Reconcile to one side; **flag the chosen side**. |
 
-## ADR-open check (D18 risk mitigation / §4.2 handoff)
+## ADR-open check (risk mitigation / handoff)
 
 Design now lives in **referenced** ADRs that the single Spec gate does not name — so the gate could
 rubber-stamp design it never opened. `spec-review` closes that gap: verify every `see ADR-NNN` in `prd.md`
@@ -94,7 +94,7 @@ the gate. ADR cross-refs are immutable once written — rename/supersede → upd
 
 - *"The spec looks clean, I'll skip the relational pass."* → The whole value is a fresh code-cold read;
   the author can't see their own gaps. Do the full grade against `intent.md`.
-- *"I'll just list the issues for the human."* → No. Hand back a **cleaned spec, not a punch-list** (D22).
+- *"I'll just list the issues for the human."* → No. Hand back a **cleaned spec, not a punch-list**.
   Apply the fix.
 - *"This judgment call is too risky to change."* → Apply your best correction **and** flag it inline; the
   human reverts if they disagree. Withholding the fix IS the failure mode.
@@ -130,7 +130,7 @@ Done when ALL hold:
 
 - **Emits — fixed spec:** the bundle artifacts (`prd.md`, `acceptance.md`, `environment.md`, `CONTEXT.md`,
   ADRs) edited in place; decidable facts silently corrected, contestable judgments corrected + inline-flagged.
-- **Emits — `spec-review.md`:** ephemeral, **OUT of the resume-spine** (not a chain link; D22). Stable
+- **Emits — `spec-review.md`:** ephemeral, **OUT of the resume-spine** (not a chain link). Stable
   sections: `## Auto-fixed (facts)` · `## Flagged (judgment — revert if you disagree)` · `## Coverage
   ledger` (scenario↔story map + any not-reachable classification) · `## Open the referenced ADRs`.
 - **Not a gate:** `spec-review` does **not** flip STATE.md feature state. The human Spec sign-off does that

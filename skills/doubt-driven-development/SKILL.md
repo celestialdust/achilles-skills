@@ -11,8 +11,8 @@ A confident answer is not a correct one. Long sessions accumulate context that q
 
 This is not `/review`. `/review` is a verdict on a finished artifact. This is an in-flight posture: non-trivial decisions get cross-examined while course-correction is still cheap.
 
-Stage: **in-flight**, applied during **Plan** and **Implement** (D25). doubt is NOT a merge gate and is
-NOT one of the three agent-internal SHIP gates (quality-verification · Review fan-out · evaluator floors, D29) — its whole
+Stage: **in-flight**, applied during **Plan** and **Implement**. doubt is NOT a merge gate and is
+NOT one of the three agent-internal SHIP gates (quality-verification · Review fan-out · evaluator floors) — its whole
 value is firing *before* a decision reaches a gate, while reversing it is still cheap.
 
 ## When to use / when to skip
@@ -65,7 +65,7 @@ no doubt cycle. `depth: lite` — the refuse-to-run test is the **triviality tes
 
 This skill is designed for the **main-session orchestrator**, where Step 3 (DOUBT, detailed below) can spawn a fresh-context reviewer.
 
-- doubt runs from the **main-session orchestrator** (D15/D24) — the context that can spawn a fresh subagent for Step 3. Do not bury doubt inside a subagent: a subagent that reaches Step 3 cannot spawn a nested subagent (Claude Code blocks nested spawn), so its "fresh-context" review silently degrades to self-questioning — the orchestration anti-pattern named in `../../references/orchestration-patterns.md` (a subagent invoking another subagent).
+- doubt runs from the **main-session orchestrator** — the context that can spawn a fresh subagent for Step 3. Do not bury doubt inside a subagent: a subagent that reaches Step 3 cannot spawn a nested subagent (Claude Code blocks nested spawn), so its "fresh-context" review silently degrades to self-questioning — the orchestration anti-pattern named in `../../references/orchestration-patterns.md` (a subagent invoking another subagent).
 - **If you find yourself applying this skill from inside a subagent context** (where Claude Code prevents nested subagent spawn): the preferred path is to surface to the user that doubt-driven cannot run nested and let the main session handle it. As a last resort only, a degraded self-questioning fallback exists — rewrite ARTIFACT + CONTRACT as a fresh self-prompt with a hard mental separator from your prior reasoning, and walk Steps 1–5. This is **not fresh-context review** (you carry your own context with you), so flag the result as degraded and prefer escalation whenever the user is reachable.
 
 ## The Process
@@ -127,7 +127,7 @@ CONTRACT: <paste contract>
 
 **Pass ARTIFACT + CONTRACT only. Do NOT pass the CLAIM.** Handing the reviewer your conclusion biases it toward agreement. The reviewer must independently determine whether the artifact satisfies the contract.
 
-Dispatch the reviewer as a **fresh, code-cold subagent** — the same fresh-context-per-subagent isolation the Review fan-out uses (D25; see `../../references/orchestration-patterns.md`). The house has no personas to reuse; the reviewer is a generic fresh-context subagent that starts with isolated context by design, handed the adversarial prompt below.
+Dispatch the reviewer as a **fresh, code-cold subagent** — the same fresh-context-per-subagent isolation the Review fan-out uses (see `../../references/orchestration-patterns.md`). The house has no personas to reuse; the reviewer is a generic fresh-context subagent that starts with isolated context by design, handed the adversarial prompt below.
 
 The subagent's default instinct is a balanced verdict (strengths + weaknesses); doubt needs **issues-only** output. Paste the adversarial prompt verbatim so it governs the response shape — the subagent finds issues, or states it cannot after thorough examination, and nothing else.
 
@@ -278,8 +278,8 @@ is recorded by that author in its own artifact (plan.md / the diff / a documente
 **STATE.md:** doubt drives **NO** gate transition. It is the in-flight adversarial posture during
 Plan/Implement, deliberately distinct in timing from the merge-time Review fan-out (`code-review` ·
 `code-simplification` · `security-and-hardening` · `performance-optimization`) and from the three agent-internal SHIP gates (quality-verification · Review fan-out ·
-evaluator floors, D29). doubt sets neither `slice state` nor `gate`. A *valid + actionable* finding it
-surfaces is resolved **before** the slice ever reaches a gate — that is the point (D25).
+evaluator floors). doubt sets neither `slice state` nor `gate`. A *valid + actionable* finding it
+surfaces is resolved **before** the slice ever reaches a gate — that is the point.
 
 **Handoff:** the bounded loop ends on a Step 5 STOP condition (only trivial/already-considered findings,
 3 cycles completed, or user override). On 3 unresolved cycles, **escalate to the user** rather than grind a

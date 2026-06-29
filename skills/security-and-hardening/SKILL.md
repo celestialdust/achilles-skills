@@ -7,7 +7,7 @@ description: 'Audits a code diff for security vulnerabilities before it can ship
 
 ## Purpose
 
-**Stage:** Review (agent fan-out) — one of three internal gates (with `code-review`, `performance-optimization`); D25/D29.
+**Stage:** Review (agent fan-out) — one of three internal gates (with `code-review`, `performance-optimization`).
 
 Security-first development practices for web applications. Treat every external input as hostile, every secret as sacred, and every authorization check as mandatory. Security isn't a phase — it's a constraint on every line of code that touches user data, authentication, or external systems.
 
@@ -31,7 +31,7 @@ Security-first development practices for web applications. Treat every external 
 - The slice id and its frozen **`Regression surface`** (from `STATE.md` / `plan.md`) — lets a CRITICAL/secret be localized to this slice vs. classified repo-wide.
 - `acceptance.md` security-observable scenarios — when the feature has LLM or untrusted-input surfaces, to know which abuse cases were promised.
 
-**Dispatch contract (D25):** you run as a **fresh, code-cold subagent in parallel** on the security axis (maker≠checker; `parallelism.md` mech f) with **no test-write access**. You read the diff cold — you do not see the implementer's reasoning, and you must not weaken any test or the frozen `acceptance.md`/`Regression surface` to make a finding go away (that is gate-erosion, D29).
+**Dispatch contract:** you run as a **fresh, code-cold subagent in parallel** on the security axis (maker≠checker; `parallelism.md` mech f) with **no test-write access**. You read the diff cold — you do not see the implementer's reasoning, and you must not weaken any test or the frozen `acceptance.md`/`Regression surface` to make a finding go away (that is gate-erosion).
 
 ## Process: Threat Model First
 
@@ -449,7 +449,7 @@ After implementing security-relevant code:
 - `## Findings` — table `id · severity {CRITICAL|HIGH|MEDIUM|LOW} · OWASP/LLM ref · file:line · remediation`. Feature-namespaced ids (e.g. `SEC-PWR-1`), each mapping to a boundary in the three-tier system.
 - `## Three-tier audit` — Always-Do / Ask-First / Never-Do verdicts (the body's boundary system applied to this diff).
 
-**Gate wiring (D29) — security is a circuit-breaker leg of the SHIP AND-conjunction (it overrides any averaging; there is no "net pass"):**
+**Gate wiring — security is a circuit-breaker leg of the SHIP AND-conjunction (it overrides any averaging; there is no "net pass"):**
 - A localized **CRITICAL or HIGH** finding, **or any secret in the diff** ⇒ `## Verdict: STOP` + `## Circuit-breaker: slice-halt-no-PR` ⇒ the slice goes `halted` in `STATE.md`, **no retry, never a PR**, and tops the run's risk report.
 - An **exposed/committed secret with repo-wide blast radius** ⇒ `## Circuit-breaker: repo-wide-secret-STOP` ⇒ fire a **PushNotification**, **freeze the next wave barrier**, open **no further PRs** (security.md's literal STOP). Fix is **rotate-then-purge**, never delete-the-line.
 - `## Verdict: block` (MEDIUM/LOW only, no secret) ⇒ findings flow into the slice's bounded retry loop as required fixes; the frozen `acceptance.md` / RED tests / `Regression surface` are **immutable** during retry (weakening them = gate-erosion HALT).
@@ -457,7 +457,7 @@ After implementing security-relevant code:
 
 **STATE.md update:** on STOP, flip the slice to `halted` (and, for a repo-wide secret, freeze the barrier); on `pass`, append `security-findings.md` to the slice's Artifacts column and leave the gate decision to the three-leg AND-conjunction.
 
-**References:** `../../references/security-checklist.md` (carried per D28) — the pre-commit / OWASP / OWASP-LLM quick-reference this skill cites.
+**References:** `../../references/security-checklist.md` (carried) — the pre-commit / OWASP / OWASP-LLM quick-reference this skill cites.
 
 ## Subagents
 

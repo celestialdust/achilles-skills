@@ -5,14 +5,14 @@ description: Compact the current session into a cold-start handoff the MOMENT co
 
 ## Purpose
 
-Stage: **cross-cutting · per-session handoff layer (D10).**
+Stage: **cross-cutting · per-session handoff layer.**
 
 A context window fills, a session pauses, or you are about to `/clear` — and the live
 conversation, the only place the working state lives, is about to vanish. This skill compacts
 that conversation into a **cold-start document a fresh agent resumes from with zero prior
 context**.
 
-It is the **per-session** half of the two-layer handoff (spec §4.2, D10). The other half — the
+It is the **per-session** half of the two-layer handoff. The other half — the
 per-stage artifact chain (`intent.md → prd.md → … → qa.md`) and `STATE.md` — carries *structural*
 state turn-to-turn. This skill carries the *session's working state*: the decision just made, the
 half-finished thought, the single next move that those durable artifacts do not yet hold. Written
@@ -27,7 +27,7 @@ in the **N14 5-field schema** so it pairs with (and can BE) `docs/session-state.
 
 **Skip when:**
 - `STATE.md` + the per-stage artifact chain already capture everything. An autonomous orchestrator
-  run is resumable from `STATE.md` alone (D29: auto-compaction + ~1M context — no handoff-resume
+  run is resumable from `STATE.md` alone (auto-compaction + ~1M context — no handoff-resume
   loop). Do not write a handoff just to restate `STATE.md`.
 - The work is one atomic step you will finish this turn.
 
@@ -61,7 +61,7 @@ durable artifacts FIRST** so you reference them by path rather than copy their b
 4. **Add `## Suggested skills`** — name the skills the fresh agent should invoke next (e.g. resume
    Spec → `spec-review`, `to-prd`; resume Plan → `plan-breakdown`, `codebase-research`).
 5. **Redact.** Replace every API key, token, password, and PII with `[REDACTED]`. For environment
-   needs, point at `environment.md` (typed manifest, no value column, D21) — never carry a value
+   needs, point at `environment.md` (typed manifest, no value column) — never carry a value
    into the handoff.
 6. **Tailor to the argument** if one was passed — bias `Current state` / `Next phase` toward that
    next-session focus.

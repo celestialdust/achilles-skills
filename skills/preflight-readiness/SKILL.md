@@ -7,7 +7,7 @@ description: Environment-readiness gate that blocks an autonomous wave until eve
 
 Stage: **cross-cutting gate** — the entry condition on the orchestrator's first wave barrier.
 
-The autonomous run (D29) happens while the human is AFK. If the environment is not
+The autonomous run happens while the human is AFK. If the environment is not
 provisioned, every slice fails the same way and burns the entire per-slice retry budget
 (2/gate, 3 cycles/slice) on a problem no code change can fix. preflight exists to convert
 "the environment is not ready" from a silent mid-run cascade into **one up-front go/no-go
@@ -39,7 +39,7 @@ not assumed.
 Refuse-to-run (CRISPY refuse-to-run; fail-safe deny) unless ALL hold:
 - `environment.md` exists for the feature about to build.
 - Every row's `kind` is inside the closed enum `{env-var|mcp|service|runtime-dep|fixture|account}`.
-- The manifest has **no value column and no command column** (D21). A `value:` or `verify:`/
+- The manifest has **no value column and no command column**. A `value:` or `verify:`/
   `command:` cell is **structurally illegal** — do NOT run it, do NOT read it; refuse and send
   the manifest back to `environment-manifest` to be re-authored. (A free-text command run unattended at
   the AFK boundary is exactly the attack this manifest shape was designed to make impossible.)
@@ -66,13 +66,13 @@ the manifest gives it no value to read). Then apply the verdict gate.
 | [`fixture`](references/probers/fixture.md) | named seed/fixture exists at its declared location | present | missing | — |
 | [`account`](references/probers/account.md) | external account usable WITHOUT spending paid quota or a human-only step | value-blind reachability passes | known-bad | un-probeable (needs `manual`) |
 
-**The verdict gate (fail-safe deny — `design-principles.md` §11):**
+**The verdict gate (fail-safe deny — `design-principles.md`):**
 - **All rows green** (or `manual`-attested OK) → **GO**. The orchestrator may start the wave.
 - **Any red** → **NO-GO** + a per-row remediation checklist. The orchestrator does not dispatch.
 - **Amber** → **NO-GO** *unless* the human has resolved it via `manual <question>` (below).
   Un-attested amber denies. Default is deny; a green start is never the default.
 
-**OCP discipline (D21; `design-principles.md` §12):**
+**OCP discipline (`design-principles.md`):**
 - A new external dependency = **a new ROW** in `environment.md`. preflight does not change.
 - A genuinely new *check primitive* = **a new prober FILE** (`references/probers/<kind>.md`)
   plus a new enum member — never an `if`-branch grafted onto an existing prober, and never a
@@ -82,7 +82,7 @@ the manifest gives it no value to read). Then apply the verdict gate.
 secret value. A prober that *needs* the value to do its job is mis-designed — re-scope it to a
 presence/reachability check. The verdict and ledger are guaranteed secret-free.
 
-**Stall-recovery (CQS — `design-principles.md` §7):** the **probers** are pure queries — asking does
+**Stall-recovery (CQS — `design-principles.md`):** the **probers** are pure queries — asking does
 not change state, so re-firing preflight mid-run whenever an env regression is suspected is always
 safe. The "never mutates" claim is scoped to the probers; the **gate action** (recording the go/no-go
 verdict + ledger and flipping the gate) is preflight's only write, and it is idempotent under re-fire —
@@ -109,7 +109,7 @@ This is the *only* way amber becomes go.
 - "This service needs a slightly different check — I'll add an if-branch to the service prober."
   → **OCP violation.** New check primitive = new prober file + enum member.
 - "environment.md has a `verify:` command — I'll just run it to be thorough." → That column is
-  **structurally illegal** (D21). Refuse-to-run; the manifest goes back to `environment-manifest`.
+  **structurally illegal**. Refuse-to-run; the manifest goes back to `environment-manifest`.
 
 ## Red flags
 
@@ -131,7 +131,7 @@ Done when ALL hold:
 - The per-row ledger and verdict are written; **no secret value appears anywhere** in the output.
 
 BDD bind: the gate predicate is *"the wave may start ⟺ go"*. The orchestrator refuses to
-dispatch the first wave on a no-go (this gate is the wave barrier's entry condition, D29).
+dispatch the first wave on a no-go (this gate is the wave barrier's entry condition).
 
 ## Outputs & handoff contract
 

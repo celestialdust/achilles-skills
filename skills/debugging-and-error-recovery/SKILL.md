@@ -30,7 +30,7 @@ What it requires before it may run:
 - **Caller context** — who invoked this and why:
   - from `incremental-implementation` — a slice's RED/GREEN test broke, or the build broke mid-slice; or
   - from `quality-verification` — a behavioral scenario came back failing / not-reachable in the `qa.md` ledger.
-- **The frozen-artifact set, when inside a retry loop (D29).** If this triage runs as part of a
+- **The frozen-artifact set, when inside a retry loop.** If this triage runs as part of a
   slice's bounded retry, treat `acceptance.md`, the slice's RED tests, and the declared
   `regression_surface` as IMMUTABLE inputs. They constrain the fix; they are not yours to edit.
   A "fix" that weakens an assertion, relaxes a scenario, or narrows the regression surface is
@@ -321,7 +321,7 @@ After fixing a bug:
 
 ## Outputs & handoff contract
 
-**Emits: `fix` + `guard`** (registry §4). It writes no chain artifact of its own — the products land
+**Emits: `fix` + `guard`**. It writes no chain artifact of its own — the products land
 in the caller's worktree and travel through the caller's handoff:
 
 - **`fix`** — a root-cause code change (Step 4), never a symptom patch. Confined to the caller's
@@ -341,5 +341,5 @@ in the caller's worktree and travel through the caller's handoff:
 **STATE.md:** this skill writes **no** `STATE.md` row of its own. The caller owns the slice's state
 transition — the slice stays in `impl`/`verify` while triage runs and leaves `halted` only when the
 caller's gate passes (or, on the gate-erosion / round-exhaustion path, its gate column flips
-`agent → you` per D29). Stable sections other skills depend on: none beyond the `## Verification`
+`agent → you`). Stable sections other skills depend on: none beyond the `## Verification`
 checklist below, which is the done-predicate.

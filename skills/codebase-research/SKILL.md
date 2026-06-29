@@ -7,7 +7,7 @@ description: Map the codebase/DB exactly as it is today — a goal-blind, fact-o
 
 ## Purpose
 
-Stage: **Plan** (first skill; the human owns Plan per D29). Produce one file —
+Stage: **Plan** (first skill; the human owns Plan). Produce one file —
 `docs/features/<slug>/research.md` — a **compressed, fact-only description of how the relevant code
 works today**: call graphs, data shapes, external-API behavior, installed packages, prior art already
 present. It is NOT a design, a recommendation, or a comparison of options. If a sentence could be argued

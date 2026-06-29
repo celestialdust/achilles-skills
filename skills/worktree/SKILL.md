@@ -7,7 +7,7 @@ description: Use the instant a slice is about to be implemented and needs its ow
 
 ## Purpose
 
-**Stage: Implement — the isolation MECHANISM the `orchestrator` owns (D15/D24).** Before a
+**Stage: Implement — the isolation MECHANISM the `orchestrator` owns.** Before a
 slice is implemented it needs a workspace that (1) cannot corrupt the human's current branch and
 (2) starts from a *known-clean* baseline. Without (1), two parallel slices in a wave clobber each
 other's working tree; without (2), the agent cannot tell a bug it just introduced from one that was
@@ -74,7 +74,7 @@ git rev-parse --show-superproject-working-tree 2>/dev/null
 
 ### Step 1: Create the isolated workspace (native → git, in that order)
 
-**1a. Native worktree tool (preferred, D15).** Do you have a tool to create a worktree — e.g.
+**1a. Native worktree tool (preferred).** Do you have a tool to create a worktree — e.g.
 `EnterWorktree`, a `/worktree` command, or the **Claude Code Workflow feature** running with
 `isolation: 'worktree'`? If so, USE IT and skip to Step 2. Native tools handle placement, branch
 creation, and cleanup; running `git worktree add` on top of one creates phantom state the harness
@@ -150,7 +150,7 @@ Ready to implement <slice-id>
 | Baseline tests fail | Report + ask; do NOT implement |
 | No `package.json`/`Cargo.toml`/… | Skip dependency install |
 
-## Platform adaptivity (D15)
+## Platform adaptivity
 
 The mechanism is substrate-agnostic; only the *create* primitive changes — the detect/setup/baseline
 discipline is identical:
@@ -203,7 +203,7 @@ Done when ALL hold:
 
 - **Emits → `worktree`** (registry artifact): a live isolated workspace = `{absolute path, branch,
   baseline: pass|fail}`. It is infrastructure, not a markdown file.
-- **Consumers:** the **`orchestrator`** (owns the mechanism, D15/D24 — receives the ready-report and
+- **Consumers:** the **`orchestrator`** (owns the mechanism — receives the ready-report and
   dispatches the slice into it) and **`incremental-implementation`** (runs *inside* the handed worktree; never creates
   its own).
 - **STATE.md:** worktree provisioning adds **no new state token** — it is a sub-step of a slice

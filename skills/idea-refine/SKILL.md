@@ -38,7 +38,7 @@ Use this when an idea is still vague, when you need to stress-test assumptions b
 - "Stress-test my plan"
 - "Help me think through [X]"
 
-idea-refine is **optional** (D17a) — like `interview-me`, it is one of two front doors into the Ideate stage, not a mandatory gate. Reach for it when the idea needs sharpening.
+idea-refine is **optional** — like `interview-me`, it is one of two front doors into the Ideate stage, not a mandatory gate. Reach for it when the idea needs sharpening.
 
 **Skip it when:**
 - The idea is already sharp and well-understood — open `spec-grilling` directly.
@@ -48,7 +48,7 @@ idea-refine is **optional** (D17a) — like `interview-me`, it is one of two fro
 
 idea-refine is an OPTIONAL Ideate-stage front door. It accepts EITHER of:
 - An existing `docs/features/<slug>/intent.md` (originated by `interview-me`) to sharpen, OR
-- A raw idea supplied directly in the invoking prompt (when `interview-me` was skipped — D17a).
+- A raw idea supplied directly in the invoking prompt (when `interview-me` was skipped).
 
 **Refuse-to-run ONLY if both are absent** (there is nothing to refine). If an `intent.md` exists, read it
 FIRST and treat its `Outcome · User · Why · Success · Constraints · Out-of-scope` as the starting point —
@@ -114,7 +114,7 @@ After the user reacts to Phase 1 (indicates which ideas resonate, pushes back, a
 #### Phase 3: Sharpen & Ship
 
 Produce the concrete artifact — write (or refine IN PLACE) the SHARED `intent.md`. Use EXACTLY these six
-stable section headings (the contract `spec-grilling`/`to-prd` consume — D17):
+stable section headings (the contract `spec-grilling`/`to-prd` consume):
 
 ```markdown
 # [Idea Name]
@@ -188,7 +188,7 @@ After completing an ideation session:
 
 ## Outputs & handoff contract
 
-**Emits:** `docs/features/<slug>/intent.md` — the SHARED Ideate artifact (D17). idea-refine NEVER creates a
+**Emits:** `docs/features/<slug>/intent.md` — the SHARED Ideate artifact. idea-refine NEVER creates a
 separate one-pager (no `docs/ideas/...`); it writes/refines `intent.md` in place so `spec-grilling` consumes a
 single, sharper artifact cold.
 

@@ -9,12 +9,12 @@ Stage: **cross-cutting / setup** (one-time). Every downstream skill reads and wr
 the `STATE.md` board (what's in flight + who owns the next action), the per-feature artifact directories,
 and the repo-wide design substrate (`CONTEXT.md` glossary + `docs/adr/`). If that substrate doesn't exist,
 each skill has to re-derive "where do issues live / where's the glossary / where do ADRs go" — which is
-exactly the scattered-tracker problem this suite consolidates away (D13 §4.1: one local board, not mp's
+exactly the scattered-tracker problem this suite consolidates away (one local board, not mp's
 several issue queues). `project-setup` makes the substrate exist **once**, so the rest of the suite consumes it cold.
 
 This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with
 the user, then write. It is **distinct from `preflight-readiness`**: `preflight-readiness` is a per-run environment gate that
-re-fires every wave; `project-setup` is the one-time repo bootstrap that runs before any feature exists (D16).
+re-fires every wave; `project-setup` is the one-time repo bootstrap that runs before any feature exists.
 
 ## When to use / when to skip
 
@@ -55,8 +55,8 @@ present a section, get the answer, then move on. Don't dump everything at once.
 Assume the user does not know what these terms mean. Each section starts with a short explainer (what it is,
 why these skills need it, what changes if they pick differently), then the choices and the default.
 
-**There is no issue-tracker question.** In this suite the tracker is **always** the local `STATE.md` board
-(D13): a two-level board (features → slices) with a `gate` column that absorbs mp's
+**There is no issue-tracker question.** In this suite the tracker is **always** the local `STATE.md` board:
+a two-level board (features → slices) with a `gate` column that absorbs mp's
 `ready-for-agent`/`ready-for-human` triage roles. So the source's GitHub/GitLab/local choice and its
 five-label vocabulary are **already decided** — you scaffold `STATE.md`, you do not ask where issues live.
 Mention this once so the user knows their GitHub Issues (if any) are intentionally not the work surface here.
@@ -80,7 +80,7 @@ only.
 
 Show the user a draft of everything before writing, and let them edit:
 
-- The `STATE.md` skeleton (the empty board with the D13 legend; see "STATE.md seed" below).
+- The `STATE.md` skeleton (the empty board with the legend; see "STATE.md seed" below).
 - The `CONTEXT.md` stub (glossary-only).
 - The `## Agent skills` block to add to whichever of `CLAUDE.md` / `AGENTS.md` is being edited.
 - If a fresh `CLAUDE.md` is being created, the bundled behavioral template (`assets/CLAUDE.template.md`) that
@@ -103,9 +103,9 @@ Show the user a draft of everything before writing, and let them edit:
 
 Then create the substrate (skip anything that already exists; never clobber):
 
-1. **`STATE.md`** at the repo root — the empty two-level board with the D13 §4.1 legend (see seed below).
+1. **`STATE.md`** at the repo root — the empty two-level board with the legend (see seed below).
 2. **`CONTEXT.md`** at the repo root (or `CONTEXT-MAP.md` + per-context `CONTEXT.md` for multi-context) —
-   the glossary stub with a `## Glossary` heading, devoid of implementation detail (D18; see "CONTEXT.md
+   the glossary stub with a `## Glossary` heading, devoid of implementation detail (see "CONTEXT.md
    seed" below). The `## Glossary` heading is mandatory — `spec-grilling` appends terms under it.
 3. **`docs/adr/`** — repo-wide ADR home (seed a `.gitkeep`; ADRs are named `ADR-<NNN>-<slug>.md`).
 4. **`docs/features/`** — per-feature artifact root (`docs/features/<slug>/` holds intent.md, prd.md,
@@ -142,7 +142,7 @@ Tell the user setup is complete and which skills now read from these files (`spe
 `plan-breakdown` adds feature blocks + slice rows to `STATE.md`; the orchestrator drives `STATE.md`).
 Mention the docs are hand-editable later; re-running `project-setup` is only needed to repair or re-scaffold.
 
-## STATE.md seed (D13 §4.1)
+## STATE.md seed
 
 Write this empty board — the legend header is the stable section downstream consumers depend on; no feature
 blocks yet (those are born from an already-sliced plan, added by `plan-breakdown`):
@@ -178,7 +178,7 @@ under (canonical heading; do not rename); no terms yet (those emerge as the ubiq
 ## Glossary
 
 <!-- Domain terms are appended here by spec-grilling as the ubiquitous language emerges.
-One term per line: term — one-sentence definition. No implementation detail (D18). -->
+One term per line: term — one-sentence definition. No implementation detail. -->
 ```
 
 For multi-context, seed `CONTEXT-MAP.md` at the root plus one per-context `CONTEXT.md`, each carrying its
@@ -197,7 +197,7 @@ that case you edit the existing file and add only the `## Agent skills` block.
 ## Rationalizations
 
 - "This repo already tracks issues on GitHub — skip `STATE.md`." → No. The suite's board **is** `STATE.md`
-  (consolidated local tracker, D13). GitHub Issues are intentionally not the work surface.
+  (consolidated local tracker). GitHub Issues are intentionally not the work surface.
 - "I'll create `CONTEXT.md` later when there are terms." → No. The substrate must exist before `spec-grilling`
   has somewhere to append; scaffold the stub now (empty glossary is fine).
 - "Multi-context looks more thorough — default to it." → No. Default is **single-context**; only a real
@@ -220,7 +220,7 @@ that case you edit the existing file and add only the `## Agent skills` block.
 
 Done when **all** hold:
 
-- `STATE.md` exists at the repo root and contains the three legend lines with the D13 token sets exactly:
+- `STATE.md` exists at the repo root and contains the three legend lines with the token sets exactly:
   `feature state: spec · plan · building · done`, `slice state: impl · verify · review · ship · done ·
   blocked · halted`, `gate: you · agent · done`. No feature blocks.
 - `CONTEXT.md` (or `CONTEXT-MAP.md` for multi-context) exists at the repo root.
@@ -239,8 +239,8 @@ Emits the repo substrate the whole suite consumes:
 
 | Artifact | Location | Stable section(s) downstream depend on |
 |---|---|---|
-| `STATE.md` | repo root | the D13 §4.1 header: `feature state` / `slice state` / `gate` legends (empty board) |
-| `CONTEXT.md` | repo root | `## Glossary` (terms only, no implementation detail — D18) |
+| `STATE.md` | repo root | the header: `feature state` / `slice state` / `gate` legends (empty board) |
+| `CONTEXT.md` | repo root | `## Glossary` (terms only, no implementation detail) |
 | `docs/adr/` | repo-wide | the ADR home (`ADR-<NNN>-<slug>.md`) |
 | `docs/features/` | repo-wide | per-feature artifact root (`docs/features/<slug>/`) |
 | `CLAUDE.md` / `AGENTS.md` | repo root | the `## Agent skills` block; a fresh `CLAUDE.md` also leads with the bundled behavioral template |

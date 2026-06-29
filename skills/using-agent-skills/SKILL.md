@@ -164,7 +164,7 @@ Every skill includes a verification step. A task is not complete until verificat
 
 Per-skill verification is the local check. The project-wide bar that applies to *every* change, regardless of which skill is active, is the Definition of Done: tests pass, no regressions, behavior verified at runtime, docs updated. See `../../references/definition-of-done.md`. It complements each task's acceptance criteria rather than replacing them.
 
-## Lifecycle & ownership (D29)
+## Lifecycle & ownership
 
 The loop is **Ideate → Spec → Plan → Implement → Verify → Review → Ship**. Ownership splits hard:
 
@@ -233,7 +233,7 @@ Excuses that talk you out of dispatching correctly — each is a failure mode:
 - "This is obvious, I'll just start coding." → No spec ⇒ no acceptance.md ⇒ nothing for Verify to gate on.
   Non-trivial work with no spec starts at `spec-grilling`.
 - "I already know which skill, I won't check STATE.md." → You skip the gate column and may run an agent-owned
-  skill on a slice the human still owns (D29). Read STATE.md.
+  skill on a slice the human still owns. Read STATE.md.
 - "I'll fold Verify into Implement to save a step." → quality-verification is a fresh code-cold maker≠checker gate; collapsing
   it is exactly the silent-false-green the suite is built to prevent.
 - "The plan is close enough, I'll skip plan-breakdown." → Without slices + the DAG, the orchestrator has no
@@ -260,7 +260,7 @@ Dispatch is complete when ALL hold:
 - You named the applicable skill(s) AND its stage (Ideate/Spec/Plan/Implement/Verify/Review/Ship/cross-cut).
 - You confirmed the skill's consuming artifact exists (per its `Inputs`); if it is missing, you routed
   upstream to the skill that emits it rather than running the downstream skill against a gap.
-- You respected the D29 ownership boundary: an agent-owned stage skill is not run on a slice whose `gate`
+- You respected the ownership boundary: an agent-owned stage skill is not run on a slice whose `gate`
   column is `you`, and vice-versa.
 - The project-wide Definition of Done still governs every change the dispatched skill will make
   (`../../references/definition-of-done.md`).

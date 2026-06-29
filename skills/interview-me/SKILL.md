@@ -46,10 +46,10 @@ consumes no prior artifact — only the user's prompt.
 **Refuse-to-run condition:** this skill needs a live, responsive user — it is a one-question-at-a-time
 interview. If invoked in a non-interactive context (CI, a scheduled run, `/loop`, or the autonomous
 orchestrator), STOP and surface the underspecified ask to the user as a blocker. Do **not** guess your
-way past it. (This is the same boundary as §"Loading Constraints" above, and it matches D29: the human
+way past it. (This is the same boundary as §"Loading Constraints" above, and it matches: the human
 owns the Ideate stage; the agent's autonomous loop never runs Ideate.)
 
-**Optional front door (D17a):** running interview-me is optional. The user MAY skip it and open
+**Optional front door:** running interview-me is optional. The user MAY skip it and open
 `spec-grilling` directly with a prompt that already contains the idea. When interview-me runs, it owns
 `intent.md`; when it is skipped, `spec-grilling` accepts the raw idea instead.
 
@@ -245,7 +245,7 @@ After applying interview-me:
 ## Outputs & handoff contract
 
 **Emits:** `intent.md`, per-feature, at `docs/features/<slug>/intent.md`. interview-me **owns** this
-artifact (D17). Write it only after the user gives an explicit "yes" in Step 5 — never before (saving
+artifact. Write it only after the user gives an explicit "yes" in Step 5 — never before (saving
 early implies a yes the user didn't give; see §"Red Flags").
 
 **Stable sections** (consumers read these cold — keep the heading names exactly):
@@ -263,15 +263,15 @@ names above so downstream skills can consume it cold.
 
 **Downstream consumers:**
 - `idea-refine` (Ideate) **shares this same `intent.md`** — it refines in place (divergent/convergent +
-  the "Not Doing" list); there is no separate one-pager (D17).
+  the "Not Doing" list); there is no separate one-pager.
 - `spec-grilling` (Spec) consumes `intent.md` as the WHAT and designs the HOW (ADRs / CONTEXT.md); it no
-  longer owns `intent.md` (D17). It accepts EITHER this `intent.md` OR a raw idea in the prompt when
-  interview-me was skipped (D17a).
+  longer owns `intent.md`. It accepts EITHER this `intent.md` OR a raw idea in the prompt when
+  interview-me was skipped.
 
 **STATE.md update:** interview-me runs in the human-owned Ideate stage, before a feature has a spec. On
 confirming intent, seed the feature row at feature state `spec`, gate `you` (the human still owns Spec).
-No slice rows yet — slices are born later from `plan-breakdown` (§4.1). If `STATE.md` does not exist,
+No slice rows yet — slices are born later from `plan-breakdown`. If `STATE.md` does not exist,
 that is `project-setup`'s job; interview-me only writes `intent.md` and notes the feature should be seeded.
 
 **Change-the-shape rule:** if you rename or restructure these stable sections, update `idea-refine` and
-`spec-grilling` in the same commit (D10a).
+`spec-grilling` in the same commit.

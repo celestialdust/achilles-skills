@@ -11,7 +11,7 @@ description: Prepares production releases and authors the launch runbook. Use th
 
 Ship with confidence. The goal is not just to deploy — it's to deploy safely, with monitoring in place, a rollback plan ready, and a clear understanding of what success looks like. Every launch should be reversible, observable, and incremental.
 
-> **v1 autonomy fence (D29).** This skill AUTHORS the release runbook; it does **not execute deploy, rollout, or rollback commands**. In the autonomous run the agent's span ends at the open PR (`pull-request` workhorse) — every `DEPLOY` / `ENABLE` / canary-advance / `ROLL BACK` step below is a runbook the **human runs post-merge**, never an action the agent fires unattended. Auto-deploy and auto-merge are out of v1 (`branch-naming.md`: never commit to main; D27/D29). When this skill runs inside the orchestrator, its output is a written plan in `release.md`, not a side effect.
+> **v1 autonomy fence.** This skill AUTHORS the release runbook; it does **not execute deploy, rollout, or rollback commands**. In the autonomous run the agent's span ends at the open PR (`pull-request` workhorse) — every `DEPLOY` / `ENABLE` / canary-advance / `ROLL BACK` step below is a runbook the **human runs post-merge**, never an action the agent fires unattended. Auto-deploy and auto-merge are out of v1 (`branch-naming.md`: never commit to main). When this skill runs inside the orchestrator, its output is a written plan in `release.md`, not a side effect.
 
 ## When to use / when to skip
 
@@ -27,7 +27,7 @@ Ship with confidence. The goal is not just to deploy — it's to deploy safely, 
 Consumes (refuse to run if absent):
 
 - **The shipped PR(s)** from `pull-request` — one or more design-anchored, risk-banded PRs that are merged or queued for the human's async merge. A release batches the slices that ship together. If no merged/approved PR exists, there is nothing to release — STOP.
-- **`environment.md`** (typed-kind manifest; read-only, value-blind, D21) — names the production + staging targets and the feature-flag / monitoring services as typed rows. It carries NO values and NO commands; read it for *what* exists, never for secrets or shell strings.
+- **`environment.md`** (typed-kind manifest; read-only, value-blind) — names the production + staging targets and the feature-flag / monitoring services as typed rows. It carries NO values and NO commands; read it for *what* exists, never for secrets or shell strings.
 - **`prd.md` + referenced ADRs** — the success definition the rollout decision thresholds bind to (which business metrics matter, what "Good" means for this feature).
 
 Refuse-to-run if: no merged/approved PR (nothing to ship); `environment.md` is missing or its rows are unprovisioned (run `preflight-readiness` first); or no rollback path is identifiable for the change.
@@ -304,7 +304,7 @@ Every deployment needs a rollback plan before it happens:
 - No one monitoring the deploy for the first hour
 - Production environment configuration done by memory, not code
 - "It's Friday afternoon, let's ship it"
-- Agent (not the human) executing a `DEPLOY` / canary-advance / `ROLL BACK` command unattended — the v1 fence makes deploy a human-post-merge action (D29).
+- Agent (not the human) executing a `DEPLOY` / canary-advance / `ROLL BACK` command unattended — the v1 fence makes deploy a human-post-merge action.
 
 ## Verification (ending criteria)
 
@@ -334,6 +334,6 @@ Emits the **release** artifact → `release.md` under `docs/features/<slug>/` (o
 - **Staged-rollout plan** — the rollout sequence plus the decision-threshold table (advance / hold / roll-back per metric).
 - **Rollback plan** — trigger conditions, steps, DB considerations, and the time-to-rollback budget (the `## Rollback Plan for [Feature]` template, filled).
 - **Monitoring setup** — the dashboards/alerts to watch + the first-hour post-launch verification list.
-- **Deploy fence (D29)** — an explicit `Executed by: human, post-merge` banner. In v1 the agent authors this runbook but executes no deploy/rollout/rollback command; every action is fenced behind the human's async merge (auto-deploy out of v1).
+- **Deploy fence** — an explicit `Executed by: human, post-merge` banner. In v1 the agent authors this runbook but executes no deploy/rollout/rollback command; every action is fenced behind the human's async merge (auto-deploy out of v1).
 
-STATE.md: shipping-and-launch is **release-level and post-merge** — it does NOT own a slice row and never flips a slice `gate` to `agent` for a deploy action. Once the feature's slices are `done` (PRs merged), record `release.md` under that feature's `Artifacts` cell. If a CRITICAL/HIGH security finding or a secret surfaces while preparing the release → hard STOP, fire `PushNotification`, open no release (security.md / D29).
+STATE.md: shipping-and-launch is **release-level and post-merge** — it does NOT own a slice row and never flips a slice `gate` to `agent` for a deploy action. Once the feature's slices are `done` (PRs merged), record `release.md` under that feature's `Artifacts` cell. If a CRITICAL/HIGH security finding or a secret surfaces while preparing the release → hard STOP, fire `PushNotification`, open no release (security.md).

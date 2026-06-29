@@ -8,7 +8,7 @@ description: Use BEFORE writing any PRD or design doc — whenever the user want
 Stage: **Spec** (human-led). This is where you design *how to build the product* from the intent — the
 domain model, the mechanisms, the durable trade-offs — without writing a line of implementation or a PRD.
 It exists because intent ("what the user wants") and design ("how the product is shaped") are different
-processes (D17); folding them together produces a shallow artifact that churns for two unrelated reasons.
+processes; folding them together produces a shallow artifact that churns for two unrelated reasons.
 The output is durable design **substrate** — ADRs and a glossary — that the PRD and plan reference by id,
 never restate.
 
@@ -30,7 +30,7 @@ a single CONTEXT.md term may be the whole session. Don't pad.
 
 ## Inputs
 
-Refuse to run only if BOTH are absent (D17a):
+Refuse to run only if BOTH are absent:
 - **`intent.md`** (preferred) under `docs/features/<slug>/`, from `interview-me`. Stable sections you rely on:
   **Outcome · User · Why · Success · Constraints · Out-of-scope ("Not Doing")**. Read it first — the design
   must serve that intent.
@@ -68,7 +68,7 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
 5. **Capture as you resolve, not in a batch.** The moment a term crystallises, append it to `CONTEXT.md`. The
    moment a decision meets the ADR test (below), write the ADR. Defer nothing — you'll lose the rationale.
 
-## What you emit — and what you must NOT (D18)
+## What you emit — and what you must NOT
 
 You design at **interface altitude**, not implementation altitude. You emit two kinds of durable substrate and
 **no `prd.md`**:
@@ -99,7 +99,7 @@ narrative; default OFF.
   answers and hides the dependency order.
 - "This decision is *probably* worth an ADR." → Apply the three-part test. "Probably" usually means one leg
   is missing. Sparingly.
-- "I'll record the design in the PRD so it's all in one place." → That's the D18 violation. Design substrate
+- "I'll record the design in the PRD so it's all in one place." → That's the violation. Design substrate
   lives in ADRs/CONTEXT.md; the PRD references it. Co-location is not cohesion.
 - "I'll note the term later." → You'll lose the rationale. Append to CONTEXT.md the moment it resolves.
 - "Let me sketch the file structure / signatures while I'm here." → Wrong altitude. That's the plan's job.
@@ -135,7 +135,7 @@ Done when:
 These are **referenced substrate, not chain links** — they add no resume-spine hop. Downstream consumers
 (`to-prd`, `plan-breakdown`, `spec-review`) reference ADRs by id and use CONTEXT.md terms **verbatim**.
 
-**Stable-section rule (D10):** if you rename/supersede an ADR or change a CONTEXT term, update its referrers in
+**Stable-section rule:** if you rename/supersede an ADR or change a CONTEXT term, update its referrers in
 the **same commit**. ADRs are append-only/immutable once written — supersede via links, never delete.
 
 **STATE.md update:** the feature stays in `feature: spec` (no slice rows yet — slices are born in Plan). Record
