@@ -1,24 +1,33 @@
-# Exploring variants (the throwaway mechanism)
+# Exploring with in-app variants (the `?variant=` escalation)
 
-This is the Phase 1 exploration mechanism for `frontend-design`: generate **several radically different UI
-variations** on a single route, switchable from a floating bottom bar. Flip between variants in the browser,
-pick one (or steal bits from each), then throw the rest away. Exploration is **scratch you discard** — only
-the one committed prototype survives. Non-UI feasibility spikes are ordinary throwaway experiments, not
-this skill.
+The **default** Phase-1 exploration mechanism for `frontend-design` is the **visual companion** — standalone,
+clickable HTML mockups the human reviews in their browser, which work greenfield before any app or framework
+exists (see `visual-companion.md`). This file documents the **escalation sub-shape**: generate **several
+radically different UI variations** *inside the running target app*, on a single route, switchable from a
+floating bottom bar. Flip between variants in the browser, pick one (or steal bits from each), then throw the
+rest away. Exploration is **scratch you discard** — only the one committed prototype survives. Non-UI
+feasibility spikes are ordinary throwaway experiments, not this skill.
 
-## When this is the right shape
+## When this is the right escalation
 
-- "What should this page look like?"
-- "I want to see a few options for this dashboard before committing."
-- "Try a different layout for the settings screen."
-- Any time you'd otherwise spend a day picking between three vague mockups in your head.
+Escalate from the companion to in-app `?variant=` **only** when the target app already exists and the design
+judgment depends on **real in-app data and density** — a standalone mockup would look fine in a vacuum but
+mislead against the real header, sidebar, content, and load. Concretely:
+
+- "Try a different layout for the *populated* settings screen" (against real rows, not lorem ipsum).
+- "Compare these two dashboards against the real data volume and density."
+- Any time a clean standalone mockup would hide a problem the live page would expose.
+
+If the surface is brand-new or has no real app to host it, stay in the companion — that's the default, not
+this.
 
 ## Two sub-shapes — strongly prefer sub-shape A
 
-A UI variant is much easier to judge when it's **butting up against the rest of the app** — real header, real
-sidebar, real data, real density. A throwaway route on its own is a vacuum: every variant looks fine in
-isolation. Default to sub-shape A whenever there's a plausible existing page to host the variants. Only reach
-for sub-shape B if the prototype genuinely has no nearby home.
+Once you've decided to escalate, there are two ways to host the `?variant=` switcher. A UI variant is much
+easier to judge when it's **butting up against the rest of the app** — real header, real sidebar, real data,
+real density. A throwaway route on its own is a vacuum: every variant looks fine in isolation (which is exactly
+the gap the companion already covers). Default to sub-shape A whenever there's a plausible existing page to
+host the variants. Only reach for sub-shape B if the prototype genuinely has no nearby home.
 
 ### Sub-shape A — adjustment to an existing page (preferred)
 

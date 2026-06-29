@@ -42,17 +42,28 @@ audience, and the page's single job, and state your choice. The subject's own wo
 instruments, artifacts, vernacular — is where distinctive choices come from. Build with the brief's real
 content throughout.
 
-### Phase 1 — Explore (throwaway, optional)
-When "what should this look like" is genuinely open, sketch **several radically different variants** and judge
-them side by side, then throw the losers away. Variants must be **structurally different** — different layout,
-information hierarchy, primary affordance — not three recolored card grids. Default to **3** variants; cap at
-5 (more stops being radically different). Host them on the real page where possible (`?variant=` + a floating
-switcher) so they butt up against real header/sidebar/data/density rather than looking fine in a vacuum. The
-full mechanism (sub-shapes, the switcher, NODE_ENV gating, cleanup) is in
-`references/exploring-variants.md`. The interesting feedback is usually "the header from B with the sidebar
-from C" — that's the actual design. Do most of this iteration in your thinking; only show the user ideas you
-have high confidence will delight them. **Exploration is scratch you discard** — only the committed prototype
-survives.
+### Phase 1 — Explore with the visual companion (default)
+When "what should this look like" is genuinely open, explore with the **visual companion** — the default
+mechanism. Start it with `scripts/start-server.sh --project-dir . --open`; it prints a `server-started` JSON
+line with a keyed `url`. Write **several structurally-different** mockup screens into its content dir, and the
+human's **browser auto-opens** to the first one (it then shows the newest screen each time you write one).
+When auto-open isn't possible — headless or remote — **share the printed URL** so the human opens it manually;
+the companion works identically either way. It works **greenfield**, before any app or framework exists (no
+running app needed). Default to **3** variants; cap at 5 (more stops being radically different). Variants must
+be structurally different — different layout, information hierarchy, primary affordance — not three recolored
+card grids.
+
+Offer the companion **just-in-time and per-question**: a *visual* layout/look question goes to the browser; a
+*textual* clarifying question (scope, terminology, a tradeoff) stays in the **terminal** — don't push the human
+into the browser for words. The interesting feedback is usually "the header from B with the sidebar from C" —
+that's the actual design; do most of this iteration in your own thinking and only surface ideas you have high
+confidence will delight. **Exploration is scratch you discard** — throwaway screens stay in the gitignored
+`.frontend-design/` working dir; only the agreed mockup survives (committed in Phase 3). See
+`references/visual-companion.md` for the operating detail (start / loop / read-events / stop).
+
+When the target app **already exists** and the design judgment depends on **real in-app data and density**,
+escalate to the in-app `?variant=` switcher (see `references/exploring-variants.md`) so variants butt up
+against the real header/sidebar/data rather than looking fine in a vacuum.
 
 ### Phase 2 — Plan the design (two-pass)
 First, brainstorm a compact **token system** for the chosen direction:
