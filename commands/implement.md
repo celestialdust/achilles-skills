@@ -1,6 +1,7 @@
-description = "Implement ONE thin vertical slice test-first — skeleton, RED, GREEN, refactor, verify. Single-slice by design; for the whole-plan autonomous run use /orchestrate."
+---
+description: Implement ONE thin vertical slice test-first — skeleton, RED, GREEN, refactor, verify. Single-slice by design; for the whole-plan autonomous run use /orchestrate.
+---
 
-prompt = """
 Invoke the incremental-implementation skill, which applies test-driven-development. This command builds ONE thin vertical slice and stops — it is deliberately not the whole-plan runner.
 
 ## Mode
@@ -19,4 +20,3 @@ Single-slice (the only mode). The argument, if any, names which slice to build; 
 
 - A test can't be made to pass or the build breaks without an obvious fix -> follow debugging-and-error-recovery.
 - The slice is high-risk or irreversible (auth/permissions, destructive migrations, payments, deletions, deploys, secrets) -> follow doubt-driven-development and get explicit sign-off before continuing.
-"""

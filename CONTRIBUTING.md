@@ -2,7 +2,7 @@
 
 This is a collection of production-grade engineering skills, lifecycle commands, and reviewer personas for AI coding agents. The suite is organized around one lifecycle — **Ideate → Spec → Plan → Implement → Verify → Review → Ship** — where the human owns Ideate/Spec/Plan and the agent runs Implement→Ship autonomously.
 
-There are three kinds of contribution: a **skill** (`skills/<name>/SKILL.md`), a **command** (`commands/<name>.toml`), and a **persona** (`agents/<name>.md`). Pick the one that matches what you're adding, then follow the matching section.
+There are three kinds of contribution: a **skill** (`skills/<name>/SKILL.md`), a **command** (`commands/<name>.md`), and a **persona** (`agents/<name>.md`). Pick the one that matches what you're adding, then follow the matching section.
 
 ## Naming convention
 
@@ -63,20 +63,20 @@ Six skills (`code-review`, `security-and-hardening`, `test-driven-development`, 
 
 ## Adding a command
 
-A command is a thin entry point at `commands/<name>.toml` that maps **one lifecycle stage** to the skill(s) that run it — not a restatement of the skill. The suite ships nine: `/ideate`, `/spec`, `/plan`, `/implement`, `/verify`, `/review`, `/ship`, `/orchestrate`, `/setup`.
+A command is a thin entry point at `commands/<name>.md` that maps **one lifecycle stage** to the skill(s) that run it — not a restatement of the skill. The suite ships nine: `/ideate`, `/spec`, `/plan`, `/implement`, `/verify`, `/review`, `/ship`, `/orchestrate`, `/setup`.
 
-A `.toml` has two keys:
+A command file is Markdown with YAML frontmatter — a single `description` key, then the prompt as the body:
 
-```toml
-description = "One line shown in the command picker. What the stage does, in plain language."
+```markdown
+---
+description: One line shown in the command picker. What the stage does, in plain language.
+---
 
-prompt = """
 Invoke the <skill-name> skill (+ any fan-out skills this stage drives).
 Describe modes/arguments and the stage's handoff, then stop.
-"""
 ```
 
-Keep the `prompt` a wrapper: name the skill(s) to invoke and the stage's inputs/outputs; let the skill carry the method. New commands are rare — the nine map cleanly to the lifecycle. Add one only when a genuinely new stage appears, and say why in the PR.
+Keep the body a wrapper: name the skill(s) to invoke and the stage's inputs/outputs; let the skill carry the method. New commands are rare — the nine map cleanly to the lifecycle. Add one only when a genuinely new stage appears, and say why in the PR.
 
 ## Adding a persona
 

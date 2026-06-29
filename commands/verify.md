@@ -1,6 +1,7 @@
-description = "Prove a finished slice actually works — a fresh, code-cold, maker≠checker Verify pass against the signed oracles."
+---
+description: Prove a finished slice actually works — a fresh, code-cold, maker≠checker Verify pass against the signed oracles.
+---
 
-prompt = """
 Invoke the quality-verification skill.
 
 This is the Verify stage. Run a fresh, code-cold, maker≠checker pass over the slice the caller names (or the slice currently at STATE `verify`). You did not write this code; grade the running app, not the implementer's reasoning.
@@ -24,4 +25,3 @@ Agent-internal gate, not a human checkpoint. During an autonomous `/orchestrate`
 - Route real `exercised-fail` defects through debugging-and-error-recovery, then re-verify within the bounded loop.
 
 For a clean fresh-context pass, dispatch the test-engineer subagent (`agents/test-engineer.md`) — the skill is the method, the agent is the role applying it cold.
-"""

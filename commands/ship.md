@@ -1,6 +1,7 @@
-description = "Ship the change — run the shipping-and-launch pre-launch checklist and rollback plan, then open a risk-banded draft PR via pull-request. Never auto-merges."
+---
+description: "Ship the change — run the shipping-and-launch pre-launch checklist and rollback plan, then open a risk-banded draft PR via pull-request. Never auto-merges."
+---
 
-prompt = """
 Invoke the **shipping-and-launch** skill as the spine of this stage, then **pull-request** to open the draft PR.
 
 Ship is the terminal stage of Ideate → Spec → Plan → Implement → Verify → Review → Ship.
@@ -20,4 +21,3 @@ Ship is **agent-run** and **autonomous** — the agent owns Implement → Ship. 
 - The PR's risk band carries the blast-radius signal (auth, payments, data, secrets, or irreversible ops raise the band) so the human can triage the merge queue.
 - In a full autonomous run, /orchestrate drives this same Ship stage per slice across the wave-parallel DAG, terminating at the same risk-banded draft PRs; /ship is the single-slice entry point to it.
 - Keep the Ship → human-merge handoff exact: the rollback plan and the open draft PR are the contract.
-"""

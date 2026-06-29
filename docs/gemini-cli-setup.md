@@ -122,13 +122,15 @@ This is useful when you want to ensure a specific workflow is followed without w
 
 ## Slash Commands
 
-The repo ships **9 lifecycle slash commands** under `commands/` as TOML definitions. Gemini CLI discovers
-custom TOML commands placed under `.gemini/commands/` — copy the achilles-skills command files there (or
-symlink the directory) when working from the project root:
+The repo ships **9 lifecycle slash commands** under `commands/` as Markdown definitions (Claude Code's native
+format). Gemini CLI uses its own **TOML** command format under `.gemini/commands/`, so wrap each command's
+body in a Gemini TOML file — Gemini's `prompt` is the achilles command file's Markdown body (everything below
+its frontmatter):
 
 ```bash
 mkdir -p .gemini/commands
-cp /path/to/achilles-skills/commands/*.toml .gemini/commands/
+# For each commands/<name>.md, create .gemini/commands/<name>.toml containing:
+#   prompt = """<paste the command file's body, below its --- frontmatter --- >"""
 ```
 
 Each command is a thin wrapper that invokes its mapped skill(s) automatically — no manual skill loading

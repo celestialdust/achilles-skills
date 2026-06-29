@@ -1,6 +1,7 @@
-description = "Run the build AFK — the autonomous wave-parallel DAG executor that drives every slice through Implement → Verify → Review → Ship, ending at risk-banded open draft PRs. Never auto-merges."
+---
+description: Run the build AFK — the autonomous wave-parallel DAG executor that drives every slice through Implement → Verify → Review → Ship, ending at risk-banded open draft PRs. Never auto-merges.
+---
 
-prompt = """
 Invoke the **orchestrator** skill — THE autonomous wave-parallel DAG runner. It reads the whole board, sorts the slice DAG into topological waves, runs each wave's ready slices in parallel (one worktree per slice, disjoint files only), and ends the run at risk-banded OPEN draft PRs for async human merge.
 
 ## Mode
@@ -14,4 +15,3 @@ Per ready slice, the orchestrator drives the same loop /implement, /verify, and 
 - **Refuses to run** unless: `STATE.md` holds a `feature: building` with a slice DAG (`Blocked by` column), `preflight-readiness` verdict is GREEN, and the signed `acceptance.md` + `plan.md` slices (with file-ownership) exist. Missing any → stop; the human finishes Spec/Plan first.
 - Frozen artifacts (`acceptance.md`, RED tests, each slice's `Regression surface`) are immutable under retry — weakening a gate to go green is a HALT, not a pass.
 - Terminal state is an OPEN, gates-green, risk-banded PR on the cluster branch. Auto-deploy is out of scope; the human merge is the surviving downstream gate.
-"""

@@ -1,6 +1,7 @@
-description = "Design the product before any code — grill the idea into ADRs, a PRD, signed acceptance criteria, and an environment manifest."
+---
+description: Design the product before any code — grill the idea into ADRs, a PRD, signed acceptance criteria, and an environment manifest.
+---
 
-prompt = """
 Invoke the spec-grilling skill as the spine of this stage. It turns the locked idea (intent.md) into the design: architectural decisions (docs/adr/) and CONTEXT.md.
 
 Then drive the spec artifacts through their owning skills:
@@ -19,4 +20,3 @@ Spec is human-led — this is one of the three stages (Ideate, Spec, Plan) the h
 - Upstream: reads intent.md from /ideate. If no intent exists, grill the idea directly with the user first.
 - Downstream: the signed acceptance.md + environment.md + ADRs + CONTEXT.md feed /plan, which slices the work into the vertical-slice DAG. Do not cross into planning here.
 - The artifact filenames (intent.md, prd.md, acceptance.md, environment.md, CONTEXT.md) are the spec→plan contract — keep them exact.
-"""

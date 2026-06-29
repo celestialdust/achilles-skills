@@ -1,6 +1,7 @@
-description = "Turn the spec into a concrete plan — codebase-research first, then plan-breakdown into vertical slices and a dependency DAG."
+---
+description: Turn the spec into a concrete plan — codebase-research first, then plan-breakdown into vertical slices and a dependency DAG.
+---
 
-prompt = """
 Invoke the **plan-breakdown** skill — the planner that turns the locked spec into vertical slices and a dependency DAG. Run **codebase-research** first so the plan is grounded in the codebase as it actually is.
 
 ## Mode
@@ -17,4 +18,3 @@ Plan is **human-led** — the human owns Ideate, Spec, and Plan. This command pr
 
 - Requires the locked spec artifacts (`prd.md`, `acceptance.md`). If none exist, stop and tell the user to run /spec first — do not invent requirements.
 - `plan.md` is the handoff to **/implement** (one thin slice at a time) or **/orchestrate** (the autonomous wave-parallel DAG runner to open draft PRs). Plan itself stays read-only.
-"""

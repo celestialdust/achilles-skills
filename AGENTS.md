@@ -19,7 +19,7 @@ achilles-skills is a self-contained suite that automates the development loop
 - **Skills** (`skills/<name>/SKILL.md`) — 36 workflows with steps and exit criteria. The *how*. A skill is a
   mandatory hop whenever an intent matches it.
 - **Personas** (`agents/<role>.md`) — 5 fresh-context roles with a perspective and an output format. The *who*.
-- **Commands** (`commands/<name>.toml`) — 9 lifecycle entry points. The *when*. The orchestration layer.
+- **Commands** (`commands/<name>.md`) — 9 lifecycle entry points. The *when*. The orchestration layer.
 
 Skills are markdown-first. Each lives at `skills/<kebab-name>/SKILL.md` with two-key YAML frontmatter
 (`name`, `description`). Shared reference checklists live in `references/`, not inside skill directories.

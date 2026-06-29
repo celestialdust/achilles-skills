@@ -170,8 +170,8 @@ For example, when working on performance, copy `performance-optimization/SKILL.m
 
 ## Lifecycle commands in Cursor
 
-The suite ships nine slash commands as `commands/*.toml` — these are entry points for agents (like Claude
-Code) that execute `.toml` commands natively. **Cursor has no native slash-command runner**, so reproduce a
+The suite ships nine slash commands as `commands/*.md` — these are entry points for agents (like Claude
+Code) that execute Markdown slash commands natively. **Cursor has no native slash-command runner**, so reproduce a
 command by loading the rule files it bundles and asking Cursor to run that stage:
 
 | Command | Load these rules into `.cursor/rules/` | Then ask Cursor to… |
@@ -186,7 +186,7 @@ command by loading the rule files it bundles and asking Cursor to run that stage
 | `/orchestrate` | `orchestrator` | run the autonomous wave-parallel DAG to open PRs |
 | `/setup` | `project-setup` | scaffold the one-time repo ecosystem |
 
-The `commands/*.toml` files are short — open the one you want and copy its prompt text into Cursor verbatim
+The `commands/*.md` files are short — open the one you want and copy its prompt text into Cursor verbatim
 to drive the stage exactly as the command would.
 
 ## Review personas in Cursor
@@ -215,7 +215,7 @@ review framework."*
    so it actually reads the loaded rule.
 3. **Use a fresh chat for review personas** — paste the persona file into a new conversation so the reviewer
    is code-cold; that is how you preserve maker ≠ checker without native subagents.
-4. **Drive commands from their `.toml`** — Cursor can't run `commands/*.toml` directly, so load the rules a
+4. **Drive commands from their `.md`** — Cursor can't run `commands/*.md` directly, so load the rules a
    command bundles (see the table above) or paste the command's prompt text to reproduce the stage.
 5. **Load `references/` on demand** — the suite's checklists live in `references/` (testing-patterns,
    performance-checklist, security-checklist, observability-checklist, accessibility-checklist,

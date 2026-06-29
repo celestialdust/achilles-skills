@@ -17,7 +17,7 @@
 - **Persona** (a.k.a. *agent*) — a thin role file at `agents/<name>.md` that a skill dispatches as a fresh,
   code-cold subagent. The persona is the *role*; the skill it points at is the *method*. Personas exist to
   preserve maker≠checker — the reviewer never shares the maker's context.
-- **Command** (a.k.a. *lifecycle-command*) — a slash command at `commands/<name>.toml` that maps one lifecycle
+- **Command** (a.k.a. *lifecycle-command*) — a slash command at `commands/<name>.md` that maps one lifecycle
   stage (Ideate · Spec · Plan · Implement · Verify · Review · Ship, plus `/orchestrate` and `/setup`) to the
   skill(s) that run it. A command is a thin entry point, not a restatement of the skill.
 - **Artifact** — a contract file passed between stages (`intent.md`, `prd.md`, `plan.md`, `research.md`,

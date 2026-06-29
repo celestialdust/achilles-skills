@@ -178,8 +178,8 @@ mirrors the achilles-skills lifecycle (Ideate → Spec → Plan → Implement �
 
 ### Lifecycle Commands
 
-In Claude Code, achilles-skills exposes 9 slash commands (`commands/*.toml`) that wrap the skills above.
-Copilot does not load `.toml` slash commands, so reach for the underlying skill or persona instead. The
+In Claude Code, achilles-skills exposes 9 slash commands (`commands/*.md`) that wrap the skills above.
+Copilot does not load these slash commands, so reach for the underlying skill or persona instead. The
 mapping is the same:
 
 | Command | Invokes (skill) | Copilot equivalent |

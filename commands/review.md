@@ -1,6 +1,7 @@
-description = "Review stage quality gate — five-axis code-review with a parallel fan-out to code-simplification, security-and-hardening, and performance-optimization. Runs before merge; surfaces findings, never auto-merges."
+---
+description: Review stage quality gate — five-axis code-review with a parallel fan-out to code-simplification, security-and-hardening, and performance-optimization. Runs before merge; surfaces findings, never auto-merges.
+---
 
-prompt = """
 Review stage (agent-run, the sixth stage of Ideate → Spec → Plan → Implement → Verify → Review → Ship).
 
 Invoke the `code-review` skill as the spine, with a parallel fan-out to `code-simplification`, `security-and-hardening`, and `performance-optimization`.
@@ -20,4 +21,3 @@ Agent-run quality gate before merge. Runs autonomously and never halts mid-run �
 
 - `doubt-driven-development` is deliberately NOT part of this gate — it is in-flight adversarial review, reached for during `/implement`, not here.
 - Hand off: route Critical / Important findings back to `/implement` to fix; when the review comes back clean, proceed to `/ship`.
-"""

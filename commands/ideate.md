@@ -1,6 +1,7 @@
-description = "Front door for a fresh idea — interview to surface intent, then diverge/converge into a framed concept. Produces intent.md."
+---
+description: Front door for a fresh idea — interview to surface intent, then diverge/converge into a framed concept. Produces intent.md.
+---
 
-prompt = """
 Ideate stage (human-led, the first stage of Ideate → Spec → Plan → Implement → Verify → Review → Ship).
 
 Invoke the `interview-me` skill, then the `idea-refine` skill.
@@ -12,4 +13,3 @@ Invoke the `interview-me` skill, then the `idea-refine` skill.
 
 - This is a human-led, exploratory stage: think and frame, do not plan tasks or write code.
 - Terminal artifact: `intent.md`. Hand off to `/spec` once the idea and its "Not Doing" boundary are agreed.
-"""

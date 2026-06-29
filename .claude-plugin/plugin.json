@@ -7,7 +7,17 @@
   "homepage": "https://github.com/celestialdust/achilles-skills",
   "repository": "https://github.com/celestialdust/achilles-skills",
   "license": "MIT",
-  "commands": ["./commands"],
+  "commands": [
+    "./commands/ideate.md",
+    "./commands/spec.md",
+    "./commands/plan.md",
+    "./commands/implement.md",
+    "./commands/verify.md",
+    "./commands/review.md",
+    "./commands/ship.md",
+    "./commands/orchestrate.md",
+    "./commands/setup.md"
+  ],
   "skills": "./skills",
   "agents": [
     "./agents/code-reviewer.md",

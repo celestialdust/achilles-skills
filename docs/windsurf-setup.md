@@ -10,7 +10,7 @@ wire the skills into Windsurf's three native mechanisms:
 | achilles-skills concept | Windsurf mechanism |
 |---|---|
 | `skills/<name>/SKILL.md` | **Rules** — `.windsurf/rules/*.md` (or legacy `.windsurfrules`) |
-| `commands/*.toml` (the 9 slash commands) | **Workflows** — `.windsurf/workflows/*.md`, invoked with `/<name>` in Cascade |
+| `commands/*.md` (the 9 slash commands) | **Workflows** — `.windsurf/workflows/*.md`, invoked with `/<name>` in Cascade |
 | `agents/*.md` (the 5 personas) | **Manual rules** — a code-cold rule you toggle on for a review pass |
 | `references/*.md` (checklists) | Pasted into Cascade chat as a verification checklist |
 

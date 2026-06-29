@@ -16,7 +16,7 @@ runs and a stage gets skipped.
 ```
 skills/          → 36 skills, one discipline each (skills/<name>/SKILL.md)
 agents/          → 5 review personas (code-cold subagents)
-commands/        → 9 lifecycle slash commands (*.toml)
+commands/        → 9 lifecycle slash commands (*.md)
 references/      → shared checklists (testing, performance, security, …)
 docs/            → per-agent setup guides + ADRs
 .claude-plugin/  → plugin.json + marketplace.json (install manifests)
