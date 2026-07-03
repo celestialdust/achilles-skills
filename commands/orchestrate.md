@@ -8,7 +8,7 @@ Invoke the **orchestrator** skill — THE autonomous wave-parallel DAG runner. I
 
 Fully autonomous — this is the agent-owned span (Implement → Verify → Review → Ship). The human owns Ideate, Spec, and Plan upstream; once those are signed, this runs the build with **no mid-run human halt** and **never auto-merges to main**. Sequential execution is just the degenerate case (a wave of one) — still gets a worktree, the gates, and the TERMINAL barrier.
 
-Per ready slice, the orchestrator drives the same loop /implement, /verify, and /review expose as commands: `incremental-implementation` (applies `test-driven-development`) → `quality-verification` → Review fan-out (`code-review` + `code-simplification` + `security-and-hardening` + `performance-optimization`, each fresh code-cold) → evaluator floors → `pull-request` (DRAFT).
+Per ready slice, the orchestrator runs **Implement → Verify** — `incremental-implementation` (applies `test-driven-development`) → `quality-verification`, both per slice (behavioral acceptance is a per-slice property). Once every ready slice clears Verify, it runs **one aggregate Review fan-out over the whole wave**: the same `code-review` + `code-simplification` + `security-and-hardening` + `performance-optimization` axes (each fresh code-cold), but **once over the union of the wave's diffs** rather than once per slice — the token-cost win. Each finding is attributed to its owning slice by file (the disjoint-file guard makes this unambiguous); a finding sends only its owning slice back to Implement→Verify and re-reviews only that slice. Then **evaluator floors + `pull-request` (DRAFT)** close out each slice.
 
 ## Notes
 
