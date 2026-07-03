@@ -26,9 +26,10 @@ is just the degenerate case (a wave of one).
 yet, the feature sits at `spec`/`plan`); you are doing a single one-off edit with no DAG; or
 `preflight-readiness` is red/amber (fix the environment first — the wave must not start).
 
-**Escape hatch (`depth: lite`):** a single ready slice with no siblings still runs through
-the full per-slice loop and the TERMINAL barrier — do not "just do it inline." The barrier,
-the worktree, and the three gates are the point even for a wave of one.
+**Escape hatch (`depth: lite`):** a single ready slice with no siblings still runs the full
+Implement → Verify → (aggregate) Review loop and the barriers — do not "just do it inline." For a
+wave of one the aggregate review is simply that one slice's diff, so it costs the same as the old
+per-slice review; the barriers, the worktree, and the three gates are the point even here.
 
 ## Inputs
 
@@ -63,19 +64,33 @@ contract paths, not the session history.
    **disjoint-file guard** (below) to the ready set before dispatching.
 4. **Provision isolation.** Each ready slice gets its own clean worktree (the `worktree`
    mechanism this skill owns). Platform-adaptive (below).
-5. **Run the per-slice loop** for every ready slice — in parallel (one dispatch call per
-   slice, all in one response = concurrent execution): `incremental-implementation` (applies `test-driven-development`) → `quality-verification`
-   (Verify, fresh code-cold) → **Review fan-out** (`code-review` + `code-simplification` + `security-and-hardening` +
-   `performance-optimization` as fresh code-cold subagents, parallel, one axis each) → evaluator floors → `pull-request`
-   (DRAFT). Bounded retries: **2 per gate, 3 implement→verify→review cycles per slice**.
-6. **Barrier.** Wait for EVERY slice in the wave to reach a **TERMINAL** state
+5. **Run Implement + Verify per slice** for every ready slice — in parallel (one dispatch call
+   per slice, all in one response = concurrent execution): `incremental-implementation` (applies
+   `test-driven-development`) → `quality-verification` (Verify, fresh code-cold). Verify stays
+   **per-slice** — behavioral acceptance is a property of the individual slice, not the wave.
+6. **Verify barrier.** Wait for every ready slice to reach `verify` green **or** a terminal state
+   (a slice that halts at Verify never enters the review). This barrier is what lets the next step
+   review the wave as one changeset instead of N.
+7. **Aggregate Review over the whole wave.** Run the four axes (`code-review` +
+   `code-simplification` + `security-and-hardening` + `performance-optimization`) as fresh code-cold
+   subagents (one axis each, in parallel), **once over the union of the verify-green slices' diffs**
+   — 4 subagents per wave, not 4 × N. This is the token-cost win. Attribute every finding to its
+   **owning slice by file**: the disjoint-file guard guarantees each file belongs to exactly one
+   slice, so attribution is unambiguous. A finding routes *only its owning slice* back to
+   `incremental-implementation` (bounded retries); after that slice re-passes Verify, **re-review
+   only its diff**, never the whole wave again.
+8. **Evaluator floors + DRAFT PR per slice** — still per-slice (each slice owns its plan steps and
+   regression surface). A slice whose attributed review findings are clear and whose floors are met
+   opens its own DRAFT PR. Bounded retries: **2 per gate, 3 implement→verify→review cycles per
+   slice**.
+9. **TERMINAL barrier.** Wait for EVERY slice in the wave to reach a **TERMINAL** state
    (`done | halted | blocked`) — **never `success`**. Write every transition + gate flip to
    `STATE.md` as it happens. Then advance to the next wave.
-7. **Integration gate.** After a connected DAG component's slices are all green, run the
-   merged-union suite once in an integration worktree before presenting. Union-fail →
-   the component's PRs go DRAFT + a blocker is recorded.
-8. **Terminate** on exactly one predicate (see Verification). Append the inverted risk
-   report; leave risk-banded OPEN PRs for the human.
+10. **Integration gate.** After a connected DAG component's slices are all green, run the
+    merged-union suite once in an integration worktree before presenting. Union-fail →
+    the component's PRs go DRAFT + a blocker is recorded.
+11. **Terminate** on exactly one predicate (see Verification). Append the inverted risk
+    report; leave risk-banded OPEN PRs for the human.
 
 ## Wave executor & the TERMINAL barrier
 
@@ -85,6 +100,30 @@ resumable from `STATE.md` alone. The barrier waits for **TERMINAL, not SUCCESS**
 (parallelism.md mech-f): a `halted` or `blocked` slice still satisfies the barrier — the run
 does not stall waiting for a slice that will never pass. Its dependents transitively flip to
 `blocked`; every *other* independent branch keeps draining.
+
+## Verify barrier & wave-aggregate review
+
+Verify and Review sit at **different granularities on purpose**. Verify is a property of an
+individual slice — does *this* slice's behavior satisfy its signed acceptance scenarios? — so it
+stays per-slice and runs inside each slice's worktree. Review asks cross-cutting questions
+(correctness, simplicity, security, performance) that a reviewer answers better seeing the wave as
+one changeset, and running it once per slice was the run's dominant token cost (4 code-cold
+subagents × N slices). So the loop inserts a **verify barrier**: once every ready slice is
+verify-green (or terminal), the four review axes run **once over the union of those slices' diffs**
+— 4 subagents per wave, not 4 × N.
+
+Attribution stays clean because the **disjoint-file guard already holds**: every file in the wave
+belongs to exactly one slice, so every review finding (which cites a file) maps to exactly one
+owning slice. A finding routes *only its owning slice* back to `incremental-implementation`; the
+other slices, whose files it never touched, are unaffected and keep their clean review. After the
+flagged slice re-passes Verify, **re-review only its diff** — re-running the whole-wave review on
+every single-slice fix would hand the token cost right back. The wave advances when every slice's
+attributed findings are clear (or the slice is terminal).
+
+This preserves every safety property the per-slice fan-out had: four independent code-cold axes, no
+role-play, and the security circuit-breaker — a CRITICAL/HIGH in the wave-scoped security pass
+hard-halts *its owning slice* (never a PR), while a repo-wide committed secret still freezes the
+next barrier for the whole run.
 
 ## Disjoint-file guard
 
@@ -106,9 +145,11 @@ Pick the substrate at run start; the DAG, barrier, gates, and guard are identica
 
 Per slice, AND-combined — SHIP requires all three plus the circuit-breaker floors:
 1. **`quality-verification` / Verify** — behavioral acceptance tests + the design gate.
-2. **Review fan-out** — `code-review` + `code-simplification` + `security-and-hardening` + `performance-optimization`, each a fresh
-   code-cold subagent on an independent axis (maker≠checker; personas DISSOLVE into skills —
-   no role-play).
+2. **Review fan-out (wave-scoped)** — `code-review` + `code-simplification` + `security-and-hardening` +
+   `performance-optimization`, each a fresh code-cold subagent on an independent axis (maker≠checker;
+   personas DISSOLVE into skills — no role-play). Runs **once over the whole wave's combined diff**,
+   not per slice; each finding is attributed to its owning slice by file. A slice passes this gate
+   only when its own attributed findings are clear.
 3. **Evaluator floors** — correctness≥8, testing_strategy≥7, plan_adherence≥8,
    regression_surface≥9.
 `SHIP = qa_green ∧ review_clean ∧ floors_met ∧ preflight_green ∧ tests_green ∧ build_clean ∧
@@ -161,6 +202,8 @@ mechanical invariants, not a human halt:
 | "This wave has one ready slice — I'll just run it inline." | A wave of one still gets a worktree, the three gates, and the TERMINAL barrier. Run the loop. |
 | "The test is flaky; I'll relax that assertion so the gate passes." | That is gate-erosion. Frozen artifacts → HALT. Fix the code or escalate. |
 | "I'll dispatch a senior-reviewer persona to gut-check this." | No role-play. Dispatch the real `code-review`/`code-simplification`/`security-and-hardening`/`performance-optimization` skills as fresh code-cold subagents. |
+| "I'll review each slice on its own — that's more thorough." | Review is wave-scoped: one fan-out over the union, findings attributed by file. Per-slice review was the token sink this change removed. |
+| "The review flagged slice C — I'll re-review the whole wave to be safe." | Re-review only the changed slice. Disjoint files mean C's fix can't affect A's or B's already-clean review. |
 | "Both ready slices touch `utils.ts`, but it's a tiny edit — parallel is faster." | Disjoint-file guard: overlap → serialize. Never two writers on one file. |
 | "qa failed twice; `acceptance.md` must be wrong — I'll reinterpret it." | `acceptance.md` is the sole human oracle. Never edit mid-run. Not-reachable → human-ack line + escalate. |
 | "I should check in before the next wave." | No mid-run halt. The human gets the open PRs at the end. |
@@ -172,6 +215,8 @@ mechanical invariants, not a human halt:
 - About to weaken/edit `acceptance.md`, a RED test, or `Regression surface` during a retry → HALT (gate-erosion).
 - Failure signature moved but impl materially unchanged → reward-hack → HALT.
 - Two write subagents own the same file in one wave → STOP, serialize.
+- Running the Review fan-out per slice instead of once over the wave union → STOP (that's the token sink; review is wave-scoped, findings attributed by file).
+- Re-reviewing the whole wave after a single slice's fix → STOP (re-review only the changed slice; disjoint files bound the blast radius).
 - Advancing the barrier on `success` instead of TERMINAL → STOP.
 - About to promote a DRAFT PR from the same context that wrote the tests → STOP (need a code-cold verifier).
 - Security CRITICAL/HIGH or secret-in-diff → hard halt that slice, no retry, never a PR; committed secret → PushNotification + freeze barrier.
@@ -181,8 +226,8 @@ mechanical invariants, not a human halt:
 ## Verification (ending criteria)
 
 The run terminates on **exactly one** predicate:
-- **DONE:** DAG complete ∧ every slice passed `quality-verification` ∧ Review fan-out ∧ evaluator floors → all
-  PRs OPEN and risk-banded.
+- **DONE:** DAG complete ∧ every slice passed `quality-verification` ∧ its attributed findings from the
+  wave-aggregate Review fan-out are clear ∧ evaluator floors met → all PRs OPEN and risk-banded.
 - **BLOCKED:** no agent-actionable slice remains (every not-done slice is `blocked`/`halted`).
 - **DIVERGENCE / security STOP:** rising internal-gate failure rate, or a security trigger.
 

@@ -329,7 +329,8 @@ update the consumer in the same commit:**
 
 **STATE.md update:** under `## <PRD-id> · <feature title>`, write one row per slice — initial state
 `impl`, gate `you` (the human signs the plan; on sign-off the orchestrator flips the feature to `building`
-and the gates to `agent`, then runs incremental-implementation → quality-verification → review → pull-request per slice, wave-parallel along the
+and the gates to `agent`, then runs incremental-implementation → quality-verification per slice, then one
+wave-aggregate review, then pull-request per slice — wave-parallel along the
 `Blocked-by` DAG, **fully autonomously**). Slices are born here; record `plan.md` under the feature's
 `origin:`.
 
