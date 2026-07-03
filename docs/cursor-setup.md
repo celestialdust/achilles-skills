@@ -118,7 +118,7 @@ the name in these tables.
 | Skill | Responsibility |
 |---|---|
 | `quality-verification` | fresh code-cold agent: behavioral acceptance tests + design gate |
-| `browser-testing-with-devtools` | the live-runtime engine quality-verification drives (Chrome DevTools MCP) |
+| `browser-testing-with-devtools` | the live-runtime engine quality-verification drives (any configured browser MCP: Chrome DevTools, Claude-in-Chrome, Playwright, or agent-browser) |
 | `debugging-and-error-recovery` | five-step triage; stop-the-line; safe fallbacks |
 
 **Review (agent — parallel fan-out)**

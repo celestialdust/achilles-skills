@@ -211,7 +211,7 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Implement | source-driven-development | ground framework decisions in fetched official docs |
 | Implement | worktree | per-slice isolation mechanism (orchestrator-owned) |
 | Verify | quality-verification | fresh code-cold: behavioral acceptance tests + design gate → qa.md |
-| Verify | browser-testing-with-devtools | live-runtime engine quality-verification drives (Chrome DevTools MCP) |
+| Verify | browser-testing-with-devtools | live-runtime engine quality-verification drives (any configured browser MCP) |
 | Verify | debugging-and-error-recovery | five-step triage: reproduce · localize · reduce · fix · guard |
 | Review | code-review | five-axis review incl. test quality; severity labels |
 | Review | code-simplification | behavior-preserving reduction; Chesterton's Fence |

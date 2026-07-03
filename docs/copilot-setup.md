@@ -73,7 +73,7 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 
 **Verify**
 - `quality-verification` — fresh code-cold agent: behavioral acceptance tests + design gate
-- `browser-testing-with-devtools` — live-runtime engine (Chrome DevTools MCP)
+- `browser-testing-with-devtools` — live-runtime engine (any configured browser MCP: Chrome DevTools, Claude-in-Chrome, Playwright, or agent-browser)
 - `debugging-and-error-recovery` — five-step triage; stop-the-line; safe fallbacks
 
 **Review**
