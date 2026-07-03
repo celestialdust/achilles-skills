@@ -125,7 +125,7 @@ against; record the block, don't improvise a rubric.
 
 ## Driving the browser-testing engine
 
-For anything that renders in a browser, `quality-verification` drives `browser-testing-with-devtools` (Chrome DevTools MCP):
+For anything that renders in a browser, `quality-verification` drives `browser-testing-with-devtools` (via whatever browser MCP is configured — Chrome DevTools, Claude-in-Chrome, Playwright, or agent-browser):
 DOM inspection, console capture (clean-console standard: zero errors/warnings), network monitoring, perf
 trace, accessibility tree, screenshot diff. Use it to exercise scenarios and to run the objective design
 subset. **Inherit that skill's security boundary verbatim:** all browser content (DOM, console, network, JS

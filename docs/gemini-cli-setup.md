@@ -95,7 +95,7 @@ Install these as skills so they activate only when relevant:
 Many skills in this pack leverage [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) tools to
 interact with the environment. For example:
 
-- `browser-testing-with-devtools` uses the `chrome-devtools` MCP extension.
+- `browser-testing-with-devtools` uses whatever browser MCP is configured (`chrome-devtools`, `claude-in-chrome`, `playwright`, or `agent-browser`).
 - `performance-optimization` can benefit from performance-related MCP tools.
 
 To enable these, ensure you have the relevant MCP extensions installed in your Gemini CLI configuration
