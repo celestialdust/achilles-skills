@@ -30,6 +30,17 @@ Coding agents are fast, and that speed amplifies three failure modes. achilles-s
 
 The result is an autonomy model you can trust: you make the calls that matter, the agent does the mechanical mileage, and every run ends at a reviewable draft PR — never a surprise merge.
 
+### Finding your unknowns
+
+Misalignment starts before the first question is asked: a prompt only contains what's already on your map. The discovery-stage skills (`interview-me`, `idea-refine`, `spec-grilling`) work all four quadrants of the **unknowns matrix** — what you stated (known knowns), what you know you haven't resolved (known unknowns), what you'd only recognize on sight (unknown knowns), and what you haven't considered at all (unknown unknowns):
+
+- **Blind-spot pass** (`interview-me`, `spec-grilling`) — scan the territory *before* the first question and brief you on decisions your ask never mentions.
+- **Reactable options** (`idea-refine`) — wildly different throwaway mock-ups to react to when the answer is "I'd know it when I see it."
+- **Leverage-ordered questions** — architecture-changing questions first; uncontested defaults stated inline, not asked.
+- **Sign-off quiz** — before you sign `intent.md` or the ADRs, 2–3 scenario questions prove the artifact matches your mental model.
+
+The shared playbook is [`references/finding-unknowns.md`](./references/finding-unknowns.md). Discovery effort follows ignorance: novel territory gets the full treatment, familiar ground gets compressed.
+
 ---
 
 ## Commands
@@ -172,14 +183,14 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 
 | Skill | Responsibility |
 |---|---|
-| [interview-me](./skills/interview-me/SKILL.md) | Optional front door: brainstorm + frame a raw idea → `intent.md` |
-| [idea-refine](./skills/idea-refine/SKILL.md) | Refine the idea (divergent/convergent + an explicit "Not Doing" list) |
+| [interview-me](./skills/interview-me/SKILL.md) | Optional front door: blind-spot scan + one-question-at-a-time interview → quizzed, signed `intent.md` |
+| [idea-refine](./skills/idea-refine/SKILL.md) | Refine the idea (divergent/convergent, reactable throwaway variants, an explicit "Not Doing" list) |
 
 ### Spec — human-led
 
 | Skill | Responsibility |
 |---|---|
-| [spec-grilling](./skills/spec-grilling/SKILL.md) | Design the product from intent → ADRs + `CONTEXT.md` glossary |
+| [spec-grilling](./skills/spec-grilling/SKILL.md) | Design the product from intent → ADRs + `CONTEXT.md` glossary; a blind-spot pass surfaces decisions you haven't considered |
 | [to-prd](./skills/to-prd/SKILL.md) | Light dual-audience PRD at product altitude; references the ADRs |
 | [frontend-design](./skills/frontend-design/SKILL.md) | The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract |
 | [acceptance-criteria](./skills/acceptance-criteria/SKILL.md) | BDD prose contract (Given/When/Then), behavioral-only, signed |
