@@ -50,8 +50,9 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
    user's map. Scan the territory — the modules the feature touches, existing `docs/adr/`, prior art, the
    domain — for decision points the intent never mentions, and present a 3–5 item blind-spot brief; add the
    real ones to the tree. (Step 3 answers questions already *in* the tree from the code; this finds the
-   questions that aren't.) Calibrate by disclosed ignorance: skip the pass when the user knows the domain
-   cold; run it in full on unfamiliar ground. Technique details: `../../references/finding-unknowns.md`.
+   questions that aren't.) Ask up front which parts of the domain the user knows cold and which they know
+   nothing about, and calibrate by that disclosure: skip the pass on familiar ground; run it in full on
+   unfamiliar ground. Technique details: `../../references/finding-unknowns.md`.
 
 2. **Interview relentlessly, ONE question at a time.** Ask exactly one question, give **your recommended
    answer**, and wait for the response before the next. Asking several at once is bewildering and yields

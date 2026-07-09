@@ -68,6 +68,6 @@ happen when X?").
 ## Calibration: effort follows ignorance
 
 Novel territory → run everything: scan, reactable options, full interview, quiz. Familiar
-territory → compress: skip the scan, fewer questions, no quiz. Ask what the human knows nothing
-about at the start — that answer decides where discovery effort goes. Discovery is a dial, not a
-ritual.
+territory → compress: skip the scan, fewer questions, no quiz — except keep the quiz when the
+signature is high-stakes. Ask what the human knows nothing about at the start — that answer
+decides where discovery effort goes. Discovery is a dial, not a ritual.

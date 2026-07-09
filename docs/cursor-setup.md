@@ -219,5 +219,5 @@ review framework."*
    command bundles (see the table above) or paste the command's prompt text to reproduce the stage.
 5. **Load `references/` on demand** — the suite's checklists live in `references/` (testing-patterns,
    performance-checklist, security-checklist, observability-checklist, accessibility-checklist,
-   orchestration-patterns, definition-of-done). Paste the relevant one rather than the whole skill when you
-   only need the checklist.
+   orchestration-patterns, definition-of-done, finding-unknowns). Paste the relevant one rather than the
+   whole skill when you only need the checklist.

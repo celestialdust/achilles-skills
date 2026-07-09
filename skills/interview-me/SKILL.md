@@ -21,7 +21,7 @@ Apply this skill when:
 - The request is conventional rather than specific ("build me X", "make it faster") and you can't unpack the convention without guessing
 - You're tempted to start with assumptions you haven't surfaced
 - The user hasn't said which value they're optimizing for when two reasonable ones are in tension (simplicity vs. flexibility, cost vs. speed)
-- The user explicitly invokes: "interview me", "grill me", "before we start, are we sure?", "stress-test my thinking"
+- The user explicitly invokes: "interview me", "grill me", "before we start, are we sure?", "stress-test my thinking", "what am I missing?", "quiz me"
 
 **When NOT to use:**
 
@@ -163,18 +163,15 @@ This is a checkable test, not a vibe. It also has a floor: if you've gone severa
 
 ### Step 6: Quiz the signature (calibrated)
 
-For novel or high-stakes intents, an explicit yes to a restate is still a weak signal — reading-and-nodding is easy. Before saving `intent.md`, flip the interview: ask the user 2–3 concrete scenario questions derived from the confirmed intent ("Per what we agreed, what should happen when X?").
-
-- Answers match the intent → the map is genuinely shared; save.
-- An answer contradicts the intent → the restate hid a divergence; reopen the interview at that point. That miss is the cheapest bug you'll ever catch.
+For novel or high-stakes intents, an explicit yes to a restate is still a weak signal — reading-and-nodding is easy. Before saving `intent.md`, flip the interview: ask the user 2–3 concrete scenario questions derived from the confirmed intent ("Per what we agreed, what should happen when X?"), one at a time like the interview itself. Answers match the intent → the map is genuinely shared; save. An answer contradicts it → the restate hid a divergence; reopen the interview at that point. (Why this works: `../../references/finding-unknowns.md`, "the sign-off quiz".)
 
 Skip the quiz for small, familiar asks — it's a gate for consequential signatures, not ceremony for every rename.
 
 ## Output
 
-The output of this skill is a **confirmed statement of intent**: the restate from Step 4, with an explicit yes from Step 5. That's the deliverable. Specs, plans, and task lists are downstream; they consume the intent this skill produces.
+The output of this skill is a **confirmed statement of intent**: the restate from Step 4, with an explicit yes from Step 5 — and, for novel or high-stakes intents, a passed Step-6 scenario quiz. That's the deliverable. Specs, plans, and task lists are downstream; they consume the intent this skill produces.
 
-If the user wants the intent to persist (a multi-session project, a handoff to another collaborator), offer to save it to `docs/features/<slug>/intent.md`. Only save if they confirm.
+If the user wants the intent to persist (a multi-session project, a handoff to another collaborator), offer to save it to `docs/features/<slug>/intent.md`. Only save if they confirm (and the Step-6 quiz, when it applies, passes).
 
 ## Example
 

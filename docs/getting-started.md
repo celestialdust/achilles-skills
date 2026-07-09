@@ -181,6 +181,7 @@ The `references/` directory contains supplementary checklists that skills pull i
 | [`accessibility-checklist.md`](../references/accessibility-checklist.md) | frontend-design |
 | [`observability-checklist.md`](../references/observability-checklist.md) | observability-and-instrumentation |
 | [`orchestration-patterns.md`](../references/orchestration-patterns.md) | orchestrator |
+| [`finding-unknowns.md`](../references/finding-unknowns.md) | interview-me, idea-refine, spec-grilling |
 
 Load a reference when you need detailed patterns beyond what the skill covers.
 

@@ -53,7 +53,8 @@ idea-refine is an OPTIONAL Ideate-stage front door. It accepts EITHER of:
 **Refuse-to-run ONLY if both are absent** (there is nothing to refine). If an `intent.md` exists, read it
 FIRST and treat its `Outcome · User · Why · Success · Constraints · Out-of-scope` as the starting point —
 refine them, never silently discard them. If only a raw idea is given, you will populate a fresh
-`docs/features/<slug>/intent.md` (the SHARED artifact) as your output. You do not create any other file.
+`docs/features/<slug>/intent.md` (the SHARED artifact) as your output. You do not create any other durable
+file — the throwaway reaction probes rendered in Phase 1 are deleted before handoff.
 
 ## Process
 
@@ -85,7 +86,7 @@ This skill is primarily an interactive dialogue. When the user invokes it with a
 
    Push beyond what the user initially asked for. Create products people don't know they need yet.
 
-   **Make variations reactable when taste is involved.** If the idea has any "know it when I see it" surface — UI, UX flow, report format, CLI/API ergonomics — prose cannot surface it: the user can't articulate taste on request, but they can react to artifacts instantly. Render the 3-4 strongest variations as *throwaway* artifacts (rough HTML mock-ups, sample outputs, fake-data sketches), wildly different from each other, and ask the user to react. Deliberately different beats safely similar — the goal is to triangulate taste, not to win round one. Delete the artifacts after; they are probes, not prototypes. Technique details: `../../references/finding-unknowns.md`.
+   **Make variations reactable when taste is involved.** If the idea has any "know it when I see it" surface — UI, UX flow, report format, CLI/API ergonomics — render the 3-4 strongest variations as *throwaway* artifacts (rough HTML mock-ups, sample outputs, fake-data sketches), wildly different from each other, and ask the user to react; delete them after. Why reacting beats describing: `../../references/finding-unknowns.md`, "reactable options". These probes triangulate taste for the intent only — actual UI design and the committed prototype still go through `frontend-design` at Spec.
 
 **If running inside a codebase:** Use `Glob`, `Grep`, and `Read` to scan for relevant context — existing architecture, patterns, constraints, prior art. Ground your variations in what actually exists. Reference specific files and patterns when relevant.
 
