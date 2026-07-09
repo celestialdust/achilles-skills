@@ -252,7 +252,7 @@ Five specialist agents apply a Review/Verify skill with a **fresh, code-cold con
 
 ## References
 
-Quick-reference checklists in [`references/`](./references/) that skills pull in on demand: [definition-of-done](./references/definition-of-done.md), [testing-patterns](./references/testing-patterns.md), [security-checklist](./references/security-checklist.md), [performance-checklist](./references/performance-checklist.md), [accessibility-checklist](./references/accessibility-checklist.md), [observability-checklist](./references/observability-checklist.md), and [orchestration-patterns](./references/orchestration-patterns.md).
+Quick-reference checklists in [`references/`](./references/) that skills pull in on demand: [definition-of-done](./references/definition-of-done.md), [testing-patterns](./references/testing-patterns.md), [security-checklist](./references/security-checklist.md), [performance-checklist](./references/performance-checklist.md), [accessibility-checklist](./references/accessibility-checklist.md), [observability-checklist](./references/observability-checklist.md), [orchestration-patterns](./references/orchestration-patterns.md), and [finding-unknowns](./references/finding-unknowns.md).
 
 ## License
 

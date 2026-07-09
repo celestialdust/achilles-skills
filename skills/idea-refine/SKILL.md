@@ -1,6 +1,6 @@
 ---
 name: idea-refine
-description: Refine a raw or half-formed idea into a sharp, buildable concept through structured divergent-then-convergent thinking, always surfacing hidden assumptions and an explicit "Not Doing" list. Use this in the Ideate stage BEFORE Spec whenever an idea is still vague, whenever you are tempted to jump straight to a plan without stress-testing it, or whenever you want to expand options before converging. Refines (and SHARES) intent.md — never write a separate one-pager. Triggers on "ideate", "refine this idea", "help me think through X", or "stress-test my plan/idea".
+description: Refine a raw or half-formed idea into a sharp, buildable concept through structured divergent-then-convergent thinking, always surfacing hidden assumptions and an explicit "Not Doing" list. Use this in the Ideate stage BEFORE Spec whenever an idea is still vague, whenever you are tempted to jump straight to a plan without stress-testing it, or whenever you want to expand options before converging. Refines (and SHARES) intent.md — never write a separate one-pager. Triggers on "ideate", "refine this idea", "help me think through X", "stress-test my plan/idea", or "show/make me options I can react to".
 ---
 
 # Idea Refine
@@ -72,7 +72,7 @@ This skill is primarily an interactive dialogue. When the user invokes it with a
    - What's been tried before?
    - Why now?
 
-   Use the `AskUserQuestion` tool to gather this input. Do NOT proceed until you understand who this is for and what success looks like.
+   Use the `AskUserQuestion` tool to gather this input. Do NOT proceed until you understand who this is for and what success looks like. Also establish how familiar the user is with the domain — novel territory means investing in divergence and grounding; familiar territory means compressing. Effort follows ignorance.
 
 3. **Generate 5-8 idea variations** using these lenses:
    - **Inversion:** "What if we did the opposite?"
@@ -84,6 +84,8 @@ This skill is primarily an interactive dialogue. When the user invokes it with a
    - **Expert lens:** "What would [domain] experts find obvious that outsiders wouldn't?"
 
    Push beyond what the user initially asked for. Create products people don't know they need yet.
+
+   **Make variations reactable when taste is involved.** If the idea has any "know it when I see it" surface — UI, UX flow, report format, CLI/API ergonomics — prose cannot surface it: the user can't articulate taste on request, but they can react to artifacts instantly. Render the 3-4 strongest variations as *throwaway* artifacts (rough HTML mock-ups, sample outputs, fake-data sketches), wildly different from each other, and ask the user to react. Deliberately different beats safely similar — the goal is to triangulate taste, not to win round one. Delete the artifacts after; they are probes, not prototypes. Technique details: `../../references/finding-unknowns.md`.
 
 **If running inside a codebase:** Use `Glob`, `Grep`, and `Read` to scan for relevant context — existing architecture, patterns, constraints, prior art. Ground your variations in what actually exists. Reference specific files and patterns when relevant.
 
@@ -162,6 +164,7 @@ Read `references/examples.md` for examples of what great ideation sessions look 
 - **Don't produce a plan without surfacing assumptions.** Untested assumptions are the #1 killer of good ideas.
 - **Don't over-engineer the process.** Three phases, each doing one thing well. Resist adding steps.
 - **Don't just list ideas — tell a story.** Each variation should have a reason it exists, not just be a bullet point.
+- **Don't describe what you can show.** A paragraph about a "clean dashboard layout" surfaces nothing; a rough mock-up the user reacts to surfaces their actual taste.
 - **Don't ignore the codebase.** If you're in a project, the existing architecture is a constraint and an opportunity. Use it.
 
 ## Red flags
@@ -172,6 +175,7 @@ Read `references/examples.md` for examples of what great ideation sessions look 
 - Yes-machining weak ideas instead of pushing back with specificity
 - Producing a plan without a "Not Doing" list
 - Ignoring existing codebase constraints when ideating inside a project
+- Describing visual/UX variations in prose when the user could have reacted to a throwaway mock-up
 - Jumping straight to Phase 3 output without running Phases 1 and 2
 
 ## Verification (ending criteria)
@@ -181,6 +185,7 @@ After completing an ideation session:
 - [ ] A clear "How Might We" problem statement exists
 - [ ] The target user and success criteria are defined
 - [ ] Multiple directions were explored, not just the first idea
+- [ ] Variations with a "know it when I see it" surface were rendered as reactable throwaway artifacts, not prose
 - [ ] Hidden assumptions are explicitly listed with validation strategies
 - [ ] A "Not Doing" list makes trade-offs explicit
 - [ ] The output is a concrete artifact (the refined `intent.md` with its six stable sections), not just conversation
