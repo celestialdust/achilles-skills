@@ -1,6 +1,6 @@
 ---
 name: spec-grilling
-description: Use BEFORE writing any PRD or design doc — whenever the user wants to design a feature from an idea or intent.md, stress-test a design, pin down domain terminology, or record an architectural decision. Interview relentlessly, ONE question at a time, with a recommended answer each. Emits ADRs + CONTEXT.md; never a PRD.
+description: Use BEFORE writing any PRD or design doc — whenever the user wants to design a feature from an idea or intent.md, stress-test a design, pin down domain terminology, surface design decisions the user hasn't considered, or record an architectural decision. Interview relentlessly, ONE question at a time, with a recommended answer each. Emits ADRs + CONTEXT.md; never a PRD.
 ---
 
 ## Purpose
@@ -46,10 +46,22 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
    dependency — resolve the decision others hang off *first*. Don't surface a downstream choice before its
    prerequisite is settled.
 
+   Then **grow the tree with a blind-spot pass**: the tree so far holds only decisions already on the
+   user's map. Scan the territory — the modules the feature touches, existing `docs/adr/`, prior art, the
+   domain — for decision points the intent never mentions, and present a 3–5 item blind-spot brief; add the
+   real ones to the tree. (Step 3 answers questions already *in* the tree from the code; this finds the
+   questions that aren't.) Ask up front which parts of the domain the user knows cold and which they know
+   nothing about, and calibrate by that disclosure: skip the pass on familiar ground; run it in full on
+   unfamiliar ground. Technique details: `../../references/finding-unknowns.md`.
+
 2. **Interview relentlessly, ONE question at a time.** Ask exactly one question, give **your recommended
    answer**, and wait for the response before the next. Asking several at once is bewildering and yields
    shallow answers. Keep going until you reach shared understanding of the whole tree — this is a grilling,
    not a single clarifying round.
+
+   Within the dependency order, spend questions where the answer changes the architecture; if your
+   recommended answer is an uncontested default, state it as the default and move on — one line, not a
+   round. A question whose every answer leads to the same design was never a question.
 
 3. **If a question is answerable from the codebase, go read it** instead of asking. Don't make the user
    recite what the code already says.
@@ -67,6 +79,11 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
 
 5. **Capture as you resolve, not in a batch.** The moment a term crystallises, append it to `CONTEXT.md`. The
    moment a decision meets the ADR test (below), write the ADR. Defer nothing — you'll lose the rationale.
+
+6. **Close with a calibrated quiz.** For novel or high-stakes designs, don't end on the user nodding at
+   the substrate they just signed. Ask 2–3 scenario questions against the recorded decisions ("given what
+   we decided in ADR-NNN, what happens when X?"). A miss means an ADR and the user's mental model diverge —
+   reopen that decision, don't paper over it. Skip for `depth: lite` sessions.
 
 ## What you emit — and what you must NOT
 
@@ -103,6 +120,8 @@ narrative; default OFF.
   lives in ADRs/CONTEXT.md; the PRD references it. Co-location is not cohesion.
 - "I'll note the term later." → You'll lose the rationale. Append to CONTEXT.md the moment it resolves.
 - "Let me sketch the file structure / signatures while I'm here." → Wrong altitude. That's the plan's job.
+- "The user approved every decision as we went, so we're aligned." → Approving one decision at a time is
+  not holding the whole design. The closing quiz checks the assembled model, cheaply.
 
 ## Red flags — stop if you catch yourself
 
@@ -111,6 +130,8 @@ narrative; default OFF.
 - Putting implementation detail into `CONTEXT.md`.
 - Creating an ADR that fails any one of the three conditions.
 - Answering a codebase-knowable question from assumption instead of reading the code.
+- Interviewing only the decisions the intent already lists — no blind-spot pass on unfamiliar ground.
+- Ending a novel or high-stakes session without the closing quiz.
 - Editing or contradicting an accepted ADR without an explicit supersede link.
 
 ## Verification (ending criteria)
@@ -122,6 +143,7 @@ Done when:
 - Every decision meeting all three ADR conditions has an ADR in `docs/adr/`; **no** ADR exists that fails the
   test.
 - No `prd.md`, file path, or signature was produced here.
+- For novel/high-stakes designs, the closing quiz ran and any miss reopened its decision.
 - Re-read `intent.md`'s Outcome/Success — the design satisfies them.
 
 ## Outputs & handoff contract
