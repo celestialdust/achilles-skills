@@ -77,6 +77,8 @@ Task arrives
     │
     ├── Is the env ready? ─────────────────────→ preflight-readiness        (Cross-cut · env-readiness gate)
     ├── Compact/handoff this session? ─────────→ handoff          (Cross-cut · per-session compaction)
+    ├── Explain code you didn't write? ────────→ literate-explainer         (Standalone · teaching artifact for code you didn't write · no gate)
+    ├── Quiz your understanding? ──────────────→ comprehension-quiz         (Standalone · retrieval practice, graded before reveal · no gate)
     └── Coordinating the whole loop? ──────────→ orchestrator     (wave-parallel DAG · preflight-readiness gate · handoff)
 
 Review is a fan-out: the orchestrator runs code-review / code-simplification / security-and-hardening / performance-optimization as fresh, code-cold
@@ -225,6 +227,8 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Ship | observability-and-instrumentation | structured logs; RED metrics; tracing; symptom alerts |
 | Ship | deprecation-and-migration | code-as-liability; migration patterns; zombie-code removal |
 | Ship | documentation-and-adrs | the ADR + doc standard: document the why |
+| Comprehension | literate-explainer | standalone: turn a diff or whole repo into a self-contained teaching artifact; never a gate |
+| Comprehension | comprehension-quiz | standalone: ~5-question retrieval practice, graded before reveal → learning ledger; never a gate |
 
 ## Rationalizations
 

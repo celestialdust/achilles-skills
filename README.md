@@ -43,9 +43,23 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 
 ---
 
+## Repository layout
+
+| Path | What it is |
+|---|---|
+| `skills/` | The 38 skills — one discipline per `SKILL.md` |
+| `agents/` | The 5 fresh-context personas |
+| `commands/` | The 11 slash commands — thin wrappers over the skills |
+| `references/` | Shared checklists and format contracts the skills point at |
+| `docs/` | Audience-facing documentation only: getting started + per-agent setup guides |
+
+`docs/` is for readers of this repo. The pipeline artifacts the suite produces (`STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`) live in **your** project once `/setup` scaffolds them there — never in this one.
+
+---
+
 ## Commands
 
-Nine slash commands, one per lifecycle stage plus the autonomous runner and the one-time setup. Each is a thin wrapper that activates the right skill(s).
+Eleven slash commands: one per lifecycle stage plus the autonomous runner and the one-time setup, and two standalone comprehension commands outside the lifecycle. Each is a thin wrapper that activates the right skill(s).
 
 | Command | What you're doing | Invokes |
 |---|---|---|
@@ -58,6 +72,8 @@ Nine slash commands, one per lifecycle stage plus the autonomous runner and the 
 | `/ship` | Release: checklist · staged rollout · rollback | shipping-and-launch (+ pull-request) |
 | `/orchestrate` | **The autonomous wave-parallel DAG runner** — drives Implement → Ship to open draft PRs | orchestrator |
 | `/setup` | One-time repo ecosystem scaffold | project-setup |
+| `/explain` | Standalone, no stage: teaching artifact for a diff or a whole repo | literate-explainer |
+| `/quiz` | Standalone, no stage: retrieval practice, graded before reveal → learning ledger | comprehension-quiz |
 
 ---
 
@@ -165,7 +181,7 @@ Skills are plain Markdown — they work with any agent that accepts system promp
 
 ---
 
-## All 36 Skills
+## All 38 Skills
 
 Every skill is a structured workflow — purpose, when-to-use, process, rationalizations, red flags, and verification gates — not a reference doc. The commands above are entry points; you can also reach for any skill directly.
 
@@ -244,6 +260,15 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 | [observability-and-instrumentation](./skills/observability-and-instrumentation/SKILL.md) | Structured logging; RED metrics; OTel tracing |
 | [deprecation-and-migration](./skills/deprecation-and-migration/SKILL.md) | Code-as-liability; migration patterns |
 | [documentation-and-adrs](./skills/documentation-and-adrs/SKILL.md) | The ADR + doc standard, referenced cross-cutting |
+
+### Comprehension — human-led, standalone
+
+Understand code you didn't write. A standalone loop — diff → explainer → quiz → record — that runs outside the lifecycle and never gates a merge, a stage, or an `/orchestrate` wave.
+
+| Skill | Responsibility |
+|---|---|
+| [literate-explainer](./skills/literate-explainer/SKILL.md) | Turn a diff or a whole unfamiliar repo into a self-contained teaching artifact — background → intuition → literate tour, Feynman-plain |
+| [comprehension-quiz](./skills/comprehension-quiz/SKILL.md) | Agent-administered retrieval practice — ~5 questions one at a time, graded before the answer, recorded in the learning ledger |
 
 ---
 
