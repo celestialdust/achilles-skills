@@ -4,7 +4,7 @@ Guidance for **non-Claude AI coding agents** — OpenCode, Codex, Cursor, GitHub
 Gemini CLI, Windsurf, Antigravity, Kiro, and any agent that reads instruction files — when working in
 the **achilles-skills** repository.
 
-Claude Code consumes this repo natively through `.claude-plugin/plugin.json` (skills auto-route, the 9
+Claude Code consumes this repo natively through `.claude-plugin/plugin.json` (skills auto-route, the 11
 slash `commands/` register, the 5 `agents/` personas become subagents). Agents **without** a native plugin
 system, slash commands, or subagents get the same behavior through *this file*: it is the system prompt that
 makes any agent route work to skills, follow the lifecycle, and respect the autonomy boundary.
@@ -16,10 +16,11 @@ makes any agent route work to skills, follow the lifecycle, and respect the auto
 achilles-skills is a self-contained suite that automates the development loop
 **Ideate → Spec → Plan → Implement → Verify → Review → Ship**. It has three composable layers:
 
-- **Skills** (`skills/<name>/SKILL.md`) — 36 workflows with steps and exit criteria. The *how*. A skill is a
+- **Skills** (`skills/<name>/SKILL.md`) — 38 workflows with steps and exit criteria. The *how*. A skill is a
   mandatory hop whenever an intent matches it.
 - **Personas** (`agents/<role>.md`) — 5 fresh-context roles with a perspective and an output format. The *who*.
-- **Commands** (`commands/<name>.md`) — 9 lifecycle entry points. The *when*. The orchestration layer.
+- **Commands** (`commands/<name>.md`) — 9 lifecycle entry points plus 2 standalone comprehension commands
+  (`/explain`, `/quiz`). The *when*. The orchestration layer.
 
 Skills are markdown-first. Each lives at `skills/<kebab-name>/SKILL.md` with two-key YAML frontmatter
 (`name`, `description`). Shared reference checklists live in `references/`, not inside skill directories.
@@ -162,9 +163,15 @@ Treat each macro phase as the trigger to invoke the stage's lead skill, instead 
 For a full autonomous run of BUILD→SHIP across a dependency DAG, invoke `orchestrator`. Bootstrap a repo once
 with `project-setup`.
 
+Two standalone comprehension skills sit outside the lifecycle — no macro phase, no gate — and route on the
+phrase, not the stage:
+
+- "explain this diff/PR/codebase to me" / "walk me through what changed" → `literate-explainer`
+- "quiz me on it" / "test my understanding" → `comprehension-quiz` (the `literate-explainer` follow-up)
+
 ---
 
-## The 9 commands (canonical entry points)
+## The 11 commands (canonical entry points)
 
 Even if your agent cannot execute slash commands, this table is the source of truth for which skills each
 lifecycle stage activates. Agents with custom-command support may register these; others read it as the
@@ -181,6 +188,8 @@ intent contract.
 | `/ship` | `shipping-and-launch` (+ `pull-request`) | release: checklist · staged rollout · rollback |
 | `/orchestrate` | `orchestrator` | the autonomous wave-parallel DAG runner to open PRs |
 | `/setup` | `project-setup` | one-time repo ecosystem |
+| `/explain` | `literate-explainer` | standalone, no lifecycle stage: teaching artifact for a diff or repo |
+| `/quiz` | `comprehension-quiz` | standalone, no lifecycle stage: retrieval practice → learning ledger |
 
 ---
 
