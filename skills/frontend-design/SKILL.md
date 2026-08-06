@@ -195,8 +195,8 @@ Done when ALL hold:
 - **No** design content leaked into `acceptance.md` (behavioral-only). The contract is the sole design
   home.
 - The contract is a **separable artifact** `quality-verification` can re-read cold in Verify (where the design gate binds).
-- Handed to the human for sign-off at the Spec gate; on sign-off `status: signed`. (`test-driven-development`/`quality-verification` refuse an
-  unsigned or absent contract.)
+- Handed to the human for sign-off at the Spec gate; on sign-off `status: signed`. (`quality-verification`
+  refuses an unsigned or absent contract.)
 
 ## Outputs & handoff contract
 - **Emits:** (1) a committed high-fidelity prototype = the **reference-spec build target that production
@@ -209,8 +209,7 @@ Done when ALL hold:
   same commit.
 - **Consumed by:** `quality-verification` (Verify design gate: reads the `## Prototype` section to locate the
   committed reference-spec mockup and grades the built UI's fidelity against it, plus these seven axes), and
-  gating `test-driven-development`/`quality-verification` (both refuse to run against an unsigned/absent
-  contract).
+  gating `quality-verification` (refuses to run against an unsigned/absent contract).
 - **Re-invalidation rule:** any edit to `prd.md` flips the contract back to `status: draft` (it must be
   re-signed) — design floors can't silently drift from the product they were signed against.
 - **STATE.md:** the feature stays in `spec`; set `gate: you` so the human signs intent + prd + acceptance +

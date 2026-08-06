@@ -14,17 +14,18 @@ runs and a stage gets skipped.
 ## Project Structure
 
 ```
-skills/          → 36 skills, one discipline each (skills/<name>/SKILL.md)
+skills/          → 38 skills, one discipline each (skills/<name>/SKILL.md)
 agents/          → 5 review personas (code-cold subagents)
-commands/        → 9 lifecycle slash commands (*.md)
+commands/        → 11 slash commands (*.md) — 9 lifecycle + 2 standalone
 references/      → shared checklists (testing, performance, security, …)
-docs/            → per-agent setup guides + ADRs
+docs/            → per-agent setup guides
 .claude-plugin/  → plugin.json + marketplace.json (install manifests)
 ```
 
-## The 9 commands → which skill they run
+## The 11 commands → which skill they run
 
-Slash commands are thin entry points; each maps one lifecycle stage to its skill(s).
+Slash commands are thin entry points. The first nine each map one lifecycle stage to its skill(s); the
+last two are standalone and belong to no stage.
 
 | Command | Runs | Owner |
 |---|---|---|
@@ -37,8 +38,11 @@ Slash commands are thin entry points; each maps one lifecycle stage to its skill
 | `/ship` | shipping-and-launch (+ pull-request) | agent |
 | `/orchestrate` | orchestrator — the autonomous wave-parallel DAG runner | agent |
 | `/setup` | project-setup — one-time repo ecosystem | agent |
+| `/explain` | literate-explainer — **standalone**, not a lifecycle stage | human |
+| `/quiz` | comprehension-quiz — **standalone**, not a lifecycle stage | human |
 
-The **human owns Ideate + Spec + Plan**; the agent runs **Implement → Ship autonomously**.
+The **human owns Ideate + Spec + Plan**; the agent runs **Implement → Ship autonomously**. `/explain`
+and `/quiz` sit outside that loop entirely — run either at any time without advancing a stage.
 
 ## The 5 personas (agents/)
 
@@ -64,6 +68,18 @@ Every SKILL.md uses two-key frontmatter (`name` + `description` only) and these 
 `## Rationalizations` · `## Red flags` · `## Verification (ending criteria)` · `## Outputs & handoff
 contract`. Chassis skills keep their native `## Overview` / `## The Process` headings verbatim — do not
 rename headings. References live in `references/`, never inside a skill directory.
+
+## Substrate — detected, not required
+
+The substrate is the repo-local memory layer the skills read beneath themselves. It lives in the
+**consumer** repo (an `.achilles/` directory plus the board and artifact chain `project-setup`
+scaffolds there) — never in this one. **A repo with no `.achilles/` gets v1 behaviour, unbroken:** no
+skill refuses to run for its absence, and every stage works exactly as it did before.
+
+Where the rules live — this file indexes them, it does not restate them:
+- **Per-stage rules** → the matched `skills/<name>/SKILL.md`. That file is authoritative.
+- **Suite-wide rules** → the envelope above, plus Safety & autonomy, Conventions, and Boundaries below.
+- **Shared checklists** → `references/`.
 
 ## Safety & autonomy rules (must-follow)
 
