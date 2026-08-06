@@ -1,6 +1,6 @@
 ---
 name: acceptance-criteria
-description: 'Turn a prd.md into acceptance.md — the Given/When/Then prose contract that is the SOLE human-anchored oracle for the entire autonomous run. Reach for this the MOMENT a prd.md exists and BEFORE any planning, TDD, or QA — test-driven-development and quality-verification REFUSE to run without a signed acceptance.md. If you are about to write "acceptance criteria", "definition of done", test scenarios, or Given/When/Then for a feature, you need this first. Behavioral-only: keep ALL design floors out (those belong to frontend-design''s contract).'
+description: 'Turn a prd.md into acceptance.md — the Given/When/Then prose contract that is the human-anchored oracle for THIS feature''s behavior across the entire autonomous run (the repo''s permanent cross-feature guarantees live in docs/test-contract.md; these two are the only human-anchored oracles the run has). Reach for this the MOMENT a prd.md exists and BEFORE any planning, TDD, or QA — test-driven-development and quality-verification REFUSE to run without a signed acceptance.md. If you are about to write "acceptance criteria", "definition of done", test scenarios, or Given/When/Then for a feature, you need this first. Behavioral-only: keep ALL design floors out (those belong to frontend-design''s contract).'
 ---
 
 ## Purpose
@@ -9,8 +9,12 @@ description: 'Turn a prd.md into acceptance.md — the Given/When/Then prose con
 `acceptance.md`: its observable behavior, written as Given/When/Then scenarios in plain prose.
 
 This is the highest-leverage artifact in the whole suite. Because the agent runs Implement → Verify →
-Review → Ship **fully autonomously with no mid-run human halt**, `acceptance.md` is the **SOLE
-human-anchored oracle** — the one place a human pins down "what *done* means" before going AFK. `test-driven-development`
+Review → Ship **fully autonomously with no mid-run human halt**, `acceptance.md` is the
+**human-anchored oracle for this feature's behavior** — the one place a human pins down "what *done*
+means" for it before going AFK. The run has exactly one other human-anchored oracle: an **ACTIVE** row in
+`docs/test-contract.md`, which governs the repo's permanent cross-feature guarantees rather than any one
+feature. One home each, so the two can never contradict — and no third oracle exists, which is why a
+behavior missing from both is a behavior nothing checks. `test-driven-development`
 realizes each scenario as a RED test; `quality-verification` grades the running app against these scenarios and keeps an
 exercised/not-reachable ledger by id; `pull-request` forces a human-ack line for any scenario the run could not
 reach. **A behavior you forget to write here is a behavior no gate will ever check.** Completeness is the
@@ -51,6 +55,9 @@ Refuse-to-run unless these resolve:
 - Also read (context, not back-referenced): `## Problem` / `## Solution` (to frame the happy paths) and
   `## Out of Scope` (the not-doing boundary — these are **never** scenarios; an out-of-scope item that
   needs a guarantee is a *security-observable* scenario stated as a behavior the system must refuse).
+- **Also read when the repo has one — `docs/test-contract.md`.** Its `ACTIVE` rows are permanent
+  repo-wide guarantees your scenarios have to agree with (see "Boundary with the repo's test contract").
+  No such file, or no ACTIVE rows → nothing to reconcile; carry on.
 
 If `STATE.md` / `docs/features/` do not exist, the repo was never set up → run `project-setup` first.
 
@@ -104,6 +111,25 @@ Every feature covers these classes (a story may not touch all three, but the fea
 - **NO engine** — no `.feature` files, no `@given`/`@when` step definitions, no Cucumber/Behave/SpecFlow.
   Prose only; `test-driven-development` turns prose into tests by judgment.
 
+## Boundary with the repo's test contract
+
+`acceptance.md` is not the only file that holds scenarios. `docs/test-contract.md` holds the repo's
+permanent, cross-feature ones. It states that boundary in full; two duties fall to you when you write:
+
+- **Put each scenario in one file.** The test is lifetime, not importance: a scenario that dies when this
+  feature is deleted is a feature scenario and belongs here; one that must still hold afterwards is a
+  permanent guarantee and belongs in the contract. Parking a permanent guarantee here loses it — an
+  `acceptance.md` is re-signed whenever its `prd.md` moves, so a guarantee kept here is one product-spec
+  edit away from being renegotiated.
+- **Never contradict an ACTIVE row.** If a scenario you are about to write would contradict one, the
+  ACTIVE row wins and your scenario is wrong. Fix it here, now. Spec is the only place this can be
+  settled — downstream, an ACTIVE row is frozen in every run, so the collision would surface as a halted
+  slice instead of a decision someone made.
+
+You never write to `docs/test-contract.md` and never set a row's state. A person adds rows and activates
+them; that one-way human act is what makes an ACTIVE row worth anything. If an ACTIVE row looks wrong,
+say so to the human — do not work around it.
+
 ## Scenario anatomy
 
 ```
@@ -127,12 +153,19 @@ Stop signals disguised as good reasons:
   `frontend-design`'s contract. Behavioral-only here — assert what the user *does*, not how it looks.
 - "I'll name the function / endpoint path so the test is precise." → No. Outcomes only. Signatures and
   paths go stale and turn the oracle into an implementation mirror; `test-driven-development`/`plan-breakdown` own those.
-- "It looks right — I'll mark it `signed`." → No. The **human signs**; `signed` set by the agent forges
-  the sole human-anchored oracle. Leave it `draft` and present for sign-off.
+- "It looks right — I'll mark it `signed`." → No. The **human signs**; `signed` set by the agent forges a
+  human-anchored oracle — this feature's. The same act on the other one is flipping a `docs/test-contract.md`
+  row to `ACTIVE`, and the agent never does that either. Leave it `draft` and present for sign-off.
 - "Cucumber would make this executable." → No engine. Executability comes from `test-driven-development` realizing the
   prose, not from a brittle step-def framework.
 - "The PRD has 8 stories but 3 are similar — I'll write 3 scenarios total." → Every **story id** needs
   ≥1 scenario. Coverage is the load-bearing property; thin it and a gate goes blind.
+- "This guarantee matters everywhere, so I'll put it here too, to be safe." → No. A second copy can
+  disagree with the first, and this one gets re-signed whenever `prd.md` moves. Repo-wide guarantees live
+  in `docs/test-contract.md`; one home each is what makes the two unable to contradict.
+- "My scenario is more specific than that ACTIVE row, so mine should win." → No. The ACTIVE row wins, and
+  it was made permanent by a person on purpose. Rewrite your scenario to agree with it, or take the
+  disagreement to the human — they change the contract, outside any run.
 
 ## Red flags
 
@@ -146,6 +179,9 @@ Stop and fix before presenting if any are true:
 - Any `## User Stories` id has **zero** scenarios. → The oracle has a hole; add scenarios.
 - A feature with risky paths has **only** happy-path scenarios (no error/edge, no security-observable).
 - Frontmatter says `status: signed` and no human signed it. → Revert to `draft`; present for sign-off.
+- A scenario contradicts an ACTIVE row in `docs/test-contract.md`. → The row wins; rewrite the scenario.
+- A scenario here would still have to hold after this feature is deleted. → Wrong file; it is a permanent
+  guarantee. Tell the human so they can add it to `docs/test-contract.md` — you never edit that file.
 
 ## Verification (ending criteria)
 
@@ -161,6 +197,9 @@ Done when ALL hold:
   where the feature has any boundary to protect).
 - **Behavioral-only grep is clean:** no file paths, signatures, schemas-as-code, library internals, or
   design tokens (colour/font/px/layout/motion). No `.feature`/step-def artifacts exist.
+- **No collision with the repo contract:** no scenario contradicts an ACTIVE row in
+  `docs/test-contract.md`, no permanent cross-feature guarantee was parked here, and that file was not
+  edited. (No such file, or no ACTIVE rows → this criterion is satisfied.)
 - Presented to the human for sign-off; the gate stays `you` until the human flips `status: signed`.
 
 ## Outputs & handoff contract

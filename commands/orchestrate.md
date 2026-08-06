@@ -13,5 +13,5 @@ Per ready slice, the orchestrator runs **Implement → Verify** — `incremental
 ## Notes
 
 - **Refuses to run** unless: `STATE.md` holds a `feature: building` with a slice DAG (`Blocked by` column), `preflight-readiness` verdict is GREEN, and the signed `acceptance.md` + `plan.md` slices (with file-ownership) exist. Missing any → stop; the human finishes Spec/Plan first.
-- Frozen artifacts (`acceptance.md`, RED tests, each slice's `Regression surface`) are immutable under retry — weakening a gate to go green is a HALT, not a pass.
+- Frozen artifacts (`acceptance.md`, RED tests, each slice's `Regression surface`) are immutable under retry — weakening a gate to go green is a HALT, not a pass. A fourth thing is frozen permanently rather than per-loop: an **ACTIVE** row of `docs/test-contract.md`, binding in every run forever, because activation is one-way and only a person performs it. Skipping, weakening, or narrowing one is the same HALT at any moment, named by row id (`TC-1`). The HALT ends that slice, not the run.
 - Terminal state is an OPEN, gates-green, risk-banded PR on the cluster branch. Auto-deploy is out of scope; the human merge is the surviving downstream gate.

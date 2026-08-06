@@ -31,7 +31,8 @@ Refuse to run if there is **no diff** to review — with nothing changed there i
 
 **Read-only context (FROZEN — never edit any of these during a review):**
 - `plan.md` + the slice's row (from `plan-breakdown`) — grade the **plan first, then the diff**: a diff that faithfully executes the wrong plan is still a fail.
-- `acceptance.md` (the signed behavioral contract) — the human-anchored oracle, frozen under the slice's retry loop. You are dispatched **code-cold**: you see `acceptance.md`, not the conversation that wrote the code, so the oracle never drifts.
+- `acceptance.md` (the signed behavioral contract) — a human-anchored oracle, frozen under the slice's retry loop. You are dispatched **code-cold**: you see `acceptance.md`, not the conversation that wrote the code, so the oracle never drifts.
+- `docs/test-contract.md`, when the repo has one — the repo-level scenarios under its `## Rows` heading, each `PENDING` or `ACTIVE`. An **ACTIVE** row is the other human-anchored oracle: a person activated it, it binds every feature and every run **permanently**, and it is what the gate-erosion breaker below protects. `PENDING` rows enforce nothing. No file, or no ACTIVE rows, is the normal case and changes nothing.
 - `STATE.md` slice row — the PRD-namespaced id of the slice you are reviewing.
 
 **Dispatch contract:** the orchestrator runs you as a **fresh, code-cold subagent on the review axis, in parallel with `code-simplification` / `security-and-hardening` / `performance-optimization`** (maker≠checker; parallelism.md mech f). No persona role-play.
@@ -176,6 +177,7 @@ Tests reveal intent and coverage:
 - Are edge cases covered?
 - Do tests have descriptive names?
 - Would the tests catch a regression if the code changed?
+- Does any ACTIVE `docs/test-contract.md` row lose coverage here — skipped, weakened, narrowed, deleted?
 ```
 
 ### Step 3: Review the Implementation
@@ -384,6 +386,8 @@ Part of code review is dependency review:
 - A change that grows an already-large file instead of decomposing it
 - New conditionals scattered into unrelated code paths (a missing abstraction)
 - A bespoke helper that duplicates an existing canonical one, or feature logic placed in a shared module
+- A diff that skips, weakens, narrows, or deletes an ACTIVE `docs/test-contract.md` row, or moves a row's state — that freeze is permanent, so it is a `Critical:` + gate-erosion HALT whatever else the diff did, and the finding names the row id
+- A gate-erosion finding written without naming the artifact, or the contract row id, that changed — the person reading it cannot tell which guarantee was at stake
 
 ## Verification
 
@@ -407,7 +411,11 @@ After review is complete:
 
 **Gate role:** this skill is the **Review-fan-out leg** — ONE of three AND-combined agent-internal gates (quality-verification + Review fan-out + evaluator floors). It does NOT flip `STATE.md` and does NOT open or promote a PR. The orchestrator aggregates all legs; a passing slice stops at a **DRAFT PR** that a separate fresh code-cold verifier later promotes. A `Request changes` verdict routes the slice back to `incremental-implementation` (bounded rounds), not forward.
 
-**Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion, deletes/narrows a RED test, or shrinks the declared `Regression surface` while the implementation is materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**. Never `Approve` a diff that moved the goalposts instead of the code (testing-strategy AP1–AP2).
+**Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion, deletes/narrows a RED test, or shrinks the declared `Regression surface` while the implementation is materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**. Those three are frozen for the slice's retry loop; between runs a person can change them by a signed Spec change, so the reward-hack qualifier is what distinguishes erosion from a legitimate edit.
+
+The same breaker covers a diff that **skips, deletes, weakens, or narrows an ACTIVE `docs/test-contract.md` row**, or moves a row's state in either direction — with two differences. That freeze is **permanent, in every run**, because activation is one-way and only a person performs it, so the reward-hack qualifier does not apply: touching an ACTIVE row is the `Critical:` + HALT whatever else the diff did. And the finding **names the row id** (`TC-1`) — "gate erosion" alone tells the person reading it nothing about which guarantee was about to be traded away, so they cannot judge whether the trade was reasonable. A row reported `not-reachable` is not this: it is still ACTIVE, unproven, with a human-ack line in the PR, so nothing stopped being checked.
+
+Never `Approve` a diff that moved the goalposts instead of the code (testing-strategy AP1–AP2).
 
 **Security escalation:** a CRITICAL/HIGH vuln or a secret in the diff is a hard `Critical:` + STOP — the slice gets no PR (security leg); place it at the top of `Findings`.
 

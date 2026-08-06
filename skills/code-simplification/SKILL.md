@@ -47,10 +47,16 @@ Refuse to run unless ALL of these resolve:
   breaks project consistency is churn, not simplification.
 
 **Frozen under this skill (silent-false-green invariant):** `acceptance.md`, the RED/passing tests,
-and the declared `Regression surface` are IMMUTABLE here. A "simplification" that edits a test, weakens
-an assertion, or widens/narrows the surface is **gate-erosion → HALT**: stop, flip the slice's gate
-column to `you`, and surface it. The whole point of this skill is to make the code simpler until the
-frozen tests still pass — never to change the tests until the simpler code passes.
+and the declared `Regression surface` are IMMUTABLE here. So is any **ACTIVE** row under the `## Rows`
+heading of `docs/test-contract.md` when the repo has one — and that one is frozen on stronger terms: the
+first three thaw between runs by a signed Spec change, an ACTIVE row is frozen in every run, forever,
+because activation is one-way and only a person performs it. A "simplification" that edits a test, weakens
+an assertion, widens/narrows the surface, or costs an ACTIVE row its coverage is **gate-erosion → HALT**:
+stop, flip the slice's gate column to `you`, and surface it — naming the row id (`TC-1`) when it was a
+contract row, since "gate erosion" alone does not tell the reader which guarantee was nearly traded away.
+Never set a row's state yourself in either direction; you read that file and do not edit it. An absent
+file, or one with no ACTIVE rows, changes nothing here. The whole point of this skill is to make the code
+simpler until the frozen tests still pass — never to change the tests until the simpler code passes.
 
 ## The Five Principles
 

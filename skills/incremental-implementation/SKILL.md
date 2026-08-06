@@ -316,6 +316,16 @@ Per-increment verification is the local check. Before declaring a task done, app
   tripwire: the failure signature must not move only because a test/acceptance was edited while impl is
   materially unchanged). The way to green is to fix the impl (via `debugging-and-error-recovery`), never to
   move the goalposts. No `--no-verify`, no hook edits, no `SKIP_HOOKS` (security.md / CLAUDE.md).
+  Those three thaw between runs — a person can change them by a signed Spec change, outside the run.
+- **Frozen permanently — ACTIVE `docs/test-contract.md` rows:** a row marked **ACTIVE** under that file's
+  `## Rows` heading is a scenario the whole repo owes, and it is frozen in **every** run, forever. There is
+  no retry loop it thaws after and no Spec change unfreezes it, because activation is one-way and only a
+  person performs it. Skipping, deleting, weakening, or narrowing one to make a gate pass is the same
+  gate-erosion **HALT** — at any moment, retry or not — and the halt **names the row id** (`TC-1`), because
+  "gate erosion" alone tells the person reading it nothing about which guarantee was about to be traded away.
+  Never set a row's state yourself in either direction: you read that file and do not edit it. Proposing a
+  new `PENDING` row costs nothing and needs no measurement. An absent file, or one with no ACTIVE rows, is
+  the normal case and changes nothing here.
 - **`STATE.md` update:** on a green slice checkpoint, flip the slice **`impl → verify`** (gate stays `agent`)
   and hand off to `quality-verification`. If the slice cannot pass after the bounded rounds (3 implement→verify→review cycles),
   flip it **`impl → halted`** and **flip its gate `agent → you`** — the failure-escalation path is the only

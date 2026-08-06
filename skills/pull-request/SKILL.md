@@ -50,6 +50,7 @@ resolved from any source.
 | Product anchor | `prd.md` (`## Solution` / `## User Stories`) + referenced **ADRs** by id | the **Summary** "why" — never from commit messages |
 | Plan + slice | `plan.md` + the slice row (id · Story-ref · Blocked by; the human title lives in `STATE.md`, not `plan.md`) | the **Diff narration** + the slice id in the title |
 | Behavioral contract | `acceptance.md` (scenario ids, e.g. `PWR-A1`) | cross-check the ledger; each `not-reachable` id ⇒ a human-ack line |
+| Repo test contract | `docs/test-contract.md` — the `ACTIVE` row ids (`TC-1`, …) | cross-check the ledger's `source: contract` rows, which `quality-verification` keys by row id in the same table (`source` is the column that says where a scenario came from; `class` keeps its three scenario values — happy · error/edge · security-observable). A `not-reachable` row id ⇒ a human-ack line **by the same rule as any other id** — there is no second channel. Absent, or no ACTIVE rows → nothing to cross-check; this input never blocks a PR on its own |
 | The slice diff | `git diff <base>..HEAD` + `git log --oneline <base>..HEAD` (base = the slice branch's base; `--base <ref>` overrides) | highest-risk-file selection + secret scan |
 | Evaluator floors (a gate, **not** a `pull-request` input) | **orchestrator-enforced agent-internal gate** — there is no `evaluator` skill in the roster; the orchestrator checks correctness≥8 · testing_strategy≥7 · plan_adherence≥8 · regression_surface≥9 *before* dispatching `pull-request` | the hard refuse-to-run gate below — `pull-request` reads the verdict, it does not compute the floors |
 
@@ -72,11 +73,14 @@ evaluator result:
 - rounds consumed (of the 3 implement→verify→review cycles);
 - whether any test or `acceptance.md` line was touched during retries (must be **none** — the
   frozen-artifact invariant);
+- whether any ACTIVE `docs/test-contract.md` row was skipped, deleted, weakened, or narrowed (must be
+  **none** — those rows are frozen in every run, not just this retry loop);
 - whether the declared `regression_surface` narrowed (must be **none**).
 
-A clean slice → **LOW**. Floors at the line / a not-reachable scenario / 3-of-3 rounds / a non-empty
-"tests touched" → **MEDIUM**. Surface narrowing or a frozen-artifact edit should already have HALTED
-upstream — **if seen here, HALT and open no PR** (gate-erosion).
+A clean slice → **LOW**. Floors at the line / a not-reachable id (a scenario or an ACTIVE contract row —
+they count the same) / 3-of-3 rounds / a non-empty "frozen artifacts touched" → **MEDIUM**. Surface
+narrowing, a frozen-artifact edit, or a weakened ACTIVE contract row should already have HALTED upstream —
+**if seen here, HALT and open no PR** (gate-erosion).
 
 ### Step 3 — Push the slice branch
 ```bash
@@ -107,6 +111,7 @@ gh pr create --draft \
 
 **Not reachable — REQUIRED human ack, do not leave blank:**
 - [ ] <PWR-A3>: <why unreachable in this slice> — human must acknowledge before merge
+- [ ] <TC-1>: <why unreachable in this slice> — permanent contract row, still ACTIVE and unproven
 
 ## Code-reading checklist
 **Reviewers: check each file before approving.**
@@ -115,7 +120,7 @@ gh pr create --draft \
 
 ## Risk band: <LOW|MEDIUM>
 - floors at the line: <none | regression_surface=9, …>
-- qa coverage (exercised/total from qa.md ## Behavioral ledger): <e>/<t>  ·  rounds consumed: <n/3>  ·  tests/acceptance touched: <none | …>  ·  surface narrowed: <none>
+- qa coverage (exercised/total from qa.md ## Behavioral ledger): <e>/<t>  ·  rounds consumed: <n/3>  ·  frozen artifacts touched (tests · acceptance.md · ACTIVE contract rows): <none | …>  ·  surface narrowed: <none>
 EOF
 )"
 ```
@@ -129,7 +134,9 @@ Each section earns its place; none is decorative:
 - **Diff narration** = end-to-end prose ("this slice wires the token endpoint and persists the 1-hour
   TTL"), never "changed auth.ts, added test".
 - **Test plan** = the `qa.md` ledger, made human-legible — exercised behaviors + the not-reachable
-  acks. The agent does **not** invent a scenario↔test map here; it transcribes the ledger.
+  acks. The agent does **not** invent a scenario↔test map here; it transcribes the ledger. ACTIVE
+  `docs/test-contract.md` rows sit in that same ledger under their row id, so they need no separate
+  treatment — transcribing the ledger is what carries them, and one channel cannot drift from itself.
 - **Code-reading checklist** = the 3-5 highest-risk files with a one-line rationale each. This is the
   proof a human read the code — the gate whose absence cost Dex's team a rip-and-replace (QRSPI p.7).
 - **Risk band** = the inverted risk report: draws the human's scarce attention to the *quiet
@@ -141,17 +148,23 @@ Each section earns its place; none is decorative:
 - "Reviewers can just open the files tab." → The curated 3-5 highest-risk checklist *is* the
   deliverable; an unfiltered diff is exactly what made Dex's team rip-and-replace (QRSPI p.7).
 - "`quality-verification` marked one scenario not-reachable; I'll just omit it." → Every `not-reachable` id is a
-  **REQUIRED human-ack line** in the body; silently absorbing it defeats the sole human oracle.
+  **REQUIRED human-ack line** in the body; silently absorbing it defeats the human-anchored oracle it came
+  from — `acceptance.md` for one feature's behavior, an ACTIVE `docs/test-contract.md` row for the repo's
+  permanent guarantees. Both are signed or activated by a person and by nobody else.
 - "All gates passed, I'll open it ready-to-merge to save a step." → Fail-closed: the terminal state is
   **DRAFT**; only the fresh code-cold verifier promotes. Marking it ready yourself is gate-erosion.
+- "That `TC-` row is repo-wide, not this slice's business — I'll leave it off." → No. It is an id in the
+  same ledger and gets the same required ack line. The row stays ACTIVE and unproven, and this line is
+  the only thing that tells a person so before they merge.
 - "A retry tweaked a test to make it pass." → That is a frozen-artifact violation; **HALT**, open no PR.
 
 ## Red flags (STOP)
 - A security CRITICAL/HIGH or a secret in the diff → **no PR, hard halt**, top the report; a committed
   secret → **PushNotification** + freeze the next barrier (security.md's literal STOP).
 - An internal gate (`quality-verification` / Review / an evaluator floor) is not green → **no PR**.
-- The `regression_surface` narrowed, or a frozen test / `acceptance.md` line changed during retries →
-  **HALT** (gate-erosion); do not ship.
+- The `regression_surface` narrowed, or a frozen test / `acceptance.md` line changed during retries, or an
+  ACTIVE `docs/test-contract.md` row was skipped, weakened, or narrowed → **HALT** (gate-erosion); do not
+  ship. Name the row id in the report — "gate erosion" alone tells nobody which guarantee went.
 - You are about to `gh pr merge`, push to `main`, or trigger a deploy → **STOP**; the human owns the
   merge.
 - The code-reading checklist is empty, generic, or says "all files" → rewrite before opening.
@@ -162,10 +175,11 @@ Done when ALL hold:
 - [ ] Summary bullets trace to `prd.md`/ADRs; no commit-log dump.
 - [ ] Code-reading checklist names 3-5 (or fewer, if `lite`) highest-risk files, each with a one-line
       rationale.
-- [ ] Test plan reflects `qa.md` `## Behavioral ledger`; **every** `not-reachable` scenario id has a
-      REQUIRED human-ack checkbox.
-- [ ] Risk band computed and attached (LOW/MEDIUM, with floors-at-line · qa % · rounds · touched-tests
-      · surface-narrowed).
+- [ ] Test plan reflects `qa.md` `## Behavioral ledger`; **every** `not-reachable` id has a REQUIRED
+      human-ack checkbox — `acceptance.md` scenario ids and ACTIVE `docs/test-contract.md` row ids alike,
+      by the same rule.
+- [ ] Risk band computed and attached (LOW/MEDIUM, with floors-at-line · qa % · rounds ·
+      frozen-artifacts-touched · surface-narrowed).
 - [ ] Secret scan clean; build + tests green; diff ≤ 400 LOC.
 
 ## Outputs & handoff contract

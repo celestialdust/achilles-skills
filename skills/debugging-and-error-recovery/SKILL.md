@@ -37,6 +37,14 @@ What it requires before it may run:
   **gate-erosion → HALT**: stop, flip the slice's gate column to `you`, and surface it. The whole
   point of this skill is to change the code until the frozen tests pass, never to change the tests
   until the code passes.
+- **The fourth frozen thing, and it is not scoped to a loop.** An **ACTIVE** row under the `## Rows`
+  heading of `docs/test-contract.md` — the repo's permanent cross-feature scenarios — is frozen in every
+  run, forever, because activation is one-way and only a person performs it. The three above thaw between
+  runs by a signed Spec change; this one never does. A "fix" that skips, deletes, weakens, or narrows an
+  ACTIVE row is the same **gate-erosion → HALT** whether or not you are inside a retry, and the halt
+  **names the row id** (`TC-1`) so the reader can tell which guarantee was nearly traded away. Never set a
+  row's state yourself in either direction. No file, or no ACTIVE rows, is the normal case and changes
+  nothing here.
 
 ## The Stop-the-Line Rule
 

@@ -51,6 +51,16 @@ this skill reads:
 Also handed in by `incremental-implementation` / the `orchestrator`: the slice's **plan steps** (which files, which
 tests) and the slice's declared **`Regression surface`**.
 
+**Also read, when the repo has one:** `docs/test-contract.md` — the repo's list of permanent scenarios
+under its `## Rows` heading, each marked `PENDING` or `ACTIVE`. Rows live under that heading and nowhere
+else; an `ACTIVE` in an example block above it is not a row. An **ACTIVE** row holds for every feature, so treat any that this
+slice's change can reach the way you treat an `acceptance.md` scenario: realize it as a test and name the
+test for the row id (`TC-1`). A row this slice cannot reach is recorded by id, never dropped. `PENDING`
+rows enforce nothing yet — read them for context, and do not act on them.
+
+An absent file, or one with no ACTIVE rows, is the normal case and changes nothing here. There is **no
+refuse-to-run** on the test contract; the only refuse-to-run is `acceptance.md` below.
+
 **Refuse to run if:**
 - `acceptance.md` is **absent**, or
 - `acceptance.md` `status:` is `draft` (unsigned, or re-invalidated by a later `prd.md` edit).
@@ -242,14 +252,32 @@ Next failing test for the next scenario / feature.
 ## Frozen artifacts under retry (gate-erosion is a HALT)
 
 In the autonomous run no human watches you grade your own work, so the RED tests are a human-anchored
-oracle that must not drift. Three things are **immutable while a slice is in its retry loop**:
+oracle that must not drift. **Four things are frozen here, on two different terms.** Three are
+**immutable while a slice is in its retry loop**:
 - the consumed **`acceptance.md`** scenarios,
 - the **RED tests** you wrote for them,
 - the slice's declared **`Regression surface`**.
 
+The fourth — an **ACTIVE `docs/test-contract.md` row** — is frozen for longer than any loop. That is the
+paragraph after next; do not read the three above as the whole list.
+
 A retry diff that **weakens an assertion, deletes/skips a RED test, narrows the surface, or edits a
 scenario** is **gate-erosion → HALT** the slice (flip `gate: agent → you`). Do not "fix" the test to
 make it pass.
+
+**ACTIVE rows in `docs/test-contract.md` are frozen too, on stronger terms.** The three above are frozen
+*for this slice's retry loop* — between runs they can still change, by a Spec change a person signs. An
+ACTIVE row is frozen **permanently, in every run**: there is no loop it thaws after, because activation
+is one-way and only a person performs it. Skipping, deleting, weakening, or narrowing one to make a gate
+pass is the same **gate-erosion → HALT**, and **the halt names the row id** (`TC-1`). Say which guarantee
+was about to go; "gate erosion" on its own leaves whoever reads the halt unable to tell what was traded
+away, or whether the trade was reasonable.
+
+**Reporting a row unreachable is not weakening it.** If this slice cannot construct an ACTIVE row's
+Given — the state depends on work that does not exist yet — record the row id as not reachable and carry
+on. The row stays ACTIVE, unproven, and reaches a person through the required PR acknowledgement line.
+Nothing stopped being checked, so nothing halts. Only removing a row from the contract, flipping it back
+to `PENDING`, or rewriting it to assert less is the erosion above.
 
 If the failure signature only moved because a test/acceptance was edited while the implementation is
 materially unchanged, that is the **reward-hack tripwire → HALT**.
@@ -289,6 +317,8 @@ this do?"; tests-first answer "what should this do?" Tests-after are biased by y
 | "TDD will slow me down" | TDD faster than debugging. Pragmatic = test-first. |
 | "Existing code has no tests" | You're improving it. Add tests for existing code. |
 | "Just relax the assertion so the slice ships" | **Gate-erosion HALT.** The RED test is frozen. Fix the code or halt the slice. |
+| "This repo-wide contract row keeps failing — I'll narrow it to just this feature" | **Gate-erosion HALT**, and this one never thaws: an ACTIVE row is frozen in every run, not only this retry. Fix the code, or halt with the row id named. |
+| "The contract row is right in principle but nobody has activated it yet" | Then it is `PENDING` and enforces nothing — build against `acceptance.md` and leave the row alone. Activating it is a person's act, never yours. |
 
 ## Red flags
 
@@ -312,6 +342,11 @@ Gate-erosion red flags (HALT the slice, flip `gate: agent → you`):
 - Weakening/deleting/skipping a frozen RED test to make a slice pass
 - Editing an `acceptance.md` scenario mid-retry
 - Narrowing the declared `Regression surface` to dodge a failure
+- Skipping, deleting, weakening, or narrowing an **ACTIVE `docs/test-contract.md` row** — in a retry or at
+  any other moment; that freeze is permanent, not scoped to the loop
+- Setting a `docs/test-contract.md` row's state yourself, in either direction — activation is one-way and
+  a person's act
+- Halting for gate erosion **without naming** the artifact or row id that was about to change
 
 **The first group means: delete code, start over with TDD. The second group means: stop, do not ship.**
 
@@ -323,6 +358,8 @@ failed first and now passes, and each test names its scenario id.**
 Before marking the slice's implementation complete:
 
 - [ ] Every reachable `acceptance.md` scenario has a test (named with its id)
+- [ ] Every ACTIVE `docs/test-contract.md` row this slice can reach has a test (named with its row id);
+      rows it cannot reach are recorded by id, not dropped
 - [ ] Every new function/method has a test
 - [ ] Watched each test fail before implementing
 - [ ] Each test failed for the expected reason (feature missing, not typo)
@@ -331,7 +368,8 @@ Before marking the slice's implementation complete:
 - [ ] Output pristine (no errors, warnings)
 - [ ] Tests use real code (mocks only if unavoidable)
 - [ ] Edge cases and errors covered
-- [ ] No frozen test/acceptance/surface was weakened during retries
+- [ ] No frozen test/acceptance/surface was weakened during retries, and no ACTIVE test-contract row was
+      weakened at all
 
 Can't check all boxes? You skipped TDD. Start over.
 
@@ -407,8 +445,11 @@ Otherwise → not TDD
   verifier rely on the RED tests being **unweakened**.
 - The RED tests + `acceptance.md` + `Regression surface` are now the slice's **frozen oracle** (see
   *Frozen artifacts under retry*).
+- Any **ACTIVE `docs/test-contract.md` row** is frozen alongside them, and stays frozen after this slice
+  ends — permanently, in every run. A halt over one names the row id.
 - A scenario **not reachable** in this slice is **not silently skipped** — record its id so `qa.md` and
-  the PR body carry the required not-reachable ack.
+  the PR body carry the required not-reachable ack. That applies to an ACTIVE contract row the same way:
+  unreachable is honest reporting, and it never halts a slice.
 
 **STATE.md:** `test-driven-development` does not drive the board itself (the `orchestrator` owns `STATE.md`). It runs while
 the slice is `impl`; on green-and-pristine the slice is ready for `incremental-implementation` to complete and hand to

@@ -54,7 +54,16 @@ gracefully — comment on the code, not the person.
 - **Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion,
   deletes/narrows a RED test, or shrinks the declared regression surface while the implementation is
   materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**.
-  Never `Approve` a diff that moved the goalposts instead of the code.
+  Never `Approve` a diff that moved the goalposts instead of the code. Those three are frozen for the
+  slice's retry loop, which is why the reward-hack qualifier applies — between runs a person can change
+  them by a signed Spec change.
+- **The same breaker, without the qualifier — ACTIVE test-contract rows.** A diff that skips, deletes,
+  weakens, or narrows an **ACTIVE** row under the `## Rows` heading of `docs/test-contract.md`, or moves
+  a row's state in either direction, is `Critical:` + HALT whatever else the diff did. That freeze is
+  permanent, in every run, because activation is one-way and only a person performs it — so there is no
+  "materially unchanged" test to apply. Name the **row id** (`TC-1`) in the finding: "gate erosion" alone
+  tells the reader nothing about which guarantee was nearly traded away. A row reported `not-reachable`
+  is not this — it is still ACTIVE, unproven, with a human-ack line in the PR.
 - **Security escalation:** a CRITICAL/HIGH vuln or a secret in the diff is a hard `Critical:` + STOP —
   place it at the top of `Findings`; the slice gets no PR.
 

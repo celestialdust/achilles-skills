@@ -30,7 +30,11 @@ artifact and has no refuse-to-run on the artifact chain. What it needs to run:
   and the **frozen** `acceptance.md` + RED tests are **read-only** here. Git never amends,
   rebases, force-pushes, or re-stages to widen a surface or weaken a test under retry — that is a
   gate-erosion **HALT** the orchestrator enforces. Git's job is to record the change, not to edit
-  the oracle.
+  the oracle. `docs/test-contract.md` is read-only here too, and on stronger terms: the three above
+  thaw between runs by a signed Spec change, while an **ACTIVE** row under its `## Rows` heading is
+  frozen in every run, forever. Never stage, commit, or revert a change to a row's state in either
+  direction — activation is a person's act and one-way, so a commit that moves one is the same
+  gate-erosion HALT, named by row id (`TC-1`).
 
 Refuse-to-run only if there is no repository and the task forbids creating one. Otherwise git
 always applies.

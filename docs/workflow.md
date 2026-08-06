@@ -109,24 +109,44 @@ have it caught before the code is written, build that slice on the single-slice 
 
 ## What is frozen
 
-Three things cannot be edited to make a slice pass:
+Four things cannot be edited to make a slice pass:
 
 - `acceptance.md` — the signed behavioral contract.
 - Any failing test written before the code that makes it pass — the test *is* the proof.
 - Each slice's declared regression surface — the existing behavior the slice must not break.
+- Any **ACTIVE** row in the repository's test contract, at `docs/test-contract.md` — a scenario the whole
+  repository owes rather than one feature. That file starts empty, and a repository with no ACTIVE row is
+  untouched by this line.
 
 Editing one of these to turn a failing gate green is **gate erosion**, and it is a stop condition rather
-than a shortcut. The reason is simple: these three are the only evidence that does not come from whoever
+than a shortcut. The reason is simple: these four are the only evidence that does not come from whoever
 wrote the code. Code that passes a test it rewrote proves nothing.
+
+The four are not frozen for the same length of time, and the difference is the point.
+
+**The first three are frozen for the retry loop.** They do not move while a slice retries. Between runs
+they can change — as a Spec change a person signs, outside the run. If one of them is genuinely wrong,
+that is real and worth fixing, and that is the route.
+
+**An ACTIVE test-contract row is frozen permanently, in every run.** There is no loop it thaws after, and
+no Spec change unfreezes it. A person can add a row, and a person can move a row from PENDING to ACTIVE.
+Nothing moves a row back. The agent never moves one in either direction — it reads that file and does not
+write to it.
+
+That asymmetry is what makes an ACTIVE row worth writing. A guarantee the agent can switch off is not a
+guarantee: under retry pressure, switching it off is always the cheapest way to make a failing gate green.
+If an ACTIVE row turns out to be wrong, that too is real and worth fixing — as a decision a person makes
+and records outside any run, never as an edit inside one.
+
+Reporting a scenario as *could not be reached* is not editing it. A slice that cannot construct a
+scenario's starting state says so, and the scenario — in `acceptance.md` or in the test contract — stays
+where it is, unproven, with a person named to settle it. Nothing stopped being checked, so nothing stops.
 
 A UI slice's design contract is protected too, by a different mechanism. It is checked at dispatch, before
 anything is built for that slice. A slice whose contract is absent or still draft halts right there, and
 the halt names the contract by path. Verify checks it again as a second line of defence, for a slice that
 reached Verify some other way. The protection is the signature, not a freeze: nothing gets built against a
 contract a person has not signed.
-
-If a frozen artifact is genuinely wrong, that is real and worth fixing — as a Spec change a person signs,
-outside the run.
 
 ## What never happens
 
