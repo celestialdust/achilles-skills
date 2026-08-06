@@ -229,14 +229,23 @@ If a task is L or larger, it should be broken into smaller tasks. An agent perfo
 
 ## Vertical slices
 
-| Slice id | Story-ref | Files (owned, disjoint) | Regression surface | Checkpoint (observable) | Blocked-by |
-|---|---|---|---|---|---|
-| PWR-1 | US-1 | `schema/user.ts`, `api/reset.ts`, `ui/ResetForm.tsx` | `auth/session.ts` | Submit a bad email → inline error shows | — |
-| PWR-2 | US-2 | `api/verify.ts`, `ui/VerifyPage.tsx` | `auth/token.ts` | Valid token → password updates, user redirected to login | PWR-1 |
+| Slice id | Story-ref | Design ref | Files (owned, disjoint) | Regression surface | Checkpoint (observable) | Blocked-by |
+|---|---|---|---|---|---|---|
+| PWR-1 | US-1 | `docs/features/password-reset/design-contract.md` · `prototype/index.html` | `schema/user.ts`, `api/reset.ts`, `ui/ResetForm.tsx` | `auth/session.ts` | Submit a bad email → inline error shows | — |
+| PWR-2 | US-2 | `docs/features/password-reset/design-contract.md` · `prototype/index.html` | `api/verify.ts`, `ui/VerifyPage.tsx` | `auth/token.ts` | Valid token → password updates, user redirected to login | PWR-1 |
+| PWR-3 | US-3 | — | `jobs/expireTokens.ts`, `api/health.ts` | `auth/token.ts` | Expired token → sweep removes it, health endpoint reports the count | PWR-1 |
 
 Each slice is cross-layer (≥2 layers) + independently demoable; the Checkpoint is a fact a human or test
 verifies, never "compiles" / "builds" / "no type errors". The `Blocked-by` edges form the acyclic DAG written
 one-row-per-slice into STATE.md.
+
+**`Design ref` — the pointer to the signed design contract and the prototype this slice builds against**
+(`frontend-design`'s `design-contract.md` plus the committed prototype it names). Fill it once, here, while
+you still have the feature in view: you are the only party who knows which slices carry UI, and the design
+contract is per-feature while slices are per-slice, so one contract covers some slices and not others.
+A `—` means **this slice builds no UI**. That `—` is a *recorded fact*, not an inference an agent makes later
+about work it did not do — the builder is handed the artifact it will be graded against, and the verifier is
+told which case it got instead of guessing from the diff. See ADR-017.
 
 ### Slice PWR-1 — [user-facing capability]
 **Step 1 — [what this step does]**
@@ -301,6 +310,8 @@ Before starting implementation, confirm:
 - [ ] No-placeholder grep is clean (`## No placeholders` patterns return zero hits).
 - [ ] Every slice spans ≥2 layers and ends at an **observable** Checkpoint (not "compiles").
 - [ ] Slice ids are PRD-namespaced, the `Blocked-by` DAG is **acyclic**, and one row per slice is written to `STATE.md`.
+- [ ] Every slice row's `Design ref` is filled — a contract + prototype path, or a deliberate `—`. A blank cell
+      is not the same as `—`: `—` says "no UI here, I checked", blank says nobody looked (ADR-017).
 - [ ] Each hard-to-reverse interface/boundary decision is captured as an ADR and referenced by id from plan.md.
 
 ## See Also
@@ -318,9 +329,11 @@ update the consumer in the same commit:**
 - **Plan header** — Goal · Architecture · Tech Stack · File Structure (one-line responsibility per file).
   Sets `incremental-implementation`'s working context.
 - **`## Vertical slices`** table — columns (canonical, per registry): Slice id (PRD-namespaced) · Story-ref ·
+  **Design ref** (the signed design contract + prototype this slice builds against; `—` = builds no UI) ·
   **Files (owned, disjoint)** (cross-layer; the disjoint-file guard the orchestrator parallelizes on) ·
   **Regression surface** (blast-radius set, frozen under retry) · Checkpoint (observable) · Blocked-by.
-  The orchestrator reads `Blocked-by` as the wave DAG, `Files (owned)` for the disjoint-file guard, and
+  The orchestrator reads `Blocked-by` as the wave DAG, `Files (owned)` for the disjoint-file guard,
+  `Design ref` to carry into **both** the implement and verify dispatch briefs (ADR-017), and
   `Regression surface` as the immutable-under-retry contract `incremental-implementation`/`test-driven-development`/`quality-verification`/`git-workflow` consume.
 - **Per-step `file` · `lines` · `snippet` · `test`** on every non-trivial step. `incremental-implementation` pulls these
   step-by-step and treats a missing field as **refuse-to-run**.

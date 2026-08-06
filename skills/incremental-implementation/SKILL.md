@@ -33,7 +33,8 @@ if a load-bearing input is missing.
 
 | Input | Source (skill) | Stable sections it reads | Refuse-to-run if absent |
 |---|---|---|---|
-| `plan.md` + slices | `plan-breakdown` | the assigned slice's row keyed by **Slice id** — its **Story-ref · Files (owned) · Regression surface · Checkpoint · Blocked-by** columns — plus the line-level steps and exact tests in the plan body | no `plan.md`, or no concrete steps for the assigned slice |
+| `plan.md` + slices | `plan-breakdown` | the assigned slice's row keyed by **Slice id** — its **Story-ref · Design ref · Files (owned) · Regression surface · Checkpoint · Blocked-by** columns — plus the line-level steps and exact tests in the plan body | no `plan.md`, or no concrete steps for the assigned slice |
+| `Design ref` | the slice row, delivered in the dispatch brief | for a UI slice, the signed `design-contract.md` and the committed prototype it names — **open the prototype before you write the skeleton.** Fidelity to it is what Verify grades, and `acceptance.md` is contractually design-free, so the prototype is the *only* place the design floor lives. Building first and reconciling later is where the rework comes from. A `Design ref` of `—` means this slice builds no UI — proceed (ADR-017) | the slice touches UI and the brief carried no `Design ref` at all — ask for it rather than guessing the design |
 | assigned slice id | `STATE.md` (orchestrator) | the PRD-namespaced slice row in state `impl`, gate `agent` | no slice assigned, or it is not in `impl`/`agent` |
 | `acceptance.md` | `acceptance-criteria` (Spec, signed) | the behavioral Given/When/Then scenario ids (e.g. `PWR-A2`) this slice realizes — the **frozen oracle** `test-driven-development` turns RED | the slice references an acceptance id that does not exist |
 | clean worktree | `worktree` (orchestrator) | a provisioned, preflight-green baseline branch for this slice | not running inside the handed worktree |
@@ -93,6 +94,11 @@ Each slice delivers working end-to-end functionality.
 Within a vertical slice, build the skeleton end-to-end first, then fill it in — absorbed from cr-structure's
 build-order. Each step is independently observable:
 
+- **Read the design ref first (UI slices).** Before the stub, open the prototype and contract named in the
+  slice's `Design ref`. The skeleton is where layout, hierarchy and component boundaries get decided, and
+  those are exactly what the prototype already decided — start from it and the fidelity check at Verify is
+  a formality; start from a guess and it is a rewrite. A `Design ref` of `—` means no UI: skip straight to
+  Stub.
 - **Stub** — every layer the slice touches returns a hardcoded value; the end-to-end path already runs.
 - **Mock** — swap stubs for mocks at the real boundaries; the shape of the data flows through.
 - **Wire** — replace mocks with the real calls, one boundary at a time.
@@ -274,6 +280,8 @@ After each increment, verify:
 - Touching files outside the task scope "while I'm here"
 - Creating new utility files for one-time operations
 - Running the same build/test command twice in a row without any intervening code change
+- Writing UI in a slice whose `Design ref` names a prototype you never opened — Verify grades fidelity to
+  that file, so a first look at it after the code is written is a rewrite waiting to happen
 
 ## Verification (ending criteria)
 

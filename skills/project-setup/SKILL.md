@@ -161,10 +161,15 @@ gate:           you · agent · done                     ← who owns the next a
 
 ## PWR · Password reset                          feature: building
 origin:  prd.md · acceptance.md · plan.md
-| Slice  | Title                       | State   | Gate  | Blocked by | Artifacts |
-|--------|-----------------------------|---------|-------|-----------|-----------|
-| PWR-1  | request reset link          | impl    | agent | —         | —         |
+| Slice  | Title              | Design ref                     | State   | Gate  | Blocked by | Artifacts |
+|--------|--------------------|--------------------------------|---------|-------|-----------|-----------|
+| PWR-1  | request reset link | `docs/features/pwr/design-contract.md` | impl | agent | —      | —         |
+| PWR-2  | expire stale tokens| —                              | impl    | agent | PWR-1     | —         |
 -->
+
+`Design ref` holds the signed design contract + prototype the slice builds against, or `—` for a slice that
+builds no UI. The orchestrator copies it into both the implement and the verify dispatch brief, so a `—` has
+to be recorded rather than left blank — blank reads as "nobody looked" (ADR-017).
 ```
 
 ## CONTEXT.md seed
@@ -223,6 +228,9 @@ Done when **all** hold:
 - `STATE.md` exists at the repo root and contains the three legend lines with the token sets exactly:
   `feature state: spec · plan · building · done`, `slice state: impl · verify · review · ship · done ·
   blocked · halted`, `gate: you · agent · done`. No feature blocks.
+- The commented example slice header carries the full column list in order —
+  `| Slice | Title | Design ref | State | Gate | Blocked by | Artifacts |` — so the rows `plan-breakdown`
+  writes later land in a board shape the orchestrator can read (ADR-017).
 - `CONTEXT.md` (or `CONTEXT-MAP.md` for multi-context) exists at the repo root.
 - `CONTEXT.md` contains a `## Glossary` heading (for multi-context, each per-context `CONTEXT.md` does).
 - `docs/adr/` and `docs/features/` directories exist.
@@ -239,7 +247,7 @@ Emits the repo substrate the whole suite consumes:
 
 | Artifact | Location | Stable section(s) downstream depend on |
 |---|---|---|
-| `STATE.md` | repo root | the header: `feature state` / `slice state` / `gate` legends (empty board) |
+| `STATE.md` | repo root | the header: `feature state` / `slice state` / `gate` legends, plus the slice-row column list `Slice · Title · Design ref · State · Gate · Blocked by · Artifacts` (empty board) |
 | `CONTEXT.md` | repo root | `## Glossary` (terms only, no implementation detail) |
 | `docs/adr/` | repo-wide | the ADR home (`ADR-<NNN>-<slug>.md`) |
 | `docs/features/` | repo-wide | per-feature artifact root (`docs/features/<slug>/`) |

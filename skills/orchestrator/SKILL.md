@@ -41,8 +41,8 @@ Refuse to run (CRISPY refuse-to-run) unless ALL are present:
 - **`preflight-readiness` verdict = GREEN** — every `environment.md` row provisioned. Red or
   un-attested amber → refuse to start the wave.
 - **`plan.md` + slices** (`docs/features/<slug>/`) — each slice's concrete steps, exact
-  tests, declared `Regression surface`, and `Files (owned)` ownership. Missing file-ownership
-  on a slice that shares a wave → refuse (the disjoint-file guard cannot run blind).
+  tests, declared `Regression surface`, `Design ref`, and `Files (owned)` ownership. Missing
+  file-ownership on a slice that shares a wave → refuse (the disjoint-file guard cannot run blind).
 - **`acceptance.md` (status: signed)** — the frozen behavioral oracle. The orchestrator
   FREEZES `acceptance.md` + the RED tests + each slice's `Regression surface` for that
   slice's retry loop; it never edits them.
@@ -63,11 +63,19 @@ contract paths, not the session history.
 3. **Select the ready wave.** A slice is ready when every blocker is `done`. Apply the
    **disjoint-file guard** (below) to the ready set before dispatching.
 4. **Provision isolation.** Each ready slice gets its own clean worktree (the `worktree`
-   mechanism this skill owns). Platform-adaptive (below).
+   mechanism this skill owns). Platform-adaptive (below). While assembling the brief, read the
+   slice row's **`Design ref`** — it travels with the slice from here on.
 5. **Run Implement + Verify per slice** for every ready slice — in parallel (one dispatch call
    per slice, all in one response = concurrent execution): `incremental-implementation` (applies
    `test-driven-development`) → `quality-verification` (Verify, fresh code-cold). Verify stays
    **per-slice** — behavioral acceptance is a property of the individual slice, not the wave.
+
+   **Carry the design ref into both briefs.** Copy `Design ref` from the slice row into the
+   implementer's brief **and** the verifier's brief. Dispatch is the only channel that reaches both:
+   the implementer must open the prototype before it builds, and the verifier is code-cold — it may
+   not read `plan.md`, so anything left only in the plan never arrives. A `—` is delivered
+   explicitly **as `—`**, not omitted: it tells the verifier this slice builds no UI, rather than
+   leaving it to infer that from work it did not do. ADR-017.
 6. **Verify barrier.** Wait for every ready slice to reach `verify` green **or** a terminal state
    (a slice that halts at Verify never enters the review). This barrier is what lets the next step
    review the wave as one changeset instead of N.
@@ -242,6 +250,10 @@ AND the slice sits as an OPEN risk-banded PR (a DRAFT promoted by a code-cold ve
   done|blocked|halted`) and the **`gate` column** (`you|agent|done`). Every transition is
   written as it happens — `STATE.md` is the resume spine; a fresh agent resumes the run cold
   from it. Change the table's shape → update every reader in the same commit.
+- **Dispatch briefs** — each slice's brief carries the slice id, its frozen contract paths, and the
+  slice row's **`Design ref`** verbatim, to **both** the implementer and the code-cold verifier. `—`
+  is emitted as `—`, never dropped; a dropped `—` reads as "unknown" and puts the UI judgement back
+  in the verifier's hands (ADR-017).
 - **Progress ledger** updated per terminal slice (`Slice <id>: terminal=<state> (commits
   <base7>..<head7>, PR #<n>)`), so a compacted controller never re-dispatches completed work.
 - **Inverted risk report** appended at run terminal, alongside the halts.
