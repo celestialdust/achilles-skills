@@ -34,7 +34,10 @@ artifact and has no refuse-to-run on the artifact chain. What it needs to run:
   thaw between runs by a signed Spec change, while an **ACTIVE** row under its `## Rows` heading is
   frozen in every run, forever. Never stage, commit, or revert a change to a row's state in either
   direction — activation is a person's act and one-way, so a commit that moves one is the same
-  gate-erosion HALT, named by row id (`TC-1`).
+  gate-erosion HALT, named by row id (`TC-1`). `docs/design.md` is read-only here as well, for a
+  different reason than a freeze: Verify grades every contract axis marked `inherits: docs/design.md`
+  against it, and only `frontend-design` moves it — never stage or commit an edit to the decided look to
+  clear a design gate.
 
 Refuse-to-run only if there is no repository and the task forbids creating one. Otherwise git
 always applies.

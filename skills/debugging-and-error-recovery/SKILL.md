@@ -45,6 +45,11 @@ What it requires before it may run:
   **names the row id** (`TC-1`) so the reader can tell which guarantee was nearly traded away. Never set a
   row's state yourself in either direction. No file, or no ACTIVE rows, is the normal case and changes
   nothing here.
+- **The decided look, read-only and not one of the four.** Where the repo has a `docs/design.md`, Verify
+  grades every contract axis marked `inherits: docs/design.md` against that file, and it carries no
+  `status:` of its own, so nothing else catches an edit to it. A "fix" that moves the decided look so the
+  built surface matches is weakening a check to clear a gate — the same **gate-erosion → HALT**, inside a
+  retry loop or outside one. Read it; never write it. Only `frontend-design` moves it.
 
 ## The Stop-the-Line Rule
 

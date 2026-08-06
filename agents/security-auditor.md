@@ -66,7 +66,10 @@ these stable sections the orchestrator + `pull-request` depend on:
   the regression surface while the implementation is materially unchanged → HALT; never let it pass. A diff
   that skips, weakens, narrows, or deletes an **ACTIVE** `docs/test-contract.md` row, or moves a row's
   state, is the same HALT with no "materially unchanged" qualifier — that freeze is permanent in every
-  run — and the finding **names the row id** (`TC-1`).
+  run — and the finding **names the row id** (`TC-1`). A diff that edits `docs/design.md` is the same
+  HALT without the qualifier too, and for a different reason than a freeze: Verify grades every contract
+  axis marked `inherits: docs/design.md` against that file, it carries no `status:` of its own, and only
+  `frontend-design` moves it.
 - `Verdict: block` (MEDIUM/LOW, no secret) → findings flow into the slice's bounded retry as required fixes.
 
 ## Where you sit in the run

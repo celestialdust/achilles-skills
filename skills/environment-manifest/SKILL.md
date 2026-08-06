@@ -121,7 +121,9 @@ re-read the PRD, don't add a column.
   boundary with no review. The prober-per-kind file is the reviewed replacement.
 - "This dep is weird, I'll add a `notes`/`type` column." → No. The enum is closed; a misfit is a modeling signal.
 - "It's un-probeable, so I'll skip the row." → No. Add it with `manual: <question>`; a missing row is an
-  invisible dependency that fails AFK.
+  invisible dependency that fails AFK. Un-probeable is not the same as optional: the test is whether the
+  wave should be held for it. Something the run uses when it happens to be there and runs unchanged
+  without — a design evidence source, say — is not a row at all, probeable or not.
 - "I'll just rewrite the signed Spec row during planning." → No. Append + flag for re-sign; signed facts are
   the Spec gate's contract.
 - "Let me run the probe to be sure." → No. Maker ≠ checker; authoring and probing are separate skills.
@@ -133,6 +135,8 @@ re-read the PRD, don't add a column.
 - A `kind` outside `{env-var, mcp, service, runtime-dep, fixture, account}`.
 - You are about to **run** a command to check an item (that's `preflight-readiness`'s job).
 - Pass 2 edits/overwrites a row that pass 1 signed.
+- A row for something the run works fine without — filing an optional convenience makes
+  `preflight-readiness` refuse a wave over a thing nobody needed.
 - The manifest is absent for a feature heading into a wave.
 
 ## Verification (ending criteria)
@@ -142,7 +146,8 @@ re-read the PRD, don't add a column.
 - **Greppable security check (load-bearing done-predicate):** no column header matches
   `value|command|verify|secret|cmd`; no cell contains a secret-shaped literal (`sk_`, `AKIA`,
   `-----BEGIN`, or a URL embedding credentials).
-- Every row has a non-empty `purpose` and `required-by`.
+- Every row has a non-empty `purpose` and `required-by`, and every row is something whose absence should
+  stop the wave — nothing the run merely uses when it happens to be there is filed as one.
 - Un-probeable rows carry `manual: <question>`; all others leave `attest` blank for `preflight-readiness`.
 - Pass-1 (`pass: spec`) rows are part of the Spec sign-off bundle; `status: signed` only after that gate.
 

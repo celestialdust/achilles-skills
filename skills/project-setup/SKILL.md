@@ -1,6 +1,6 @@
 ---
 name: project-setup
-description: Scaffolds the repo ecosystem every achilles skill assumes — a one-time bootstrap that creates the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, docs/test-contract.md (an empty list of permanent, repo-wide test scenarios that only a human activates), docs/workflow.md (the process contract stating the stages, who owns each gate, where a run ends, and what stops one), and docs/session-state.md (where the work stands, plus an append-only log of decisions a resuming session reads before it starts), and — when the repo has neither a CLAUDE.md nor an AGENTS.md and you opt to create CLAUDE.md — seeds it from a bundled behavioral template. Run this ONCE before the first feature, before interview-me or spec-grilling. The pipeline skills read these files cold and will have nowhere to write without it, so do this first.
+description: Scaffolds the repo ecosystem every achilles skill assumes — a one-time bootstrap that creates the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, docs/test-contract.md (an empty list of permanent, repo-wide test scenarios that only a human activates), docs/workflow.md (the process contract stating the stages, who owns each gate, where a run ends, and what stops one), and docs/session-state.md (where the work stands, plus an append-only log of decisions a resuming session reads before it starts), and the `## Agent skills` block in one of CLAUDE.md / AGENTS.md plus a short pointer to it in the other — and, when the repo has neither and you opt to create CLAUDE.md, seeds it from a bundled behavioral template. Run this ONCE before the first feature, before interview-me or spec-grilling. The pipeline skills read these files cold and will have nowhere to write without it, so do this first.
 ---
 
 ## Purpose
@@ -8,11 +8,13 @@ description: Scaffolds the repo ecosystem every achilles skill assumes — a one
 Stage: **cross-cutting / setup** (one-time). Every downstream skill reads and writes a *shared substrate*:
 the `STATE.md` board (what's in flight + who owns the next action), the per-feature artifact directories,
 the repo-wide design substrate (`CONTEXT.md` glossary + `docs/adr/`), the repo's permanent test
-contract (`docs/test-contract.md`), and the session state (`docs/session-state.md` — where the work
-stands, plus the append-only log of decisions a resuming session reads first). If that substrate doesn't exist,
-each skill has to re-derive "where do issues live / where's the glossary / where do ADRs go" — which is
-exactly the scattered-tracker problem this suite consolidates away (one local board, not mp's
-several issue queues). `project-setup` makes the substrate exist **once**, so the rest of the suite consumes it cold.
+contract (`docs/test-contract.md`), the process contract (`docs/workflow.md` — the stages, who owns each
+gate, where a run ends, what stops one), the session state (`docs/session-state.md` — where the work
+stands, plus the append-only log of decisions a resuming session reads first), and the rules file that
+carries the `## Agent skills` block, with a pointer to it in whichever of `CLAUDE.md` / `AGENTS.md` does
+not hold it. If that substrate doesn't exist, each skill has to re-derive "where do issues live / where's
+the glossary / where do ADRs go" — which is exactly the scattered-tracker problem this suite consolidates
+away (one local board, not mp's several issue queues). `project-setup` makes the substrate exist **once**, so the rest of the suite consumes it cold.
 
 This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with
 the user, then write. It is **distinct from `preflight-readiness`**: `preflight-readiness` is a per-run environment gate that
@@ -40,8 +42,9 @@ reads the repo as-is to decide what already exists:
 - `git remote -v` / `.git/config` — is there a remote? (informational only; the tracker is local regardless.)
 - root `CLAUDE.md` and `AGENTS.md` — does either exist? Is there already an `## Agent skills` section?
 - root `CONTEXT.md` / `CONTEXT-MAP.md` — single- or multi-context already?
-- `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/session-state.md`, `STATE.md` — does prior
-  output already exist?
+- `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`,
+  `STATE.md` — does prior output already exist? A `docs/workflow.md` that exists is **compared** against
+  the bundled template rather than skipped, so finding it is not the end of the question.
 - `.gitignore` — does any pattern in it match `docs/session-state.md`? That file has to be committed.
 
 ## Process
@@ -54,8 +57,9 @@ Look at the current repo to understand its starting state. Read whatever exists;
 - `CLAUDE.md` and `AGENTS.md` at the repo root — does either exist? Is there already an `## Agent skills` section?
 - `CONTEXT.md` and `CONTEXT-MAP.md` at the repo root — is a single- or multi-context layout already implied?
 - `docs/adr/` and any `src/*/docs/adr/` directories.
-- `docs/features/`, `docs/test-contract.md`, `docs/session-state.md`, and `STATE.md` — does this skill's
-  prior output already exist?
+- `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, and `STATE.md`
+  — does this skill's prior output already exist? An existing `docs/workflow.md` is the one that gets
+  diffed against the bundled template instead of passed over.
 - `.gitignore` — is `docs/session-state.md` matched by anything in it? Its whole purpose is to survive
   the session that wrote it, so an ignored copy dies on the next fresh clone.
 
@@ -618,13 +622,18 @@ Done when **all** hold:
 - The other filename exists and is a pointer naming the file that holds the block — unless it already
   existed with the user's own content and they declined the pointer line, which was shown to them rather
   than silently skipped.
-- **The pointer resolves:** the file it names exists. Run this from the repo root — it prints nothing on a
-  good pointer and names a broken one:
+- **Both filenames exist, and every pointer resolves.** Run this from the repo root — it prints nothing
+  when both files are there and each pointer names a file that is there, and says what is wrong otherwise:
 
   ```bash
   bad=0
   for f in CLAUDE.md AGENTS.md; do
-    named=$(sed -n 's/^The rules for this repository live in `\(.*\)`\..*/\1/p' "$f" 2>/dev/null)
+    if [ ! -f "$f" ]; then
+      echo "missing: $f — one of the two holds the rules, the other points at it"
+      bad=1
+      continue
+    fi
+    named=$(sed -n 's/^The rules for this repository live in `\(.*\)`\..*/\1/p' "$f")
     if [ -n "$named" ] && [ ! -f "$named" ]; then
       echo "broken pointer: $f names $named, which does not exist"
       bad=1
@@ -633,8 +642,10 @@ Done when **all** hold:
   [ "$bad" -eq 0 ]
   ```
 
-  A pointer to a file nobody kept is worse than no pointer, because it reads as an answer. The check finds
-  the named file by reading the seed's first sentence, which is why that sentence is fixed wording.
+  Two failures, one check. A pointer to a file nobody kept is worse than no pointer, because it reads as
+  an answer — and a filename that is simply absent is worse still, because a contributor whose tool reads
+  only that name opens nothing at all and never learns the rules exist. The check finds the named file by
+  reading the seed's first sentence, which is why that sentence is fixed wording.
 - That `## Agent skills` block tells a fresh agent to read `docs/session-state.md` — both zones — **before
   starting work**, and states that `## Log` is append-only. Without that line the log has no reader.
 - That block also names `docs/design.md` and says the first UI surface writes it — and **no

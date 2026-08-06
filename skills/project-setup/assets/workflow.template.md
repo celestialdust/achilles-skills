@@ -23,7 +23,7 @@ Seven stages, in order. Work does not skip ahead.
 | 3 | Plan | Cut the work into thin vertical slices — each one a complete path through the system, not a horizontal layer — and order them into a dependency graph. Each slice declares the files it owns. | `plan.md`, plus slice rows on the board |
 | 4 | Implement | Build one slice. Stub it end to end so it compiles, write the failing test, write the smallest code that passes it, refactor, run the full suite, commit as one revertible unit. | the slice's commit |
 | 5 | Verify | A reader who did not write the code drives the running build through every scenario in the behavioral contract and records, per scenario, whether it passed, failed, or could not be reached. | `qa.md` |
-| 6 | Review | Read the diff on five axes — correctness, readability including test quality, architecture, security, performance — with parallel passes for simplification, security, and performance. | a ranked findings list |
+| 6 | Review | Read the diff on five axes — correctness, readability including test quality, architecture, security, performance — with parallel passes for simplification, security, and performance. Those four passes are a floor: facts about the diff can add a specialist, and nothing removes one. | a ranked findings list |
 | 7 | Ship | Open a **draft** pull request carrying a risk band, anchored to the diff. Run one stage at a time, a pre-launch checklist and a rollback plan come first; the autonomous runner does neither — it goes straight to the pull request. | an open draft pull request |
 
 Stages 1–3 are led by a person. Stages 4–7 are executed by the agent in one pass, called a **run**.
@@ -147,6 +147,13 @@ anything is built for that slice. A slice whose contract is absent or still draf
 the halt names the contract by path. Verify checks it again as a second line of defence, for a slice that
 reached Verify some other way. The protection is the signature, not a freeze: nothing gets built against a
 contract a person has not signed.
+
+The repository's decided look, at `docs/design.md`, is the other half of that oracle: where a contract says
+an axis is unchanged from the rest of the repository, Verify grades that axis against this file. It carries
+no signature of its own — it is written in the same act as the contract a person signs — so the signature
+mechanism above does not reach it, and the rule is stated instead. No slice edits it. Editing the decided
+look so that what was built matches it is weakening a check to turn a failing gate green, which is gate
+erosion and stops the slice like any other.
 
 ## What never happens
 

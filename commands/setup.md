@@ -1,5 +1,5 @@
 ---
-description: "One-time repo bootstrap — scaffold the shared substrate every achilles skill assumes: the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, and the `## Agent skills` block."
+description: "One-time repo bootstrap — scaffold the shared substrate every achilles skill assumes: the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, and the `## Agent skills` block in one of CLAUDE.md / AGENTS.md plus a short pointer to it in the other."
 ---
 
 Invoke the **project-setup** skill — the one-time bootstrap that creates the repo ecosystem the rest of the suite reads cold.

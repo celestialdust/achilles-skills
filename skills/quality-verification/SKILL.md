@@ -178,11 +178,20 @@ non-overlapping sources** (do not let them collapse into one "looks good"):
   `prototype-fidelity: pass|fail` field — its target is now the named reference-spec mockup.
 - **(ii) The seven-axis rubric** — `Distinctiveness · Typography · Structure-as-information · Motion · Quality
   floor · Restraint · Copy-as-design-material`. Grade each axis against the contract's recorded decision.
-  **In a repo with a decided look, the contract either holds that decision or points at it:** an axis
-  carrying a `delta:` line is graded against the delta; an axis marked `inherits: docs/design.md` is graded
-  against `docs/design.md`'s decision for that axis. Read both files and grade all seven either way. A
+  **In a repo with a decided look, the contract either holds that decision or points at it.** Each axis
+  carries exactly one line, and the line names the oracle: `delta:` → grade against the delta;
+  `inherits: docs/design.md` → grade against `docs/design.md`'s decision for that axis;
+  `departs: docs/design.md` → grade against that axis's `## Departure` block, **not** against
+  `docs/design.md`, which the block exists to contradict. Read both files and grade all seven either way. A
   contract that does not restate an inherited axis is the format working — never record that axis as
   unstated, and never refuse over it. This is still one source, read across two files.
+  - **`docs/design.md` decides four of the seven** — `Distinctiveness · Typography ·
+    Structure-as-information · Motion`. It holds nothing on `Quality floor`, `Restraint`, or
+    `Copy-as-design-material`, so a contract carries a `delta:` on those three. An `inherits:` or
+    `departs:` line on one of them points at a decision that is not in the file, leaving the axis with
+    no oracle: **fail that axis and write the finding**, naming the axis and the line it carries. The
+    not-restated rule above is about a legal inherit and never covers this — following the pointer
+    sends you to a file that holds nothing for that axis, and the axis ships ungraded.
   - **Objective subset (check mechanically via the engine):** *responsive* (resize viewport down to mobile —
     layout holds), *visible keyboard focus* (tab through — focus ring present and logical), *reduced motion
     respected* (`prefers-reduced-motion` honored). These three are the contract's quality floor; they are
@@ -190,11 +199,13 @@ non-overlapping sources** (do not let them collapse into one "looks good"):
     a11y checklist `browser-testing-with-devtools` drives).
   - The other axes are judgment calls graded against the contract's stated intent.
   - **Departures.** A `## Departure` block records an axis where this surface deliberately moves away from
-    the decided look; grade that axis against the block's `This surface:` line rather than against
-    `docs/design.md`. Two findings live here, and both are about what a reviewer can see: **a departure
-    with no reason** — a reader cannot tell a decision from a drift, so the move is unreviewable; and **a
-    built surface that departs from `docs/design.md` with nothing recorded** — unrecorded, it reads as
-    though the decided look had said this all along, which is the thing the block exists to prevent.
+    the decided look; its axis reads `departs: docs/design.md`, and you grade that axis against the block's
+    `This surface:` line. Three findings live here, and all three are about what a reviewer can see: **a
+    departure with no reason** — a reader cannot tell a decision from a drift, so the move is unreviewable;
+    **a built surface that departs from `docs/design.md` with nothing recorded** — unrecorded, it reads as
+    though the decided look had said this all along, which is the thing the block exists to prevent; and
+    **an axis and a block that disagree** — a `departs:` axis with no block, or a block whose axis does not
+    read `departs:`, leaves two answers for one axis and no way to tell which was graded.
 
 Grade design **only** against the design contract and the decided look its inherited axes point at — never
 against `acceptance.md` (which holds zero design content) and never against criteria you invent. If there is
@@ -224,6 +235,11 @@ the code** (weaken a test, reinterpret a scenario). qa defends mechanically, not
   `docs/test-contract.md` is frozen **in every run, forever** — activation is one-way and only a person
   performs it, so there is no loop it thaws after. Skipping, deleting, weakening, or narrowing one to make
   a gate pass is the same **gate-erosion HALT**.
+- **The decided look, read-only rather than frozen.** `docs/design.md` is not a fifth frozen artifact —
+  it is a file this skill reads and never writes. Every contract axis marked `inherits: docs/design.md`
+  is graded against it, and it carries no `status:` of its own, so nothing else catches an edit to it:
+  moving the decided look so the built surface matches is the same **gate-erosion HALT**, with no retry
+  qualifier and no reward-hack test. Only `frontend-design` moves that file.
 - **The halt names what changed.** Every gate-erosion halt records the artifact — and, for the test
   contract, **the row id** (`TC-1`) — in the halt reason and in `qa.md`. "Gate erosion" alone tells the
   person reading it nothing about which guarantee was about to be traded away, so it cannot be checked.
@@ -264,7 +280,7 @@ the code** (weaken a test, reinterpret a scenario). qa defends mechanically, not
   (prototype-fidelity + the seven-axis rubric) and the objective subset checked mechanically. "Looks good" is
   not a verdict.
 - "I'll just add the responsive/focus requirement to acceptance.md so I can test it there." → No. Design floors
-  live **wholly** in the design contract. Grade them in the design gate, not the behavioral ledger.
+  live in the design contract, not here. Grade them in the design gate, not the behavioral ledger.
 - "A passing slice is done." → A passing slice is **`review`**, not `done`. qa is an agent-internal gate; the
   terminal state is a draft PR a separate code-cold checker promotes. Don't skip ahead.
 - "The diff doesn't look like it touches UI, so the design gate must not apply." → You are code-cold; that is
@@ -288,7 +304,11 @@ Stop if you are about to:
 - grade **design against `acceptance.md`** (it has no design content) or against criteria you invented instead
   of `design-contract.md`.
 - **refuse a contract, or record an axis as unstated, because it does not restate what `docs/design.md`
-  already decides** → the contract records the delta; read that axis from `docs/design.md`.
+  already decides** → the contract records the delta; read an `inherits:` axis from `docs/design.md` and a
+  `departs:` axis from its `## Departure` block. Neither is a blank.
+- **grade `Quality floor`, `Restraint`, or `Copy-as-design-material` against `docs/design.md`** → that
+  file decides none of the three, so an `inherits:` or `departs:` line on one of them has no oracle
+  behind it. Fail the axis and name it in the finding; do not go looking for a decision that is not there.
 - **edit `docs/design.md`** so the built surface matches it → that is moving the decided look to make a
   gate pass. You read this file; you do not write it.
 - decide **whether the slice has UI by reading the diff** instead of the brief's `Design ref` → the ref is the
@@ -313,9 +333,12 @@ Done when ALL hold:
   builds no UI" from "nobody graded the UI" without reopening the diff.
 - (UI) the **design gate** records both sources — prototype-fidelity AND the seven-axis rubric — with the
   objective subset (responsive · visible-focus · reduced-motion) checked mechanically. All seven axes carry
-  a verdict, each graded against what the contract states or — where the contract marks the axis inherited —
-  against `docs/design.md`. Every `## Departure` block is graded, and a departure with no reason, or a
-  built surface departing with nothing recorded, is written down as a finding.
+  a verdict, each naming which of the three lines it was graded from — the contract's `delta:`,
+  `docs/design.md` for an inherited axis, or that axis's `## Departure` block. `Quality floor`,
+  `Restraint`, and `Copy-as-design-material` were graded from a `delta:`, since `docs/design.md` decides
+  none of the three; an `inherits:` or `departs:` on one of them is a failed axis with the finding
+  written down. Every `## Departure` block is graded, and a departure with no reason, a built surface
+  departing with nothing recorded, or an axis and a block that disagree, is written down as a finding.
 - **Every ACTIVE `docs/test-contract.md` row the slice can reach** has a verdict by row id, and every row it
   cannot reach is listed `not-reachable` for human-ack. (No rows, or no such file → this criterion is
   vacuously met; record `test contract: none active`.)
@@ -345,9 +368,9 @@ contract binds to the running app.
   - `## Design gate` — opens with `design ref: <path|—>` as delivered in the dispatch brief. On `—`:
     `N/A (Design ref: —)` and nothing further (the slice builds no UI; this is the recorded fact, not a
     verdict you formed). On a path: `prototype-fidelity: pass|fail` (graded against the committed
-    reference-spec mockup named in the contract's `## Prototype` section); per-axis rubric verdict, naming
-    for each axis whether it was graded from the contract's `delta:` or from `docs/design.md`; a verdict per
-    `## Departure` block; objective subset `responsive · visible-focus · reduced-motion` each `pass|fail`.
+    reference-spec mockup named in the contract's `## Prototype` section); per-axis rubric verdict, each
+    naming its `graded-from: delta | docs/design.md | departure`; a verdict per `## Departure` block;
+    objective subset `responsive · visible-focus · reduced-motion` each `pass|fail`.
   - `## Verdict` — `overall: pass|halted`; `rounds: <n>/3`; `frozen-artifact check: ok|eroded`;
     `not-reachable ids requiring human-ack: <ids|none>`. The `frozen-artifact check` covers `acceptance.md`,
     the RED tests, `Regression surface`, **and every ACTIVE `docs/test-contract.md` row**; on `eroded`, name
@@ -356,10 +379,12 @@ contract binds to the running app.
     consumers (`pull-request`, the `orchestrator`) in the same commit.
 - **Consumed by:** `pull-request` (anchors the PR + turns every `not-reachable` id into a required human-ack line)
   and the `orchestrator` (reads the binary verdict to advance/halt the slice).
-- **Received from the `orchestrator`'s dispatch brief:** the slice id, its frozen contract paths, and
-  `Design ref`. Dispatch is the only channel that reaches a code-cold verifier — it may not open `plan.md` —
-  so a field missing from the brief is missing, full stop. Change what the brief carries → update the
-  `orchestrator` in the same commit.
+- **Received from the `orchestrator`'s dispatch brief:** the slice id, its frozen contract paths,
+  `docs/design.md` when the repo has one and the slice builds UI (read-only, and not one of the frozen
+  set — an axis marked `inherits: docs/design.md` is graded against it, so a brief that drops it hands
+  over half the design oracle), and `Design ref`. Dispatch is the only channel that reaches a code-cold
+  verifier — it may not open `plan.md` — so a field missing from the brief is missing, full stop. Change
+  what the brief carries → update the `orchestrator` in the same commit.
 - **STATE.md update:** on `pass`, slice `verify → review`, `gate: agent` (the run continues autonomously to
   the Review fan-out). On `halted`, slice `→ halted`, **`gate: you`** (failure-escalation human gate); add
   `qa.md` to the slice's `Artifacts`. qa never sets a slice `done` and never opens a PR.
@@ -381,5 +406,6 @@ contract binds to the running app.
 
 For a fresh-context, code-cold pass, dispatch the **`test-engineer`** agent (`agents/test-engineer.md`) as an
 independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when running the code-cold Verify pass that proves a finished
-slice meets acceptance.md.
+context — preserving maker≠checker. Reach for it when a person wants a single code-cold Verify pass over a
+finished slice **outside a run**, or on a platform with no skill tool. Inside a run this skill is dispatched
+as itself — there is no role to play on top of it.

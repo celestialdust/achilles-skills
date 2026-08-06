@@ -282,6 +282,9 @@ After each increment, verify:
 - Running the same build/test command twice in a row without any intervening code change
 - Writing UI in a slice whose `Design ref` names a prototype you never opened — Verify grades fidelity to
   that file, so a first look at it after the code is written is a rewrite waiting to happen
+- Editing `docs/design.md` so the built surface matches it — the decided look is an oracle Verify grades
+  inherited axes against, and it carries no signature of its own to protect it. Moving it to clear a
+  design gate is gate-erosion → HALT. A slice reads that file; it never writes it.
 
 ## Verification (ending criteria)
 
@@ -326,6 +329,12 @@ Per-increment verification is the local check. Before declaring a task done, app
   Never set a row's state yourself in either direction: you read that file and do not edit it. Proposing a
   new `PENDING` row costs nothing and needs no measurement. An absent file, or one with no ACTIVE rows, is
   the normal case and changes nothing here.
+- **Read-only rather than frozen — `docs/design.md`, the repository's decided look.** It is not a fifth
+  frozen artifact; it is a file a slice reads and never writes. Verify grades every contract axis marked
+  `inherits: docs/design.md` against it, and it carries no `status:` of its own, so nothing else catches
+  an edit. Moving the decided look so the built surface matches the code is weakening a check to clear a
+  gate — the same gate-erosion **HALT**, retry or not. Only `frontend-design` writes that file, under the
+  sign-off of a surface that means to move the whole look.
 - **`STATE.md` update:** on a green slice checkpoint, flip the slice **`impl → verify`** (gate stays `agent`)
   and hand off to `quality-verification`. If the slice cannot pass after the bounded rounds (3 implement→verify→review cycles),
   flip it **`impl → halted`** and **flip its gate `agent → you`** — the failure-escalation path is the only

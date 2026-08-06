@@ -36,8 +36,8 @@ in this skill's territory — use it.
 - the change is a **pure refactor** with zero product-observable behavior change — there is no new
   behavior to pin. (Refactors are still covered by existing scenarios + regression tests.)
 - you are tempted to write a **design** scenario ("the button is blue", "the modal slides in", "the focus
-  ring is visible"). **STOP** — design floors, rubric, and prototype-fidelity live **wholly** in
-  `frontend-design`'s signed design contract. Zero design content enters `acceptance.md`. The two
+  ring is visible"). **STOP** — design floors, rubric, and prototype-fidelity live in
+  `frontend-design`'s signed design contract, never here. Zero design content enters `acceptance.md`. The two
   signed artifacts must never be able to contradict each other.
 
 **Escape hatch — `depth: lite`:** a one-story feature still writes the happy path **plus at least one
@@ -105,7 +105,8 @@ Every feature covers these classes (a story may not touch all three, but the fea
 
 - **NO design content** — no color, typography, spacing, layout, motion, focus-ring, pixel, breakpoint.
   All of that is `frontend-design`'s signed design contract (the 5th signed Spec artifact for UI
-  features). `quality-verification`'s design gate grades that contract; `acceptance.md` grades behavior. One home each.
+  features) and, for an axis that contract marks inherited, `docs/design.md`. `quality-verification`'s
+  design gate grades those; `acceptance.md` grades behavior. Neither ever carries the other's content.
 - **NO implementation content** — no file path, function/type signature, schema-as-code, table/column
   name, driver or library internal. Scenarios survive a rewrite of the implementation.
 - **NO engine** — no `.feature` files, no `@given`/`@when` step definitions, no Cucumber/Behave/SpecFlow.
@@ -149,8 +150,8 @@ Stop signals disguised as good reasons:
 
 - "I'll just cover the happy path; the errors are obvious." → No. Error/edge is a **required class**, and
   "obvious" failures are exactly where the autonomous run ships silent defects. Enumerate them.
-- "This UI scenario needs the button colour / the modal animation." → No. Design lives **wholly** in
-  `frontend-design`'s contract. Behavioral-only here — assert what the user *does*, not how it looks.
+- "This UI scenario needs the button colour / the modal animation." → No. Design lives in
+  `frontend-design`'s contract, not here. Behavioral-only here — assert what the user *does*, not how it looks.
 - "I'll name the function / endpoint path so the test is precise." → No. Outcomes only. Signatures and
   paths go stale and turn the oracle into an implementation mirror; `test-driven-development`/`plan-breakdown` own those.
 - "It looks right — I'll mark it `signed`." → No. The **human signs**; `signed` set by the agent forges a
@@ -218,6 +219,6 @@ Done when ALL hold:
   retry loop**. A retry diff that weakens or deletes a scenario to make a test pass = gate-erosion **HALT**
   (the reward-hack tripwire). The contract may only change by a fresh human re-sign (e.g. after `prd.md`
   edits re-invalidate it to `draft`).
-- **Boundary with `frontend-design`:** design floors/rubric/prototype-fidelity live wholly in its signed
-  design contract (the 5th signed Spec artifact for UI features); `acceptance.md` carries zero design
-  content. No two signed artifacts can contradict.
+- **Boundary with `frontend-design`:** design floors/rubric/prototype-fidelity live in its signed design
+  contract (the 5th signed Spec artifact for UI features) and, for an axis that contract marks inherited,
+  in `docs/design.md`; `acceptance.md` carries zero design content. No two signed artifacts can contradict.

@@ -1,6 +1,6 @@
 ---
 name: literate-explainer
-description: 'Turn a diff (the daily case) or a whole unfamiliar target repo (onboarding) into a self-contained teaching artifact so you stay a participant in code you didn''t write — background before the change, intuition before details, a literate tour in reading order, plain enough to re-teach (the Feynman test). Reach for this whenever an agent just landed a large diff you cannot yet explain, when you clone or inherit an unfamiliar repo and a skim will not build a mental model, or when someone says "explain this diff/PR/branch/codebase", "walk me through what changed", or "help me understand this code". Standalone — no lifecycle gates, nothing blocks, /orchestrate untouched. Pairs with comprehension-quiz — suggest running /quiz next. NOT code-review (which judges a diff for merge) and NOT codebase-research (a goal-blind survey feeding the plan).'
+description: 'Turn a diff (the daily case) or a whole unfamiliar target repo (onboarding) into a self-contained teaching artifact so you stay a participant in code you didn''t write — background before the change, intuition before details, a literate tour in reading order, plain enough to re-teach (the Feynman test). Reach for this whenever an agent just landed a large diff you cannot yet explain, when you clone or inherit an unfamiliar repo and a skim will not build a mental model, or when someone says "explain this diff/PR/branch/codebase", "walk me through what changed", or "help me understand this code". Standalone — no lifecycle gates, nothing blocks, /orchestrate untouched. Pairs with comprehension-quiz — suggest running /quiz next. NOT code-review (which judges a diff for merge) and NOT codebase-research (the goal-blind survey written at the head of Spec and reused by the planner).'
 ---
 
 # Literate explainer — understand code you didn't write
@@ -23,17 +23,18 @@ leaves `/orchestrate` untouched. It owns two of the three comprehension-workspac
 
 **Use** the moment you need the *human* to understand code they didn't write — a landed diff, a PR, a
 branch, or an unfamiliar repo. **Skip** when your goal is to judge a diff for merge (that is
-`code-review`) or to gather goal-blind facts for a plan (that is `codebase-research`). The boundary is
+`code-review`) or to gather goal-blind facts for the design and the plan (that is `codebase-research`,
+run at the head of Spec). The boundary is
 behavioral, not a naming rule:
 
 | You want… | Reach for | Its object | It emits |
 |---|---|---|---|
 | the **human** to *understand* code they didn't write | **literate-explainer** (this skill) | a diff, or a whole target repo | a teaching artifact you read (+ manifest & glossary growth) |
 | a **diff** *judged* for merge-worthiness — correctness, security, performance | **code-review** | one slice diff | severity-labeled findings |
-| the **plan** to get *goal-blind facts* about the code as it is today | **codebase-research** | the target codebase | `research.md` the planner consumes |
+| **Spec and Plan** to get *goal-blind facts* about the code as it is today | **codebase-research** | the target codebase | `research.md`, written at the head of Spec and reused by the planner |
 
-Read it as: **explain = the human understands · review = the diff is judged · research = the plan gets
-facts**. Explanation and judgment are different jobs; do not reach for one by trigger-name
+Read it as: **explain = the human understands · review = the diff is judged · research = the design and
+the plan get facts**. Explanation and judgment are different jobs; do not reach for one by trigger-name
 accident.
 
 ## Inputs

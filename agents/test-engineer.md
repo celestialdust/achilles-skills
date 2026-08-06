@@ -45,8 +45,11 @@ you whether the slice builds UI: a **path** names the signed `design-contract.md
 planner recorded that this slice builds no UI. A brief carrying no `Design ref` at all is a dispatch
 defect, not a licence to infer — ask for it. When it names a path, the slice also gets the **design
 gate** against `design-contract.md` (prototype fidelity + the seven-axis rubric; responsive ·
-visible-focus · reduced-motion checked mechanically) — grading any axis the contract marks
-`inherits: docs/design.md` against that file instead.
+visible-focus · reduced-motion checked mechanically). Each axis carries one line naming its oracle:
+`delta:` is graded against the delta, `inherits: docs/design.md` against that file, and
+`departs: docs/design.md` against that axis's own `## Departure` block. `docs/design.md` decides four
+of the seven and holds nothing on `Quality floor`, `Restraint`, or `Copy-as-design-material` — an
+`inherits:` or `departs:` on one of those three has no oracle behind it: fail that axis and name it.
 
 ## Output contract
 
@@ -57,7 +60,9 @@ visible-focus · reduced-motion checked mechanically) — grading any axis the c
   (`id · source{acceptance|contract} · realizes · class · status · evidence`; a contract row carries
   `source: contract` and `realizes: —`), a `## Design gate` — **always present**, opening with
   `design ref: <path|—>`; on a `—` it reads `N/A (Design ref: —)` and nothing further, so a reader can
-  tell "builds no UI" from "nobody graded the UI" without reopening the diff — and a `## Verdict`:
+  tell "builds no UI" from "nobody graded the UI" without reopening the diff; on a path it carries
+  `prototype-fidelity`, a verdict per axis each naming its `graded-from: delta | docs/design.md |
+  departure`, a verdict per `## Departure` block, and the objective subset — and a `## Verdict`:
   `overall: pass | halted`, `frozen-artifact check: ok | eroded`, and every `not-reachable` id listed
   for required human-ack. A `not-reachable` is honest reporting, **never** a silent pass.
 
@@ -76,6 +81,12 @@ visible-focus · reduced-motion checked mechanically) — grading any axis the c
   state yourself in either direction; you read that file, you do not edit it.
   **Not this:** reporting a row `not-reachable`. The row stays ACTIVE, unproven, with a person named
   via the PR ack line, so nothing stopped being checked and nothing halts.
+- **Gate-erosion HALT (`docs/design.md`, read-only rather than frozen):** the repository's decided look
+  is not a fifth frozen artifact — it is a file you read and never write. Every contract axis marked
+  `inherits: docs/design.md` is graded against it, and it carries no `status:` of its own, so nothing
+  else catches an edit. A diff that moves the decided look so the built surface matches it is the same
+  **HALT**, with no retry qualifier and no reward-hack test. Only `frontend-design` moves that file,
+  under the sign-off of a surface that means to.
 - **Reward-hack tripwire:** if the failure signature moved only because a test or `acceptance.md` was
   edited while the implementation is materially unchanged → **HALT**.
 - **Security circuit-breaker:** a CRITICAL/HIGH finding or a secret in the diff during verification is

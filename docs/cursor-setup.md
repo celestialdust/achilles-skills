@@ -72,7 +72,7 @@ the name in these tables.
 | Skill | Responsibility |
 |---|---|
 | `using-agent-skills` | meta-dispatcher: task → skill + lifecycle map |
-| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/test-contract.md · docs/workflow.md · docs/session-state.md · the `## Agent skills` block |
+| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/test-contract.md · docs/workflow.md · docs/session-state.md · the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other |
 | `orchestrator` | default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | `preflight-readiness` | env-readiness gate; blocks the wave until provisioned |
 | `handoff` | per-session compaction to a fresh-agent doc |
@@ -222,7 +222,6 @@ review framework."*
    is code-cold; that is how you preserve maker ≠ checker without native subagents.
 4. **Drive commands from their `.md`** — Cursor can't run `commands/*.md` directly, so load the rules a
    command bundles (see the table above) or paste the command's prompt text to reproduce the stage.
-5. **Load `references/` on demand** — the suite's checklists live in `references/` (testing-patterns,
-   performance-checklist, security-checklist, observability-checklist, accessibility-checklist,
-   orchestration-patterns, definition-of-done, finding-unknowns). Paste the relevant one rather than the
-   whole skill when you only need the checklist.
+5. **Load `references/` on demand** — the suite's shared material lives in `references/`;
+   [docs/getting-started.md](./getting-started.md) maps every file there to the skills that use it.
+   Paste the relevant one rather than the whole skill when you only need the checklist.

@@ -57,7 +57,7 @@ The plugin registers 11 slash commands. Nine are lifecycle commands — one per 
 | `/review` | Quality gate before merge: five-axis review with a parallel fan-out | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization`) |
 | `/ship` | Release: pre-launch checklist, staged rollout, rollback | `shipping-and-launch` (+ `pull-request`) |
 | `/orchestrate` | Run the whole lifecycle autonomously as a wave-parallel DAG, to open PRs | `orchestrator` |
-| `/setup` | One-time repo ecosystem bootstrap: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · the `## Agent skills` block | `project-setup` |
+| `/setup` | One-time repo ecosystem bootstrap: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other | `project-setup` |
 | `/explain` | Explain a piece of code or a system in prose — **standalone**, not a lifecycle stage | `literate-explainer` |
 | `/quiz` | Check comprehension of a change or codebase area — **standalone**, not a lifecycle stage | `comprehension-quiz` |
 
@@ -80,7 +80,7 @@ The suite ships 38 skills, organized by lifecycle stage. Names are descriptive a
 | Skill | Responsibility |
 |---|---|
 | `using-agent-skills` | meta-dispatcher: task → skill + lifecycle map |
-| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/test-contract.md · docs/workflow.md · docs/session-state.md · the `## Agent skills` block |
+| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/test-contract.md · docs/workflow.md · docs/session-state.md · the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other |
 | `orchestrator` | default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | `preflight-readiness` | env-readiness gate; blocks the wave until provisioned |
 | `handoff` | per-session compaction to a fresh-agent doc |

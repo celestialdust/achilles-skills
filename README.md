@@ -12,8 +12,8 @@
                             (one autonomous wave-parallel DAG run → open draft PRs)
 
    /setup — one-time repo ecosystem (STATE.md · CONTEXT.md · docs/adr/ · docs/features/ ·
-            docs/test-contract.md · docs/workflow.md · docs/session-state.md ·
-            the "## Agent skills" block)
+            docs/test-contract.md · docs/workflow.md · docs/session-state.md · the
+            "## Agent skills" block in one of CLAUDE.md / AGENTS.md + a pointer in the other)
 ```
 
 The human owns **Ideate + Spec + Plan** — the decisions only a person can make. The agent then runs **Implement → Verify → Review → Ship** fully autonomously — it never blocks waiting for input, and where a stop condition fires it terminates and reports instead of waiting ([docs/workflow.md](./docs/workflow.md) lists them) — and stops at **open, risk-banded draft PRs** for an async human merge. It never auto-merges to `main`.
@@ -56,6 +56,8 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 | `docs/` | Reader-facing documentation: getting started + per-agent setup guides, plus `workflow.md` and `test-contract.md` — this repo's own copies of the process contract and the test contract. `CONTEXT.md` at the root is the same idea: the suite runs its own process, so it carries the artifacts that process produces |
 
 `docs/` is for readers of this repo. The pipeline artifacts the suite produces (`STATE.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`) live in **your** project once `/setup` scaffolds them there — not in this one. Three are exceptions, and they are here for the same reason: this repo runs the same loop, so it carries them. `/setup` scaffolds a copy of `docs/workflow.md`, `docs/test-contract.md`, and `CONTEXT.md` into your project; this repo keeps its own of each.
+
+`docs/design.md` — the decided look — is in neither list. Nothing scaffolds it: the first user interface built in a repo writes it, and this repo builds none, so it has none. An absent `docs/design.md` is a repo whose look is not decided yet, which is the correct state here rather than a gap.
 
 ---
 
@@ -192,7 +194,7 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 | Skill | Responsibility |
 |---|---|
 | [using-agent-skills](./skills/using-agent-skills/SKILL.md) | Meta-dispatcher: maps a task → the right skill + its place in the lifecycle |
-| [project-setup](./skills/project-setup/SKILL.md) | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · the `## Agent skills` block |
+| [project-setup](./skills/project-setup/SKILL.md) | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other |
 | [orchestrator](./skills/orchestrator/SKILL.md) | Default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | [preflight-readiness](./skills/preflight-readiness/SKILL.md) | Environment-readiness gate; blocks the wave until everything is provisioned |
 | [handoff](./skills/handoff/SKILL.md) | Per-session compaction into a fresh-agent handoff doc |

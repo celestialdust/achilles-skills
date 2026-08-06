@@ -289,4 +289,6 @@ fourth — three unresolved cycles is information about the artifact, not a reas
 
 For a fresh-context, code-cold pass, dispatch the **`adversarial-reviewer`** agent (`agents/adversarial-reviewer.md`) as an
 independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a confident, high-stakes, or irreversible in-flight decision needs an independent skeptic.
+context — preserving maker≠checker. Reach for it when a person wants an independent skeptic on a confident,
+high-stakes, or irreversible call **outside a run**, or on a platform with no skill tool. Inside a run this
+skill is dispatched as itself — there is no role to play on top of it.

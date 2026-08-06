@@ -43,7 +43,7 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 
 **Cross-cutting / setup**
 - `using-agent-skills` — meta-dispatcher: task → skill + lifecycle map
-- `project-setup` — one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, the `## Agent skills` block)
+- `project-setup` — one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other)
 - `orchestrator` — default wave-parallel DAG executor; autonomous to open PRs
 - `preflight-readiness` — env-readiness gate; blocks the wave until provisioned
 - `handoff` — per-session compaction to a fresh-agent doc

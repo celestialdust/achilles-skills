@@ -56,7 +56,9 @@ gracefully — comment on the code, not the person.
   materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**.
   Never `Approve` a diff that moved the goalposts instead of the code. Those three are frozen for the
   slice's retry loop, which is why the reward-hack qualifier applies — between runs a person can change
-  them by a signed Spec change.
+  them by a signed Spec change. A diff that edits `docs/design.md` is the same call with **no** qualifier:
+  Verify grades every contract axis marked `inherits: docs/design.md` against that file, and only
+  `frontend-design` moves it — under the sign-off of a surface that means to.
 - **The same breaker, without the qualifier — ACTIVE test-contract rows.** A diff that skips, deletes,
   weakens, or narrows an **ACTIVE** row under the `## Rows` heading of `docs/test-contract.md`, or moves
   a row's state in either direction, is `Critical:` + HALT whatever else the diff did. That freeze is

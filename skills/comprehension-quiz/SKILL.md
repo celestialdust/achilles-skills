@@ -32,10 +32,10 @@ learner glossary. Say so and stop — do not manufacture questions, and write no
 | **comprehension-quiz** (this) | **test the human** — retrieve, grade, record what stuck | teach it in the first place |
 | `literate-explainer` | **teach** — emit the explainer artifact the quiz then tests | quiz it (different interaction grain) |
 | the review skills (`code-review`, …) | **judge the diff** — is the *code* correct/safe/fast | judge the human's understanding |
-| `codebase-research` | **feed the plan** — goal-blind facts about the code as it is | teach or test a human |
+| `codebase-research` | **feed the design and the plan** — goal-blind facts about the code as it is, surveyed at the head of Spec and reused by the planner | teach or test a human |
 
 The boundary is behavioral, not naming: the **quiz tests the HUMAN**, `literate-explainer` **teaches** them,
-the **review skills judge the DIFF**, and `codebase-research` **feeds the PLAN**. Different
+the **review skills judge the DIFF**, and `codebase-research` **feeds the DESIGN and the PLAN**. Different
 subjects, different grain — reach deliberately.
 
 ## Inputs

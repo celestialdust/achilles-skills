@@ -56,9 +56,12 @@
   and agreed to it. Only a person signs. An agent that needs an unsigned document stops; it does not
   build against a draft nobody stands behind.
 - **Design contract** — the signed document holding one feature's look: the design decisions, the quality
-  floor the interface must clear, and the prototype production re-implements. It is the only home for
-  design, the way `acceptance.md` is the only home for behavior, so the two can never contradict. Verify
-  grades a slice's interface against it, and nothing is built for a slice whose contract is unsigned.
+  floor the interface must clear, and the prototype production re-implements. Design never goes in
+  `acceptance.md`, which holds behavior and nothing else, so the two can never contradict. Where the
+  repository has a design system the contract records only the delta, so design is read across two files
+  as one source: this one decides the surface, and `docs/design.md` decides every axis the contract marks
+  inherited. Verify grades a slice's interface against both, and nothing is built for a slice whose
+  contract is unsigned.
 - **Design ref** — the board column, copied word for word into every dispatch brief, naming the design
   contract and prototype a slice builds against. A slice that builds no user interface carries `—`. It is
   never left blank: blank reads as "nobody looked", and both the builder and the code-cold checker are

@@ -56,12 +56,14 @@ Skills should be **specific** (actionable steps, not vague advice), **verifiable
 
 - One `SKILL.md` per skill directory; valid two-key frontmatter.
 - Don't duplicate content between skills — **reference** the other skill instead.
-- Reference material goes in the top-level `references/`, never inside a skill directory.
+- Reference material more than one skill reads goes in the top-level `references/`. Material only one skill reads may stay in that skill's own `references/` — seven skills carry one. Promote it the moment a second skill needs it: a shared reference living inside one skill's directory is kept true by a skill that has no reason to keep it true for the other.
 - Only add supporting files when content exceeds ~100 lines; don't create empty `scripts/` dirs to mirror another skill.
 
 ### The `## Subagents` block
 
 Six skills (`code-review`, `security-and-hardening`, `test-driven-development`, `quality-verification`, `performance-optimization`, `doubt-driven-development`) end with a thin `## Subagents` pointer to their reviewer persona. If you add a skill that has a matching code-cold persona, append the same block at the end of the body; otherwise omit it.
+
+Write the block's trigger as the persona carve-out: a single code-cold pass a person wants **outside a run**, or a platform with no skill tool. Inside a run the skill is dispatched as itself — a trigger phrased as an in-run case ("when a slice is green", "when a diff touches auth") puts a role back on top of the method, which is the thing `/review` was built to stop.
 
 ## Adding a command
 
@@ -98,10 +100,10 @@ Stages don't share memory — they hand off through **artifact files** with fixe
 | Stage | Produces |
 |---|---|
 | Ideate | `intent.md` |
-| Spec | `prd.md`, `acceptance.md`, `environment.md` (+ ADRs, `CONTEXT.md`) |
-| Plan | `research.md`, `plan.md` |
+| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `design-contract.md` (UI only) (+ ADRs, `CONTEXT.md`) |
+| Plan | `plan.md` |
 | Verify | `qa.md` |
-| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/test-contract.md` (the repo's permanent cross-feature scenarios), `docs/session-state.md` (where the work stands + an append-only decision log) |
+| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/workflow.md` (the process contract), `docs/test-contract.md` (the repo's permanent cross-feature scenarios), `docs/session-state.md` (where the work stands + an append-only decision log), `docs/design.md` (the repository's decided look, written by the first UI surface) |
 
 Each stage reads the upstream artifact and writes the next, so a fresh agent can resume from the files alone. When you add or edit a skill/command, declare what it reads and writes in `## Outputs & handoff contract` using these exact filenames — never introduce a new artifact name for an existing contract file.
 
@@ -113,6 +115,10 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   no second manifest at the repo root; a duplicate would drift, since nothing forces the two to agree.
 - No per-skill `evals/` directory.
 - No terse-stem skill pointers reintroduced; artifact/tool/object tokens left verbatim.
+- This repo's own `docs/workflow.md` still matches the copy `project-setup` ships. Run
+  `diff docs/workflow.md skills/project-setup/assets/workflow.template.md`; it must print nothing. The
+  two are the same document with two audiences, and `project-setup` — which is the only thing that ever
+  compares them, and is never run against this repository — cannot be the keeper here.
 
 ## License
 

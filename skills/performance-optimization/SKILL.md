@@ -380,4 +380,6 @@ Handoff: you do **not** flip `STATE.md` — the orchestrator owns the board. It 
 
 For a fresh-context, code-cold pass, dispatch the **`performance-auditor`** agent (`agents/performance-auditor.md`) as an
 independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a slice touches a hot path, data fetching, bundle size, or render cost.
+context — preserving maker≠checker. Reach for it when a person wants a single code-cold performance pass
+over a diff **outside a run**, or on a platform with no skill tool. Inside a run this skill is dispatched
+as itself — there is no role to play on top of it.

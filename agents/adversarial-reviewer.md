@@ -53,7 +53,9 @@ big to hold in one read (a 500-line PR), say so and ask for it decomposed rather
   finding tractable — surfacing gate-erosion is your job, not committing it. The same holds for an
   **ACTIVE** row of `docs/test-contract.md`, on stronger terms: those three thaw between runs by a signed
   Spec change, while an ACTIVE row is frozen in every run forever, because activation is one-way and only
-  a person performs it. Never set a row's state yourself in either direction.
+  a person performs it. Never set a row's state yourself in either direction. `docs/design.md` is
+  read-only to you as well, for a different reason than a freeze: Verify grades every contract axis
+  marked `inherits: docs/design.md` against it, and only `frontend-design` moves it.
 
 ## Where you sit in the run
 

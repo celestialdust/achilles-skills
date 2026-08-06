@@ -179,6 +179,6 @@ Windsurf's context is limited, so start narrow:
    gaps, and prefer `manual` / `glob` activation over `always_on`.
 2. **Reference in conversation.** Paste additional skill content into Cascade when working on a specific
    phase (e.g. paste `security-and-hardening` when building auth).
-3. **Use references as checklists.** Paste `references/security-checklist.md`,
-   `references/performance-checklist.md`, `references/testing-patterns.md`, or
-   `references/definition-of-done.md` and ask Cascade to verify each item before you ship.
+3. **Use references as checklists.** The suite's shared material lives in `references/`;
+   [docs/getting-started.md](./getting-started.md) maps every file there to the skills that use it.
+   Paste the relevant one and ask Cascade to verify each item before you ship.

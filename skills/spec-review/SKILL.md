@@ -46,7 +46,11 @@ against what the user actually asked for):
    account}; no value column, no command column.
 6. design contract (frontend-design) — **only if the feature has UI**; the 5th signed Spec artifact. Read
    `docs/design.md` alongside it when the repo has one: the contract records only what differs from that
-   file, so an axis marked `inherits: docs/design.md` is complete as written.
+   file, so an axis marked `inherits: docs/design.md` is complete as written, and so is one marked
+   `departs: docs/design.md` whose `## Departure` block is present. That file decides four of the seven
+   axes and holds nothing on `Quality floor`, `Restraint`, or `Copy-as-design-material` — an `inherits:`
+   or `departs:` on one of those three points at nothing, and this is the last stop before the contract
+   is signed and Verify grades the axis against a file with no decision in it.
 7. `docs/test-contract.md` (repo-wide, when the repo has one) — the permanent cross-feature scenarios.
    Read its `ACTIVE` rows: the bundle has to agree with them. No such file, or no ACTIVE rows → nothing
    to reconcile; proceed.
@@ -81,7 +85,7 @@ this stage exists").
 | File path / signature / driver-or-library internal appears in `prd.md` (prd MUST NOT contain these) | **Decidable** | Strip it; re-home to an ADR reference. Re-check: grep `prd.md` for paths/extensions/signatures. |
 | Dangling `see ADR-NNN` — referenced ADR file does not exist | **Decidable** | Fix the ref or create the missing ADR pointer. Re-check: cross every `ADR-\d+` in prd.md against `docs/adr/`. |
 | `CONTEXT.md` `## Glossary` term used non-verbatim in `prd.md` | **Decidable** | Normalize to the exact `## Glossary` term (prd uses CONTEXT terms verbatim). |
-| Placeholder / `TODO` / `TBD` / incomplete section | **Decidable** | Fill from context or remove. A design-contract axis reading `inherits: docs/design.md` is **not** incomplete — never fill it in; restating what that file decides is the second copy the format exists to prevent. |
+| Placeholder / `TODO` / `TBD` / incomplete section | **Decidable** | Fill from context or remove. A design-contract axis reading `inherits: docs/design.md` or `departs: docs/design.md` is **not** incomplete — never fill either in. The first points at the decided look, the second at that axis's own `## Departure` block; restating what either already says is the second copy the format exists to prevent. |
 | Value or command embedded in `environment.md` (no value column, no command column — structurally illegal) | **Decidable** | Remove. If it is a real secret → also a security STOP (see Red flags). |
 | `acceptance.md` scenario contains a file path / signature / table (behavioral-only) | **Decidable** | Rewrite as an observable outcome. |
 | Acceptance **coverage gap**: a `prd.md` user story or `intent.md` success-criterion with no scenario (every story must map to ≥1 reachable scenario) | **Contestable** | Draft the missing scenario; **flag it inline**. |
@@ -89,6 +93,7 @@ this stage exists").
 | **One feature or two**: `intent.md` describes two independent subsystems crammed into one spec | **Contestable** | Propose the split; **flag**. |
 | Internal contradiction between `prd.md` and an ADR or `acceptance.md` | **Contestable** | Reconcile to one side; **flag the chosen side**. |
 | An `acceptance.md` scenario contradicts an **ACTIVE** row in `docs/test-contract.md` | **Contestable** (spotting it is judgment; which side wins is not) | The ACTIVE row wins — rewrite the feature scenario to agree with it; **flag it inline**, naming the row id. Never edit `docs/test-contract.md`. |
+| A design-contract `Quality floor`, `Restraint`, or `Copy-as-design-material` axis reads `inherits: docs/design.md` or `departs: docs/design.md` | **Contestable** (spotting it is mechanical; what the `delta:` says is not) | `docs/design.md` decides the other four axes and holds nothing on these three, so the line points at nothing and Verify would grade the axis against a file with no decision in it. Draft the `delta:` from what this surface decided; **flag it inline**. |
 
 ## ADR-open check (risk mitigation / handoff)
 

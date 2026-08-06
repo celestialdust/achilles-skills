@@ -57,6 +57,9 @@ contract row, since "gate erosion" alone does not tell the reader which guarante
 Never set a row's state yourself in either direction; you read that file and do not edit it. An absent
 file, or one with no ACTIVE rows, changes nothing here. The whole point of this skill is to make the code
 simpler until the frozen tests still pass — never to change the tests until the simpler code passes.
+`docs/design.md` is off-limits too, for a different reason than a freeze: Verify grades every contract
+axis marked `inherits: docs/design.md` against it, and only `frontend-design` moves it — a simplification
+never touches the decided look.
 
 ## The Five Principles
 

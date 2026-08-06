@@ -91,7 +91,7 @@ export, a screenshot library, a published style reference. Like the browser engi
 configured is the one you use.
 
 **Present means already in front of you** — a server your tool has already connected for this session, or
-a path the dispatch brief names. Reading the tools you already hold is not probing; probing is going out
+a path this repository already holds. Reading what you already have is not probing; probing is going out
 to find, install, or ask for one. There is no other way for a source to become available to you here, and
 no step that establishes one.
 
@@ -136,12 +136,15 @@ tokens). Apply Chanel's rule: before you ship it, remove one accessory.
 ### Phase 4 — Write the design contract
 Record the locked decisions as the **design contract** (see the sections below), `status: draft` — the seven
 rubric axes plus the **`## Prototype`** section that names the committed reference-spec mockup and its fidelity
-bar. This is the ONLY home for design floors/rubric/fidelity — none of it goes into `acceptance.md`. The human
-signs it at the Spec gate (`status: signed`).
+bar. Design lives in two files, not one: this contract decides this surface, and for an axis it marks
+inherited, `docs/design.md` decides it. None of it goes into `acceptance.md`. The human signs the contract
+at the Spec gate (`status: signed`).
 
 **In a repo with a decided look, the contract records only the delta.** Each of the seven axes carries
-either `inherits: docs/design.md` or a `delta:` line saying what differs — never both, never neither. An
-inherited axis is **not** restated: a second copy of a decision is a copy that can disagree with the
+exactly one line — `inherits: docs/design.md`, a `delta:` saying what this surface fills in, or
+`departs: docs/design.md` where it contradicts the decided look — never two, never none. That file decides
+four of the seven, so `Quality floor`, `Restraint`, and `Copy-as-design-material` always carry a `delta:`.
+An inherited axis is **not** restated: a second copy of a decision is a copy that can disagree with the
 first, and a reviewer then has no way to tell which one is stale. `## Prototype` is always filled in full
 (it is per-surface and never inherited). The exact shape is in
 `../../references/design-system-format.md`. Where the repo has no `docs/design.md`, state all seven axes
@@ -149,7 +152,8 @@ here as before — there is nothing to inherit.
 
 ## Design rubric (= the design contract's seven rubric sections AND the Verify grading axes)
 These seven axes are written here in Spec and **re-read by `quality-verification` in Verify**: quality-verification grades the built UI
-against (i) fidelity to this committed prototype and (ii) these axes. Fill every one in the contract.
+against (i) fidelity to this committed prototype and (ii) these axes. Every one carries a line in the
+contract — the single line Phase 4 describes, which for an inherited axis is the pointer, not a restatement.
 
 1. **Distinctiveness / not-an-AI-default.** The hero is a thesis: open with the most characteristic thing in
    the subject's world (headline, image, animation, live demo, interactive moment). *Calibration:* AI-generated
@@ -195,15 +199,17 @@ reads this section in Verify to locate the mockup and grade the built UI's fidel
 ## The contract's `## Departure` blocks (when a surface moves away from the decided look)
 
 A **delta** fills in something `docs/design.md` leaves to each surface. A **departure** contradicts
-something it already decided. The two are graded differently, so they are written differently: a departure
-gets its own heading in the contract, next to the axis it moves, naming what the decided look says, what
-this surface does instead, and why. The block's shape is in `../../references/design-system-format.md`.
+something it already decided. The two are graded differently, so they are written differently: the axis
+carries `departs: docs/design.md`, and the departure gets its own heading in the contract, next to the axis
+it moves, naming what the decided look says, what this surface does instead, and why. The block's shape is
+in `../../references/design-system-format.md`.
 
 - **The reason is not optional.** Without it nobody can tell a decision from a drift, and
   `quality-verification` records a departure with no reason as a finding.
 - **Never file a departure as a plain `delta:`.** That presents the move as though the decided look had
-  said this all along — the one thing a departure must not do. A built surface that departs with nothing
-  recorded is a `quality-verification` finding too.
+  said this all along — the one thing a departure must not do. `departs:` is the axis line that sends a
+  reader to the block. A built surface that departs with nothing recorded is a `quality-verification`
+  finding too.
 - **A departure never edits `docs/design.md`.** Moving the whole repository's look is a deliberate act by a
   surface that means to move it, signed with that surface's contract — not a side effect of one screen
   needing something else.
@@ -224,9 +230,9 @@ register conversational and tuned — plain verbs, sentence case, no filler. Let
 - *"Three variants is overkill, I'll just style the obvious card grid."* → Then you skipped exploration. If
   the look is genuinely open, structurally-different variants are how you find the non-obvious answer; "three
   tweaked card grids isn't a prototype, it's wallpaper."
-- *"I'll put the accessibility/responsive requirements in acceptance.md so quality-verification tests them."* → No. ALL design
-  floors live in this contract; `acceptance.md` is behavioral-only. quality-verification reads the contract for the design
-  gate.
+- *"I'll put the accessibility/responsive requirements in acceptance.md so quality-verification tests them."* → No. Design
+  floors live in this contract and, for an axis it marks inherited, in `docs/design.md`; `acceptance.md` is
+  behavioral-only. quality-verification reads both for the design gate.
 - *"The exploration variants are good code, I'll keep them around."* → Exploration is throwaway. The throwaway
   *screens* live in the gitignored `.frontend-design/` working dir and are discarded; only the one agreed
   mockup survives — promoted to the named, committed **reference-spec mockup**
@@ -258,6 +264,9 @@ register conversational and tuned — plain verbs, sentence case, no filler. Let
 - Re-opening the palette or the type in a repo that already has a `docs/design.md` — that look is decided;
   variants differ in structure.
 - A contract that restates an axis `docs/design.md` already decides, instead of marking it inherited.
+- An `inherits:` or `departs:` line on `Quality floor`, `Restraint`, or `Copy-as-design-material` —
+  `docs/design.md` decides none of the three, so that line sends Verify to a file holding nothing for
+  the axis and the axis goes ungraded.
 - A surface that moves away from the decided look with no `## Departure` block, or a block with no reason.
 - Probing for a design evidence source, requiring one, or reporting that none is installed.
 
@@ -271,10 +280,12 @@ Done when ALL hold:
   Structure-as-information · Motion · Quality floor · Restraint · Copy-as-design-material`) **plus the
   `## Prototype` section naming the committed reference-spec mockup**, `status: draft`, naming which AI-default
   cluster (if any) was used and why it's a choice. In a repo with a `docs/design.md`, every axis carries
-  either `inherits: docs/design.md` or a `delta:` line and no inherited axis is restated; without one,
-  every axis is stated in full.
-- Every axis this surface moves away from the decided look on has a `## Departure` block carrying its
-  reason, and none of those moves is filed as a plain `delta:`.
+  exactly one of `inherits: docs/design.md`, a `delta:` line, or `departs: docs/design.md`, and no
+  inherited axis is restated — with `Quality floor`, `Restraint`, and `Copy-as-design-material` on a
+  `delta:`, because that file decides none of the three, so `inherits:` there points at nothing and
+  `departs:` has nothing to depart from. Without a `docs/design.md`, every axis is stated in full.
+- Every axis this surface moves away from the decided look on reads `departs: docs/design.md` and has a
+  `## Departure` block carrying its reason; none of those moves is filed as a plain `delta:`.
 - If this was the repository's **first** UI surface, `docs/design.md` now exists and holds the
   repository-level decisions (palette · type · layout language · motion posture · signature vocabulary) and
   nothing that belongs to this one screen.
@@ -296,15 +307,20 @@ Done when ALL hold:
   other surface reads that file and writes none of it.
 - **Stable sections** (consumers depend on these names): `Distinctiveness · Typography ·
   Structure-as-information · Motion · Quality floor (responsive/visible-focus/reduced-motion) · Restraint ·
-  Copy-as-design-material · Prototype (the committed reference-spec mockup + its fidelity bar)`; plus
-  `status: draft|signed`, and zero or more `Departure — <axis>` blocks. Change a section's shape → update
-  `quality-verification`'s design-gate reader in the same commit.
+  Copy-as-design-material · Prototype (the committed reference-spec mockup + its fidelity bar)`; each of
+  the seven carrying one of `inherits:` / `delta:` / `departs:` where the repo has a `docs/design.md`, and
+  `Quality floor` · `Restraint` · `Copy-as-design-material` always a `delta:` because that file decides
+  none of the three; plus `status: draft|signed`, and one `Departure — <axis>` block per axis reading
+  `departs:`. Change a section's shape → update `quality-verification`'s design-gate reader in the same commit.
 - **Consumed by:** `quality-verification` (Verify design gate: reads the `## Prototype` section to locate the
   committed reference-spec mockup and grades the built UI's fidelity against it, plus these seven axes —
   reading an axis marked `inherits:` from `docs/design.md`, and grading each `## Departure` block), and
   gating `quality-verification` (refuses to run against an unsigned/absent contract).
 - **Re-invalidation rule:** any edit to `prd.md` flips the contract back to `status: draft` (it must be
-  re-signed) — design floors can't silently drift from the product they were signed against.
+  re-signed) — design floors can't silently drift from the product they were signed against. An edit to
+  `docs/design.md` does the same to every contract carrying an inherited axis it touched: an inherited
+  axis is graded against whatever that file says at Verify time, so moving the decided look re-grades
+  surfaces nobody re-read. Name those contracts in this surface's handoff and flip each to `status: draft`.
 - **STATE.md:** the feature stays in `spec`; set `gate: you` so the human signs intent + prd + acceptance +
   environment + (this) design contract together at the single Spec sign-off. No slice rows yet (slices are
   born in Plan).

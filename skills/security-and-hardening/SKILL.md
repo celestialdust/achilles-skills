@@ -33,7 +33,7 @@ Security-first development practices for web applications. Treat every external 
 
 - `docs/test-contract.md`, when the repo has one — the **ACTIVE** rows under its `## Rows` heading. Many are security-observable ("no response ever contains a password hash"), so they tell you which guarantees the whole repo owes, not just this feature. `PENDING` rows enforce nothing. No file, or no ACTIVE rows, is the normal case.
 
-**Dispatch contract:** you run as a **fresh, code-cold subagent in parallel** on the security axis (maker≠checker; `parallelism.md` mech f) with **no test-write access**. You read the diff cold — you do not see the implementer's reasoning, and you must not weaken any test or the frozen `acceptance.md`/`Regression surface` to make a finding go away (that is gate-erosion). The same holds for an **ACTIVE** `docs/test-contract.md` row, on stronger terms: those three thaw between runs by a signed Spec change, an ACTIVE row is frozen in every run forever, because activation is one-way and only a person performs it. Never set a row's state yourself in either direction.
+**Dispatch contract:** you run as a **fresh, code-cold subagent in parallel** on the security axis (maker≠checker; `parallelism.md` mech f) with **no test-write access**. You read the diff cold — you do not see the implementer's reasoning, and you must not weaken any test or the frozen `acceptance.md`/`Regression surface` to make a finding go away (that is gate-erosion). The same holds for an **ACTIVE** `docs/test-contract.md` row, on stronger terms: those three thaw between runs by a signed Spec change, an ACTIVE row is frozen in every run forever, because activation is one-way and only a person performs it. Never set a row's state yourself in either direction. `docs/design.md` is off-limits too, for a different reason than a freeze: Verify grades every contract axis marked `inherits: docs/design.md` against that file, it carries no `status:` of its own, and only `frontend-design` moves it — so a diff that edits the decided look is gate-erosion with no "materially unchanged" qualifier.
 
 ## Process: Threat Model First
 
@@ -465,4 +465,6 @@ After implementing security-relevant code:
 
 For a fresh-context, code-cold pass, dispatch the **`security-auditor`** agent (`agents/security-auditor.md`) as an
 independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a diff touches auth, input handling, secrets, or external I/O.
+context — preserving maker≠checker. Reach for it when a person wants a single code-cold security pass over
+a diff **outside a run**, or on a platform with no skill tool. Inside a run this skill is dispatched as
+itself — there is no role to play on top of it.

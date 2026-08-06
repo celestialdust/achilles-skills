@@ -279,6 +279,11 @@ on. The row stays ACTIVE, unproven, and reaches a person through the required PR
 Nothing stopped being checked, so nothing halts. Only removing a row from the contract, flipping it back
 to `PENDING`, or rewriting it to assert less is the erosion above.
 
+**The decided look is not yours to move either.** Where the repo has a `docs/design.md`, Verify grades
+every contract axis marked `inherits: docs/design.md` against that file. It carries no `status:` of its own,
+so nothing else catches an edit to it — editing the decided look so the built surface matches is weakening
+a check to clear a gate, the same **gate-erosion → HALT**. Read it; never write it.
+
 If the failure signature only moved because a test/acceptance was edited while the implementation is
 materially unchanged, that is the **reward-hack tripwire → HALT**.
 
@@ -346,6 +351,8 @@ Gate-erosion red flags (HALT the slice, flip `gate: agent → you`):
   any other moment; that freeze is permanent, not scoped to the loop
 - Setting a `docs/test-contract.md` row's state yourself, in either direction — activation is one-way and
   a person's act
+- Editing `docs/design.md` so the built surface matches it — the decided look is read-only rather than
+  frozen, and off-limits in a retry or at any other moment
 - Halting for gate erosion **without naming** the artifact or row id that was about to change
 
 **The first group means: delete code, start over with TDD. The second group means: stop, do not ship.**
@@ -470,5 +477,6 @@ When adding mocks or test utilities, read
 
 For a fresh-context, code-cold pass, dispatch the **`test-engineer`** agent (`agents/test-engineer.md`) as an
 independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when designing the test strategy, or auditing whether a
-slice's tests are honest (not mock-shaped).
+context — preserving maker≠checker. Reach for it when a person wants a single code-cold audit of whether a
+slice's tests are honest **outside a run**, or on a platform with no skill tool. Inside a run this skill is
+dispatched as itself — there is no role to play on top of it.

@@ -165,6 +165,9 @@ Each section earns its place; none is decorative:
 - The `regression_surface` narrowed, or a frozen test / `acceptance.md` line changed during retries, or an
   ACTIVE `docs/test-contract.md` row was skipped, weakened, or narrowed → **HALT** (gate-erosion); do not
   ship. Name the row id in the report — "gate erosion" alone tells nobody which guarantee went.
+- The diff edits `docs/design.md` → **HALT** (the same gate-erosion); do not ship. The decided look is
+  read-only rather than frozen: Verify grades every contract axis marked `inherits: docs/design.md`
+  against that file, and only `frontend-design` moves it.
 - You are about to `gh pr merge`, push to `main`, or trigger a deploy → **STOP**; the human owns the
   merge.
 - The code-reading checklist is empty, generic, or says "all files" → rewrite before opening.

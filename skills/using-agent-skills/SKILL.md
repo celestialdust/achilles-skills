@@ -207,7 +207,7 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Stage | Skill | One-line summary |
 |-------|-------|------------------|
 | Cross-cut | using-agent-skills | this meta-dispatcher: task → skill + lifecycle map |
-| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, the `## Agent skills` block) |
+| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other) |
 | Cross-cut | orchestrator | wave-parallel DAG executor; platform-adaptive; runs to open draft PRs, never waits |
 | Cross-cut | preflight-readiness | env-readiness gate; blocks the wave until provisioned |
 | Cross-cut | handoff | per-session compaction to a fresh-agent doc |

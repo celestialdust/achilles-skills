@@ -411,7 +411,7 @@ After review is complete:
 
 **Gate role:** this skill is the **Review-fan-out leg** — ONE of three AND-combined agent-internal gates (quality-verification + Review fan-out + evaluator floors). It does NOT flip `STATE.md` and does NOT open or promote a PR. The orchestrator aggregates all legs; a passing slice stops at a **DRAFT PR** that a separate fresh code-cold verifier later promotes. A `Request changes` verdict routes the slice back to `incremental-implementation` (bounded rounds), not forward.
 
-**Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion, deletes/narrows a RED test, or shrinks the declared `Regression surface` while the implementation is materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**. Those three are frozen for the slice's retry loop; between runs a person can change them by a signed Spec change, so the reward-hack qualifier is what distinguishes erosion from a legitimate edit.
+**Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion, deletes/narrows a RED test, or shrinks the declared `Regression surface` while the implementation is materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**. A diff that edits `docs/design.md` is the same call with no reward-hack qualifier: Verify grades inherited design axes against that file, a slice reads it and never writes it, and only `frontend-design` moves it — under the sign-off of a surface that means to. Those three are frozen for the slice's retry loop; between runs a person can change them by a signed Spec change, so the reward-hack qualifier is what distinguishes erosion from a legitimate edit.
 
 The same breaker covers a diff that **skips, deletes, weakens, or narrows an ACTIVE `docs/test-contract.md` row**, or moves a row's state in either direction — with two differences. That freeze is **permanent, in every run**, because activation is one-way and only a person performs it, so the reward-hack qualifier does not apply: touching an ACTIVE row is the `Critical:` + HALT whatever else the diff did. And the finding **names the row id** (`TC-1`) — "gate erosion" alone tells the person reading it nothing about which guarantee was about to be traded away, so they cannot judge whether the trade was reasonable. A row reported `not-reachable` is not this: it is still ACTIVE, unproven, with a human-ack line in the PR, so nothing stopped being checked.
 
@@ -425,4 +425,6 @@ Never `Approve` a diff that moved the goalposts instead of the code (testing-str
 
 For a fresh-context, code-cold pass, dispatch the **`code-reviewer`** agent (`agents/code-reviewer.md`) as an
 independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a slice is green and you need the five-axis review before merge.
+context — preserving maker≠checker. Reach for it when a person wants a single code-cold five-axis review
+**outside a run**, or on a platform with no skill tool. Inside a run this skill is dispatched as itself —
+there is no role to play on top of it.

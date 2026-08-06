@@ -96,7 +96,10 @@ contract paths, not the session history.
    the implementer must open the prototype before it builds, and the verifier is code-cold — it may
    not read `plan.md`, so anything left only in the plan never arrives. A `—` is delivered
    explicitly **as `—`**, not omitted: it tells the verifier this slice builds no UI, rather than
-   leaving it to infer that from work it did not do.
+   leaving it to infer that from work it did not do. Where the ref names a path and the repo has a
+   `docs/design.md`, carry that path in both briefs too: a contract axis marked
+   `inherits: docs/design.md` is graded against that file, so a verifier handed only the contract is
+   handed half its oracle.
 6. **Verify barrier.** Wait for every ready slice to reach `verify` green **or** a terminal state
    (a slice that halts at Verify never enters the review). This barrier is what lets the next step
    review the wave as one changeset instead of N.
@@ -310,6 +313,12 @@ mechanical invariants, not a human halt:
    and the halt **names the row id** (`TC-1`) — "gate erosion" alone leaves the person reading it
    unable to tell which guarantee was about to be traded away. Setting a row's state, in either
    direction, is the same stop.
+
+   **The decided look, read-only rather than frozen** — `docs/design.md` is not a fifth frozen artifact;
+   it is a file every run reads and only `frontend-design` writes. Verify grades each contract axis
+   marked `inherits: docs/design.md` against it, and it carries no `status:` of its own, so nothing else
+   catches an edit. Moving the decided look so a built surface matches it is the same **HALT**, retry or
+   not.
 2. **Reward-hack tripwire** — failure signature moved only because a test/acceptance was
    edited while impl is materially unchanged → **HALT**. (Same rule: the edit loosened the check, so
    the burden was evidence plus a human, not a passing run.)
@@ -453,6 +462,7 @@ diff nobody has reviewed yet.
 ## Red flags — STOP
 
 - About to weaken/edit `acceptance.md`, a RED test, or `Regression surface` during a retry → HALT (gate-erosion; a loosening, and a retry loop has neither the measurement nor the human). Those three are frozen for the retry loop; between runs a person can change them by a signed Spec change.
+- About to edit `docs/design.md` so a built surface matches it → HALT (same gate-erosion). Verify grades every contract axis marked `inherits: docs/design.md` against that file, and it carries no `status:` of its own, so moving it is the one way to clear a design gate that nothing else catches.
 - About to skip, delete, weaken, or narrow an **ACTIVE `docs/test-contract.md` row** — at any moment, retry or not → HALT, naming the row id (`TC-1`). That freeze is permanent and in every run, not scoped to a loop.
 - About to set a `docs/test-contract.md` row's state yourself, in either direction → STOP. Activation is a person's act and one-way; you read that file and do not edit it. Proposing a new `PENDING` row is free and encouraged — that is the tightening, and it needs no measurement and no approval.
 - About to drop a reviewer, delete a guard, deactivate a scenario (remove it from its contract, or flip an ACTIVE row back to `PENDING`), or weaken any check — at any time, including at plan time or by editing these skill files → STOP. Refuse, and name the measurement that is missing.
@@ -504,10 +514,13 @@ carries no diff, no worktree changes, and no PR.
   done|blocked|halted`) and the **`gate` column** (`you|agent|done`). Every transition is
   written as it happens — `STATE.md` is the resume spine; a fresh agent resumes the run cold
   from it. Change the table's shape → update every reader in the same commit.
-- **Dispatch briefs** — each slice's brief carries the slice id, its frozen contract paths — including
+- **Dispatch briefs** — each slice's brief carries the slice id; its frozen contract paths, including
   `docs/test-contract.md` when the repo has one, since a code-cold verifier cannot grade an ACTIVE row
-  it was never handed — and the
-  slice row's **`Design ref`** verbatim, to **both** the implementer and the code-cold verifier. `—`
+  it was never handed; `docs/design.md` when the repo has one and the slice builds UI, for the same
+  reason rather than because it is frozen — an axis the contract marks `inherits: docs/design.md` is
+  graded against that file, and a verifier that may not read outside its brief cannot grade what it was
+  never handed; and the slice row's **`Design ref`** verbatim, to **both** the implementer and the
+  code-cold verifier. `—`
   is emitted as `—`, never dropped; a dropped `—` reads as "unknown" and puts the UI judgement back
   in the verifier's hands. A brief is only ever assembled for a slice that **passed the design-ref
   gate**, so every path a brief carries points at a contract that read `status: signed` at dispatch;

@@ -99,10 +99,11 @@ Composition rule: **a slash command (or the user) is the orchestrator; personas 
 personas.** A persona may invoke skills.
 
 `/review` is **not** a multi-persona pattern. It dispatches each review *skill* — `code-review`,
-`code-simplification`, `security-and-hardening`, `performance-optimization` — as its own fresh-context,
-code-cold subagent, in parallel, over the union of the diffs under review. The skill is the method; there
-is no role to play on top of it. Findings are attributed to their owning slice **by file**, then merged
-into one ranked list. Reach for a persona when a human wants a single code-cold pass outside a run, or on
+`code-simplification`, `security-and-hardening`, `performance-optimization`, plus any specialist the
+diff's facts add — as its own fresh-context, code-cold subagent, in parallel, over the union of the diffs
+under review. Those four are a floor, not a list: a fact about the diff can add a reviewer, and nothing
+removes one. The skill is the method; there is no role to play on top of it. Findings are attributed to
+their owning slice **by file**, then merged into one ranked list. Reach for a persona when a human wants a single code-cold pass outside a run, or on
 a platform with no skill tool — not to build the `/review` fan-out.
 
 ## Safety & autonomy rules (must-follow)
