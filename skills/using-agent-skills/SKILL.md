@@ -16,7 +16,7 @@ apply the right skill, in the right order, for the current task.
 ## When to use / when to skip
 
 **Use** at the start of every session, and any time you are unsure which skill applies or which stage you
-are in. Read `STATE.md` first, then route.
+are in. Read `STATE.md` and `docs/session-state.md` first, then route.
 
 **Skip** only once you are already executing a named skill mid-stage — you do not re-dispatch on every turn.
 You still re-consult this index when the stage changes (e.g. plan signed → moving to Implement) or when a
@@ -27,6 +27,10 @@ task spans phases (a feature flows Ideate → … → Ship; a bug fix may need o
 - **`STATE.md`** (repo root) — the two-level board. Read the `feature state`, `slice state`, and `gate`
   columns to locate the current stage and who owns the next action. **If `STATE.md` is absent, route to
   `project-setup` before dispatching anything else.**
+- **`docs/session-state.md`** (when the repo has one) — the session log. Its five fields say where the
+  work stands; `## Log` beneath them says why, and which questions are already settled. Read both before
+  you route, so a question the log already answers is not re-opened. Reversing a logged decision is a new
+  entry with a reason, not a debate restarted from zero. No file → nothing to read; route on.
 - **The full skill roster** (this file's Process tree + Quick reference) — the set of skills you may route to.
 - **The task in the prompt** — classify it to a stage.
 
@@ -34,9 +38,10 @@ This skill is the entry point, so it does not refuse-to-run; its one hard rule i
 
 ## Process
 
-This skill runs first. Identify the stage from `STATE.md`'s `gate` column (or, if no STATE.md
-exists yet, run `project-setup`), then route the task to the stage skill below. The Core Operating Behaviors
-(further down) apply at all times, regardless of which skill is active.
+This skill runs first. Read `docs/session-state.md` — both zones — before you route, so the questions
+this project has already settled are in hand. Then identify the stage from `STATE.md`'s `gate` column
+(or, if no STATE.md exists yet, run `project-setup`) and route the task to the stage skill below. The
+Core Operating Behaviors (further down) apply at all times, regardless of which skill is active.
 
 ```
 Task arrives
@@ -202,7 +207,7 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Stage | Skill | One-line summary |
 |-------|-------|------------------|
 | Cross-cut | using-agent-skills | this meta-dispatcher: task → skill + lifecycle map |
-| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr, docs/features, docs/workflow.md, the `## Agent skills` block) |
+| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, the `## Agent skills` block) |
 | Cross-cut | orchestrator | wave-parallel DAG executor; platform-adaptive; runs to open draft PRs, never waits |
 | Cross-cut | preflight-readiness | env-readiness gate; blocks the wave until provisioned |
 | Cross-cut | handoff | per-session compaction to a fresh-agent doc |
@@ -275,6 +280,8 @@ These are the subtle errors that look like productivity but create problems:
 ## Verification (ending criteria)
 
 Dispatch is complete when ALL hold:
+- `docs/session-state.md` was read before you routed — both the five fields and `## Log` — where the repo
+  has one, and no question the log already answers was re-opened.
 - You named the applicable skill(s) AND its stage (Ideate/Spec/Plan/Implement/Verify/Review/Ship/cross-cut).
 - You confirmed the skill's consuming artifact exists (per its `Inputs`); if it is missing, you routed
   upstream to the skill that emits it rather than running the downstream skill against a gap.
