@@ -1,6 +1,6 @@
 ---
 name: spec-grilling
-description: Use BEFORE writing any PRD or design doc — whenever the user wants to design a feature from an idea or intent.md, stress-test a design, pin down domain terminology, surface design decisions the user hasn't considered, or record an architectural decision. Interview relentlessly, ONE question at a time, with a recommended answer each. Emits ADRs + CONTEXT.md; never a PRD.
+description: Use BEFORE writing any PRD or design doc — whenever the user wants to design a feature from an idea or intent.md, stress-test a design, pin down domain terminology, surface design decisions the user hasn't considered, or record an architectural decision. Runs after codebase-research's goal-blind survey and refuses without research.md, so the design is decided against the codebase as it is rather than against recollection. Interview relentlessly, ONE question at a time, with a recommended answer each. Emits ADRs + CONTEXT.md; never a PRD.
 ---
 
 ## Purpose
@@ -20,7 +20,9 @@ this design," "stress-test this plan before we build," "pin down the domain mode
 before building X."
 
 Skip (escape hatches):
-- A pure refactor with no new domain concept and no cross-cutting decision → go straight to `plan-breakdown`.
+- A pure refactor with no new domain concept and no cross-cutting decision → go straight to
+  `plan-breakdown` (it still needs `research.md`, so the survey runs either way — only the grilling is
+  skipped).
 - A trivial change touching one existing term and zero trade-offs → there is nothing to record; do not
   manufacture an ADR.
 - Mid-implementation framework lookups → that's `source-driven-development`, not this.
@@ -30,7 +32,17 @@ a single CONTEXT.md term may be the whole session. Don't pad.
 
 ## Inputs
 
-Refuse to run only if BOTH are absent:
+**REQUIRED — `docs/features/<slug>/research.md`**, the goal-blind survey `codebase-research` produces at
+the head of Spec. **Refuse to run without it**, and name what is missing rather than improvising:
+> No `docs/features/<slug>/research.md` — run `codebase-research` first. I will not decide the design
+> against recollection.
+
+The blind-spot pass in step 1 scans territory; a survey is what makes that territory visible. Deciding
+first and surveying afterwards produces ADRs written against whatever the grilling agent happened to open,
+and an ADR is the hardest artifact in the chain to revise (ADR-028). Read its `## Codebase map` and
+`## Open items for Plan` before your first question.
+
+**REQUIRED — the intent.** Refuse to run only if BOTH are absent:
 - **`intent.md`** (preferred) under `docs/features/<slug>/`, from `interview-me`. Stable sections you rely on:
   **Outcome · User · Why · Success · Constraints · Out-of-scope ("Not Doing")**. Read it first — the design
   must serve that intent.
@@ -42,17 +54,21 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
 
 ## Process
 
-1. **Read the intent, then walk the design tree.** Identify the open design decisions and order them by
-   dependency — resolve the decision others hang off *first*. Don't surface a downstream choice before its
-   prerequisite is settled.
+1. **Read the intent and the survey, then walk the design tree.** Identify the open design decisions and
+   order them by dependency — resolve the decision others hang off *first*. Don't surface a downstream
+   choice before its prerequisite is settled.
 
    Then **grow the tree with a blind-spot pass**: the tree so far holds only decisions already on the
-   user's map. Scan the territory — the modules the feature touches, existing `docs/adr/`, prior art, the
-   domain — for decision points the intent never mentions, and present a 3–5 item blind-spot brief; add the
-   real ones to the tree. (Step 3 answers questions already *in* the tree from the code; this finds the
-   questions that aren't.) Ask up front which parts of the domain the user knows cold and which they know
-   nothing about, and calibrate by that disclosure: skip the pass on familiar ground; run it in full on
-   unfamiliar ground. Technique details: `../../references/finding-unknowns.md`.
+   user's map. Read `research.md`'s `## Codebase map` and `## Open items for Plan` — the blind spots are
+   the decision points the survey surfaced that the intent never mentions: an invariant this feature would
+   break, prior art that already settles a question you were about to ask, an open item somebody has to
+   decide. Read existing `docs/adr/` and the domain alongside it, present a 3–5 item blind-spot brief, and
+   add the real ones to the tree. (Step 3 answers questions already *in* the tree from the code; this
+   finds the questions that aren't — which is why it reads a survey rather than your recollection. You
+   cannot recall a decision point you never knew existed.) Ask up front which parts of the domain the user
+   knows cold and which they know nothing about, and calibrate by that disclosure: skip the pass on
+   familiar ground; run it in full on unfamiliar ground. Technique details:
+   `../../references/finding-unknowns.md`.
 
 2. **Interview relentlessly, ONE question at a time.** Ask exactly one question, give **your recommended
    answer**, and wait for the response before the next. Asking several at once is bewildering and yields
@@ -64,7 +80,8 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
    round. A question whose every answer leads to the same design was never a question.
 
 3. **If a question is answerable from the codebase, go read it** instead of asking. Don't make the user
-   recite what the code already says.
+   recite what the code already says. Check `research.md` first — it was surveyed for exactly this — and
+   open the code directly only for what the survey does not cover.
 
 4. **Sharpen the domain model as you go** (the *active* discipline — you are changing the model, not just
    reading it):
@@ -122,6 +139,9 @@ narrative; default OFF.
 - "Let me sketch the file structure / signatures while I'm here." → Wrong altitude. That's the plan's job.
 - "The user approved every decision as we went, so we're aligned." → Approving one decision at a time is
   not holding the whole design. The closing quiz checks the assembled model, cheaply.
+- "I know this codebase well enough to start grilling; I'll read the code as questions come up." → Reading
+  as questions come up only answers questions you already have. The survey exists to hand you the ones you
+  don't, before an ADR freezes the answer. Run `codebase-research` and come back.
 
 ## Red flags — stop if you catch yourself
 
@@ -130,6 +150,9 @@ narrative; default OFF.
 - Putting implementation detail into `CONTEXT.md`.
 - Creating an ADR that fails any one of the three conditions.
 - Answering a codebase-knowable question from assumption instead of reading the code.
+- Opening the decision tree — or writing a single ADR — with no `research.md` in hand.
+- Running the blind-spot pass off memory of the codebase instead of off the survey's `## Codebase map` and
+  `## Open items for Plan`.
 - Interviewing only the decisions the intent already lists — no blind-spot pass on unfamiliar ground.
 - Ending a novel or high-stakes session without the closing quiz.
 - Editing or contradicting an accepted ADR without an explicit supersede link.
@@ -137,6 +160,7 @@ narrative; default OFF.
 ## Verification (ending criteria)
 
 Done when:
+- `research.md` was read before the first question, and the blind-spot brief drew on it.
 - Every open design decision in the tree is resolved with the user, dependencies first.
 - Every fuzzy/conflicting term is now a single canonical entry in `CONTEXT.md` (or consciously left out as a
   general concept).
