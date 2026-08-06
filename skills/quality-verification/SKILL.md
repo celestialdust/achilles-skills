@@ -239,7 +239,7 @@ signed BDD contract binds to the running app.
   - `## Behavioral ledger` — table keyed by scenario id:
     `id · realizes(story) · class · status{exercised-pass|exercised-fail|not-reachable} · evidence`.
   - `## Design gate` — opens with `design ref: <path|—>` as delivered in the dispatch brief. On `—`:
-    `N/A — Design ref: —` and nothing further (the slice builds no UI; this is the recorded fact, not a
+    `N/A (Design ref: —)` and nothing further (the slice builds no UI; this is the recorded fact, not a
     verdict you formed). On a path: `prototype-fidelity: pass|fail` (graded against the committed
     reference-spec mockup named in the contract's `## Prototype` section); per-axis rubric verdict; objective
     subset `responsive · visible-focus · reduced-motion` each `pass|fail`.

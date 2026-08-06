@@ -1,7 +1,8 @@
 # Using achilles-skills with Windsurf
 
-`achilles-skills` is a self-contained suite of 36 engineering skills, 5 reusable agent personas, and 9
-slash commands that automate the loop **Ideate → Spec → Plan → Implement → Verify → Review → Ship**. The
+`achilles-skills` is a self-contained suite of 38 engineering skills, 5 reusable agent personas, and 11
+slash commands — 9 lifecycle commands that automate the loop **Ideate → Spec → Plan → Implement → Verify
+→ Review → Ship**, plus 2 standalone (`/explain`, `/quiz`). The
 human owns Ideate + Spec + Plan; the agent then runs Implement → Ship.
 
 Windsurf has no plugin marketplace, so you don't "install" the suite the way Claude Code does. Instead you
@@ -10,7 +11,7 @@ wire the skills into Windsurf's three native mechanisms:
 | achilles-skills concept | Windsurf mechanism |
 |---|---|
 | `skills/<name>/SKILL.md` | **Rules** — `.windsurf/rules/*.md` (or legacy `.windsurfrules`) |
-| `commands/*.md` (the 9 slash commands) | **Workflows** — `.windsurf/workflows/*.md`, invoked with `/<name>` in Cascade |
+| `commands/*.md` (the 11 slash commands) | **Workflows** — `.windsurf/workflows/*.md`, invoked with `/<name>` in Cascade |
 | `agents/*.md` (the 5 personas) | **Manual rules** — a code-cold rule you toggle on for a review pass |
 | `references/*.md` (checklists) | Pasted into Cascade chat as a verification checklist |
 
@@ -84,10 +85,10 @@ For skills you want across **every** project, add them to Windsurf's global rule
 > project + global budget). Keep each rule focused on one skill and lean on `manual` / `glob` activation so
 > you only pay for what the current task needs.
 
-## Workflows ↔ the 9 commands
+## Workflows ↔ the 11 commands
 
 Windsurf **Workflows** are markdown files in `.windsurf/workflows/`, invoked as `/<name>` inside Cascade —
-the closest analog to achilles-skills' slash commands. Recreate the 9 commands as workflows that tell
+the closest analog to achilles-skills' slash commands. Recreate the 11 commands as workflows that tell
 Cascade which underlying skill(s) to apply:
 
 | Workflow (`/name`) | achilles-skills command | Underlying skills to reference |
@@ -101,6 +102,8 @@ Cascade which underlying skill(s) to apply:
 | `/ship` | /ship | shipping-and-launch (+ pull-request) |
 | `/orchestrate` | /orchestrate | orchestrator (wave-parallel DAG runner to open PRs) |
 | `/setup` | /setup | project-setup |
+| `/explain` | /explain | literate-explainer (**standalone** — no lifecycle stage) |
+| `/quiz` | /quiz | comprehension-quiz (**standalone** — no lifecycle stage) |
 
 Example — `.windsurf/workflows/review.md`:
 
@@ -139,11 +142,13 @@ rule you toggle on for a dedicated review pass, then toggle off:
 To run a code-cold pass, open a **new** Cascade conversation (so it has no memory of the implementation),
 add the persona file as a manual rule, and paste only the diff.
 
-## The full skill roster (36)
+## The full skill roster (38)
 
-Pick the skills that match your current phase rather than loading all 36 at once.
+Pick the skills that match your current phase rather than loading all 38 at once.
 
 **Cross-cutting / setup** — using-agent-skills · project-setup · orchestrator · preflight-readiness · handoff
+
+**Standalone (no lifecycle stage)** — literate-explainer (`/explain`) · comprehension-quiz (`/quiz`)
 
 **Ideate (human-led)** — interview-me · idea-refine
 
@@ -166,7 +171,7 @@ Windsurf's context is limited, so start narrow:
 1. **Always-on (1–2 skills):** `using-agent-skills` (the task → skill dispatcher) and `git-workflow`.
 2. **Glob-activated:** `test-driven-development` on `**/*.test.*`, `frontend-design` on `**/*.tsx`.
 3. **Manual:** the 5 personas, plus heavyweight Review/Ship skills you only need at gates.
-4. Recreate the 9 commands as `/workflows` so the lifecycle is one keystroke away in Cascade.
+4. Recreate the 11 commands as `/workflows` so the lifecycle is one keystroke away in Cascade.
 
 ## Usage tips
 

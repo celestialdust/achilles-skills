@@ -8,8 +8,8 @@ suite that automates the development loop **Ideate → Spec → Plan → Impleme
 Before writing any plan, spec, or code — and at the start of every session — invoke the
 [using-agent-skills](./skills/using-agent-skills/SKILL.md) skill. It is the meta-dispatcher: it maps the
 task to the right stage skill and keeps the artifact chain
-(`intent.md → prd.md → plan.md → … → qa.md`) intact. Acting without consulting it is how the wrong skill
-runs and a stage gets skipped.
+(`intent.md → research.md → prd.md → plan.md → … → qa.md`) intact. Acting without consulting it is how
+the wrong skill runs and a stage gets skipped.
 
 ## Project Structure
 

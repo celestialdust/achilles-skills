@@ -1,7 +1,8 @@
 # Using achilles-skills with GitHub Copilot
 
-achilles-skills is a plugin of 36 engineering skills, 5 reusable agent personas, and 9 lifecycle
-commands that drive a product from **Ideate → Spec → Plan → Implement → Verify → Review → Ship**. The
+achilles-skills is a plugin of 38 engineering skills, 5 reusable agent personas, and 11 commands —
+9 lifecycle commands that drive a product from **Ideate → Spec → Plan → Implement → Verify → Review →
+Ship**, plus 2 standalone (`/explain`, `/quiz`). The
 primary distribution target is Claude Code (`/plugin marketplace add celestialdust/achilles-skills`), but
 GitHub Copilot can consume the same `skills/` and `agents/` directories directly.
 
@@ -25,7 +26,7 @@ your repository. Each skill is a `SKILL.md` inside its own directory.
 ```bash
 mkdir -p .github/skills
 
-# Option A — install the full 36-skill roster
+# Option A — install the full 38-skill roster
 cp -R achilles-skills/skills/* .github/skills/
 
 # Option B — cherry-pick the essentials
@@ -36,7 +37,7 @@ cp achilles-skills/skills/code-review/SKILL.md             .github/skills/code-r
 
 For more details, refer to [Creating agent skills for GitHub Copilot](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-skills).
 
-#### The 36-skill roster (new names)
+#### The 38-skill roster (new names)
 
 The suite is organized by lifecycle stage. Each name below is a directory under `skills/`:
 
@@ -46,6 +47,8 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 - `orchestrator` — default wave-parallel DAG executor; autonomous to open PRs
 - `preflight-readiness` — env-readiness gate; blocks the wave until provisioned
 - `handoff` — per-session compaction to a fresh-agent doc
+- `literate-explainer` — standalone: explain code or a system in prose (`/explain`)
+- `comprehension-quiz` — standalone: check comprehension of a change or codebase area (`/quiz`)
 
 **Ideate**
 - `interview-me` — brainstorm + frame an idea → intent.md
@@ -178,7 +181,8 @@ mirrors the achilles-skills lifecycle (Ideate → Spec → Plan → Implement �
 
 ### Lifecycle Commands
 
-In Claude Code, achilles-skills exposes 9 slash commands (`commands/*.md`) that wrap the skills above.
+In Claude Code, achilles-skills exposes 11 slash commands (`commands/*.md`) that wrap the skills above —
+9 lifecycle commands plus 2 standalone (`/explain`, `/quiz`).
 Copilot does not load these slash commands, so reach for the underlying skill or persona instead. The
 mapping is the same:
 
@@ -193,6 +197,8 @@ mapping is the same:
 | /ship | shipping-and-launch (+ pull-request) | paste skill content for the release pass |
 | /orchestrate | orchestrator | the autonomous wave-parallel DAG runner (Claude Code primary) |
 | /setup | project-setup | paste skill content for the one-time repo bootstrap |
+| /explain | literate-explainer | paste skill content to explain code or a system (**standalone**) |
+| /quiz | comprehension-quiz | paste skill content to check comprehension (**standalone**) |
 
 ## Usage Tips
 

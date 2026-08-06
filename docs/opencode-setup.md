@@ -38,7 +38,7 @@ git clone https://github.com/celestialdust/achilles-skills.git
 3. Ensure the following are present in your workspace:
 
 - `AGENTS.md` (root)
-- `skills/` directory (36 skills)
+- `skills/` directory (38 skills)
 - `agents/` directory (5 personas) — optional, used for code-cold review subagents
 
 No additional installation is required.
@@ -49,7 +49,7 @@ No additional installation is required.
 
 ### 1. Skill Discovery
 
-All 36 skills live in:
+All 38 skills live in:
 
 ```
 skills/<skill-name>/SKILL.md
@@ -78,7 +78,7 @@ The user does **not** need to explicitly request skills.
 
 ### 3. Lifecycle Mapping (Implicit Commands)
 
-OpenCode does not require slash commands like `/spec` or `/plan`. The same lifecycle that the 9 commands in `commands/` encode is followed implicitly. The human owns Ideate, Spec, and Plan; the agent runs Implement → Ship autonomously, terminating at risk-banded **open draft PRs** for async human merge (never auto-merging to main).
+OpenCode does not require slash commands like `/spec` or `/plan`. The same lifecycle that the 9 lifecycle commands in `commands/` encode is followed implicitly (the suite ships 11 commands in total; `/explain` and `/quiz` are standalone and belong to no stage). The human owns Ideate, Spec, and Plan; the agent runs Implement → Ship autonomously, terminating at risk-banded **open draft PRs** for async human merge (never auto-merging to main).
 
 | Stage | Command equivalent | Skills the agent invokes |
 |---|---|---|
@@ -95,7 +95,12 @@ Two cross-cutting commands round out the set:
 - `/orchestrate` → `orchestrator` — the autonomous wave-parallel DAG runner that drives every slice Implement → Ship to open draft PRs. Its readiness gate is `preflight-readiness`; per-session compaction is `handoff`.
 - `/setup` → `project-setup` — one-time repo ecosystem bootstrap (`STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`).
 
-In OpenCode, treat these as internal lifecycle phases the agent moves through, not buttons the user presses.
+Two further commands are **standalone** — they belong to no stage and can run at any time without advancing one:
+
+- `/explain` → `literate-explainer` — explain a piece of code or a system in prose.
+- `/quiz` → `comprehension-quiz` — check comprehension of a change or a codebase area.
+
+In OpenCode, treat the lifecycle entries above as internal phases the agent moves through, not buttons the user presses.
 
 ### 4. Personas (Code-Cold Review Subagents)
 
@@ -174,7 +179,7 @@ These rules are enforced via `AGENTS.md`.
 
 ## Limitations
 
-- No native slash commands (handled via intent mapping instead — the 9 commands map to lifecycle phases)
+- No native slash commands (handled via intent mapping instead — the 9 lifecycle commands map to lifecycle phases)
 - No plugin system (handled via prompt + repository structure)
 - Skill invocation depends on model compliance
 
@@ -202,7 +207,7 @@ The agent will automatically select and execute the correct skills, walking the 
 
 OpenCode integration works by combining:
 
-- Structured skills (this repo — 36 skills in `skills/`)
+- Structured skills (this repo — 38 skills in `skills/`)
 - Reusable code-cold personas (`agents/` — 5 review roles)
 - Strong agent rules (`AGENTS.md`)
 - Automatic skill invocation via reasoning

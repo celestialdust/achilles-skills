@@ -46,11 +46,12 @@ Refuse to run (CRISPY refuse-to-run) unless ALL are present:
 - **`acceptance.md` (status: signed)** — the frozen behavioral oracle. The orchestrator
   FREEZES `acceptance.md` + the RED tests + each slice's `Regression surface` for that
   slice's retry loop; it never edits them.
-- **The design contract each slice's `Design ref` names, `status: signed`** — for every slice whose
-  `Design ref` is not `—`. Read at dispatch, before that slice's implementer runs: absent or
-  `status: draft` halts **that slice** with a reason naming the contract (see *Design-ref gate at
-  dispatch*). This is per-slice, so it is not a whole-run refuse-to-run — the rest of the wave
-  dispatches normally.
+
+One more input is required per slice rather than per run, so it gates a slice instead of the run:
+**the design contract each slice's `Design ref` names, at `status: signed`**, for every slice whose
+`Design ref` is not `—`. It is read at dispatch, before that slice's implementer runs; absent or
+`status: draft` halts **that slice**, with the halt reason naming the contract by path, while the rest
+of the wave dispatches normally. Fully specified in *Design-ref gate at dispatch* below.
 
 Bulk artifacts move as **files**, never pasted into a dispatch prompt (subagent-driven-
 development §File Handoffs): a slice dispatch carries the slice brief path + its frozen

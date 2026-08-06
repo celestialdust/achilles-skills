@@ -1,8 +1,8 @@
 # Using achilles-skills with Gemini CLI
 
-achilles-skills ships **36 lifecycle skills**, **5 reusable agent personas** (`agents/`), and **9 slash
-commands** (`commands/`) covering the full **Ideate → Spec → Plan → Implement → Verify → Review → Ship**
-loop. This guide explains how to wire them into Gemini CLI.
+achilles-skills ships **38 skills**, **5 reusable agent personas** (`agents/`), and **11 slash
+commands** (`commands/`) — 9 lifecycle commands covering the full **Ideate → Spec → Plan → Implement →
+Verify → Review → Ship** loop, plus 2 standalone (`/explain`, `/quiz`). This guide explains how to wire them into Gemini CLI.
 
 ## Setup
 
@@ -123,7 +123,8 @@ This is useful when you want to ensure a specific workflow is followed without w
 
 ## Slash Commands
 
-The repo ships **9 lifecycle slash commands** under `commands/` as Markdown definitions (Claude Code's native
+The repo ships **11 slash commands** under `commands/` — 9 lifecycle plus 2 standalone (`/explain`,
+`/quiz`) — as Markdown definitions (Claude Code's native
 format). Gemini CLI uses its own **TOML** command format under `.gemini/commands/`, so wrap each command's
 body in a Gemini TOML file — Gemini's `prompt` is the achilles command file's Markdown body (everything below
 its frontmatter):
@@ -148,6 +149,8 @@ required.
 | `/ship` | shipping-and-launch (+ pull-request) | Release: checklist · staged rollout · rollback |
 | `/orchestrate` | orchestrator | Autonomous wave-parallel DAG runner to open draft PRs |
 | `/setup` | project-setup | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` |
+| `/explain` | literate-explainer | **Standalone** — explain code or a system in prose |
+| `/quiz` | comprehension-quiz | **Standalone** — check comprehension of a change or codebase area |
 
 > **Note on `/plan`:** Gemini CLI reserves `plan` for an internal command, so the bundled `/plan` may not be
 > reachable from the prompt. If it collides, rename the copied file (e.g. `.gemini/commands/planning.toml`)

@@ -62,7 +62,7 @@ cat /path/to/achilles-skills/skills/code-review/SKILL.md >> .cursorrules
 `.cursorrules` is the legacy single-file format; prefer Option 1 for anything beyond two or three skills so
 you can load and unload disciplines independently and stay under Cursor's context limits.
 
-## The skill roster (36 skills)
+## The skill roster (38 skills)
 
 Use the **NEW** descriptive names below when copying rule files — the directory name under `skills/` matches
 the name in these tables.
@@ -76,6 +76,8 @@ the name in these tables.
 | `orchestrator` | default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | `preflight-readiness` | env-readiness gate; blocks the wave until provisioned |
 | `handoff` | per-session compaction to a fresh-agent doc |
+| `literate-explainer` | standalone: explain code or a system in prose (`/explain`) |
+| `comprehension-quiz` | standalone: check comprehension of a change or codebase area (`/quiz`) |
 
 **Ideate (human-led)**
 
@@ -170,7 +172,8 @@ For example, when working on performance, copy `performance-optimization/SKILL.m
 
 ## Lifecycle commands in Cursor
 
-The suite ships nine slash commands as `commands/*.md` — these are entry points for agents (like Claude
+The suite ships eleven slash commands as `commands/*.md` — nine lifecycle plus two standalone (`/explain`,
+`/quiz`) — these are entry points for agents (like Claude
 Code) that execute Markdown slash commands natively. **Cursor has no native slash-command runner**, so reproduce a
 command by loading the rule files it bundles and asking Cursor to run that stage:
 
@@ -185,6 +188,8 @@ command by loading the rule files it bundles and asking Cursor to run that stage
 | `/ship` | `shipping-and-launch` (+ `pull-request`) | release: checklist · staged rollout · rollback |
 | `/orchestrate` | `orchestrator` | run the autonomous wave-parallel DAG to open PRs |
 | `/setup` | `project-setup` | scaffold the one-time repo ecosystem |
+| `/explain` | `literate-explainer` | explain code or a system in prose (**standalone**, no stage) |
+| `/quiz` | `comprehension-quiz` | check comprehension of a change or codebase area (**standalone**, no stage) |
 
 The `commands/*.md` files are short — open the one you want and copy its prompt text into Cursor verbatim
 to drive the stage exactly as the command would.

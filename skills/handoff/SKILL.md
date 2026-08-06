@@ -13,7 +13,7 @@ that conversation into a **cold-start document a fresh agent resumes from with z
 context**.
 
 It is the **per-session** half of the two-layer handoff. The other half — the
-per-stage artifact chain (`intent.md → prd.md → … → qa.md`) and `STATE.md` — carries *structural*
+per-stage artifact chain (`intent.md → research.md → prd.md → … → qa.md`) and `STATE.md` — carries *structural*
 state turn-to-turn. This skill carries the *session's working state*: the decision just made, the
 half-finished thought, the single next move that those durable artifacts do not yet hold. Written
 in the **N14 5-field schema** so it pairs with (and can BE) `docs/session-state.md`.

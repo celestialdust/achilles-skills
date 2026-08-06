@@ -28,7 +28,7 @@ Install from the marketplace:
 /plugin install achilles-skills@achilles-skills
 ```
 
-This registers all 36 skills, the 5 review personas in `agents/`, and the 9 lifecycle commands in `commands/` from the plugin manifest (`.claude-plugin/plugin.json`).
+This registers all 38 skills, the 5 review personas in `agents/`, and the 11 commands in `commands/` (9 lifecycle + 2 standalone) from the plugin manifest (`.claude-plugin/plugin.json`).
 
 Local / development:
 
@@ -152,7 +152,7 @@ Load an agent definition when you need a specialized, independent review. For ex
 
 ## Using Commands
 
-The `commands/` directory contains nine TOML slash commands for Claude Code. Each is a thin wrapper that activates the right skill(s):
+The `commands/` directory contains eleven Markdown slash commands for Claude Code — nine lifecycle commands plus two standalone (`/explain`, `/quiz`). Each is a thin wrapper that activates the right skill(s):
 
 | Command | Skills invoked |
 |---------|----------------|
@@ -165,6 +165,8 @@ The `commands/` directory contains nine TOML slash commands for Claude Code. Eac
 | `/ship` | shipping-and-launch (+ pull-request) |
 | `/orchestrate` | orchestrator — the autonomous wave-parallel DAG runner to open PRs |
 | `/setup` | project-setup — one-time repo ecosystem |
+| `/explain` | literate-explainer — **standalone**, not a lifecycle stage |
+| `/quiz` | comprehension-quiz — **standalone**, not a lifecycle stage |
 
 Skills also activate based on what you're doing — designing an API pulls in `api-design`, building UI pulls in `frontend-design`, and so on.
 
