@@ -45,7 +45,8 @@ Refuse to run (CRISPY refuse-to-run) unless ALL are present:
   file-ownership on a slice that shares a wave → refuse (the disjoint-file guard cannot run blind).
 - **`acceptance.md` (status: signed)** — the frozen behavioral oracle. The orchestrator
   FREEZES `acceptance.md` + the RED tests + each slice's `Regression surface` for that
-  slice's retry loop; it never edits them.
+  slice's retry loop; it never edits them. Editing any of the three is a **loosening**: one rule,
+  *Changing what judges the work*, governs this and every other prohibition below.
 
 One more input is required per slice rather than per run, so it gates a slice instead of the run:
 **the design contract each slice's `Design ref` names, at `status: signed`**, for every slice whose
@@ -66,8 +67,11 @@ contract paths, not the session history.
 2. **Build the DAG.** Parse every slice's `Blocked by` into edges; topologically sort into
    **waves** (each wave = one topological level). Verify no cycles — a cycle blocks the run;
    surface it and stop (the human must reorder dependencies).
-3. **Select the ready wave.** A slice is ready when every blocker is `done`. Apply the
-   **disjoint-file guard** (below) to the ready set before dispatching.
+3. **Select the ready wave, then order it.** A slice is ready when every blocker is `done`. Apply
+   the **disjoint-file guard** (below) to the ready set, then put what survives into the order
+   *Dispatch order* (below) defines — deepest downstream chain first, transitive dependent count as
+   the second key, `plan.md` order last. Selection decides *which* slices run; the order decides *which one starts first*,
+   and that is what sets the run's wall clock the moment the guard splits the wave into sub-waves.
 4. **Provision isolation, then run the design-ref gate.** Each ready slice gets its own clean
    worktree (the `worktree` mechanism this skill owns). Platform-adaptive (below). While assembling
    the brief, read the slice row's **`Design ref`** — it travels with the slice from here on. If it
@@ -89,10 +93,13 @@ contract paths, not the session history.
 6. **Verify barrier.** Wait for every ready slice to reach `verify` green **or** a terminal state
    (a slice that halts at Verify never enters the review). This barrier is what lets the next step
    review the wave as one changeset instead of N.
-7. **Aggregate Review over the whole wave.** Run the four axes (`code-review` +
-   `code-simplification` + `security-and-hardening` + `performance-optimization`) as fresh code-cold
+7. **Aggregate Review over the whole wave.** Run the four floor axes (`code-review` +
+   `code-simplification` + `security-and-hardening` + `performance-optimization`) — plus any reviewer
+   the trigger table below adds — as fresh code-cold
    subagents (one axis each, in parallel), **once over the union of the verify-green slices' diffs**
-   — 4 subagents per wave, not 4 × N. This is the token-cost win. Attribute every finding to its
+   — **4+k subagents per wave, not 4 × N**, where k is however many reviewers the trigger table added
+   (usually zero). The win is in the *per-wave* denominator, not in the roster: never budget off the
+   literal 4 and drop a triggered reviewer to hit it — that is a loosening. Attribute every finding to its
    **owning slice by file**: the disjoint-file guard guarantees each file belongs to exactly one
    slice, so attribution is unambiguous. A finding routes *only its owning slice* back to
    `incremental-implementation` (bounded retries); after that slice re-passes Verify, **re-review
@@ -127,8 +134,10 @@ stays per-slice and runs inside each slice's worktree. Review asks cross-cutting
 (correctness, simplicity, security, performance) that a reviewer answers better seeing the wave as
 one changeset, and running it once per slice was the run's dominant token cost (4 code-cold
 subagents × N slices). So the loop inserts a **verify barrier**: once every ready slice is
-verify-green (or terminal), the four review axes run **once over the union of those slices' diffs**
-— 4 subagents per wave, not 4 × N.
+verify-green (or terminal), the review axes run **once over the union of those slices' diffs**
+— **4+k per wave, not 4 × N**, where k is the reviewers the trigger table below adds. A wave that
+fires two rows runs six passes once, rather than six per slice; the saving is the denominator, and it
+survives intact however many reviewers the roster holds.
 
 Attribution stays clean because the **disjoint-file guard already holds**: every file in the wave
 belongs to exactly one slice, so every review finding (which cites a file) maps to exactly one
@@ -143,6 +152,35 @@ role-play, and the security circuit-breaker — a CRITICAL/HIGH in the wave-scop
 hard-halts *its owning slice* (never a PR), while a repo-wide committed secret still freezes the
 next barrier for the whole run.
 
+**The four axes are a floor, not a list.** Every wave gets all four. On top of that, check the wave's
+changed paths and diff content against the table below; **every row that matches adds** a code-cold
+reviewer to the fan-out. Nothing in the table can remove one, and a wave matching no row still gets
+all four.
+
+| The fact that fires the row | Adds |
+|---|---|
+| The diff changes a symbol, route, or schema that a file **outside** the wave imports or calls | `api-design` — is this addition rather than modification, and does any existing caller break? |
+| The diff deletes or renames a file, exported symbol, or persisted field, and something outside the diff still names the old one | `deprecation-and-migration` — is there a replacement and a migration path, or are callers stranded? |
+| The diff changes CI, build, or deploy configuration (workflow files, pipeline or container config) | `ci-cd` — the pipeline is itself part of what judges the work; a step removed here is a loosening (see *Changing what judges the work*) |
+| The diff adds an error branch, retry, background job, or outbound call that emits no log, metric, or trace | `observability-and-instrumentation` — a production failure on that path leaves no evidence |
+
+Each row's first column is a **fact about the diff you can check by reading it**: the caller exists or
+it does not; the old name is still referenced or it is not; the new branch logs or it does not. That
+is the point — a row you cannot check is a row that fires on impression, and a router built out of
+impressions is not a router. If the fact cannot be established, the row does not fire and the floor
+four still run.
+
+UI is deliberately absent from the table. Fidelity to the signed design contract and the
+accessibility pass belong to `quality-verification`, which grades a **running** interface; Review
+reads a diff and cannot see one.
+
+**The drop half is deferred, and this is the evidence it waits on.** The symmetric rule — removing an
+axis from a wave that has nothing for it — needs a per-axis finding rate measured over real runs, and
+no such journal exists yet. Until a run journal records, wave by wave, which axis produced findings
+that changed a diff, dropping an axis is a loosening with no measurement behind it and is refused on
+exactly those grounds (*Changing what judges the work*). The deferral ends when that journal holds
+enough waves to compute the rate — not when the fan-out starts to feel expensive.
+
 ## Disjoint-file guard
 
 Same-wave slices parallelize **only if their declared file ownership is disjoint** — never
@@ -151,6 +189,59 @@ parallelism.md mech-e). On overlap: **serialize** them into sub-waves (or merge 
 slice). This is consistent with worktree-level parallelism — same-level slices are
 independent by construction, so serializing an overlap is not a cohesion violation, it is the
 guard doing its job.
+
+## Dispatch order
+
+Among the ready slices, dispatch in this order:
+
+1. **Longest downstream chain first.** For each ready slice, measure the **depth** of the longest
+   chain hanging off it — the number of steps in the longest path of slices that cannot start until
+   it is `done`. Greatest depth starts first. That depth is the slice's critical path.
+2. **Transitive dependent count as the second key.** Equal depth → the slice whose whole transitive
+   dependent set is larger. Among slices that free chains of the same length, the one that frees more
+   work is the better first move.
+3. **`plan.md` order as the last tie-break.** Equal on both keys → whichever slice appears first in
+   `plan.md`.
+
+**Depth, not volume — they come apart on any fan-out-versus-chain graph.** Say `C` is blocked by `A`,
+`D` by `C`, `E` by `D`, `F` by `E` — one chain hanging off `A`. A's transitive dependent set is
+`{C, D, E, F}`: count 4, depth 4. Now say `G`, `H`, `I`, `J`, `K` are each blocked by `B` and nothing
+else — a fan of leaves. B's set is `{G, H, I, J, K}`: count 5, depth 1. Ordering by count starts B
+and parks the four-deep chain behind leaves that could have run at any point; at unit cost the run
+takes 6 steps where 5 was available. Volume tells you how much work a slice unblocks; only depth
+tells you how much of the run is *waiting in line* behind it, and the wall clock is made of the line,
+not the pile.
+
+**Where the rule bites: the sub-waves the disjoint-file guard creates.** When every ready slice
+dispatches at once, order is invisible — they all start together. The moment two ready slices
+declare an overlapping file, the guard serializes them into sub-waves, and something has to choose
+which sub-wave runs first. Unstated, that choice is arbitrary, and an arbitrary choice can park the
+slice ten others are waiting on behind a leaf slice that unblocks nothing.
+
+**Why chain length is the first key.** A run's wall clock is set by its longest dependency chain, so
+starting the slice at the head of that chain is the one scheduling choice that actually shortens the
+run — every step of the chain has to happen in sequence no matter what else is going on, so any delay
+at its head moves the finish line by the same amount. Some ordering rule has to exist here
+regardless; making it the critical-path rule costs nothing and buys the only speed available at this
+layer.
+
+**This outranks the planner's fail-fast ordering, and that is a real trade.** `plan.md` line order is
+not arbitrary: the planner deliberately puts high-risk work early so a bad assumption fails while it
+is still cheap to change. Demoting that to the last tie-break gives some of that up, so it is worth
+saying what is actually lost. Not much, as it happens — every ready slice in the wave runs before the
+barrier releases, so a risky slice is never skipped, only started later, and it still fails inside
+the same wave. What the depth key protects against is different in kind: an arbitrary first pick can
+park the run's entire critical path behind a leaf slice, and that cost lands on every wave after it,
+not just this one. Risk ordering keeps its effect at the tie-break, where it costs nothing.
+
+**Determinism.** All three keys are read off durable state: the chain depths and the dependent counts
+are both computed from the `Blocked by` column, the last tie-break from `plan.md` line order. No
+clock, no randomness, no "whichever brief finished assembling first". The same plan and the same
+`git` state produce the same dispatch order, so a resumed run dispatches identically to the first
+attempt — which is what makes a run reproducible, and a failure inside it reproducible with it.
+
+Speed at this layer comes from ordering and parallelism. It never comes from running fewer checks —
+see *Changing what judges the work*.
 
 ## Design-ref gate at dispatch
 
@@ -184,7 +275,8 @@ Pick the substrate at run start; the DAG, barrier, gates, and guard are identica
 Per slice, AND-combined — SHIP requires all three plus the circuit-breaker floors:
 1. **`quality-verification` / Verify** — behavioral acceptance tests + the design gate.
 2. **Review fan-out (wave-scoped)** — `code-review` + `code-simplification` + `security-and-hardening` +
-   `performance-optimization`, each a fresh code-cold subagent on an independent axis (maker≠checker;
+   `performance-optimization` as the **floor**, plus whatever the trigger table adds, each a fresh
+   code-cold subagent on an independent axis (maker≠checker;
    personas DISSOLVE into skills — no role-play). Runs **once over the whole wave's combined diff**,
    not per slice; each finding is attributed to its owning slice by file. A slice passes this gate
    only when its own attributed findings are clear.
@@ -201,9 +293,11 @@ test, reinterpret acceptance) rather than fix the code (Goodhart; AP1–AP2). De
 mechanical invariants, not a human halt:
 1. **Frozen artifacts under retry** — `acceptance.md` + the RED tests + the declared
    `Regression surface` are immutable during a slice's retry loop. A retry diff that weakens
-   an assertion or narrows the surface = gate-erosion **HALT**.
+   an assertion or narrows the surface = gate-erosion **HALT**. (An instance of *Changing what judges
+   the work*: a loosening, so it needs a measurement and a human — and mid-retry it has neither.)
 2. **Reward-hack tripwire** — failure signature moved only because a test/acceptance was
-   edited while impl is materially unchanged → **HALT**.
+   edited while impl is materially unchanged → **HALT**. (Same rule: the edit loosened the check, so
+   the burden was evidence plus a human, not a passing run.)
 3. **Fail-closed ship + code-cold promotion** — a passing slice's terminal state is a
    **DRAFT PR**. Promotion to ready-to-merge is by a **fresh code-cold verifier with NO
    test-write access** (maker≠checker); a NEW checker each round sees only `acceptance.md`,
@@ -213,6 +307,61 @@ mechanical invariants, not a human halt:
    at the line, qa coverage %, rounds consumed, any test/acceptance touched, surface
    narrowing), surfaced ALONGSIDE the halts — to draw the human's scarce attention to the
    quiet greens where unattended defects actually ship.
+
+## Changing what judges the work
+
+Changes to the checking apparatus are governed by their **direction**, not their size:
+
+| Direction | What it looks like | Rule |
+|---|---|---|
+| **Tightening** | add a reviewer, add a guard, activate a scenario, add a halt category | Proceeds. No measurement needed first. |
+| **Loosening** | drop a reviewer, delete a guard, deactivate a scenario (remove it from the contract), weaken a check | **Refused** until a measurement supporting it exists *and* a human approves it. |
+
+**Deactivating a scenario is not the same act as reporting one `not-reachable`, and only the first is
+a loosening.** Deactivating removes the scenario from the contract: nothing has to prove it, now or
+ever, and no one is told. Reporting `not-reachable` at Verify leaves the scenario in `acceptance.md`,
+unproven, and escalates it to a human through the required PR ack line — the scenario still has to be
+settled, just not by this slice. The test is whether the scenario survives the act. Still in the
+contract with a human named → honest reporting; gone from the contract → a loosening, gated as above.
+Verify's `not-reachable` path is the suite's mandated reporting channel and is never refused, never a
+halt, and never needs a measurement.
+
+**Evidence means a measurement, not an argument.** "This reviewer never finds anything" is an
+argument. "Across the last 20 waves this axis produced zero findings that changed a diff" is a
+measurement. A loosening proposal carrying only reasoning is refused exactly as one carrying nothing.
+
+**The refusal must name which measurement is missing.** Refusing with "needs evidence" gives the
+proposer nothing to act on, so it turns into an argument about whether the evidence is really
+necessary. Refuse with the specific number that would settle it — *"refused: dropping the performance
+axis needs that axis's finding rate over the last 20 waves, and that number does not exist"* — so the
+next move is to go measure, not to argue harder.
+
+**Ambiguous direction defaults to loosening.** Replacing three narrow checks with one broad one,
+merging two reviewers, generalizing a guard: if you cannot tell which way it moves, it is a loosening
+and it needs the measurement and the human.
+
+**Scope: any change, at any time, to anything that judges the work.** Not only a slice's retry loop —
+also a plan-time edit to a `Regression surface`, a change to which reviewers run, and an edit to these
+skill files themselves. A gate weakened at plan time is weakened for every run after it, so the retry
+loop is the *narrowest* place this rule has to hold, not the only one.
+
+**Refusing is not waiting.** Mid-run there is no human to approve anything, so a loosening proposed
+during a run is refused on the spot and its slice halts with the missing measurement in the halt
+reason. The run does not stall, does not check in, and does not park the slice pending an answer —
+every other branch keeps draining, exactly as with any other halt.
+
+**Why the asymmetry, given that it is not fair.** A guard added wrongly costs time, and you find out:
+something fails that should not have. A guard dropped wrongly costs the property the whole system
+exists to provide, and it costs it **silently** — nothing fails, work simply stops being checked, and
+the run looks faster. The cheapest way to run faster is always to check less, so an agent that can
+drop its own reviewers can hit any speed target by judging itself less. Dropping checks is the
+shortest path to "make the run faster", which is why the structure forbids it outright instead of
+trusting the agent to weigh the trade carefully each time. Speed lives in *Dispatch order*, not here.
+
+**What the router may still do alone.** A trigger row that does not fire adds no reviewer — that is
+the router reading the diff, not a skip. A **gate** is never skipped: the four floor axes run on
+every wave even when the diff looks trivial, because "provably nothing to review" is a claim about a
+diff nobody has reviewed yet.
 
 ## Autonomy boundaries
 
@@ -229,30 +378,46 @@ mechanical invariants, not a human halt:
 - **Security** — localized CRITICAL/HIGH or secret-in-diff = hard halt of that slice, no
   retry, never a PR, tops the report; an exposed/committed secret (repo-wide blast radius)
   fires an immediate `PushNotification`, freezes the next barrier, opens no further PRs.
-- **`acceptance.md` is the SOLE human-anchored oracle.** Any "not-reachable" scenario
+- **`acceptance.md` is the SOLE human-anchored oracle.** Any `not-reachable` scenario
   classification during the run → a **required human-ack line in the PR body**, never
-  silently absorbed.
+  silently absorbed. This classification is **not** a loosening and never halts a slice: the
+  scenario stays in the contract, unproven, with a human named to settle it. A slice that depends on
+  an unbuilt sibling, or that cannot reach a given state, is *expected* to report one — that is the
+  honest path, and refusing it would stall most early slices in any DAG. Removing a scenario from the
+  contract is the loosening, and that stays gated (*Changing what judges the work*).
 
 ## Rationalizations
 
 | You catch yourself thinking… | Reality |
 |---|---|
 | "This wave has one ready slice — I'll just run it inline." | A wave of one still gets a worktree, the three gates, and the TERMINAL barrier. Run the loop. |
-| "The test is flaky; I'll relax that assertion so the gate passes." | That is gate-erosion. Frozen artifacts → HALT. Fix the code or escalate. |
+| "The test is flaky; I'll relax that assertion so the gate passes." | That is gate-erosion — a loosening, so it needs a measurement and a human. Frozen artifacts → HALT. Fix the code or escalate. |
 | "I'll dispatch a senior-reviewer persona to gut-check this." | No role-play. Dispatch the real `code-review`/`code-simplification`/`security-and-hardening`/`performance-optimization` skills as fresh code-cold subagents. |
 | "I'll review each slice on its own — that's more thorough." | Review is wave-scoped: one fan-out over the union, findings attributed by file. Per-slice review was the token sink this change removed. |
 | "The review flagged slice C — I'll re-review the whole wave to be safe." | Re-review only the changed slice. Disjoint files mean C's fix can't affect A's or B's already-clean review. |
 | "Both ready slices touch `utils.ts`, but it's a tiny edit — parallel is faster." | Disjoint-file guard: overlap → serialize. Never two writers on one file. |
 | "The design contract is still `draft` — dispatch now, it'll be signed by the time Verify runs." | Verify grades a **built** interface. Dispatching means an unsigned contract gets built against, and a partially built UI reaches review. Halt the slice at dispatch; name the contract. |
 | "The contract is missing, but Verify refuses on that anyway — let it catch it." | That refusal fires *after* the UI exists. The dispatch gate is what prevents the build; Verify's refusal is the backstop for a slice that got past it. |
-| "qa failed twice; `acceptance.md` must be wrong — I'll reinterpret it." | `acceptance.md` is the sole human oracle. Never edit mid-run. Not-reachable → human-ack line + escalate. |
+| "qa failed twice; `acceptance.md` must be wrong — I'll reinterpret it." | `acceptance.md` is the sole human oracle, and reinterpreting it is a loosening. Never edit mid-run. Not-reachable → human-ack line + escalate. |
+| "Verify reported a scenario `not-reachable` — deactivating a scenario is a loosening, so I have to halt this slice." | No. The scenario is still in the contract and a human has been handed it via the PR ack line — nothing stopped being checked, so there is nothing to refuse. Deactivation (removing it from the contract) is the loosening. Record the id, add the ack line, carry on. Halting here would stall nearly every early slice in a DAG, since depending on an unbuilt sibling is the normal case. |
+| "Two sub-waves are ready — I'll start whichever brief finished assembling first." | Dispatch order is deepest downstream chain first, then dependent count, then `plan.md` order. An arbitrary pick can park the critical path behind a leaf slice. |
+| "This slice unblocks five others and that one unblocks four — five wins." | Only if the chains are the same depth. Count is the *second* key. Five leaf dependents is a one-step chain; four dependents in a row is a four-step chain, and the four-step chain is what the wall clock is waiting on. |
+| "This axis has never found anything on this repo — I'll cut it from the fan-out." | Dropping a reviewer is a loosening: measurement plus a human. Name the number you don't have (that axis's finding rate over the last N waves) and go get it. |
+| "The run is too slow — I'll trim the fan-out to two axes." | Fewer checks is not where speed comes from; it is where silent gaps come from. Speed is dispatch order and parallelism. The four axes are a floor. |
+| "Replacing these three narrow checks with one broad one is a simplification, not a weakening." | Ambiguous direction defaults to loosening. Measurement plus a human, or it does not ship. |
+| "This diff only touches the CI workflow — the review fan-out is overkill." | A pipeline edit changes what judges every later run, and removing a step there is a loosening. It also fires a trigger row: `ci-cd` joins the fan-out. |
 | "I should check in before the next wave." | No mid-run halt. The human gets the open PRs at the end. |
 | "This PR is green — I'll merge it to save the human a click." | Never auto-merge to main. Terminal state is an OPEN PR. |
 | "I'll promote my own DRAFT PR to ready — I wrote it, I know it's good." | Promotion needs a fresh code-cold verifier with no test-write access (maker≠checker). |
 
 ## Red flags — STOP
 
-- About to weaken/edit `acceptance.md`, a RED test, or `Regression surface` during a retry → HALT (gate-erosion).
+- About to weaken/edit `acceptance.md`, a RED test, or `Regression surface` during a retry → HALT (gate-erosion; a loosening, and a retry loop has neither the measurement nor the human).
+- About to drop a reviewer, delete a guard, deactivate a scenario (remove it from the contract), or weaken any check — at any time, including at plan time or by editing these skill files → STOP. Refuse, and name the measurement that is missing.
+  - **Not this:** Verify classifying a scenario `not-reachable`. That leaves the scenario in `acceptance.md` and escalates it to a human via the required PR ack line, so nothing stopped being checked. It is the reporting path this suite mandates — record it, add the ack line, keep going. Never a halt, never a refusal, no measurement needed.
+- Treating a merge of several checks into one as a simplification → STOP (ambiguous direction defaults to loosening).
+- Picking which sub-wave dispatches first by feel → STOP (deepest downstream chain, then dependent count, then `plan.md` order).
+- Ordering sub-waves by how many slices a slice unblocks, without checking how deep the chain is → STOP (that is the second key standing in for the first; a fan of leaves outranks a long chain under it, which is backwards).
 - Failure signature moved but impl materially unchanged → reward-hack → HALT.
 - Two write subagents own the same file in one wave → STOP, serialize.
 - About to dispatch a slice whose `Design ref` names a contract that is absent or `status: draft` → STOP, halt that slice at dispatch with the contract path in the reason. Leaving it for Verify means the interface gets built first.
@@ -275,6 +440,13 @@ The run terminates on **exactly one** predicate:
 Runaway guard: **no-progress N=2** (identical failure signature or identical diff twice → early
 halt of that slice). Per shipped slice, the done-predicate is the full SHIP conjunction above,
 AND the slice sits as an OPEN risk-banded PR (a DRAFT promoted by a code-cold verifier).
+
+Also true of every terminated run: **nothing that judges the work got looser during it.** Every wave
+ran all four floor axes plus every reviewer its trigger rows fired; no reviewer, guard, scenario, or
+check was dropped or weakened; any loosening that was proposed was refused with the missing
+measurement named. A scenario Verify reported `not-reachable` was **not** dropped — it is still in
+`acceptance.md` and its ack line is in the PR, which is what "not dropped" means here. And **the dispatch order is reproducible**: replaying the run against the same
+plan and the same `git` state would start the same slice first.
 
 Also true of every terminated run: **no slice entered `impl` without passing the design-ref gate** —
 its `Design ref` was `—`, or the contract that ref names read `status: signed` at the moment the
