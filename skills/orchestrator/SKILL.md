@@ -46,6 +46,11 @@ Refuse to run (CRISPY refuse-to-run) unless ALL are present:
 - **`acceptance.md` (status: signed)** — the frozen behavioral oracle. The orchestrator
   FREEZES `acceptance.md` + the RED tests + each slice's `Regression surface` for that
   slice's retry loop; it never edits them.
+- **The design contract each slice's `Design ref` names, `status: signed`** — for every slice whose
+  `Design ref` is not `—`. Read at dispatch, before that slice's implementer runs: absent or
+  `status: draft` halts **that slice** with a reason naming the contract (see *Design-ref gate at
+  dispatch*). This is per-slice, so it is not a whole-run refuse-to-run — the rest of the wave
+  dispatches normally.
 
 Bulk artifacts move as **files**, never pasted into a dispatch prompt (subagent-driven-
 development §File Handoffs): a slice dispatch carries the slice brief path + its frozen
@@ -62,9 +67,13 @@ contract paths, not the session history.
    surface it and stop (the human must reorder dependencies).
 3. **Select the ready wave.** A slice is ready when every blocker is `done`. Apply the
    **disjoint-file guard** (below) to the ready set before dispatching.
-4. **Provision isolation.** Each ready slice gets its own clean worktree (the `worktree`
-   mechanism this skill owns). Platform-adaptive (below). While assembling the brief, read the
-   slice row's **`Design ref`** — it travels with the slice from here on.
+4. **Provision isolation, then run the design-ref gate.** Each ready slice gets its own clean
+   worktree (the `worktree` mechanism this skill owns). Platform-adaptive (below). While assembling
+   the brief, read the slice row's **`Design ref`** — it travels with the slice from here on. If it
+   is not `—`, open the `design-contract.md` it names and read `status:` **before dispatching
+   anything for that slice** (see *Design-ref gate at dispatch*). Absent or `status: draft` → that
+   slice is **`halted` here**, its halt reason naming the unsigned contract by path; no implementer
+   runs, so no partially built interface exists to reach Verify or Review.
 5. **Run Implement + Verify per slice** for every ready slice — in parallel (one dispatch call
    per slice, all in one response = concurrent execution): `incremental-implementation` (applies
    `test-driven-development`) → `quality-verification` (Verify, fresh code-cold). Verify stays
@@ -142,6 +151,26 @@ slice). This is consistent with worktree-level parallelism — same-level slices
 independent by construction, so serializing an overlap is not a cohesion violation, it is the
 guard doing its job.
 
+## Design-ref gate at dispatch
+
+A slice whose `Design ref` names a contract builds UI, and that contract is the thing Verify grades
+the built UI's fidelity against. So the signature has to exist *before* the UI does. While assembling
+each brief, open the `design-contract.md` the ref names and read its `status:`; a slice whose contract
+is absent or `status: draft` is **halted right there**, and the halt reason names the unsigned contract
+by path — the human needs to know which signature is missing, not merely which slice failed.
+
+Catching this at Verify instead is too late by construction. Verify runs on a **built** interface, so
+by the time a design gate could refuse, an agent has already built a surface against a contract no
+human signed, and the rework is the entire slice. Halting at dispatch is what keeps a partially built
+interface from ever reaching Review. `quality-verification` keeps its own refusal on an unsigned or
+absent contract, but that is the second line of defence for a slice that reached Verify some other
+way — it is not this gate, and it cannot substitute for it.
+
+The gate is **per-slice**: an unsigned contract halts only the slices referencing it (their dependents
+flip to `blocked` transitively, as with any halt), and every other slice in the wave dispatches
+normally. A `Design ref` of `—` has nothing to check — the planner already recorded that this slice
+builds no UI — so it passes the gate untouched and is carried into both briefs verbatim as `—`.
+
 ## Platform adaptivity
 
 The wave model is substrate-agnostic; only the dispatch primitive changes:
@@ -213,6 +242,8 @@ mechanical invariants, not a human halt:
 | "I'll review each slice on its own — that's more thorough." | Review is wave-scoped: one fan-out over the union, findings attributed by file. Per-slice review was the token sink this change removed. |
 | "The review flagged slice C — I'll re-review the whole wave to be safe." | Re-review only the changed slice. Disjoint files mean C's fix can't affect A's or B's already-clean review. |
 | "Both ready slices touch `utils.ts`, but it's a tiny edit — parallel is faster." | Disjoint-file guard: overlap → serialize. Never two writers on one file. |
+| "The design contract is still `draft` — dispatch now, it'll be signed by the time Verify runs." | Verify grades a **built** interface. Dispatching means an unsigned contract gets built against, and a partially built UI reaches review. Halt the slice at dispatch; name the contract. |
+| "The contract is missing, but Verify refuses on that anyway — let it catch it." | That refusal fires *after* the UI exists. The dispatch gate is what prevents the build; Verify's refusal is the backstop for a slice that got past it. |
 | "qa failed twice; `acceptance.md` must be wrong — I'll reinterpret it." | `acceptance.md` is the sole human oracle. Never edit mid-run. Not-reachable → human-ack line + escalate. |
 | "I should check in before the next wave." | No mid-run halt. The human gets the open PRs at the end. |
 | "This PR is green — I'll merge it to save the human a click." | Never auto-merge to main. Terminal state is an OPEN PR. |
@@ -223,6 +254,7 @@ mechanical invariants, not a human halt:
 - About to weaken/edit `acceptance.md`, a RED test, or `Regression surface` during a retry → HALT (gate-erosion).
 - Failure signature moved but impl materially unchanged → reward-hack → HALT.
 - Two write subagents own the same file in one wave → STOP, serialize.
+- About to dispatch a slice whose `Design ref` names a contract that is absent or `status: draft` → STOP, halt that slice at dispatch with the contract path in the reason. Leaving it for Verify means the interface gets built first.
 - Running the Review fan-out per slice instead of once over the wave union → STOP (that's the token sink; review is wave-scoped, findings attributed by file).
 - Re-reviewing the whole wave after a single slice's fix → STOP (re-review only the changed slice; disjoint files bound the blast radius).
 - Advancing the barrier on `success` instead of TERMINAL → STOP.
@@ -243,6 +275,11 @@ Runaway guard: **no-progress N=2** (identical failure signature or identical dif
 halt of that slice). Per shipped slice, the done-predicate is the full SHIP conjunction above,
 AND the slice sits as an OPEN risk-banded PR (a DRAFT promoted by a code-cold verifier).
 
+Also true of every terminated run: **no slice entered `impl` without passing the design-ref gate** —
+its `Design ref` was `—`, or the contract that ref names read `status: signed` at the moment the
+implementer was dispatched. Any slice failing that check is `halted` with the contract named, and
+carries no diff, no worktree changes, and no PR.
+
 ## Outputs & handoff contract
 
 - **Emits → `STATE.md` state transitions** (registry artifact). Stable surface the next reader
@@ -253,7 +290,10 @@ AND the slice sits as an OPEN risk-banded PR (a DRAFT promoted by a code-cold ve
 - **Dispatch briefs** — each slice's brief carries the slice id, its frozen contract paths, and the
   slice row's **`Design ref`** verbatim, to **both** the implementer and the code-cold verifier. `—`
   is emitted as `—`, never dropped; a dropped `—` reads as "unknown" and puts the UI judgement back
-  in the verifier's hands.
+  in the verifier's hands. A brief is only ever assembled for a slice that **passed the design-ref
+  gate**, so every path a brief carries points at a contract that read `status: signed` at dispatch;
+  a slice halted by the gate produces no brief at all, and its STATE row carries the halt reason with
+  the unsigned contract's path.
 - **Progress ledger** updated per terminal slice (`Slice <id>: terminal=<state> (commits
   <base7>..<head7>, PR #<n>)`), so a compacted controller never re-dispatches completed work.
 - **Inverted risk report** appended at run terminal, alongside the halts.

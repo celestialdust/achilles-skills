@@ -23,10 +23,12 @@ slice's STATE `gate: agent → you` and surfaces it. The autonomous run never si
 
 **Use** the moment the `orchestrator` brings a slice to STATE `verify` (after `incremental-implementation`+`test-driven-development` have built it
 in a worktree). Run it for **every** slice — behavioral grading is unconditional. Run the **design gate** in
-addition when the slice touches a UI surface that has a signed `design-contract.md`.
+addition when the dispatch brief's **`Design ref` names a contract path** — that field, not your reading of the
+diff, is what tells you the slice builds UI.
 
-**Skip the design gate (only)** when the slice has **no UI** (a pure API, CLI, pipeline) — there is no design
-contract, so there is no design gate. Behavioral grading still runs.
+**Skip the design gate (only)** when the dispatch brief's **`Design ref` is `—`** — the planner recorded that
+this slice builds no UI, so there is no design contract and no design gate. You are *told* that, you do not
+conclude it: record `design gate: N/A` citing the `—` and move on. Behavioral grading still runs.
 
 **Never skip qa entirely.** This is a discipline gate, not `depth: lite`. There is no "the maker's tests
 passed, trust them" path — trusting the maker's own grading is exactly the failure mode (maker≠checker) this
@@ -39,11 +41,27 @@ Refuse-to-run (fail-safe deny) unless these resolve:
 - **REQUIRED — `docs/features/<slug>/acceptance.md`, `status: signed`** (from `acceptance-criteria`). If it is
   **absent** or **`status: draft`** → **STOP**: there is no oracle to grade against. Send the feature back to
   the Spec sign-off. Do NOT invent scenarios; do NOT grade against the implementer's tests in its place.
-- **REQUIRED for a UI slice — `docs/features/<slug>/design-contract.md`, `status: signed`** (from
+- **REQUIRED — `Design ref`, delivered *in the dispatch brief*** (the `orchestrator` copies it verbatim from
+  the slice row). This is how you learn whether the slice builds UI, and it is the **only** honest way you
+  could: you are code-cold, you did not do the work, and reading "no UI here" off a diff you did not write is
+  a guess wearing a verdict's clothes. Two cases, both told to you rather than inferred:
+  - **`—` → the slice builds no user interface.** The planner recorded that while the whole feature was in
+    view. The design gate does not apply; record it `N/A` and cite the `—`. Behavioral grading still runs.
+  - **A path → the slice builds UI.** It names the signed `design-contract.md` and the committed prototype;
+    those are the design gate's two targets below.
+
+  If the brief carried **no `Design ref` at all**, that is a dispatch defect, not a licence to infer — a blank
+  is not a `—`. Ask for it. (An absent brief field also means the `orchestrator`'s dispatch-time design-ref
+  gate never ran on this slice, so treat the contract checks below as load-bearing rather than a formality.)
+- **REQUIRED for a UI slice** — i.e. one whose `Design ref` names a path — **`docs/features/<slug>/design-contract.md`, `status: signed`** (from
   `frontend-design`). If a UI slice's contract is absent/`draft` → run behavioral grading, but the **design
   gate refuses** and the slice cannot pass clean (record the missing-contract block in `qa.md`). The signed
   contract must carry a **`## Prototype`** section naming the reference-spec mockup — without it the fidelity
-  grade has no target to bind to, and the design gate refuses the same way.
+  grade has no target to bind to, and the design gate refuses the same way. Keep this refusal even though the
+  `orchestrator` now halts such a slice *at dispatch*, before it is built: that dispatch gate is the primary
+  one (it is what stops a partially built interface existing at all), and this is the second line of defence
+  for a slice that reached Verify some other way. A UI slice arriving here with an unsigned contract means the
+  first gate was bypassed — refuse, and say so in `qa.md`.
 - **REQUIRED — a running build of the slice** in its worktree (the orchestrator provides it). If it will not
   start, that is a `verify` failure, not a qa skip — route to `debugging-and-error-recovery`.
 
@@ -55,15 +73,17 @@ behavior against the first, design against the second, and never cross them (no 
 
 Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa.md` and transition STATE.
 
-1. **Go code-cold.** Read only `acceptance.md` and (UI) `design-contract.md` + the running app. Do not read the
-   implementer's notes or rationale. You are checking the work, not co-authoring it.
+1. **Go code-cold.** Read the brief's `Design ref` to learn which case you are in (`—` = no UI, a path = UI),
+   then read only `acceptance.md` and (UI) the `design-contract.md` that ref names + the running app. Do not
+   read the implementer's notes or rationale. You are checking the work, not co-authoring it.
 
 2. **Behavioral grading — exercise every scenario by id** (see *Behavioral grading*). For each scenario the
    slice realizes, drive the running app to its Given/When and observe the Then. Record
    `exercised-pass | exercised-fail | not-reachable` per id with evidence. Run the realized tests `test-driven-development` wrote
    AND independently probe the observable behavior (don't just re-run the maker's suite — confirm the *outcome*).
 
-3. **Design gate — UI only** (see *Design gate*). Grade the built UI against `design-contract.md` from two
+3. **Design gate — when the brief's `Design ref` names a path** (see *Design gate*); a `—` makes this step
+   `N/A` and you record it as such. Grade the built UI against `design-contract.md` from two
    non-overlapping sources: (i) fidelity to the committed prototype, (ii) the seven-axis rubric (its
    responsive/visible-focus/reduced-motion floor is the objective subset you check mechanically).
 
@@ -102,8 +122,9 @@ Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa
 
 ## Design gate (UI only — grades `design-contract.md`, option c)
 
-Run only when the slice has UI and a signed `design-contract.md`. **Two non-overlapping sources** (do not let
-them collapse into one "looks good"):
+Run when the brief's `Design ref` names a contract path — that ref *is* the slice's UI declaration, so you
+never have to decide from the diff whether this section applies (`—` → `N/A`, recorded). **Two
+non-overlapping sources** (do not let them collapse into one "looks good"):
 
 - **(i) Prototype fidelity** — read the contract's **`## Prototype`** section to locate the committed
   **reference-spec mockup** (`docs/features/<slug>/prototype/index.html`), then screenshot-diff the rendered
@@ -166,6 +187,12 @@ the code** (weaken a test, reinterpret a scenario). qa defends mechanically, not
   live **wholly** in the design contract. Grade them in the design gate, not the behavioral ledger.
 - "A passing slice is done." → A passing slice is **`review`**, not `done`. qa is an agent-internal gate; the
   terminal state is a draft PR a separate code-cold checker promotes. Don't skip ahead.
+- "The diff doesn't look like it touches UI, so the design gate must not apply." → You are code-cold; that is
+  precisely the inference you are not positioned to make. The brief's **`Design ref`** is the recorded answer —
+  `—` says no UI, a path says UI. If the brief carried neither, ask for it; don't fill the gap with a guess.
+- "The contract for this UI slice is `draft`, but the run clearly meant to sign it — I'll grade it anyway." →
+  No. The refusal stands regardless of what the dispatch gate did or didn't do upstream. Record the
+  missing-contract block; the slice cannot pass clean.
 
 ## Red flags
 
@@ -175,6 +202,8 @@ Stop if you are about to:
 - **edit `acceptance.md`, a RED test, or `Regression surface`** to make a slice pass → gate-erosion HALT.
 - grade **design against `acceptance.md`** (it has no design content) or against criteria you invented instead
   of `design-contract.md`.
+- decide **whether the slice has UI by reading the diff** instead of the brief's `Design ref` → the ref is the
+  recorded answer; a brief with no ref at all is a dispatch defect to raise, not a blank to fill in.
 - mark an **unreached scenario as `exercised-pass`** → it is `not-reachable`; report it honestly.
 - emit a **generated scenario↔test mapping** or a Cucumber/step-def engine → the ledger is reporting.
 - declare a slice **`done`** from qa → qa advances it to `review`, never `done`.
@@ -190,6 +219,9 @@ Done when ALL hold:
   with evidence; no realized scenario is unaddressed.
 - The three classes (happy + error/edge + security-observable) present in the contract for this slice were
   exercised or honestly marked `not-reachable`.
+- The brief's **`Design ref` is recorded verbatim in `qa.md`**, and the design gate's presence follows from it:
+  a `—` yields `design gate: N/A (Design ref: —)`, a path yields a graded gate. A reader can tell "the slice
+  builds no UI" from "nobody graded the UI" without reopening the diff.
 - (UI) the **design gate** records both sources — prototype-fidelity AND the seven-axis rubric — with the
   objective subset (responsive · visible-focus · reduced-motion) checked mechanically.
 - The **frozen-artifact check passes**: `acceptance.md`, the RED tests, and `Regression surface` are unchanged
@@ -206,15 +238,21 @@ signed BDD contract binds to the running app.
 - **Emits `qa.md`** (registry) at `docs/features/<slug>/qa.md`. Stable sections consumers depend on:
   - `## Behavioral ledger` — table keyed by scenario id:
     `id · realizes(story) · class · status{exercised-pass|exercised-fail|not-reachable} · evidence`.
-  - `## Design gate` (UI only) — `prototype-fidelity: pass|fail` (graded against the committed reference-spec
-    mockup named in the contract's `## Prototype` section); per-axis rubric verdict; objective subset
-    `responsive · visible-focus · reduced-motion` each `pass|fail`.
+  - `## Design gate` — opens with `design ref: <path|—>` as delivered in the dispatch brief. On `—`:
+    `N/A — Design ref: —` and nothing further (the slice builds no UI; this is the recorded fact, not a
+    verdict you formed). On a path: `prototype-fidelity: pass|fail` (graded against the committed
+    reference-spec mockup named in the contract's `## Prototype` section); per-axis rubric verdict; objective
+    subset `responsive · visible-focus · reduced-motion` each `pass|fail`.
   - `## Verdict` — `overall: pass|halted`; `rounds: <n>/3`; `frozen-artifact check: ok|eroded`;
     `not-reachable ids requiring human-ack: <ids|none>`.
   - Frontmatter: `slice · feature · status · rounds`. Change the shape of these sections → update the
     consumers (`pull-request`, the `orchestrator`) in the same commit.
 - **Consumed by:** `pull-request` (anchors the PR + turns every `not-reachable` id into a required human-ack line)
   and the `orchestrator` (reads the binary verdict to advance/halt the slice).
+- **Received from the `orchestrator`'s dispatch brief:** the slice id, its frozen contract paths, and
+  `Design ref`. Dispatch is the only channel that reaches a code-cold verifier — it may not open `plan.md` —
+  so a field missing from the brief is missing, full stop. Change what the brief carries → update the
+  `orchestrator` in the same commit.
 - **STATE.md update:** on `pass`, slice `verify → review`, `gate: agent` (the run continues autonomously to
   the Review fan-out). On `halted`, slice `→ halted`, **`gate: you`** (failure-escalation human gate); add
   `qa.md` to the slice's `Artifacts`. qa never sets a slice `done` and never opens a PR.
