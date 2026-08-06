@@ -184,6 +184,9 @@ The `references/` directory contains supplementary checklists that skills pull i
 | [`observability-checklist.md`](../references/observability-checklist.md) | observability-and-instrumentation |
 | [`orchestration-patterns.md`](../references/orchestration-patterns.md) | orchestrator |
 | [`finding-unknowns.md`](../references/finding-unknowns.md) | interview-me, idea-refine, spec-grilling |
+| [`design-system-format.md`](../references/design-system-format.md) | frontend-design, quality-verification |
+| [`teaching-artifact-format.md`](../references/teaching-artifact-format.md) | literate-explainer |
+| [`comprehension-workspace-format.md`](../references/comprehension-workspace-format.md) | comprehension-quiz |
 
 Load a reference when you need detailed patterns beyond what the skill covers.
 
@@ -193,7 +196,7 @@ The lifecycle commands create working artifacts as the agent moves through the s
 
 | Stage | Artifact(s) | Produced by |
 |-------|-------------|-------------|
-| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, the `## Agent skills` block | project-setup |
+| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other | project-setup |
 | Ideate | `intent.md` | interview-me, idea-refine |
 | Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md` (+ ADRs) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest |
 | Plan | `plan.md` | plan-breakdown (reads Spec's `research.md`) |
@@ -216,16 +219,16 @@ achilles-skills installs into every major coding agent. The mechanism differs pe
 | Antigravity CLI | Native plugin (`agy plugin install`) | `docs/antigravity-setup.md` |
 | Gemini CLI | Native skills (`gemini skills install … --path skills`) or `GEMINI.md` | `docs/gemini-cli-setup.md` |
 | Windsurf | Add skill contents to Windsurf rules | `docs/windsurf-setup.md` |
-| OpenCode | Agent-driven execution via `AGENTS.md` + the `skill` tool | `docs/opencode-setup.md` |
+| OpenCode | Agent-driven execution via the `skill` tool, against the rules in `CLAUDE.md` | `docs/opencode-setup.md` |
 | GitHub Copilot | `agents/` as personas + `.github/copilot-instructions.md` | `docs/copilot-setup.md` |
-| Kiro IDE & CLI | Skills under `.kiro/skills/`; also supports `AGENTS.md` | [kiro.dev/docs/skills](https://kiro.dev/docs/skills/) |
-| Codex / Other | Plain Markdown via system prompt or `AGENTS.md` | this guide |
+| Kiro IDE & CLI | Skills under `.kiro/skills/`; its `AGENTS.md` points at `CLAUDE.md` | [kiro.dev/docs/skills](https://kiro.dev/docs/skills/) |
+| Codex / Other | Plain Markdown via system prompt; rules in `CLAUDE.md` | this guide |
 
 Kiro and the plain-Markdown agents have no setup file in `docs/`, because neither needs one: Kiro's own
 documentation is the guide for Kiro, and for any other Markdown-reading agent this guide plus
-[`AGENTS.md`](../AGENTS.md) is the whole setup.
+[`CLAUDE.md`](../CLAUDE.md) is the whole setup.
 
-Every skill is plain Markdown, so any agent that accepts system prompts or instruction files can run them directly. [`AGENTS.md`](../AGENTS.md) at the repo root is the universal entry point for agents that read it.
+Every skill is plain Markdown, so any agent that accepts system prompts or instruction files can run them directly. [`CLAUDE.md`](../CLAUDE.md) at the repo root holds the rules whatever the agent; [`AGENTS.md`](../AGENTS.md) beside it is a short pointer to that file, so a tool that reads the other filename lands in the same place.
 
 ## Tips
 

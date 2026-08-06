@@ -32,6 +32,10 @@ and take one real aesthetic risk you can justify.
   against). `prd.md` carries no file paths or signatures by contract, so design freely.
 - **`intent.md`** (optional, from `interview-me`) — `Outcome · User · Why` ground the subject. If memory holds
   the human's preferences or prior designs, use them as a hint.
+- **`docs/design.md`** (read it if the repo has one) — the repository's **decided look**, written by the
+  first UI surface built here. Present, it is this surface's starting point and the contract records only
+  what differs from it; absent, this is the first surface and it writes the file (Phase 0.5). Never a
+  refuse-to-run: a repo with no user interface has none.
 - If `prd.md` describes **no UI surface**, emit nothing and hand back "no UI — skip frontend-design."
 
 ## Process: explore throwaway variants → commit ONE prototype + write the contract
@@ -41,6 +45,21 @@ If the brief doesn't pin down what the product/subject is, pin it yourself: name
 audience, and the page's single job, and state your choice. The subject's own world — its materials,
 instruments, artifacts, vernacular — is where distinctive choices come from. Build with the brief's real
 content throughout.
+
+### Phase 0.5 — Inherit the decided look
+Read `docs/design.md` — the repository's **decided look**: palette, type, layout language, motion posture,
+signature vocabulary. Its shape, and the contract's, are in `../../references/design-system-format.md`.
+
+- **It exists** → the look is already decided and it is your starting point. Exploration runs *inside* it:
+  variants differ in structure, information hierarchy, and the signature element — never in palette or
+  type. Re-opening those on surface two is how a repo ends up with three looks that disagree and no way to
+  say which one is right.
+- **It does not exist** → this is the repository's first UI surface. Design it with nothing to inherit
+  (Phases 1–3 as written), then, once the direction is committed in Phase 3, write `docs/design.md` from
+  what was decided. Nothing scaffolds that file; a repo with no user interface simply has none, and that
+  is correct rather than missing.
+
+Either way this surface's contract records only what differs (Phase 4).
 
 ### Phase 1 — Explore with the visual companion (default)
 When "what should this look like" is genuinely open, explore with the **visual companion** — the default
@@ -64,6 +83,29 @@ confidence will delight. **Exploration is scratch you discard** — throwaway sc
 When the target app **already exists** and the design judgment depends on **real in-app data and density**,
 escalate to the in-app `?variant=` switcher (see `references/exploring-variants.md`) so variants butt up
 against the real header/sidebar/data rather than looking fine in a vacuum.
+
+**Design evidence, when the repo already has some.** Some repos carry a **design evidence source** — a
+local, queryable record of design material this project already trusts: a component inventory, a token
+export, a screenshot library, a published style reference. Like the browser engine
+`browser-testing-with-devtools` drives, this is a *capability*, not a product: whichever one the repo has
+configured is the one you use.
+
+**Present means already in front of you** — a server your tool has already connected for this session, or
+a path the dispatch brief names. Reading the tools you already hold is not probing; probing is going out
+to find, install, or ask for one. There is no other way for a source to become available to you here, and
+no step that establishes one.
+
+Where one is present, draw the options you offer from it — candidate palettes, type pairings, component
+precedents already in use — instead of inventing them, and carry the same evidence into the Phase 2 token
+plan. **The brief still decides.** A suggestion that contradicts the brief is not taken, and it is not
+evidence that the brief is wrong.
+
+Where none is present, design the surface exactly as you would if such a thing had never existed. There is
+nothing to check for, nothing to install, nothing to report, and no step here that can fail. Do not record
+its absence in the contract, and do not raise it with the human: a repo that has never had one is the
+ordinary case, not a gap. It is also **not an `environment.md` row** — `environment-manifest` files what
+the run *needs*, and `preflight-readiness` refuses a wave over a missing row. This is something the run
+uses when it happens to be there.
 
 ### Phase 2 — Plan the design (two-pass)
 First, brainstorm a compact **token system** for the chosen direction:
@@ -96,6 +138,14 @@ Record the locked decisions as the **design contract** (see the sections below),
 rubric axes plus the **`## Prototype`** section that names the committed reference-spec mockup and its fidelity
 bar. This is the ONLY home for design floors/rubric/fidelity — none of it goes into `acceptance.md`. The human
 signs it at the Spec gate (`status: signed`).
+
+**In a repo with a decided look, the contract records only the delta.** Each of the seven axes carries
+either `inherits: docs/design.md` or a `delta:` line saying what differs — never both, never neither. An
+inherited axis is **not** restated: a second copy of a decision is a copy that can disagree with the
+first, and a reviewer then has no way to tell which one is stale. `## Prototype` is always filled in full
+(it is per-surface and never inherited). The exact shape is in
+`../../references/design-system-format.md`. Where the repo has no `docs/design.md`, state all seven axes
+here as before — there is nothing to inherit.
 
 ## Design rubric (= the design contract's seven rubric sections AND the Verify grading axes)
 These seven axes are written here in Spec and **re-read by `quality-verification` in Verify**: quality-verification grades the built UI
@@ -142,6 +192,22 @@ The single mockup the human agreed on in the visual companion (Phase 1) is the o
 committed `prototype/index.html`; the companion's throwaway *screens* are discarded. `quality-verification`
 reads this section in Verify to locate the mockup and grade the built UI's fidelity against it.
 
+## The contract's `## Departure` blocks (when a surface moves away from the decided look)
+
+A **delta** fills in something `docs/design.md` leaves to each surface. A **departure** contradicts
+something it already decided. The two are graded differently, so they are written differently: a departure
+gets its own heading in the contract, next to the axis it moves, naming what the decided look says, what
+this surface does instead, and why. The block's shape is in `../../references/design-system-format.md`.
+
+- **The reason is not optional.** Without it nobody can tell a decision from a drift, and
+  `quality-verification` records a departure with no reason as a finding.
+- **Never file a departure as a plain `delta:`.** That presents the move as though the decided look had
+  said this all along — the one thing a departure must not do. A built surface that departs with nothing
+  recorded is a `quality-verification` finding too.
+- **A departure never edits `docs/design.md`.** Moving the whole repository's look is a deliberate act by a
+  surface that means to move it, signed with that surface's contract — not a side effect of one screen
+  needing something else.
+
 ## More on writing in design
 Bring the same intentionality to copy as to spacing and color. Write from the end user's side of the screen:
 name things by what people control and recognize, never by how the system is built (a person manages
@@ -168,6 +234,14 @@ register conversational and tuned — plain verbs, sentence case, no filler. Let
   escalation path, not a committed artifact.)
 - *"Not taking a risk is the safe move."* → Not taking a risk is itself a risk; the client already rejected
   templated proposals.
+- *"The repo has a `docs/design.md`, but this surface deserves its own palette."* → Then it is a
+  **departure**: name what you are moving away from and why, in its own block. A palette changed quietly is
+  not a design decision, it is a repo with two looks and no record of which one won.
+- *"`docs/design.md` already says it, but I'll restate it in the contract so the contract stands alone."* →
+  That is the second copy. Mark the axis `inherits: docs/design.md`; `quality-verification` reads both
+  files and grades the inherited axes from the one that decides them.
+- *"No design evidence source is configured — I should flag that before designing."* → There is nothing to
+  flag. It is optional by construction: design the surface as though such a source had never existed.
 
 ## Red flags
 - Variants that differ only in color or copy (a tweak, not a prototype — real variants disagree about
@@ -181,6 +255,11 @@ register conversational and tuned — plain verbs, sentence case, no filler. Let
 - Two or more competing "signature" elements (boldness not spent in one place).
 - A design contract missing any of the seven stable sections **or the `## Prototype` section**, or with the
   quality-floor trio unaddressed.
+- Re-opening the palette or the type in a repo that already has a `docs/design.md` — that look is decided;
+  variants differ in structure.
+- A contract that restates an axis `docs/design.md` already decides, instead of marking it inherited.
+- A surface that moves away from the decided look with no `## Departure` block, or a block with no reason.
+- Probing for a design evidence source, requiring one, or reporting that none is installed.
 
 ## Verification (ending criteria)
 Done when ALL hold:
@@ -188,12 +267,22 @@ Done when ALL hold:
   `docs/features/<slug>/prototype/index.html` (the throwaway companion *screens* discarded from the gitignored
   `.frontend-design/` working dir; the `?variant=` switcher is the escalation path now, not a committed
   artifact); it runs and meets the quality floor (responsive · visible focus · reduced motion).
-- A **design contract** exists with all seven stable sections filled (`Distinctiveness · Typography ·
+- A **design contract** exists addressing all seven stable sections (`Distinctiveness · Typography ·
   Structure-as-information · Motion · Quality floor · Restraint · Copy-as-design-material`) **plus the
   `## Prototype` section naming the committed reference-spec mockup**, `status: draft`, naming which AI-default
-  cluster (if any) was used and why it's a choice.
-- **No** design content leaked into `acceptance.md` (behavioral-only). The contract is the sole design
-  home.
+  cluster (if any) was used and why it's a choice. In a repo with a `docs/design.md`, every axis carries
+  either `inherits: docs/design.md` or a `delta:` line and no inherited axis is restated; without one,
+  every axis is stated in full.
+- Every axis this surface moves away from the decided look on has a `## Departure` block carrying its
+  reason, and none of those moves is filed as a plain `delta:`.
+- If this was the repository's **first** UI surface, `docs/design.md` now exists and holds the
+  repository-level decisions (palette · type · layout language · motion posture · signature vocabulary) and
+  nothing that belongs to this one screen.
+- **Neither the contract nor the handoff reports a design evidence source that is not there.** Its absence
+  is the ordinary case, so there is nothing to record — a note saying one was missing is the defect this
+  criterion catches.
+- **No** design content leaked into `acceptance.md` (behavioral-only). Design lives in the contract and,
+  for the axes it marks inherited, in `docs/design.md` — never in `acceptance.md`.
 - The contract is a **separable artifact** `quality-verification` can re-read cold in Verify (where the design gate binds).
 - Handed to the human for sign-off at the Spec gate; on sign-off `status: signed`. (`quality-verification`
   refuses an unsigned or absent contract.)
@@ -201,14 +290,18 @@ Done when ALL hold:
 ## Outputs & handoff contract
 - **Emits:** (1) a committed high-fidelity prototype = the **reference-spec build target that production
   re-implements**, at `docs/features/<slug>/prototype/index.html`; (2) the **design contract** — the
-  **5th** signed Spec artifact (UI-only) — written to `docs/features/<slug>/design-contract.md`.
+  **5th** signed Spec artifact (UI-only) — written to `docs/features/<slug>/design-contract.md`;
+  (3) `docs/design.md`, the repository's decided look, **when this is the repo's first UI surface** or when
+  this surface deliberately moves the whole look. Shape: `../../references/design-system-format.md`. Every
+  other surface reads that file and writes none of it.
 - **Stable sections** (consumers depend on these names): `Distinctiveness · Typography ·
   Structure-as-information · Motion · Quality floor (responsive/visible-focus/reduced-motion) · Restraint ·
   Copy-as-design-material · Prototype (the committed reference-spec mockup + its fidelity bar)`; plus
-  `status: draft|signed`. Change a section's shape → update `quality-verification`'s design-gate reader in the
-  same commit.
+  `status: draft|signed`, and zero or more `Departure — <axis>` blocks. Change a section's shape → update
+  `quality-verification`'s design-gate reader in the same commit.
 - **Consumed by:** `quality-verification` (Verify design gate: reads the `## Prototype` section to locate the
-  committed reference-spec mockup and grades the built UI's fidelity against it, plus these seven axes), and
+  committed reference-spec mockup and grades the built UI's fidelity against it, plus these seven axes —
+  reading an axis marked `inherits:` from `docs/design.md`, and grading each `## Departure` block), and
   gating `quality-verification` (refuses to run against an unsigned/absent contract).
 - **Re-invalidation rule:** any edit to `prd.md` flips the contract back to `status: draft` (it must be
   re-signed) — design floors can't silently drift from the product they were signed against.

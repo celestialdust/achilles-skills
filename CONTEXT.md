@@ -63,6 +63,25 @@
   contract and prototype a slice builds against. A slice that builds no user interface carries `—`. It is
   never left blank: blank reads as "nobody looked", and both the builder and the code-cold checker are
   meant to be told which case they are in rather than infer it from a diff.
+- **Design system** — the repository's decided look, written down once at `docs/design.md`: the choices
+  every interface in the repository shares, as opposed to the ones a single screen makes for itself. The
+  first user interface built there writes it from what that surface decided; every later one starts from
+  it instead of re-opening the palette. What it covers, and in what shape, is
+  `references/design-system-format.md`. A repository with no user interface has none, and that is correct
+  rather than missing — nothing creates it in advance.
+- **Delta** — what one feature's design contract records in a repository that already has a design system:
+  only what differs from it, plus the names of the axes it takes unchanged. The inherited axes are not
+  restated, because a second copy of a decision is a copy that can disagree with the first and a reviewer
+  has no way to tell which one is stale.
+- **Departure** — a design contract's stated, reasoned move away from the design system on something the
+  system already decided, written under its own heading where a reviewer will see it. Distinct from a
+  delta, which fills in what the system leaves to each surface. A departure presented as though it were
+  the decided look — or one with no reason given — is a defect the Verify stage reports.
+- **Design evidence source** — an optional local record of design material a repository already trusts, of
+  whatever kind it happens to have: a component inventory, a token export, a screenshot library. Where one
+  is configured, a design step may draw candidate choices from it, and the brief still decides — a
+  suggestion that contradicts the brief is not taken. It is never required: where there is none, the work
+  runs exactly as it did before such a source existed, and nothing checks for it or reports it missing.
 - **Test contract** — `docs/test-contract.md`: the repository's list of scenarios it must never lose.
   Not one feature's behavior, but the behavior that outlives every feature that touches it. Each entry
   is a row, `PENDING` or `ACTIVE`. The file starts empty, and an empty one binds nothing. Distinct from
@@ -117,7 +136,9 @@
   that way is the fact worth keeping.
 - **Substrate** — the durable files a stage reads and writes instead of remembering: the board, this
   glossary, the decision records, the per-feature documents, the test contract, the process contract at
-  `docs/workflow.md`, and the session state — plus the `## Agent skills` block written into the repo's
-  `CLAUDE.md` or `AGENTS.md`, which is what points a cold agent at the rest. `project-setup` creates them
-  once so every later skill reads them cold. Files that only describe how this suite itself is written are not
+  `docs/workflow.md`, the decided look at `docs/design.md`, and the session state — plus the
+  `## Agent skills` block written into the repo's `CLAUDE.md` or `AGENTS.md`, which is what points a cold
+  agent at the rest. `project-setup` creates them once so every later skill reads them cold — all but
+  `docs/design.md`, which it names so nobody invents a path for it, and which the first user interface
+  built in the repository writes. Files that only describe how this suite itself is written are not
   substrate; nothing scaffolds those into a consuming project.

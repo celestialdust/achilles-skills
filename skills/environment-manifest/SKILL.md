@@ -41,8 +41,11 @@ something to read. Never leave the file absent: absence is ambiguous, an empty-s
 
 1. **Locate the file.** `docs/features/<slug>/environment.md`. Pass 1 creates it; pass 2 appends.
 2. **Walk the source for external needs.** From `prd.md` (pass 1) / `plan.md` (pass 2), list everything the
-   run touches outside the repo: keys, MCP servers, running services, language/tool versions, seed data,
-   third-party accounts.
+   run **needs** from outside the repo: keys, MCP servers, running services, language/tool versions, seed
+   data, third-party accounts. A row is a thing whose absence should stop the wave — that is what a row
+   means, because `preflight-readiness` refuses to dispatch over a missing one. Something the run merely
+   *uses when it happens to be there*, and runs unchanged without, is not a row: filing it turns an
+   optional convenience into a blocker. When in doubt ask whether you would want the wave held for it.
 3. **Classify each into exactly one kind** (closed enum — see Kind playbook). If a need doesn't fit a kind,
    that's a signal you've mis-modeled it, not a license to invent a column.
 4. **Write one row per need:** `kind · name · purpose · required-by · pass · attest`. **No value. No command.**

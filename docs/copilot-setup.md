@@ -58,7 +58,7 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 - `codebase-research` — head of Spec: goal-blind parallel map of the codebase/DB as-is → research.md
 - `spec-grilling` — design the product from intent + the survey → ADRs + CONTEXT.md (refuses without research.md)
 - `to-prd` — light dual-audience PRD referencing ADRs
-- `frontend-design` — explore UI variants → commit prototype + design contract
+- `frontend-design` — explore UI variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md`
 - `acceptance-criteria` — BDD prose contract (Given/When/Then), signed
 - `environment-manifest` — typed-kind manifest (no values, no commands)
 - `spec-review` — fresh code-cold agent fixes the spec before the user reviews

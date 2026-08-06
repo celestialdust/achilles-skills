@@ -23,6 +23,9 @@ re-fires every wave; `project-setup` is the one-time repo bootstrap that runs be
 - **Use** once per repo, before the first feature — before `interview-me`, `idea-refine`, or `spec-grilling`.
 - **Skip** if `STATE.md` already exists at the repo root and the substrate is intact; you don't need to
   re-run per feature (the board is appended to by `plan-breakdown`, not re-scaffolded).
+- **Re-run to repair** when a substrate file has gone missing or stopped resolving — including a
+  `CLAUDE.md` / `AGENTS.md` pointer naming a file that is no longer there. Nothing watches for that
+  between runs, so the pointer check under "Verification" is what catches it, and it only runs here.
 - **Escape hatch — adopt, don't overwrite:** if the repo already has a `CONTEXT.md`, `docs/test-contract.md`,
   `docs/session-state.md`, `docs/adr/`, or a
   `CLAUDE.md`/`AGENTS.md` with prior content, adopt them in place. Re-running `project-setup` repairs missing pieces;
@@ -80,10 +83,12 @@ Mention this once so the user knows their GitHub Issues (if any) are intentional
 - **Single-context** — one `CONTEXT.md` + `docs/adr/` at the repo root. Most repos are this. **(Default.)**
 - **Multi-context** — `CONTEXT-MAP.md` at the root pointing to per-context `CONTEXT.md` files (a monorepo).
 
-If **neither** `CLAUDE.md` nor `AGENTS.md` exists, also ask **which one to create** — don't pick for them.
-Note that a fresh `CLAUDE.md` is seeded with a small set of project-agnostic behavioral guidelines (the
-bundled `assets/CLAUDE.template.md`) above the `## Agent skills` wiring; a fresh `AGENTS.md` gets the wiring
-only.
+If **neither** `CLAUDE.md` nor `AGENTS.md` exists, also ask **which one holds the rules** — don't pick for
+them. Both filenames end up existing either way: the one they pick gets the `## Agent skills` wiring, and
+the other gets a short pointer to it, so a contributor whose tool reads that other name is not left
+with nothing. Note that a fresh `CLAUDE.md` is seeded with a small set of project-agnostic behavioral
+guidelines (the bundled `assets/CLAUDE.template.md`) above the `## Agent skills` wiring; a fresh
+`AGENTS.md` gets the wiring only.
 
 ### 3. Confirm and edit
 
@@ -102,23 +107,35 @@ Show the user a draft of everything before writing, and let them edit:
   it states the stages, the gate owners, and the stop conditions on the repo's behalf — but copy it
   verbatim; it is one shared text, not a per-repo draft.
 - The `## Agent skills` block to add to whichever of `CLAUDE.md` / `AGENTS.md` is being edited.
+- The pointer that goes in the *other* filename (see "pointer seed" below) — it names the file that holds
+  the rules, and says nothing else.
 - If a fresh `CLAUDE.md` is being created, the bundled behavioral template (`assets/CLAUDE.template.md`) that
   seeds it — the user can edit it now or later (it's a starting point, not a fixed contract).
 
 ### 4. Write
 
-**Pick the file to edit (verbatim file-selection rules):**
+**Pick the file that holds the rules (verbatim file-selection rules):**
 
 - If `CLAUDE.md` exists, edit it.
 - Else if `AGENTS.md` exists, edit it.
 - If neither exists, create the one the user chose in Section A — never pick for them.
-- **Never** create `AGENTS.md` when `CLAUDE.md` already exists (or vice versa) — always edit the one already
-  there. If an `## Agent skills` block already exists, update it in place rather than appending a duplicate;
-  don't overwrite the surrounding sections.
+- **Never write the rules into both.** Exactly one file gets the `## Agent skills` block — the one already
+  there, or the one the user chose. The other never gets a copy of it: two copies drift apart, and a reader
+  has no way to tell which one is lying. If an `## Agent skills` block already exists, update it in place
+  rather than appending a duplicate; don't overwrite the surrounding sections.
+- **Then create the other filename as a pointer.** Once the `## Agent skills` block has landed, write the
+  pointer (see "pointer seed" below) into whichever of `CLAUDE.md` / `AGENTS.md` does not hold it.
+  The pointer names the file that does, and says nothing else. Without it, a contributor whose tool reads
+  only that filename opens an empty file or none at all. If the file already exists with content of its own,
+  do not overwrite it — show the user the pointer line, ask before adding it at the top, and either way say
+  plainly which file holds the rules. If they decline it, say what that leaves: their tool opens a file
+  that does not route anywhere, and finding the rules is now on whoever reads it. That is theirs to accept,
+  and it is the one branch where the pointer does not exist.
 - **Seeding a fresh `CLAUDE.md`:** only when neither file exists and the user chose `CLAUDE.md`, write the
   bundled behavioral template (`assets/CLAUDE.template.md`) first, then append the `## Agent skills` block
-  below it (see "CLAUDE.md seed" below). A fresh `AGENTS.md` gets the `## Agent skills` block only — no
-  behavioral template. Never seed over a `CLAUDE.md` that already exists; edit it in place.
+  below it (see "CLAUDE.md seed" below). A fresh `AGENTS.md` chosen as the rules file gets the
+  `## Agent skills` block only — no behavioral template. Never seed over a `CLAUDE.md` that already exists;
+  edit it in place.
 
 Then create the substrate (skip anything that already exists; never clobber). The one exception is
 `docs/workflow.md`, which is compared rather than skipped — see item 6 for why and how.
@@ -131,8 +148,10 @@ Then create the substrate (skip anything that already exists; never clobber). Th
 4. **`docs/features/`** — per-feature artifact root (`docs/features/<slug>/` holds intent.md, prd.md,
    acceptance.md, environment.md, plan.md per feature; seed a `.gitkeep`).
 5. The **`## Agent skills`** block in the chosen file (see below), pointing at `STATE.md`, `CONTEXT.md`,
-   `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, and `docs/session-state.md`. The domain-doc
-   consumer rules carry over from `references/domain-docs.md`.
+   `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, and `docs/session-state.md`, and **naming**
+   `docs/design.md` — which setup does not create; the first UI surface writes it. The domain-doc
+   consumer rules carry over from `references/domain-docs.md`. Then the **pointer** in the other filename
+   (see "pointer seed" below), naming the file that holds the block.
 6. **`docs/workflow.md`** — the process contract, copied **verbatim** from the bundled
    `assets/workflow.template.md`: the stages, who owns each gate, where a run ends, what stops a run, what
    is frozen, and what never happens. It exists so a person can read the whole process from the repo's own
@@ -188,6 +207,12 @@ Each feature's intent.md / prd.md / acceptance.md / environment.md / plan.md liv
 row may never be skipped, weakened, or narrowed — by any slice, in any run, ever. Activation is one-way
 and a human act; agents read this file and never edit it. An empty file enforces nothing.
 
+### Decided look
+`docs/design.md` holds this repo's look once it is decided: the palette, the type, the layout language,
+the motion posture, and the signature vocabulary every interface here shares. The **first** user interface
+built in this repo writes it; every later one starts from it and records only what differs. Nothing
+scaffolds it — a repo with no user interface has none, and that is correct rather than missing.
+
 ### Process contract
 `docs/workflow.md` states how work ships here: the stages, who owns each gate, where a run ends, what
 stops one, what is frozen, and what never happens. Read it first — nothing has to be installed to read
@@ -216,6 +241,9 @@ rows; `handoff` writes `docs/session-state.md` and appends to its log). Say plai
 is empty on purpose and enforces nothing until they activate a
 row, that activating one is theirs to do and one-way, and that no agent will ever move a row in either
 direction.
+Say which of `CLAUDE.md` / `AGENTS.md` holds the rules and that the other is a pointer to it, so a
+contributor on the other tool lands in the right place. A rule change goes in the rules file; the pointer
+never gets a copy of it.
 Say what `docs/session-state.md` is for too: the fields are a snapshot, the log is a record, and the log
 is append-only — nothing in it is ever edited or deleted, so it can be trusted as evidence rather than
 read as a status page. It is committed so it survives a fresh clone; leaving it out of version control
@@ -455,6 +483,29 @@ Surgical Changes · Goal-Driven Execution* — adapted from Andrej Karpathy's no
 Do **not** write the template into an `AGENTS.md`, and never seed over a `CLAUDE.md` that already exists — in
 that case you edit the existing file and add only the `## Agent skills` block.
 
+## Pointer seed (the file that does not hold the rules)
+
+Write this into whichever of `CLAUDE.md` / `AGENTS.md` does **not** carry the `## Agent skills` block.
+Both placeholders get replaced: `<this file's name>` with the file you are writing, `<rules file>` with
+the one that carries the block.
+
+```markdown
+# <this file's name>
+
+The rules for this repository live in `<rules file>`. Read that file before you act.
+
+They are written once, there. A second copy here would eventually disagree with the first, and nothing
+would force the two back into agreement — so this file only says where to look.
+```
+
+The first sentence is the stable line — canonical wording, do not reword it. The pointer check under
+"Verification" reads that line to find the file the pointer names, so a pointer that says the same thing
+in different words cannot be checked, and a broken one then goes unnoticed until a contributor hits it.
+
+Nothing else goes in this file: not the `## Agent skills` block, not a summary of it, not a list of the
+substrate files. A pointer's whole job is to route. The moment it restates a rule it becomes the second
+copy that this arrangement exists to prevent.
+
 ## Rationalizations
 
 - "This repo already tracks issues on GitHub — skip `STATE.md`." → No. The suite's board **is** `STATE.md`
@@ -463,8 +514,12 @@ that case you edit the existing file and add only the `## Agent skills` block.
   has somewhere to append; scaffold the stub now (empty glossary is fine).
 - "Multi-context looks more thorough — default to it." → No. Default is **single-context**; only a real
   monorepo with separate contexts warrants `CONTEXT-MAP.md`.
-- "Neither CLAUDE.md nor AGENTS.md exists, I'll just create both / pick one." → No. Ask the user which one;
-  never create both.
+- "Neither CLAUDE.md nor AGENTS.md exists, I'll pick one." → No. Ask the user which one holds the rules.
+  Both filenames end up existing — one carries the rules, the other a pointer — but which is which is theirs
+  to choose.
+- "The other file is only a pointer, so I'll copy the important parts across too, just in case." → No. That
+  is the second copy. A pointer that restates a rule is a rule that can disagree with itself, and the reader
+  cannot tell which side is stale.
 - "I'll dump all the choices in one message to save turns." → No. One decision at a time; assume the user
   doesn't know the terms.
 - "This repo has no permanent cross-feature scenarios yet — skip `docs/test-contract.md`." → No. Scaffold
@@ -492,10 +547,16 @@ that case you edit the existing file and add only the `## Agent skills` block.
 ## Red flags
 
 - Overwriting an existing `CONTEXT.md`, `STATE.md`, or `## Agent skills` block without reading it first.
-- Creating `AGENTS.md` when `CLAUDE.md` already exists (or vice versa).
+- Writing the `## Agent skills` block into both `CLAUDE.md` and `AGENTS.md` — one holds the rules, the
+  other holds a pointer to it.
+- Leaving the other filename absent, so a contributor whose tool reads it finds nothing.
+- Writing a pointer that names a file which does not exist, or reaching for different words than the seed's
+  first sentence, which is what the pointer check reads.
 - Asking "where should issues live / GitHub or local?" — that decision is gone (tracker = local `STATE.md`).
 - Writing any value, secret, or shell command into a scaffolded file (these files are structure, not config).
 - Seeding `STATE.md` with feature/slice rows — `project-setup` leaves the board empty.
+- Creating `docs/design.md`, or seeding it empty — the first UI surface writes it, and an empty one says
+  exactly what no file already says while reading like a decision somebody made.
 - Seeding `docs/test-contract.md` with a real row, or writing `state: ACTIVE` on any row — the file ships
   empty and activation is the user's one-way act.
 - Writing the `TC-1` shape example as a live row under `## Rows` instead of the fenced example under
@@ -552,10 +613,33 @@ Done when **all** hold:
 - A pre-existing `docs/session-state.md` was left untouched — no entry under its `## Log` was reworded,
   re-ordered, or removed.
 - Exactly one of `CLAUDE.md` / `AGENTS.md` contains an `## Agent skills` block referencing `STATE.md`,
-  `CONTEXT.md`, `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, and `docs/session-state.md`; the
-  other file was not created.
+  `CONTEXT.md`, `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, and `docs/session-state.md`. The
+  other file holds no copy of that block.
+- The other filename exists and is a pointer naming the file that holds the block — unless it already
+  existed with the user's own content and they declined the pointer line, which was shown to them rather
+  than silently skipped.
+- **The pointer resolves:** the file it names exists. Run this from the repo root — it prints nothing on a
+  good pointer and names a broken one:
+
+  ```bash
+  bad=0
+  for f in CLAUDE.md AGENTS.md; do
+    named=$(sed -n 's/^The rules for this repository live in `\(.*\)`\..*/\1/p' "$f" 2>/dev/null)
+    if [ -n "$named" ] && [ ! -f "$named" ]; then
+      echo "broken pointer: $f names $named, which does not exist"
+      bad=1
+    fi
+  done
+  [ "$bad" -eq 0 ]
+  ```
+
+  A pointer to a file nobody kept is worse than no pointer, because it reads as an answer. The check finds
+  the named file by reading the seed's first sentence, which is why that sentence is fixed wording.
 - That `## Agent skills` block tells a fresh agent to read `docs/session-state.md` — both zones — **before
   starting work**, and states that `## Log` is append-only. Without that line the log has no reader.
+- That block also names `docs/design.md` and says the first UI surface writes it — and **no
+  `docs/design.md` was created by this run**. A cold agent that has to invent the path invents a different
+  one, which is why the path is named; creating the file is a separate mistake, which is why it is not.
 - If a fresh `CLAUDE.md` was created (neither file existed and the user chose it), it leads with the bundled
   behavioral template and the `## Agent skills` block follows; no template was written into an `AGENTS.md` or
   over a pre-existing `CLAUDE.md`.
@@ -574,7 +658,14 @@ Emits the repo substrate the whole suite consumes:
 | `docs/test-contract.md` | repo-wide | `## Rows` (permanent scenarios, each `PENDING` or `ACTIVE`; scaffolded with none ACTIVE). An ACTIVE row may never be skipped, weakened, or narrowed by any slice in any run; activation is one-way and human-only |
 | `docs/workflow.md` | repo-wide | the six process sections — stages · gate owners · where a run ends · what stops a run · what is frozen · what never happens — a verbatim copy of `assets/workflow.template.md`, re-synced (with the user's yes) whenever a re-run finds it drifted |
 | `docs/session-state.md` | repo-wide | the five snapshot fields (`## Current objective` · `## Current state` · `## Remaining issues` · `## Boundaries` · `## Next phase`) plus `## Log`, append-only and scaffolded empty. Entries hold the decision, the reason, what was ruled out, and what is still open — never what git already shows. Earlier entries never change, and an attempt to change one is reported as a violation. Weakest source in the repo: outranked by `docs/adr/` and a signed `acceptance.md`, with promotion to `docs/adr/` as the way out. Committed, never ignored |
-| `CLAUDE.md` / `AGENTS.md` | repo root | the `## Agent skills` block; a fresh `CLAUDE.md` also leads with the bundled behavioral template |
+| `CLAUDE.md` / `AGENTS.md` | repo root | one carries the `## Agent skills` block, the other a pointer naming it — never two copies of the block, and never a missing file; a fresh `CLAUDE.md` also leads with the bundled behavioral template |
+
+**Named in the substrate, created by nobody here: `docs/design.md`** — the repo's decided look, which
+every later interface inherits and records only its differences from. The **first** UI surface writes it,
+via `frontend-design`. This skill names the path so a cold agent reads one instead of inventing one, and
+scaffolds nothing. It is the one place the seed-it-empty argument that justifies `docs/test-contract.md`
+does not carry: an empty test contract is a real place a permanent guarantee can land later, and an empty
+design file is not.
 
 Downstream consumers: `interview-me`/`idea-refine` → `docs/features/<slug>/intent.md`; `spec-grilling` →
 appends `CONTEXT.md` + writes `docs/adr/`; `to-prd`/`acceptance-criteria`/`environment-manifest` → `docs/features/<slug>/`;

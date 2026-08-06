@@ -8,7 +8,7 @@ OpenCode supports custom `/commands`, but does not have a native plugin system o
 
 achilles-skills achieves parity through:
 
-- A strong system prompt (`AGENTS.md`)
+- The repository rules as a system prompt (`CLAUDE.md`)
 - The built-in `skill` tool
 - Consistent skill discovery from the `skills/` directory
 - Optional code-cold **personas** (`agents/`) dispatched as subagents for review passes
@@ -18,7 +18,7 @@ This creates an **agent-driven workflow** where skills are selected and executed
 While it is possible to recreate `/spec`, `/plan`, and the other commands in OpenCode, this integration intentionally uses an agent-driven approach instead:
 
 - Skills are selected automatically based on intent
-- Workflows are enforced via `AGENTS.md`
+- The workflow rules come from `CLAUDE.md`
 - No manual command invocation is required
 
 This more closely matches how Claude Code behaves in practice, where skills are triggered automatically rather than manually.
@@ -37,7 +37,9 @@ git clone https://github.com/celestialdust/achilles-skills.git
 
 3. Ensure the following are present in your workspace:
 
-- `AGENTS.md` (root)
+- `CLAUDE.md` (root) — the rules, whatever the agent. OpenCode picks up the `AGENTS.md` beside it; that
+  file holds no rules, only the line sending you here, so follow it. The rules stay written once and the
+  two files cannot drift apart.
 - `skills/` directory (38 skills)
 - `agents/` directory (5 personas) — optional, used for code-cold review subagents
 
@@ -55,7 +57,7 @@ All 38 skills live in:
 skills/<skill-name>/SKILL.md
 ```
 
-OpenCode agents are instructed (via `AGENTS.md`) to:
+OpenCode agents are instructed (via `CLAUDE.md`) to:
 
 - Detect when a skill applies
 - Invoke the `skill` tool
@@ -173,7 +175,7 @@ For OpenCode to work correctly, the agent must follow these rules:
 - Do not jump directly to implementation
 - The human owns Ideate, Spec, and Plan; the agent never auto-merges to main — it ends at open draft PRs
 
-These rules are enforced via `AGENTS.md`.
+These rules live in `CLAUDE.md`.
 
 ---
 
@@ -209,7 +211,7 @@ OpenCode integration works by combining:
 
 - Structured skills (this repo — 38 skills in `skills/`)
 - Reusable code-cold personas (`agents/` — 5 review roles)
-- Strong agent rules (`AGENTS.md`)
+- The repository rules (`CLAUDE.md`)
 - Automatic skill invocation via reasoning
 
 This results in a **fully agent-driven engineering workflow** without requiring plugins or manual commands.

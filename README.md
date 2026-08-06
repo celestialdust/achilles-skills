@@ -156,7 +156,7 @@ Add skill contents to your Windsurf rules configuration. See [docs/windsurf-setu
 <details>
 <summary><b>OpenCode</b></summary>
 
-Uses agent-driven skill execution via `AGENTS.md` and the `skill` tool. See [docs/opencode-setup.md](docs/opencode-setup.md).
+Uses agent-driven skill execution via the `skill` tool, against the rules in `CLAUDE.md`. See [docs/opencode-setup.md](docs/opencode-setup.md).
 
 </details>
 
@@ -170,14 +170,14 @@ Use the definitions in `agents/` as Copilot personas and skill content in `.gith
 <details>
 <summary><b>Kiro IDE &amp; CLI</b></summary>
 
-Skills for Kiro live under `.kiro/skills/` and can be stored at Project or Global level. Kiro also reads `AGENTS.md`. Copy the `skills/` directory into `.kiro/skills/` and the personas from `agents/` alongside them. See the Kiro docs at <https://kiro.dev/docs/skills/>.
+Skills for Kiro live under `.kiro/skills/` and can be stored at Project or Global level. Kiro also reads `AGENTS.md`, which sends it to `CLAUDE.md`, where the rules are. Copy the `skills/` directory into `.kiro/skills/` and the personas from `agents/` alongside them. See the Kiro docs at <https://kiro.dev/docs/skills/>.
 
 </details>
 
 <details>
 <summary><b>Codex / Other Agents</b></summary>
 
-Skills are plain Markdown — they work with any agent that accepts system prompts or instruction files. Point your agent at `skills/` and `AGENTS.md`. There is no separate setup file for these agents, because there is no separate mechanism: see [docs/getting-started.md](docs/getting-started.md).
+Skills are plain Markdown — they work with any agent that accepts system prompts or instruction files. Point your agent at `skills/` and `CLAUDE.md`, which holds the rules whatever the tool; an agent that reads `AGENTS.md` instead finds a pointer to the same file. There is no separate setup file for these agents, because there is no separate mechanism: see [docs/getting-started.md](docs/getting-started.md).
 
 </details>
 
@@ -211,7 +211,7 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 | [codebase-research](./skills/codebase-research/SKILL.md) | Head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md`, before any design decision |
 | [spec-grilling](./skills/spec-grilling/SKILL.md) | Design the product from intent + the survey → ADRs + `CONTEXT.md` glossary; refuses without `research.md`; a blind-spot pass surfaces decisions you haven't considered |
 | [to-prd](./skills/to-prd/SKILL.md) | Light dual-audience PRD at product altitude; references the ADRs |
-| [frontend-design](./skills/frontend-design/SKILL.md) | The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract |
+| [frontend-design](./skills/frontend-design/SKILL.md) | The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | [acceptance-criteria](./skills/acceptance-criteria/SKILL.md) | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | [environment-manifest](./skills/environment-manifest/SKILL.md) | Typed-kind environment manifest (no values, no commands) |
 | [spec-review](./skills/spec-review/SKILL.md) | Fresh code-cold agent fixes the spec before the user reviews it |
@@ -290,7 +290,7 @@ Five specialist agents apply a Review/Verify skill with a **fresh, code-cold con
 
 ## References
 
-Quick-reference checklists in [`references/`](./references/) that skills pull in on demand: [definition-of-done](./references/definition-of-done.md), [testing-patterns](./references/testing-patterns.md), [security-checklist](./references/security-checklist.md), [performance-checklist](./references/performance-checklist.md), [accessibility-checklist](./references/accessibility-checklist.md), [observability-checklist](./references/observability-checklist.md), [orchestration-patterns](./references/orchestration-patterns.md), and [finding-unknowns](./references/finding-unknowns.md).
+Shared material in [`references/`](./references/) that skills pull in on demand: the checklists (testing, security, performance, accessibility, observability, definition-of-done), the orchestration patterns, the unknowns pass, and the artifact shapes the design, teaching, and comprehension skills read. [docs/getting-started.md](./docs/getting-started.md) maps each file to the skills that use it — one list, so a new reference cannot go missing from a second one.
 
 ## License
 

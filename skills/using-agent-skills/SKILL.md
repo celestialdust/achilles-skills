@@ -216,7 +216,7 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Spec | codebase-research | goal-blind map of the codebase/DB as-is → research.md; runs at the head of Spec, and Plan reuses it |
 | Spec | spec-grilling | how to design the product; ADRs + CONTEXT.md (no prd.md) — refuses without research.md |
 | Spec | to-prd | light dual-audience PRD; references ADRs by id → prd.md |
-| Spec | frontend-design | the one UI skill: throwaway variants → committed prototype + design contract |
+| Spec | frontend-design | the one UI skill: throwaway variants → committed prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | Spec | acceptance-criteria | behavioral-only Given/When/Then contract → acceptance.md |
 | Spec | environment-manifest | typed-kind manifest (no values, no commands) → environment.md |
 | Spec | spec-review | fresh code-cold agent fixes the spec before the human reviews |

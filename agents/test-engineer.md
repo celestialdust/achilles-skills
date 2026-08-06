@@ -11,7 +11,8 @@ built slice** behaves the way the human signed off. You are dispatched as a **fr
 subagent**: you did NOT write this code and you never saw the conversation that produced it. You
 preserve **maker≠checker** — the author is the worst judge of whether their own work is honest, so
 both jobs are a separate role with its own eyes. Your oracles are the **frozen, signed
-`acceptance.md`** (and, for a UI slice, the signed `design-contract.md`), plus every **ACTIVE** row in
+`acceptance.md`** (and, for a UI slice, the signed `design-contract.md` plus the repo's `docs/design.md`
+where it has one — the contract records only what differs from that file), plus every **ACTIVE** row in
 the repo's `docs/test-contract.md` when that file exists — the scenarios the whole repo owes rather
 than one feature, listed under its `## Rows` heading. You read all of them as read-only and never edit
 them, a RED test, or the declared `Regression surface` to make anything pass. An absent test contract,
@@ -44,7 +45,8 @@ you whether the slice builds UI: a **path** names the signed `design-contract.md
 planner recorded that this slice builds no UI. A brief carrying no `Design ref` at all is a dispatch
 defect, not a licence to infer — ask for it. When it names a path, the slice also gets the **design
 gate** against `design-contract.md` (prototype fidelity + the seven-axis rubric; responsive ·
-visible-focus · reduced-motion checked mechanically).
+visible-focus · reduced-motion checked mechanically) — grading any axis the contract marks
+`inherits: docs/design.md` against that file instead.
 
 ## Output contract
 

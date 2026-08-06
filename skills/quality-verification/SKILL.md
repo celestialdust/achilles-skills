@@ -62,6 +62,13 @@ Refuse-to-run (fail-safe deny) unless these resolve:
   one (it is what stops a partially built interface existing at all), and this is the second line of defence
   for a slice that reached Verify some other way. A UI slice arriving here with an unsigned contract means the
   first gate was bypassed — refuse, and say so in `qa.md`.
+- **Read when the repo has one — `docs/design.md`.** The repository's **decided look**: palette, type,
+  layout language, motion posture, signature vocabulary, shared by every interface in the repo. A UI
+  slice's contract records only what differs from it, so an axis the contract marks
+  `inherits: docs/design.md` is graded against this file (shape:
+  `../../references/design-system-format.md`). **There is no refuse-to-run here:** a repo whose look was
+  never decided has no such file, and a contract that states all seven axes itself is graded exactly as it
+  was before this file existed. You read it and never edit it.
 - **REQUIRED — a running build of the slice** in its worktree (the orchestrator provides it). If it will not
   start, that is a `verify` failure, not a qa skip — route to `debugging-and-error-recovery`.
 - **Read when the repo has one — `docs/test-contract.md`.** The repo-level list of permanent scenarios
@@ -82,9 +89,10 @@ Refuse-to-run (fail-safe deny) unless these resolve:
   check is textual — the field is there or it is not — and it is never a route around a real ACTIVE row:
   removing or editing a stamp is editing the row's state, which is the gate-erosion HALT below.
 
-`acceptance.md` is **behavioral-only** and `design-contract.md` is the **sole design home**: grade
-behavior against the first, design against the second, and never cross them (no design scenarios exist in
-`acceptance.md`; no behavioral assertions live in the contract).
+`acceptance.md` is **behavioral-only**: it holds no design, and the contract holds no behavioral
+assertions. Grade behavior against `acceptance.md` and design against the contract, and never cross them.
+Design lives in two files, not one — the contract decides this surface, and for an axis it marks
+inherited, `docs/design.md` decides it. That is one source read across two files, not a second home.
 
 ## Process
 
@@ -92,9 +100,12 @@ Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa
 
 1. **Go code-cold.** Read the brief's `Design ref` to learn which case you are in (`—` = no UI, a path = UI).
    Then read the closed set the brief hands you, and nothing outside it: `acceptance.md`, the repo's
-   `docs/test-contract.md` when it has one, (UI) the `design-contract.md` that ref names, and the running
-   app. What closes the set is where each item came from — every one is a document a person signed or
-   activated, or the build itself. The implementer's notes, rationale, and commit messages sit outside it,
+   `docs/test-contract.md` when it has one, (UI) the `design-contract.md` that ref names plus
+   `docs/design.md` when the repo has one, and the running app. What closes the set is where each item came
+   from — every one is a document a person signed or activated, or the build itself. `docs/design.md`
+   qualifies on the same footing: `frontend-design` writes it in the same act that produces the contract a
+   person signs, so its content is what that person agreed to — which is why it carries no status field of
+   its own. The implementer's notes, rationale, and commit messages sit outside it,
    because they are the maker's account of the work and you are here to check the work against something
    the maker did not write.
 
@@ -167,16 +178,28 @@ non-overlapping sources** (do not let them collapse into one "looks good"):
   `prototype-fidelity: pass|fail` field — its target is now the named reference-spec mockup.
 - **(ii) The seven-axis rubric** — `Distinctiveness · Typography · Structure-as-information · Motion · Quality
   floor · Restraint · Copy-as-design-material`. Grade each axis against the contract's recorded decision.
+  **In a repo with a decided look, the contract either holds that decision or points at it:** an axis
+  carrying a `delta:` line is graded against the delta; an axis marked `inherits: docs/design.md` is graded
+  against `docs/design.md`'s decision for that axis. Read both files and grade all seven either way. A
+  contract that does not restate an inherited axis is the format working — never record that axis as
+  unstated, and never refuse over it. This is still one source, read across two files.
   - **Objective subset (check mechanically via the engine):** *responsive* (resize viewport down to mobile —
     layout holds), *visible keyboard focus* (tab through — focus ring present and logical), *reduced motion
     respected* (`prefers-reduced-motion` honored). These three are the contract's quality floor; they are
     pass/fail, not judgment. Lean on the suite-level `../../references/accessibility-checklist.md` (the same
     a11y checklist `browser-testing-with-devtools` drives).
   - The other axes are judgment calls graded against the contract's stated intent.
+  - **Departures.** A `## Departure` block records an axis where this surface deliberately moves away from
+    the decided look; grade that axis against the block's `This surface:` line rather than against
+    `docs/design.md`. Two findings live here, and both are about what a reviewer can see: **a departure
+    with no reason** — a reader cannot tell a decision from a drift, so the move is unreviewable; and **a
+    built surface that departs from `docs/design.md` with nothing recorded** — unrecorded, it reads as
+    though the decided look had said this all along, which is the thing the block exists to prevent.
 
-Grade design **only** against the design contract — never against `acceptance.md` (which holds zero design
-content) and never against criteria you invent. If there is no contract, you have nothing to grade design
-against; record the block, don't improvise a rubric.
+Grade design **only** against the design contract and the decided look its inherited axes point at — never
+against `acceptance.md` (which holds zero design content) and never against criteria you invent. If there is
+no contract, you have nothing to grade design against; record the missing-contract block, don't improvise a
+rubric.
 
 ## Driving the browser-testing engine
 
@@ -264,6 +287,10 @@ Stop if you are about to:
 - **record a gate-erosion halt without naming** the artifact, or the contract row id, that changed.
 - grade **design against `acceptance.md`** (it has no design content) or against criteria you invented instead
   of `design-contract.md`.
+- **refuse a contract, or record an axis as unstated, because it does not restate what `docs/design.md`
+  already decides** → the contract records the delta; read that axis from `docs/design.md`.
+- **edit `docs/design.md`** so the built surface matches it → that is moving the decided look to make a
+  gate pass. You read this file; you do not write it.
 - decide **whether the slice has UI by reading the diff** instead of the brief's `Design ref` → the ref is the
   recorded answer; a brief with no ref at all is a dispatch defect to raise, not a blank to fill in.
 - mark an **unreached scenario as `exercised-pass`** → it is `not-reachable`; report it honestly.
@@ -285,7 +312,10 @@ Done when ALL hold:
   a `—` yields `design gate: N/A (Design ref: —)`, a path yields a graded gate. A reader can tell "the slice
   builds no UI" from "nobody graded the UI" without reopening the diff.
 - (UI) the **design gate** records both sources — prototype-fidelity AND the seven-axis rubric — with the
-  objective subset (responsive · visible-focus · reduced-motion) checked mechanically.
+  objective subset (responsive · visible-focus · reduced-motion) checked mechanically. All seven axes carry
+  a verdict, each graded against what the contract states or — where the contract marks the axis inherited —
+  against `docs/design.md`. Every `## Departure` block is graded, and a departure with no reason, or a
+  built surface departing with nothing recorded, is written down as a finding.
 - **Every ACTIVE `docs/test-contract.md` row the slice can reach** has a verdict by row id, and every row it
   cannot reach is listed `not-reachable` for human-ack. (No rows, or no such file → this criterion is
   vacuously met; record `test contract: none active`.)
@@ -315,8 +345,9 @@ contract binds to the running app.
   - `## Design gate` — opens with `design ref: <path|—>` as delivered in the dispatch brief. On `—`:
     `N/A (Design ref: —)` and nothing further (the slice builds no UI; this is the recorded fact, not a
     verdict you formed). On a path: `prototype-fidelity: pass|fail` (graded against the committed
-    reference-spec mockup named in the contract's `## Prototype` section); per-axis rubric verdict; objective
-    subset `responsive · visible-focus · reduced-motion` each `pass|fail`.
+    reference-spec mockup named in the contract's `## Prototype` section); per-axis rubric verdict, naming
+    for each axis whether it was graded from the contract's `delta:` or from `docs/design.md`; a verdict per
+    `## Departure` block; objective subset `responsive · visible-focus · reduced-motion` each `pass|fail`.
   - `## Verdict` — `overall: pass|halted`; `rounds: <n>/3`; `frozen-artifact check: ok|eroded`;
     `not-reachable ids requiring human-ack: <ids|none>`. The `frozen-artifact check` covers `acceptance.md`,
     the RED tests, `Regression surface`, **and every ACTIVE `docs/test-contract.md` row**; on `eroded`, name

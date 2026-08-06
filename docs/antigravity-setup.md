@@ -101,7 +101,7 @@ The suite ships 38 skills, organized by lifecycle stage. Names are descriptive a
 | `codebase-research` | head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md` |
 | `spec-grilling` | design the product from intent + the survey → ADRs + CONTEXT.md (refuses without `research.md`) |
 | `to-prd` | light dual-audience PRD (product-altitude; references ADRs) |
-| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract |
+| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | `environment-manifest` | typed-kind manifest (no values, no commands) |
 | `spec-review` | fresh code-cold agent fixes the spec before the user reviews |
@@ -191,7 +191,7 @@ You can invoke these personas directly within your session or when delegating ta
 ## Configuration & Customization
 
 ### Project lifecycle state (`/setup`)
-`achilles-skills` carries its lifecycle discipline in the skills themselves; it does not ship a separate enforcement file. To bootstrap a consuming repo, run `/setup` (the `project-setup` skill) once. It seeds `STATE.md` and `CONTEXT.md` into your workspace root, creates `docs/adr/` and `docs/features/`, writes `docs/test-contract.md` (the repo's permanent scenarios, seeded with no rows — only a person activates one, and activation is one-way), `docs/workflow.md` (the process contract — stages, gate owners, where a run ends, what stops one), and `docs/session-state.md` (where the work stands, plus an append-only log of decisions a resuming session reads first), and adds an `## Agent skills` block to your `CLAUDE.md` or `AGENTS.md` — the shared artifacts the later stages read and append to. If you want Antigravity to hard-enforce a gate such as "no code before a spec," add an `AGENTS.md` to your workspace root describing that rule; Antigravity reads it to align the agent's behavior and planning phase with your team's conventions.
+`achilles-skills` carries its lifecycle discipline in the skills themselves; it does not ship a separate enforcement file. To bootstrap a consuming repo, run `/setup` (the `project-setup` skill) once. It seeds `STATE.md` and `CONTEXT.md` into your workspace root, creates `docs/adr/` and `docs/features/`, writes `docs/test-contract.md` (the repo's permanent scenarios, seeded with no rows — only a person activates one, and activation is one-way), `docs/workflow.md` (the process contract — stages, gate owners, where a run ends, what stops one), and `docs/session-state.md` (where the work stands, plus an append-only log of decisions a resuming session reads first), and adds an `## Agent skills` block to your `CLAUDE.md` or `AGENTS.md` — the shared artifacts the later stages read and append to. Whichever of the two carries that block is your repo's rules file; the other is created as a short pointer to it, so an agent that reads only that filename still lands in the right place. If you want Antigravity to hard-enforce a gate such as "no code before a spec," write that rule in the rules file — never in the pointer, which holds no rules of its own. Antigravity follows the pointer and reads the rules there to align the agent's behavior and planning phase with your team's conventions.
 
 ### Sandbox Mode
 If you want to run skills or scripts with limited terminal permissions (for safety when running third-party validation tests), launch the CLI with:

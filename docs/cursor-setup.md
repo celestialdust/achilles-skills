@@ -93,7 +93,7 @@ the name in these tables.
 | `codebase-research` | head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md` |
 | `spec-grilling` | design the product from intent + the survey → ADRs + CONTEXT.md (refuses without `research.md`) |
 | `to-prd` | light dual-audience PRD (product-altitude; references ADRs) |
-| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract |
+| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | `environment-manifest` | typed-kind manifest (no values, no commands) |
 | `spec-review` | fresh code-cold agent fixes the spec before the user reviews |

@@ -10,7 +10,7 @@ Then drive the remaining spec artifacts through their owning skills:
 - to-prd — the light dual-audience PRD (prd.md), product-altitude, referencing the ADRs.
 - acceptance-criteria — the behavioral Given/When/Then contract (acceptance.md), signed.
 - environment-manifest — the typed-kind manifest (environment.md): kinds only, no values, no commands.
-- frontend-design — only if there's a UI: explore variants, then commit a prototype + design contract.
+- frontend-design — only if there's a UI: explore variants, then commit a prototype + design contract. On the repo's first UI surface it also writes docs/design.md, the decided look every later surface inherits.
 - spec-review — last: a fresh, code-cold agent hardens the whole spec before the user reads it.
 
 ## Mode
