@@ -1,8 +1,10 @@
 # Contributing to achilles-skills
 
-This is a collection of production-grade engineering skills, lifecycle commands, and reviewer personas for AI coding agents. The suite is organized around one lifecycle — **Ideate → Spec → Plan → Implement → Verify → Review → Ship** — where the human owns Ideate/Spec/Plan and the agent runs Implement→Ship autonomously.
+This is a collection of engineering skills, lifecycle commands, and reviewer personas for AI coding agents. The suite is organized around one lifecycle — **Ideate → Spec → Plan → Implement → Verify → Review → Ship** — where the human owns Ideate/Spec/Plan and the agent runs Implement→Ship autonomously.
 
 There are three kinds of contribution: a **skill** (`skills/<name>/SKILL.md`), a **command** (`commands/<name>.md`), and a **persona** (`agents/<name>.md`). Pick the one that matches what you're adding, then follow the matching section.
+
+Prose in this repo follows one style guide — [`references/language-style.md`](references/language-style.md). Read it before your first writing edit.
 
 ## Naming convention
 
@@ -44,7 +46,7 @@ Every `SKILL.md` follows the same envelope:
 
 ### Quality bar
 
-Skills should be **specific** (actionable steps, not vague advice), **verifiable** (clear exit criteria with evidence requirements), **battle-tested** (real workflows), and **minimal** (only what the agent needs).
+Skills should be **specific** (actionable steps, not vague advice), **verifiable** (clear exit criteria with evidence requirements), **drawn from real workflows** (not invented ones), and **minimal** (only what the agent needs).
 
 ### No per-skill evals
 
@@ -99,7 +101,7 @@ Stages don't share memory — they hand off through **artifact files** with fixe
 | Spec | `prd.md`, `acceptance.md`, `environment.md` (+ ADRs, `CONTEXT.md`) |
 | Plan | `research.md`, `plan.md` |
 | Verify | `qa.md` |
-| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary) |
+| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/test-contract.md` (the repo's permanent cross-feature scenarios), `docs/session-state.md` (where the work stands + an append-only decision log) |
 
 Each stage reads the upstream artifact and writes the next, so a fresh agent can resume from the files alone. When you add or edit a skill/command, declare what it reads and writes in `## Outputs & handoff contract` using these exact filenames — never introduce a new artifact name for an existing contract file.
 

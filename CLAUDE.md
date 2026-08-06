@@ -17,8 +17,9 @@ the wrong skill runs and a stage gets skipped.
 skills/          → 38 skills, one discipline each (skills/<name>/SKILL.md)
 agents/          → 5 review personas (code-cold subagents)
 commands/        → 11 slash commands (*.md) — 9 lifecycle + 2 standalone
-references/      → shared checklists (testing, performance, security, …)
-docs/            → per-agent setup guides + workflow.md (this repo's own copy of the process contract)
+references/      → shared reference material: checklists (testing, performance, security, …) and
+                   language-style.md, the prose style guide for everything this repo ships
+docs/            → per-agent setup guides + workflow.md and test-contract.md (this repo's own copies)
 .claude-plugin/  → plugin.json + marketplace.json (install manifests)
 ```
 
@@ -99,6 +100,7 @@ rename headings. References live in `references/`, never inside a skill director
 - Use the **new** skill names everywhere (e.g. `performance-optimization`, not `perf`; `quality-verification`,
   not `qa`). Artifact filenames (`qa.md`, `acceptance.md`, `environment.md`, …) and the `git` VCS tool keep
   their names — they are not skill pointers.
+- Write prose to [references/language-style.md](./references/language-style.md). It states its own scope.
 
 ## Boundaries
 
