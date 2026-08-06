@@ -52,7 +52,8 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 - `idea-refine` — refine the idea (divergent/convergent + "Not Doing")
 
 **Spec**
-- `spec-grilling` — design the product from intent → ADRs + CONTEXT.md
+- `codebase-research` — head of Spec: goal-blind parallel map of the codebase/DB as-is → research.md
+- `spec-grilling` — design the product from intent + the survey → ADRs + CONTEXT.md (refuses without research.md)
 - `to-prd` — light dual-audience PRD referencing ADRs
 - `frontend-design` — explore UI variants → commit prototype + design contract
 - `acceptance-criteria` — BDD prose contract (Given/When/Then), signed
@@ -60,8 +61,7 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 - `spec-review` — fresh code-cold agent fixes the spec before the user reviews
 
 **Plan**
-- `codebase-research` — goal-blind parallel map of the codebase/DB as-is
-- `plan-breakdown` — the planner: concrete plan → vertical slices + dependency DAG
+- `plan-breakdown` — the planner: concrete plan → vertical slices + dependency DAG; reads Spec's research.md
 - `codebase-design` — deep-module interfaces (deletion test)
 - `api-design` — contract-first interface
 
@@ -185,8 +185,8 @@ mapping is the same:
 | Command | Invokes (skill) | Copilot equivalent |
 |---|---|---|
 | /ideate | interview-me, then idea-refine | paste the skill into chat for the framing pass |
-| /spec | spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) | paste skill content for the design pass |
-| /plan | plan-breakdown (+ codebase-research first) | paste skill content for the planning pass |
+| /spec | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) | paste skill content for the survey, then the design pass |
+| /plan | plan-breakdown (reuses Spec's research.md) | paste skill content for the planning pass |
 | /implement | incremental-implementation (applies test-driven-development) | follow the slice workflow in chat |
 | /verify | quality-verification | `@test-engineer` |
 | /review | code-review (+ code-simplification, security-and-hardening, performance-optimization) | `@code-reviewer`, `@security-auditor`, `@performance-auditor` |

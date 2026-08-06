@@ -83,7 +83,8 @@ Add these as persistent context for every session:
 Install these as skills so they activate only when relevant:
 
 - `test-driven-development` — Activates when implementing logic or fixing bugs
-- `spec-grilling` — Activates when designing a new product or feature
+- `codebase-research` — Activates at the head of Spec, before any design decision → research.md
+- `spec-grilling` — Activates when designing a new product or feature, after the survey (it refuses without research.md)
 - `frontend-design` — Activates when building UI
 - `security-and-hardening` — Activates during security reviews
 - `performance-optimization` — Activates during performance work
@@ -139,8 +140,8 @@ required.
 | Command | Invokes | What it does |
 |---------|---------|--------------|
 | `/ideate` | interview-me, then idea-refine | Front door for a fresh idea → `intent.md` |
-| `/spec` | spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) | Design the product → ADRs + `CONTEXT.md` |
-| `/plan` | plan-breakdown (+ codebase-research first) | Concrete plan → vertical slices + dependency DAG |
+| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) | Survey the code as-is → `research.md`, then design the product → ADRs + `CONTEXT.md` |
+| `/plan` | plan-breakdown (reuses Spec's research.md) | Concrete plan → vertical slices + dependency DAG |
 | `/implement` | incremental-implementation (applies test-driven-development) | Build one thin vertical slice |
 | `/verify` | quality-verification | Fresh code-cold proof a slice works |
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization as fan-out) | Quality gate before merge |

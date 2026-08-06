@@ -45,14 +45,17 @@ Task arrives
     │
     ├── Don't know what you want yet? ─────────→ interview-me     (Ideate · optional front door → intent.md)
     ├── Have a rough idea, need variants? ─────→ idea-refine      (Ideate → intent.md)
-    ├── New feature, need the design? ─────────→ spec-grilling    (Spec → ADRs + CONTEXT.md)
+    ├── New feature, need the design? ─────────→ codebase-research, then spec-grilling     (Spec · in that order)
+    │   ├── Survey the code as it is today? ───→ codebase-research         (Spec · head → research.md · goal-blind)
+    │   ├── Survey done, decide the design? ───→ spec-grilling    (Spec → ADRs + CONTEXT.md · refuses without research.md)
     │   ├── Need the product PRD? ─────────────→ to-prd           (Spec → prd.md)
     │   ├── UI work? ──────────────────────────→ frontend-design  (Spec → prototype + signed design contract)
     │   ├── Need the behavioral contract? ─────→ acceptance-criteria       (Spec → acceptance.md, behavioral-only)
     │   ├── Capture env needs? ────────────────→ environment-manifest      (Spec/Plan → environment.md)
     │   └── Spec done, fix before review? ─────→ spec-review      (Spec → fixed spec + spec-review.md)
     ├── Signed spec, need a plan? ─────────────→ plan-breakdown   (Plan · THE planner → plan.md + slices + DAG)
-    │   ├── Map the codebase first? ───────────→ codebase-research         (Plan → research.md)
+    │   ├── Need codebase facts? ──────────────→ reuse Spec's research.md; re-run codebase-research only
+    │   │                                        against a gap you can name in one sentence
     │   ├── Deep-module interfaces? ───────────→ codebase-design  (referenced during planning → plan.md)
     │   └── Contract-first API? ───────────────→ api-design       (referenced during planning → plan.md)
     ├── Implementing a slice? ─────────────────→ incremental-implementation        (Implement · THE implementer → diff)
@@ -91,9 +94,9 @@ subagents in parallel on independent axes (maker≠checker) — never as role-pl
 
 2. **Skills are workflows, not suggestions.** Follow the steps in order. Don't skip verification steps.
 
-3. **Multiple skills can apply.** A feature implementation might involve `idea-refine` → `spec-grilling` → `plan-breakdown` → `incremental-implementation` → `test-driven-development` → `code-review` → `code-simplification` → `shipping-and-launch` in sequence.
+3. **Multiple skills can apply.** A feature implementation might involve `idea-refine` → `codebase-research` → `spec-grilling` → `plan-breakdown` → `incremental-implementation` → `test-driven-development` → `code-review` → `code-simplification` → `shipping-and-launch` in sequence.
 
-4. **When in doubt, start with a spec.** If the task is non-trivial and there's no spec, begin with `spec-grilling`.
+4. **When in doubt, start with a spec — and a spec starts with the survey.** If the task is non-trivial and there's no spec, begin with `codebase-research`, then `spec-grilling`. Going straight to `spec-grilling` gets you refused: it will not decide a design against recollection, so it requires the `research.md` the survey writes.
 
 ## Core Operating Behaviors
 
@@ -180,7 +183,7 @@ The loop is **Ideate → Spec → Plan → Implement → Verify → Review → S
 
 Artifact chain (each stage emits what the next consumes cold):
 ```
-intent.md → prd.md (+ ADRs/CONTEXT.md) → acceptance.md → environment.md → research.md
+intent.md → research.md → prd.md (+ ADRs/CONTEXT.md) → acceptance.md → environment.md
           → plan.md + slices + DAG → [implement → qa.md → review → pr → draft PR]
 ```
 `STATE.md` (root) is the two-level board (feature state · slice state · gate) indexing every feature under
@@ -198,14 +201,14 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Cross-cut | handoff | per-session compaction to a fresh-agent doc |
 | Ideate | interview-me | optional front door: surface what the user actually wants → intent.md |
 | Ideate | idea-refine | divergent/convergent refinement + "Not Doing"; shares intent.md |
-| Spec | spec-grilling | how to design the product; ADRs + CONTEXT.md (no prd.md) |
+| Spec | codebase-research | goal-blind map of the codebase/DB as-is → research.md; runs at the head of Spec, and Plan reuses it |
+| Spec | spec-grilling | how to design the product; ADRs + CONTEXT.md (no prd.md) — refuses without research.md |
 | Spec | to-prd | light dual-audience PRD; references ADRs by id → prd.md |
 | Spec | frontend-design | the one UI skill: throwaway variants → committed prototype + design contract |
 | Spec | acceptance-criteria | behavioral-only Given/When/Then contract → acceptance.md |
 | Spec | environment-manifest | typed-kind manifest (no values, no commands) → environment.md |
 | Spec | spec-review | fresh code-cold agent fixes the spec before the human reviews |
-| Plan | codebase-research | goal-blind map of the codebase/DB as-is → research.md |
-| Plan | plan-breakdown | THE planner: concrete plan → vertical slices + dependency DAG |
+| Plan | plan-breakdown | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's research.md |
 | Plan | codebase-design | referenced discipline: deep-module interfaces (deletion test) |
 | Plan | api-design | referenced discipline: contract-first interface |
 | Implement | incremental-implementation | THE implementer: one thin vertical slice, skeleton-first |
@@ -235,7 +238,11 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 Excuses that talk you out of dispatching correctly — each is a failure mode:
 
 - "This is obvious, I'll just start coding." → No spec ⇒ no acceptance.md ⇒ nothing for Verify to gate on.
-  Non-trivial work with no spec starts at `spec-grilling`.
+  Non-trivial work with no spec starts at `codebase-research`, then `spec-grilling`.
+- "spec-grilling refused for want of research.md, so I'm stuck." → You are one skill upstream of unstuck.
+  The survey is the head of Spec, not a Plan chore: run `codebase-research` against the signed `intent.md`,
+  then re-enter `spec-grilling`. A refusal names its missing artifact precisely so you can route to whoever
+  emits it — that is the dispatch move, not a dead end.
 - "I already know which skill, I won't check STATE.md." → You skip the gate column and may run an agent-owned
   skill on a slice the human still owns. Read STATE.md.
 - "I'll fold Verify into Implement to save a step." → quality-verification is a fresh code-cold maker≠checker gate; collapsing

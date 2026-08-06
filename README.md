@@ -64,8 +64,8 @@ Eleven slash commands: one per lifecycle stage plus the autonomous runner and th
 | Command | What you're doing | Invokes |
 |---|---|---|
 | `/ideate` | Front-door a fresh idea → `intent.md` | interview-me, then idea-refine |
-| `/spec` | Design the product: ADRs, PRD, acceptance, environment, UI | spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) |
-| `/plan` | Concrete plan → vertical slices + dependency DAG | plan-breakdown (+ codebase-research first) |
+| `/spec` | Survey the code as-is, then design the product: ADRs, PRD, acceptance, environment, UI | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) |
+| `/plan` | Concrete plan → vertical slices + dependency DAG | plan-breakdown (reuses Spec's research.md) |
 | `/implement` | One thin vertical slice, skeleton-first, test-driven | incremental-implementation (applies test-driven-development) |
 | `/verify` | Fresh code-cold proof a slice meets acceptance | quality-verification |
 | `/review` | Quality gate before merge (parallel fan-out) | code-review (+ code-simplification, security-and-hardening, performance-optimization) |
@@ -206,7 +206,8 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 
 | Skill | Responsibility |
 |---|---|
-| [spec-grilling](./skills/spec-grilling/SKILL.md) | Design the product from intent → ADRs + `CONTEXT.md` glossary; a blind-spot pass surfaces decisions you haven't considered |
+| [codebase-research](./skills/codebase-research/SKILL.md) | Head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md`, before any design decision |
+| [spec-grilling](./skills/spec-grilling/SKILL.md) | Design the product from intent + the survey → ADRs + `CONTEXT.md` glossary; refuses without `research.md`; a blind-spot pass surfaces decisions you haven't considered |
 | [to-prd](./skills/to-prd/SKILL.md) | Light dual-audience PRD at product altitude; references the ADRs |
 | [frontend-design](./skills/frontend-design/SKILL.md) | The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract |
 | [acceptance-criteria](./skills/acceptance-criteria/SKILL.md) | BDD prose contract (Given/When/Then), behavioral-only, signed |
@@ -217,8 +218,7 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 
 | Skill | Responsibility |
 |---|---|
-| [codebase-research](./skills/codebase-research/SKILL.md) | Goal-blind parallel map of the codebase/DB as-is |
-| [plan-breakdown](./skills/plan-breakdown/SKILL.md) | THE planner: concrete plan → vertical slices + dependency DAG |
+| [plan-breakdown](./skills/plan-breakdown/SKILL.md) | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's `research.md` (re-survey only against a named gap) |
 | [codebase-design](./skills/codebase-design/SKILL.md) | Referenced discipline: deep-module interfaces (the deletion test) |
 | [api-design](./skills/api-design/SKILL.md) | Referenced discipline: contract-first interface design |
 

@@ -83,8 +83,8 @@ OpenCode does not require slash commands like `/spec` or `/plan`. The same lifec
 | Stage | Command equivalent | Skills the agent invokes |
 |---|---|---|
 | IDEATE | `/ideate` | `interview-me`, then `idea-refine` |
-| SPEC | `/spec` | `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) |
-| PLAN | `/plan` | `plan-breakdown` (after `codebase-research`; references `codebase-design`, `api-design`) |
+| SPEC | `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) |
+| PLAN | `/plan` | `plan-breakdown` (reuses Spec's `research.md`; references `codebase-design`, `api-design`) |
 | IMPLEMENT | `/implement` | `incremental-implementation` (applies `test-driven-development`; `source-driven-development` for framework calls; `worktree` for isolation) |
 | VERIFY | `/verify` | `quality-verification` (drives `browser-testing-with-devtools`; `debugging-and-error-recovery` on failure) |
 | REVIEW | `/review` | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization` fan-out; `doubt-driven-development` in-flight) |
@@ -124,7 +124,7 @@ Add authentication to this app
 
 Agent behavior:
 - Detects feature work
-- Invokes `spec-grilling` to design the product, producing the signed spec (`acceptance.md`, `environment.md`, ADRs)
+- Runs `codebase-research` to map the code as it is today (`research.md`), then invokes `spec-grilling` to design the product against it, producing the signed spec (`acceptance.md`, `environment.md`, ADRs)
 - Moves to `plan-breakdown` for vertical slices + dependency DAG
 - Implements with `incremental-implementation` + `test-driven-development`
 

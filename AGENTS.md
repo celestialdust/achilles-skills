@@ -81,7 +81,7 @@ follow its Process section as written before producing output.
 |---|---|
 | Frame a fresh or vague idea; "interview me" / "grill me" | `interview-me` |
 | Explore / refine an idea (divergent → convergent, scope, "Not Doing") | `idea-refine` |
-| Design the product, lock decisions, write the glossary | `spec-grilling` |
+| Design the product, lock decisions, write the glossary | `spec-grilling` (after `codebase-research`) |
 | Write a PRD | `to-prd` |
 | Design or reshape UI / visual / frontend work | `frontend-design` |
 | Define acceptance criteria / BDD / Given-When-Then | `acceptance-criteria` |
@@ -137,8 +137,8 @@ human-owned; the rest run autonomously.
 
 | Macro phase | Native stage(s) | Owner | Skills (NEW names) |
 |---|---|---|---|
-| **DEFINE** | Ideate + Spec | human | `interview-me`, `idea-refine`; `spec-grilling`, `to-prd`, `frontend-design`, `acceptance-criteria`, `environment-manifest`, `spec-review` |
-| **PLAN** | Plan | human | `codebase-research` (run first), `plan-breakdown`, `codebase-design`, `api-design` |
+| **DEFINE** | Ideate + Spec | human | `interview-me`, `idea-refine`; then `codebase-research` (head of Spec), `spec-grilling`, `to-prd`, `frontend-design`, `acceptance-criteria`, `environment-manifest`, `spec-review` |
+| **PLAN** | Plan | human | `plan-breakdown` (reuses Spec's `research.md`), `codebase-design`, `api-design`; re-run `codebase-research` only against a gap you name |
 | **BUILD** | Implement | agent | `incremental-implementation`, `test-driven-development`, `source-driven-development`, `worktree` |
 | **VERIFY** | Verify | agent | `quality-verification`, `browser-testing-with-devtools`, `debugging-and-error-recovery` |
 | **REVIEW** | Review | agent (parallel fan-out) | `code-review`, `code-simplification`, `security-and-hardening`, `performance-optimization`, `doubt-driven-development` |
@@ -151,9 +151,10 @@ human-owned; the rest run autonomously.
 
 Treat each macro phase as the trigger to invoke the stage's lead skill, instead of waiting for a `/command`:
 
-- DEFINE → `interview-me` / `idea-refine`, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`,
-  `environment-manifest`, `frontend-design`, `spec-review`)
-- PLAN → `plan-breakdown` (after `codebase-research`)
+- DEFINE → `interview-me` / `idea-refine`, then `codebase-research` (the goal-blind survey that opens Spec),
+  then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`,
+  `spec-review`) — `spec-grilling` refuses without the survey's `research.md`
+- PLAN → `plan-breakdown` (reuses the `research.md` Spec already produced; re-survey only against a named gap)
 - BUILD → `incremental-implementation` (applies `test-driven-development`)
 - VERIFY → `quality-verification`
 - REVIEW → `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization` as a
@@ -180,8 +181,8 @@ intent contract.
 | Command | Invokes | Note |
 |---|---|---|
 | `/ideate` | `interview-me`, then `idea-refine` | front door for a fresh idea → `intent.md` |
-| `/spec` | `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) | design the product |
-| `/plan` | `plan-breakdown` (+ `codebase-research` first) | concrete plan → vertical slices + DAG |
+| `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) | survey the code as-is, then design the product against it |
+| `/plan` | `plan-breakdown` (reuses Spec's `research.md`) | concrete plan → vertical slices + DAG |
 | `/implement` | `incremental-implementation` (applies `test-driven-development`) | one thin slice; default single-slice |
 | `/verify` | `quality-verification` | fresh code-cold proof a slice works |
 | `/review` | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization` as fan-out) | quality gate before merge |

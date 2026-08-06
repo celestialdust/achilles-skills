@@ -78,7 +78,7 @@ Start with the `using-agent-skills` skill loaded. It's the meta-dispatcher: it m
 Load the meta-dispatcher plus three essential skills into your rules file:
 
 1. **using-agent-skills** — routes any task to the right skill + lifecycle stage
-2. **spec-grilling** — for defining what to build (design the product → ADRs + CONTEXT.md)
+2. **codebase-research → spec-grilling** — for defining what to build: survey the code as it is today (`research.md`), then design the product against it (ADRs + CONTEXT.md). `spec-grilling` refuses to run without the survey, so load the pair.
 3. **test-driven-development** — for proving it works (rigid RED-GREEN-REFACTOR)
 4. **code-review** — for verifying quality before merge (five-axis review)
 
@@ -90,10 +90,10 @@ For comprehensive coverage, load skills by stage:
 
 ```
 Ideate:     interview-me → idea-refine
-Spec:       spec-grilling → to-prd → acceptance-criteria → environment-manifest → spec-review
+Spec:       codebase-research → spec-grilling → to-prd → acceptance-criteria → environment-manifest → spec-review
             (frontend-design when there's UI)
-Plan:       codebase-research → plan-breakdown
-            (codebase-design, api-design as referenced disciplines)
+Plan:       plan-breakdown
+            (reuses Spec's research.md; codebase-design, api-design as referenced disciplines)
 Implement:  incremental-implementation + test-driven-development
             (source-driven-development, worktree)
 Verify:     quality-verification
@@ -157,8 +157,8 @@ The `commands/` directory contains nine TOML slash commands for Claude Code. Eac
 | Command | Skills invoked |
 |---------|----------------|
 | `/ideate` | interview-me, then idea-refine |
-| `/spec` | spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) |
-| `/plan` | plan-breakdown (+ codebase-research first) |
+| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) |
+| `/plan` | plan-breakdown (reuses Spec's research.md) |
 | `/implement` | incremental-implementation (applies test-driven-development) |
 | `/verify` | quality-verification |
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization as fan-out) |
@@ -193,8 +193,8 @@ The lifecycle commands create working artifacts as the agent moves through the s
 |-------|-------------|-------------|
 | Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/` | project-setup |
 | Ideate | `intent.md` | interview-me, idea-refine |
-| Spec | `prd.md`, `acceptance.md`, `environment.md` (+ ADRs) | to-prd, acceptance-criteria, environment-manifest, spec-grilling |
-| Plan | `research.md`, `plan.md` | codebase-research, plan-breakdown |
+| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md` (+ ADRs) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest |
+| Plan | `plan.md` | plan-breakdown (reads Spec's `research.md`) |
 | Verify | `qa.md` | quality-verification |
 
 - Keep them in version control during development so the human and the agent share one source of truth.

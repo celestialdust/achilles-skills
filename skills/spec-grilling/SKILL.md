@@ -39,7 +39,7 @@ the head of Spec. **Refuse to run without it**, and name what is missing rather 
 
 The blind-spot pass in step 1 scans territory; a survey is what makes that territory visible. Deciding
 first and surveying afterwards produces ADRs written against whatever the grilling agent happened to open,
-and an ADR is the hardest artifact in the chain to revise (ADR-028). Read its `## Codebase map` and
+and an ADR is the hardest artifact in the chain to revise. Read its `## Codebase map` and
 `## Open items for Plan` before your first question.
 
 **REQUIRED — the intent.** Refuse to run only if BOTH are absent:

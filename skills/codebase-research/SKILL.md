@@ -27,7 +27,7 @@ Why this is its own **goal-blind** stage (three first-principles reasons):
 3. **Focus without contamination.** The sanitized problem statement supplies scope; the prd's Solution /
    Implementation sections and every design substrate (ADRs, design.md, acceptance.md) are fenced out so
    the map stays objective. At the head of Spec that fence has nothing to hold back — none of those
-   documents exist yet — so the blindness comes from the ordering rather than from discipline (ADR-028).
+   documents exist yet — so the blindness comes from the ordering rather than from discipline.
 
 ## When to use / when to skip
 
@@ -40,7 +40,7 @@ survey did not cover it, and keep that statement with the work. Plan legitimatel
 reason to record: existing test seams, module boundaries, the exact prior art a slice will extend — a real
 gap names itself in one sentence. A repeat survey that names no gap is refused; `plan-breakdown` reads the
 `research.md` that already exists. Without that clause "run it again" quietly becomes the default and the
-suite is back to surveying the same repository twice (ADR-028).
+suite is back to surveying the same repository twice.
 
 **Skip** only a true greenfield repo with no relevant prior code — write `## Prior art in the codebase`
 as `_none_ — greenfield` and let `spec-grilling` proceed. Do **not** skip because the change "looks
@@ -71,7 +71,7 @@ assemble, and the goal-contamination you split this stage out to prevent comes r
 **At the head of Spec that fence is empty by construction.** There is no ADR, no prd `## Solution`, no
 signed acceptance contract to fence off — they have not been written yet — so goal-blindness here is
 structural rather than maintained. The fence earns its keep on a Plan-stage second pass, when all of that
-substrate is real and you are working next to it (ADR-028).
+substrate is real and you are working next to it.
 
 ## Process
 

@@ -93,8 +93,8 @@ Cascade which underlying skill(s) to apply:
 | Workflow (`/name`) | achilles-skills command | Underlying skills to reference |
 |---|---|---|
 | `/ideate` | /ideate | interview-me, then idea-refine |
-| `/spec` | /spec | spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) |
-| `/plan` | /plan | plan-breakdown (+ codebase-research first) |
+| `/spec` | /spec | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) |
+| `/plan` | /plan | plan-breakdown (reuses Spec's research.md) |
 | `/implement` | /implement | incremental-implementation (applies test-driven-development) |
 | `/verify` | /verify | quality-verification |
 | `/review` | /review | code-review (+ code-simplification, security-and-hardening, performance-optimization as a fan-out) |
@@ -147,9 +147,9 @@ Pick the skills that match your current phase rather than loading all 36 at once
 
 **Ideate (human-led)** — interview-me · idea-refine
 
-**Spec (human-led)** — spec-grilling · to-prd · frontend-design · acceptance-criteria · environment-manifest · spec-review
+**Spec (human-led)** — codebase-research (first) · spec-grilling · to-prd · frontend-design · acceptance-criteria · environment-manifest · spec-review
 
-**Plan (human-led)** — codebase-research · plan-breakdown · codebase-design · api-design
+**Plan (human-led)** — plan-breakdown · codebase-design · api-design (reuses Spec's research.md)
 
 **Implement (agent)** — incremental-implementation · test-driven-development · source-driven-development · worktree
 

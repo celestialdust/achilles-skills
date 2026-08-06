@@ -88,7 +88,8 @@ the name in these tables.
 
 | Skill | Responsibility |
 |---|---|
-| `spec-grilling` | design the product from intent → ADRs + CONTEXT.md |
+| `codebase-research` | head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md` |
+| `spec-grilling` | design the product from intent + the survey → ADRs + CONTEXT.md (refuses without `research.md`) |
 | `to-prd` | light dual-audience PRD (product-altitude; references ADRs) |
 | `frontend-design` | the one UI skill: explore variants → commit prototype + design contract |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
@@ -99,8 +100,7 @@ the name in these tables.
 
 | Skill | Responsibility |
 |---|---|
-| `codebase-research` | goal-blind parallel map of the codebase/DB as-is |
-| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG |
+| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's `research.md` |
 | `codebase-design` | referenced discipline: deep-module interfaces (deletion test) |
 | `api-design` | referenced discipline: contract-first interface |
 
@@ -158,8 +158,8 @@ Add these three to `.cursor/rules/` — they carry the inner Implement → Verif
 Add a rule file when you enter its stage, then remove it when done to manage context limits:
 
 - **Ideate** → `interview-me.md`, `idea-refine.md`
-- **Spec** → `spec-grilling.md`, `to-prd.md`, `acceptance-criteria.md`, `environment-manifest.md`, `frontend-design.md`, `spec-review.md`
-- **Plan** → `codebase-research.md`, `plan-breakdown.md`, `codebase-design.md`, `api-design.md`
+- **Spec** → `codebase-research.md` (first), `spec-grilling.md`, `to-prd.md`, `acceptance-criteria.md`, `environment-manifest.md`, `frontend-design.md`, `spec-review.md`
+- **Plan** → `plan-breakdown.md`, `codebase-design.md`, `api-design.md` (re-add `codebase-research.md` only to survey a named gap)
 - **Implement** → `source-driven-development.md`, `worktree.md` (plus the essentials above)
 - **Verify** → `quality-verification.md`, `browser-testing-with-devtools.md`, `debugging-and-error-recovery.md`
 - **Review** → `code-simplification.md`, `security-and-hardening.md`, `performance-optimization.md`, `doubt-driven-development.md`
@@ -177,8 +177,8 @@ command by loading the rule files it bundles and asking Cursor to run that stage
 | Command | Load these rules into `.cursor/rules/` | Then ask Cursor to… |
 |---|---|---|
 | `/ideate` | `interview-me`, `idea-refine` | brainstorm and frame the idea → `intent.md` |
-| `/spec` | `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) | design the product from intent |
-| `/plan` | `plan-breakdown` (+ `codebase-research` first) | produce a concrete plan → vertical slices + DAG |
+| `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) | survey the code as-is, then design the product against it |
+| `/plan` | `plan-breakdown` (reuses Spec's `research.md`) | produce a concrete plan → vertical slices + DAG |
 | `/implement` | `incremental-implementation` (applies `test-driven-development`) | build one thin slice (default single-slice) |
 | `/verify` | `quality-verification` | prove a finished slice meets `acceptance.md`, code-cold |
 | `/review` | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization` as fan-out) | run the quality gate before merge |

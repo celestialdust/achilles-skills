@@ -245,7 +245,7 @@ you still have the feature in view: you are the only party who knows which slice
 contract is per-feature while slices are per-slice, so one contract covers some slices and not others.
 A `—` means **this slice builds no UI**. That `—` is a *recorded fact*, not an inference an agent makes later
 about work it did not do — the builder is handed the artifact it will be graded against, and the verifier is
-told which case it got instead of guessing from the diff. See ADR-017.
+told which case it got instead of guessing from the diff.
 
 ### Slice PWR-1 — [user-facing capability]
 **Step 1 — [what this step does]**
@@ -311,7 +311,7 @@ Before starting implementation, confirm:
 - [ ] Every slice spans ≥2 layers and ends at an **observable** Checkpoint (not "compiles").
 - [ ] Slice ids are PRD-namespaced, the `Blocked-by` DAG is **acyclic**, and one row per slice is written to `STATE.md`.
 - [ ] Every slice row's `Design ref` is filled — a contract + prototype path, or a deliberate `—`. A blank cell
-      is not the same as `—`: `—` says "no UI here, I checked", blank says nobody looked (ADR-017).
+      is not the same as `—`: `—` says "no UI here, I checked", blank says nobody looked.
 - [ ] Each hard-to-reverse interface/boundary decision is captured as an ADR and referenced by id from plan.md.
 
 ## See Also
@@ -333,7 +333,8 @@ update the consumer in the same commit:**
   **Files (owned, disjoint)** (cross-layer; the disjoint-file guard the orchestrator parallelizes on) ·
   **Regression surface** (blast-radius set, frozen under retry) · Checkpoint (observable) · Blocked-by.
   The orchestrator reads `Blocked-by` as the wave DAG, `Files (owned)` for the disjoint-file guard,
-  `Design ref` to carry into **both** the implement and verify dispatch briefs (ADR-017), and
+  `Design ref` to carry into **both** the implement and verify dispatch briefs (the verifier is code-cold
+  and may not open `plan.md`, so dispatch is the only channel that reaches it), and
   `Regression surface` as the immutable-under-retry contract `incremental-implementation`/`test-driven-development`/`quality-verification`/`git-workflow` consume.
 - **Per-step `file` · `lines` · `snippet` · `test`** on every non-trivial step. `incremental-implementation` pulls these
   step-by-step and treats a missing field as **refuse-to-run**.

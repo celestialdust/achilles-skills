@@ -20,6 +20,7 @@ commands/        → 11 slash commands (*.md) — 9 lifecycle + 2 standalone
 references/      → shared checklists (testing, performance, security, …)
 docs/            → per-agent setup guides
 .claude-plugin/  → plugin.json + marketplace.json (install manifests)
+plugin.json      → legacy root manifest; .claude-plugin/plugin.json is authoritative (version lives there)
 ```
 
 ## The 11 commands → which skill they run
@@ -30,8 +31,8 @@ last two are standalone and belong to no stage.
 | Command | Runs | Owner |
 |---|---|---|
 | `/ideate` | interview-me, then idea-refine | human |
-| `/spec` | spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) | human |
-| `/plan` | plan-breakdown (+ codebase-research first) | human |
+| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) | human |
+| `/plan` | plan-breakdown — reuses /spec's research.md; re-surveys only against a named gap | human |
 | `/implement` | incremental-implementation (applies test-driven-development) | agent |
 | `/verify` | quality-verification | agent |
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization fan-out) | agent |
@@ -68,18 +69,6 @@ Every SKILL.md uses two-key frontmatter (`name` + `description` only) and these 
 `## Rationalizations` · `## Red flags` · `## Verification (ending criteria)` · `## Outputs & handoff
 contract`. Chassis skills keep their native `## Overview` / `## The Process` headings verbatim — do not
 rename headings. References live in `references/`, never inside a skill directory.
-
-## Substrate — detected, not required
-
-The substrate is the repo-local memory layer the skills read beneath themselves. It lives in the
-**consumer** repo (an `.achilles/` directory plus the board and artifact chain `project-setup`
-scaffolds there) — never in this one. **A repo with no `.achilles/` gets v1 behaviour, unbroken:** no
-skill refuses to run for its absence, and every stage works exactly as it did before.
-
-Where the rules live — this file indexes them, it does not restate them:
-- **Per-stage rules** → the matched `skills/<name>/SKILL.md`. That file is authoritative.
-- **Suite-wide rules** → the envelope above, plus Safety & autonomy, Conventions, and Boundaries below.
-- **Shared checklists** → `references/`.
 
 ## Safety & autonomy rules (must-follow)
 

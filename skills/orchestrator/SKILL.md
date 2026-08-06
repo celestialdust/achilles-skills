@@ -75,7 +75,7 @@ contract paths, not the session history.
    the implementer must open the prototype before it builds, and the verifier is code-cold — it may
    not read `plan.md`, so anything left only in the plan never arrives. A `—` is delivered
    explicitly **as `—`**, not omitted: it tells the verifier this slice builds no UI, rather than
-   leaving it to infer that from work it did not do. ADR-017.
+   leaving it to infer that from work it did not do.
 6. **Verify barrier.** Wait for every ready slice to reach `verify` green **or** a terminal state
    (a slice that halts at Verify never enters the review). This barrier is what lets the next step
    review the wave as one changeset instead of N.
@@ -253,7 +253,7 @@ AND the slice sits as an OPEN risk-banded PR (a DRAFT promoted by a code-cold ve
 - **Dispatch briefs** — each slice's brief carries the slice id, its frozen contract paths, and the
   slice row's **`Design ref`** verbatim, to **both** the implementer and the code-cold verifier. `—`
   is emitted as `—`, never dropped; a dropped `—` reads as "unknown" and puts the UI judgement back
-  in the verifier's hands (ADR-017).
+  in the verifier's hands.
 - **Progress ledger** updated per terminal slice (`Slice <id>: terminal=<state> (commits
   <base7>..<head7>, PR #<n>)`), so a compacted controller never re-dispatches completed work.
 - **Inverted risk report** appended at run terminal, alongside the halts.

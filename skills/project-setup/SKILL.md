@@ -169,7 +169,7 @@ origin:  prd.md · acceptance.md · plan.md
 
 `Design ref` holds the signed design contract + prototype the slice builds against, or `—` for a slice that
 builds no UI. The orchestrator copies it into both the implement and the verify dispatch brief, so a `—` has
-to be recorded rather than left blank — blank reads as "nobody looked" (ADR-017).
+to be recorded rather than left blank — blank reads as "nobody looked".
 ```
 
 ## CONTEXT.md seed
@@ -230,7 +230,7 @@ Done when **all** hold:
   blocked · halted`, `gate: you · agent · done`. No feature blocks.
 - The commented example slice header carries the full column list in order —
   `| Slice | Title | Design ref | State | Gate | Blocked by | Artifacts |` — so the rows `plan-breakdown`
-  writes later land in a board shape the orchestrator can read (ADR-017).
+  writes later land in a board shape the orchestrator can read.
 - `CONTEXT.md` (or `CONTEXT-MAP.md` for multi-context) exists at the repo root.
 - `CONTEXT.md` contains a `## Glossary` heading (for multi-context, each per-context `CONTEXT.md` does).
 - `docs/adr/` and `docs/features/` directories exist.

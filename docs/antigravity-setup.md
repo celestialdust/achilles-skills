@@ -50,8 +50,8 @@ The plugin registers 9 lifecycle slash commands — one per stage of the **Ideat
 | Command | What it does | Activated Skill(s) |
 |---------|--------------|--------------------|
 | `/ideate` | Brainstorm and frame a fresh idea into `intent.md` | `interview-me`, then `idea-refine` |
-| `/spec` | Design the product: grill the intent into ADRs, a PRD, and the behavioral + environment contracts | `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) |
-| `/plan` | Turn the spec into a concrete plan — vertical slices + dependency DAG | `plan-breakdown` (runs `codebase-research` first) |
+| `/spec` | Survey the code as-is, then design the product: grill the intent into ADRs, a PRD, and the behavioral + environment contracts | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) |
+| `/plan` | Turn the spec into a concrete plan — vertical slices + dependency DAG | `plan-breakdown` (reuses Spec's `research.md`) |
 | `/implement` | Build the next thin vertical slice, skeleton-first | `incremental-implementation` (applies `test-driven-development`) |
 | `/verify` | Prove a finished slice meets `acceptance.md`, code-cold | `quality-verification` |
 | `/review` | Quality gate before merge: five-axis review with a parallel fan-out | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization`) |
@@ -94,7 +94,8 @@ The suite ships 36 skills, organized by lifecycle stage. Names are descriptive a
 
 | Skill | Responsibility |
 |---|---|
-| `spec-grilling` | design the product from intent → ADRs + CONTEXT.md |
+| `codebase-research` | head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md` |
+| `spec-grilling` | design the product from intent + the survey → ADRs + CONTEXT.md (refuses without `research.md`) |
 | `to-prd` | light dual-audience PRD (product-altitude; references ADRs) |
 | `frontend-design` | the one UI skill: explore variants → commit prototype + design contract |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
@@ -105,8 +106,7 @@ The suite ships 36 skills, organized by lifecycle stage. Names are descriptive a
 
 | Skill | Responsibility |
 |---|---|
-| `codebase-research` | goal-blind parallel map of the codebase/DB as-is |
-| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG |
+| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's `research.md` |
 | `codebase-design` | referenced discipline: deep-module interfaces (deletion test) |
 | `api-design` | referenced discipline: contract-first interface |
 
@@ -166,8 +166,8 @@ agy plugin validate /path/to/achilles-skills
 Antigravity CLI automatically discovers the `SKILL.md` files located in the `skills/` directory of the installed plugin. Using the trigger descriptions in each skill's frontmatter, the agent will dynamically activate the appropriate workflow when it detects matching developer intent.
 
 For example, when you ask the agent to:
-- **Design a new system** &rarr; It will suggest/activate `spec-grilling` (and pull in `to-prd`, `acceptance-criteria`, and `frontend-design`).
-- **Plan the work** &rarr; It will activate `plan-breakdown` after mapping the codebase with `codebase-research`.
+- **Design a new system** &rarr; It will map the codebase with `codebase-research` first, then activate `spec-grilling` (and pull in `to-prd`, `acceptance-criteria`, and `frontend-design`).
+- **Plan the work** &rarr; It will activate `plan-breakdown`, which reuses the `research.md` the Spec-stage survey already wrote.
 - **Implement a feature** &rarr; It will activate `incremental-implementation` and `test-driven-development`.
 - **Fix a bug** &rarr; It will activate `debugging-and-error-recovery`.
 - **Run the whole lifecycle autonomously** &rarr; It will activate `orchestrator` to execute the slice DAG wave-by-wave to open PRs.
