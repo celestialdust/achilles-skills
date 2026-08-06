@@ -57,7 +57,7 @@ The plugin registers 11 slash commands. Nine are lifecycle commands — one per 
 | `/review` | Quality gate before merge: five-axis review with a parallel fan-out | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization`) |
 | `/ship` | Release: pre-launch checklist, staged rollout, rollback | `shipping-and-launch` (+ `pull-request`) |
 | `/orchestrate` | Run the whole lifecycle autonomously as a wave-parallel DAG, to open PRs | `orchestrator` |
-| `/setup` | One-time repo ecosystem bootstrap: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/workflow.md` · the `## Agent skills` block | `project-setup` |
+| `/setup` | One-time repo ecosystem bootstrap: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · the `## Agent skills` block | `project-setup` |
 | `/explain` | Explain a piece of code or a system in prose — **standalone**, not a lifecycle stage | `literate-explainer` |
 | `/quiz` | Check comprehension of a change or codebase area — **standalone**, not a lifecycle stage | `comprehension-quiz` |
 
@@ -80,7 +80,7 @@ The suite ships 38 skills, organized by lifecycle stage. Names are descriptive a
 | Skill | Responsibility |
 |---|---|
 | `using-agent-skills` | meta-dispatcher: task → skill + lifecycle map |
-| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/workflow.md · the `## Agent skills` block |
+| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/test-contract.md · docs/workflow.md · docs/session-state.md · the `## Agent skills` block |
 | `orchestrator` | default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | `preflight-readiness` | env-readiness gate; blocks the wave until provisioned |
 | `handoff` | per-session compaction to a fresh-agent doc |
@@ -191,7 +191,7 @@ You can invoke these personas directly within your session or when delegating ta
 ## Configuration & Customization
 
 ### Project lifecycle state (`/setup`)
-`achilles-skills` carries its lifecycle discipline in the skills themselves; it does not ship a separate enforcement file. To bootstrap a consuming repo, run `/setup` (the `project-setup` skill) once. It seeds `STATE.md` and `CONTEXT.md` into your workspace root, creates `docs/adr/` and `docs/features/`, writes `docs/workflow.md` (the process contract — stages, gate owners, where a run ends, what stops one), and adds an `## Agent skills` block to your `CLAUDE.md` or `AGENTS.md` — the shared artifacts the later stages read and append to. If you want Antigravity to hard-enforce a gate such as "no code before a spec," add an `AGENTS.md` to your workspace root describing that rule; Antigravity reads it to align the agent's behavior and planning phase with your team's conventions.
+`achilles-skills` carries its lifecycle discipline in the skills themselves; it does not ship a separate enforcement file. To bootstrap a consuming repo, run `/setup` (the `project-setup` skill) once. It seeds `STATE.md` and `CONTEXT.md` into your workspace root, creates `docs/adr/` and `docs/features/`, writes `docs/test-contract.md` (the repo's permanent scenarios, seeded with no rows — only a person activates one, and activation is one-way), `docs/workflow.md` (the process contract — stages, gate owners, where a run ends, what stops one), and `docs/session-state.md` (where the work stands, plus an append-only log of decisions a resuming session reads first), and adds an `## Agent skills` block to your `CLAUDE.md` or `AGENTS.md` — the shared artifacts the later stages read and append to. If you want Antigravity to hard-enforce a gate such as "no code before a spec," add an `AGENTS.md` to your workspace root describing that rule; Antigravity reads it to align the agent's behavior and planning phase with your team's conventions.
 
 ### Sandbox Mode
 If you want to run skills or scripts with limited terminal permissions (for safety when running third-party validation tests), launch the CLI with:

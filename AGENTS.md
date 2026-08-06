@@ -112,7 +112,7 @@ follow its Process section as written before producing output.
 | Add structured logging, RED metrics, OTel tracing | `observability-and-instrumentation` |
 | Remove an old system, migrate users, sunset a feature | `deprecation-and-migration` |
 | Record an ADR / document the *why* | `documentation-and-adrs` |
-| One-time repo bootstrap (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/workflow.md, the `## Agent skills` block) | `project-setup` |
+| One-time repo bootstrap (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, the `## Agent skills` block) | `project-setup` |
 | Gate a parallel wave on environment readiness | `preflight-readiness` |
 | Run the autonomous wave-parallel DAG to open PRs | `orchestrator` |
 | Compact a session into a fresh-agent handoff doc | `handoff` |

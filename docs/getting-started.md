@@ -86,7 +86,7 @@ These cover the most critical quality gaps in AI-assisted development: an under-
 
 ### Full lifecycle
 
-For comprehensive coverage, load skills by stage:
+Load skills by stage:
 
 ```
 Ideate:     interview-me → idea-refine
@@ -193,7 +193,7 @@ The lifecycle commands create working artifacts as the agent moves through the s
 
 | Stage | Artifact(s) | Produced by |
 |-------|-------------|-------------|
-| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/workflow.md`, the `## Agent skills` block | project-setup |
+| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, the `## Agent skills` block | project-setup |
 | Ideate | `intent.md` | interview-me, idea-refine |
 | Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md` (+ ADRs) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest |
 | Plan | `plan.md` | plan-breakdown (reads Spec's `research.md`) |

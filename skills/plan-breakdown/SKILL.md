@@ -138,9 +138,13 @@ So do not write a checkpoint box that asks a person for permission to continue. 
 to honor it — it runs Implement → Verify → Review → Ship straight through to an open draft PR, and the
 human's two decision points are the plan signature before the run and the PR after it. Keep two claims
 apart here, because they are easy to collapse into one: a run never *waits* for an answer, but named
-conditions do *end* it early — a missing precondition, an unsigned contract, an attempted edit to a frozen
-artifact, a security Critical or High, exhausted retries. Stopping is something the run does on its own and
-reports; waiting is the thing it cannot do. So a "check with the human first" line is either dead text or
+conditions do *end* work early. Most of them end only the affected **slice** — an unsigned contract, an
+attempted edit to a frozen artifact, a check about to be weakened, a security Critical or High, exhausted
+retries — and the rest of the graph keeps draining. A few end the whole **run**: a precondition missing at
+run start, a cycle in the slice graph, gates failing at a rising rate across the run. `docs/workflow.md`
+lists every condition with an `Ends` column saying which; read it there rather than restating it here.
+Stopping is something the run does on its own and reports; waiting is the thing it cannot do. So a "check
+with the human first" line is either dead text or
 an instruction to deadlock. Whatever you wanted a human to look at, write it as a fact in the checkpoint
 instead: then it reaches the PR, where a human is actually reading.
 

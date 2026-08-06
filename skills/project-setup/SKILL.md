@@ -1,13 +1,15 @@
 ---
 name: project-setup
-description: Scaffolds the repo ecosystem every achilles skill assumes — a one-time bootstrap that creates the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, and docs/workflow.md (the process contract stating the stages, who owns each gate, where a run ends, and what stops one), and — when the repo has neither a CLAUDE.md nor an AGENTS.md and you opt to create CLAUDE.md — seeds it from a bundled behavioral template. Run this ONCE before the first feature, before interview-me or spec-grilling. The pipeline skills read these files cold and will have nowhere to write without it, so do this first.
+description: Scaffolds the repo ecosystem every achilles skill assumes — a one-time bootstrap that creates the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, docs/test-contract.md (an empty list of permanent, repo-wide test scenarios that only a human activates), docs/workflow.md (the process contract stating the stages, who owns each gate, where a run ends, and what stops one), and docs/session-state.md (where the work stands, plus an append-only log of decisions a resuming session reads before it starts), and — when the repo has neither a CLAUDE.md nor an AGENTS.md and you opt to create CLAUDE.md — seeds it from a bundled behavioral template. Run this ONCE before the first feature, before interview-me or spec-grilling. The pipeline skills read these files cold and will have nowhere to write without it, so do this first.
 ---
 
 ## Purpose
 
 Stage: **cross-cutting / setup** (one-time). Every downstream skill reads and writes a *shared substrate*:
 the `STATE.md` board (what's in flight + who owns the next action), the per-feature artifact directories,
-and the repo-wide design substrate (`CONTEXT.md` glossary + `docs/adr/`). If that substrate doesn't exist,
+the repo-wide design substrate (`CONTEXT.md` glossary + `docs/adr/`), the repo's permanent test
+contract (`docs/test-contract.md`), and the session state (`docs/session-state.md` — where the work
+stands, plus the append-only log of decisions a resuming session reads first). If that substrate doesn't exist,
 each skill has to re-derive "where do issues live / where's the glossary / where do ADRs go" — which is
 exactly the scattered-tracker problem this suite consolidates away (one local board, not mp's
 several issue queues). `project-setup` makes the substrate exist **once**, so the rest of the suite consumes it cold.
@@ -21,9 +23,11 @@ re-fires every wave; `project-setup` is the one-time repo bootstrap that runs be
 - **Use** once per repo, before the first feature — before `interview-me`, `idea-refine`, or `spec-grilling`.
 - **Skip** if `STATE.md` already exists at the repo root and the substrate is intact; you don't need to
   re-run per feature (the board is appended to by `plan-breakdown`, not re-scaffolded).
-- **Escape hatch — adopt, don't overwrite:** if the repo already has a `CONTEXT.md`, `docs/adr/`, or a
+- **Escape hatch — adopt, don't overwrite:** if the repo already has a `CONTEXT.md`, `docs/test-contract.md`,
+  `docs/session-state.md`, `docs/adr/`, or a
   `CLAUDE.md`/`AGENTS.md` with prior content, adopt them in place. Re-running `project-setup` repairs missing pieces;
-  it never clobbers existing user content.
+  it never clobbers existing user content. `docs/session-state.md` matters most here: its `## Log` is
+  append-only, so re-scaffolding over one would delete decisions nobody can recover.
 
 ## Inputs
 
@@ -33,7 +37,9 @@ reads the repo as-is to decide what already exists:
 - `git remote -v` / `.git/config` — is there a remote? (informational only; the tracker is local regardless.)
 - root `CLAUDE.md` and `AGENTS.md` — does either exist? Is there already an `## Agent skills` section?
 - root `CONTEXT.md` / `CONTEXT-MAP.md` — single- or multi-context already?
-- `docs/adr/`, `docs/features/`, `STATE.md` — does prior output already exist?
+- `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/session-state.md`, `STATE.md` — does prior
+  output already exist?
+- `.gitignore` — does any pattern in it match `docs/session-state.md`? That file has to be committed.
 
 ## Process
 
@@ -45,7 +51,10 @@ Look at the current repo to understand its starting state. Read whatever exists;
 - `CLAUDE.md` and `AGENTS.md` at the repo root — does either exist? Is there already an `## Agent skills` section?
 - `CONTEXT.md` and `CONTEXT-MAP.md` at the repo root — is a single- or multi-context layout already implied?
 - `docs/adr/` and any `src/*/docs/adr/` directories.
-- `docs/features/` and `STATE.md` — does this skill's prior output already exist?
+- `docs/features/`, `docs/test-contract.md`, `docs/session-state.md`, and `STATE.md` — does this skill's
+  prior output already exist?
+- `.gitignore` — is `docs/session-state.md` matched by anything in it? Its whole purpose is to survive
+  the session that wrote it, so an ignored copy dies on the next fresh clone.
 
 ### 2. Present findings and ask
 
@@ -82,6 +91,13 @@ Show the user a draft of everything before writing, and let them edit:
 
 - The `STATE.md` skeleton (the empty board with the legend; see "STATE.md seed" below).
 - The `CONTEXT.md` stub (glossary-only).
+- The `docs/test-contract.md` stub (no rows; see "test-contract.md seed" below). Say what it is for while
+  you show it: permanent scenarios the whole repo owes, each `PENDING` until *they* activate it. An empty
+  one costs nothing — every rule in it is a no-op until the first ACTIVE row exists.
+- The `docs/session-state.md` stub (empty fields, empty log; see "session-state.md seed" below). Say what
+  the two zones are for: the five fields are a snapshot of where the work stands, rewritten each time;
+  `## Log` is an append-only record of decisions — the reason, what was ruled out, what is still open —
+  that a resuming session reads before it starts. It is committed, so it survives the session that wrote it.
 - The bundled process contract (`assets/workflow.template.md`) that becomes `docs/workflow.md`. Show it —
   it states the stages, the gate owners, and the stop conditions on the repo's behalf — but copy it
   verbatim; it is one shared text, not a per-repo draft.
@@ -115,8 +131,8 @@ Then create the substrate (skip anything that already exists; never clobber). Th
 4. **`docs/features/`** — per-feature artifact root (`docs/features/<slug>/` holds intent.md, prd.md,
    acceptance.md, environment.md, plan.md per feature; seed a `.gitkeep`).
 5. The **`## Agent skills`** block in the chosen file (see below), pointing at `STATE.md`, `CONTEXT.md`,
-   `docs/adr/`, and `docs/workflow.md`. The domain-doc consumer rules carry over from
-   `references/domain-docs.md`.
+   `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, and `docs/session-state.md`. The domain-doc
+   consumer rules carry over from `references/domain-docs.md`.
 6. **`docs/workflow.md`** — the process contract, copied **verbatim** from the bundled
    `assets/workflow.template.md`: the stages, who owns each gate, where a run ends, what stops a run, what
    is frozen, and what never happens. It exists so a person can read the whole process from the repo's own
@@ -131,6 +147,20 @@ Then create the substrate (skip anything that already exists; never clobber). Th
    untouched and say plainly that it no longer matches the process the skills actually run, so they can
    decide later. Never overwrite it silently — asking first is what keeps the never-clobber rule whole
    while still giving drift a way to get fixed.
+7. **`docs/test-contract.md`** — the repo's list of permanent, cross-feature scenarios, seeded **with no
+   rows** (see "test-contract.md seed" below). Skip it if it already exists, exactly like `CONTEXT.md`:
+   this one is the user's content, not shared text, so existing means leave it alone. Seed no rows and
+   activate nothing — every row starts `PENDING`, and only a person ever moves one to `ACTIVE`. An empty
+   file changes nothing about how the repo runs; it is the place a permanent guarantee can land later.
+8. **`docs/session-state.md`** — where the work stands and why, seeded with **empty fields and an empty
+   log** (see "session-state.md seed" below). Skip it if it already exists — and here skipping is not a
+   courtesy, it is the only safe move: `## Log` is append-only, so overwriting one destroys decisions
+   that exist nowhere else. Seed no entries; entries are written by `handoff` as decisions get made.
+
+   **Check `.gitignore` and make sure nothing matches it.** This file is committed on purpose. Its whole
+   job is to outlive the session that wrote it, and an ignored copy dies on the next fresh clone — which
+   is precisely the case it exists for. If a pattern does match it, say so and ask before changing
+   `.gitignore`; that file is the user's.
 
 The `## Agent skills` block:
 
@@ -153,18 +183,46 @@ Single-context: `CONTEXT.md` + `docs/adr/` at the root. (Multi-context: `CONTEXT
 Each feature's intent.md / prd.md / acceptance.md / environment.md / plan.md live under
 `docs/features/<slug>/`.
 
+### Test contract
+`docs/test-contract.md` lists scenarios this repo must never lose, each `PENDING` or `ACTIVE`. An ACTIVE
+row may never be skipped, weakened, or narrowed — by any slice, in any run, ever. Activation is one-way
+and a human act; agents read this file and never edit it. An empty file enforces nothing.
+
 ### Process contract
 `docs/workflow.md` states how work ships here: the stages, who owns each gate, where a run ends, what
 stops one, what is frozen, and what never happens. Read it first — nothing has to be installed to read
 it. It is shared text copied verbatim, not a per-repo draft; do not edit it locally.
+
+### Session state and decision log
+`docs/session-state.md` has two zones. The five fields at the top are a snapshot of where the work
+stands, rewritten each time. `## Log` beneath them is an append-only record of decisions — the reason,
+what was ruled out, what is still open.
+
+**Read both before starting work**, at the top of every session, so a question the log already answers
+is not re-opened. `## Log` is append-only: earlier entries are never edited, re-ordered, or deleted, a
+wrong entry is corrected by a new entry naming it, and an attempt to change one is reported as a
+violation rather than quietly refused. Entries hold only what the git history cannot show — never which
+files changed. It is the weakest source here: a decision record under `docs/adr/` or a signed
+`acceptance.md` outranks it, and a decision that must bind future work is promoted to `docs/adr/`.
 ```
 
 ### 5. Done
 
 Tell the user setup is complete and which skills now read from these files (`spec-grilling` appends
 `CONTEXT.md` and writes `docs/adr/`; `interview-me`/`idea-refine` write `docs/features/<slug>/intent.md`;
-`plan-breakdown` adds feature blocks + slice rows to `STATE.md`; the orchestrator drives `STATE.md`).
-Mention that `STATE.md`, `CONTEXT.md`, and the per-feature docs are theirs to hand-edit later, but
+`plan-breakdown` adds feature blocks + slice rows to `STATE.md`; the orchestrator drives `STATE.md`;
+`test-driven-development` and `quality-verification` read `docs/test-contract.md` and enforce its ACTIVE
+rows; `handoff` writes `docs/session-state.md` and appends to its log). Say plainly that the test contract
+is empty on purpose and enforces nothing until they activate a
+row, that activating one is theirs to do and one-way, and that no agent will ever move a row in either
+direction.
+Say what `docs/session-state.md` is for too: the fields are a snapshot, the log is a record, and the log
+is append-only — nothing in it is ever edited or deleted, so it can be trusted as evidence rather than
+read as a status page. It is committed so it survives a fresh clone; leaving it out of version control
+defeats the file.
+Mention that `STATE.md`, `CONTEXT.md`, `docs/test-contract.md`, the five fields of `docs/session-state.md`,
+and the per-feature docs are theirs to hand-edit later — `## Log` being the exception, since correcting
+an entry there means appending a new one rather than changing the old one — but
 `docs/workflow.md` is shared text — editing it locally makes the repo describe a process it is not
 running. Re-running `project-setup` is only needed to repair, re-scaffold, or re-sync a `docs/workflow.md`
 that has drifted from the bundled contract.
@@ -214,7 +272,178 @@ One term per line: term — one-sentence definition. No implementation detail. -
 ```
 
 For multi-context, seed `CONTEXT-MAP.md` at the root plus one per-context `CONTEXT.md`, each carrying its
-own `## Glossary` heading.
+own `## Glossary` heading. One test contract serves the whole repo either way — permanent scenarios are
+repo-wide by definition, so multi-context does not split them.
+
+## test-contract.md seed
+
+Write this stub at `docs/test-contract.md` — no rows, nothing ACTIVE. The `## Rows` heading is the stable
+section a person appends to (canonical heading; do not rename). The explanatory sections are part of the
+seed, not decoration: a permanent guarantee is worth nothing if the next person to open the file cannot
+tell how to add one:
+
+````markdown
+# Test contract
+
+Scenarios this repository must never lose. Not one feature's behavior — the behavior that outlives every
+feature that touches it. "A password-reset link expires after an hour" belongs to the password-reset
+feature. "No response ever contains a password hash" belongs here.
+
+This file starts empty, and an empty one costs nothing: every rule below is a no-op until the first ACTIVE
+row exists.
+
+## The two states
+
+- **PENDING** — written down so it is not forgotten. Nothing enforces it.
+- **ACTIVE** — permanent. It may never be skipped, weakened, or narrowed. Not by a slice, not by a retry,
+  not by any run, ever.
+
+**Activation is a human act, and it is one-way.** A person moves a row PENDING -> ACTIVE when they decide
+the behavior is permanent. Nothing moves it back. The agent reads this file and never edits it.
+
+The one-way rule is the point. A guarantee the agent can switch off is not a guarantee — under retry
+pressure, switching it off is always the cheapest way to turn a failing gate green. If an ACTIVE row turns
+out to be wrong, that is fixed by a person outside any run.
+
+## How to add a row
+
+1. Write the scenario as Given/When/Then prose in a `### TC-<n>` block under `## Rows`, taking the next
+   free number. "Row format" below shows the shape.
+2. Set `state: PENDING`. Every row starts there, including one you are sure about.
+3. When a person decides it is permanent, they change `state:` to `ACTIVE` and record who activated it and
+   when. That line is the record of the human act; without it the row is not activated.
+
+Write observable outcomes only — what a user, a caller, or an attacker can see. No file paths, no
+signatures, no table or column names, no library names, no design tokens: a row naming a file path dies at
+the first refactor, and this row is meant to outlive every refactor. Keep ids stable and append rather than
+renumber — a halt names a row by id.
+
+## Row format
+
+**Only rows under `## Rows` are rows.** Nothing outside that section binds anything, including the shape
+below.
+
+```
+### TC-1 — <one line: the observable guarantee>    state: PENDING
+Given <the situation>
+When <what happens>
+Then <what must be observable>
+```
+
+An activated row is the same block with `state: ACTIVE` plus `activated: <date> by <person>` on that
+line — that field is the record of the human act. A row marked ACTIVE without it was activated by nobody
+and is treated as PENDING until a person adds their name. `quality-verification` checks the stamp every
+run: an unstamped row is not graded and never fails a slice, and it is reported in that slice's `qa.md` by
+row id so a person is told. Deleting or editing a stamp is editing the row's state, which stops the slice.
+
+## Rows
+
+<!-- Add rows here. Every row starts PENDING; only a person flips one to ACTIVE, and nothing flips it back. -->
+
+_None yet._
+
+## Boundary with acceptance.md
+
+| file | holds | lifetime |
+|---|---|---|
+| `docs/test-contract.md` | cross-feature scenarios that hold for the whole repo | forever, once ACTIVE |
+| `docs/features/<slug>/acceptance.md` | one feature's behavioral scenarios | re-signed when that feature's `prd.md` moves |
+
+A scenario belongs in exactly one of them, so the two can never contradict. The test is lifetime, not
+importance: if the scenario dies when the feature is deleted, it is a feature scenario; if it still has to
+hold afterwards, it belongs here. That is also why this cannot live inside `acceptance.md` — an
+`acceptance.md` is re-signed whenever its `prd.md` moves, so a permanent guarantee parked there is one
+product-spec edit away from being renegotiated. If a feature scenario would contradict an ACTIVE row, the
+ACTIVE row wins and the feature scenario is wrong; settle it at Spec, before any run.
+
+## When an ACTIVE row is touched
+
+Skipping, deleting, weakening, or narrowing an ACTIVE row to make a gate pass stops the slice: it halts,
+does not advance toward review, and the halt names the row id that changed. Naming it is the requirement —
+"gate erosion" alone tells nobody which guarantee was about to be traded away. This ends one slice, not the
+whole run; the other slices keep going.
+
+The next move is a person's, on that slice. Its `gate` flips from the agent to you and nothing further is
+attempted on it. Read the named row, decide whether the guarantee or the code is wrong, and settle it
+outside any run.
+
+Reporting a row **not reachable** is not weakening it. A slice that cannot construct a row's Given records
+the row id, the row stays ACTIVE and unproven, and it reaches a person through the acknowledgement line in
+the pull request. Nothing stopped being checked, so nothing halts.
+````
+
+`## Rows` ships **empty** — the `_None yet._` line and the comment are the whole section. The `TC-1` block
+belongs in the fenced example under `## Row format`, where the file says plainly that nothing binds. Put it
+under `## Rows` instead and a fresh repo opens with something that reads like a real guarantee somebody
+made. Never seed a real row, and never write `state: ACTIVE`: activation is theirs alone.
+
+## session-state.md seed
+
+Write this stub at `docs/session-state.md` — five empty fields and an empty log. The five field headings
+and `## Log` are the stable sections consumers depend on (canonical headings; do not rename). The
+explanation is part of the seed: an append-only file is only append-only if the next person to open it
+can tell that from the file:
+
+```markdown
+# Session state
+
+Where the work stands, and why. Two zones, and they are not the same kind of thing.
+
+The five fields below are a **snapshot** — overwritten every time this file is written, so only the
+latest version is true. `## Log` is a **record** — appended to, never edited, never deleted, so every
+entry stays true about the moment it was written.
+
+**Read both before starting work.** The fields say where things stand; the log says why, and which
+questions are already settled. A question the log answers does not get re-opened from zero.
+
+## Current objective
+
+## Current state
+
+## Remaining issues
+
+## Boundaries
+
+## Next phase
+
+## Log
+
+Append-only. A new entry goes after the last one. Earlier entries are never edited, re-worded, re-dated,
+re-ordered, or removed. An entry that turned out to be wrong is corrected by a **new** entry naming the
+old one — that the call was once made that way is the fact worth keeping. An attempt to change or remove
+an earlier entry is **reported as a violation**, naming the entry and what would have changed; refusing
+quietly is not enough, because a silent refusal reads as a silent success.
+
+An entry holds only what the git history cannot show: the decision, the reason, what was ruled out, and
+what is still open. Never which files changed or what was added — git holds that exactly, and a second
+copy of a derivable fact can disagree with its source, leaving a reader no way to tell which one is
+lying.
+
+This is the weakest source in the repo. It never overrides a decision record under `docs/adr/` or a
+signed `acceptance.md`; where they disagree, the committed contract is right and the entry is stale. A
+decision that has to bind future work is **promoted** to a decision record under `docs/adr/`; the
+original entry is left as it is, and a new entry names both it and the record it became.
+
+Entries are kept, not compacted. They grow with decisions, and decisions are work; compaction is for
+what grows with elapsed time. And this file is committed, not ignored — its whole purpose is to outlive
+the session that wrote it.
+
+<!-- Entry shape. Append below, oldest first:
+
+### <date> — <one line: what was decided>
+Decided: <the call>
+Because: <the reason>
+Ruled out: <the alternative, and why not>
+Still open: <what this did not settle, or "nothing">
+-->
+```
+
+Seed no entries and fill in none of the five fields — both are written by `handoff` when there is
+actually a session to record. A seeded entry is a decision nobody made.
+
+`handoff` also adds `## Suggested skills` and `## Referenced artifacts` between `## Next phase` and
+`## Log` the first time it writes the file. The seed leaves them out because there is nothing to point
+at yet; `## Log` stays last either way, so appending never has to step over anything.
 
 ## CLAUDE.md seed (only when creating a fresh CLAUDE.md)
 
@@ -238,12 +467,27 @@ that case you edit the existing file and add only the `## Agent skills` block.
   never create both.
 - "I'll dump all the choices in one message to save turns." → No. One decision at a time; assume the user
   doesn't know the terms.
+- "This repo has no permanent cross-feature scenarios yet — skip `docs/test-contract.md`." → No. Scaffold
+  it empty. It costs nothing (no ACTIVE rows means nothing is enforced), and the substrate has to exist
+  before there is anywhere for the first permanent guarantee to land.
+- "I can see an obvious repo-wide rule — I'll seed it, or mark it ACTIVE so it starts protecting them." →
+  No. `project-setup` seeds no rows and activates nothing. Activation is one-way and a human act; an agent
+  that can activate a row is an agent that has opinions about what binds every future run.
 - "`docs/workflow.md` is already there — skip it like everything else." → No. Everything else in the
   substrate is the user's content, so existing means leave it. This file is shared text, so existing only
   means *some* copy is there. Diff it against the bundled template; if it drifted, show the difference and
   ask before re-copying.
 - "Their `docs/workflow.md` is out of date, so I'll just overwrite it." → No. Ask first. Silent overwrite
   is the clobber this skill exists to avoid, and a hand-edit may be deliberate.
+- "`docs/session-state.md` already exists but looks messy — I'll re-scaffold it clean." → No. Its `## Log`
+  is append-only, and those entries exist nowhere else. Overwriting it deletes reasoning no commit can
+  reconstruct. Skip it, exactly like `CONTEXT.md`.
+- "`docs/session-state.md` is per-session scratch — I'll add it to `.gitignore`." → No. It is committed on
+  purpose. Ignored, it dies on the next fresh clone, which is the one situation it was written for.
+- "The session log duplicates `git log` — one of them should go." → No. They hold different things. Git
+  holds what changed; the log holds why, and what was ruled out. Neither can produce the other.
+- "I'll seed a first log entry so the file isn't empty." → No. An entry is a record of a decision someone
+  made. Seed one and the repo's first piece of reasoning is fiction.
 
 ## Red flags
 
@@ -252,11 +496,23 @@ that case you edit the existing file and add only the `## Agent skills` block.
 - Asking "where should issues live / GitHub or local?" — that decision is gone (tracker = local `STATE.md`).
 - Writing any value, secret, or shell command into a scaffolded file (these files are structure, not config).
 - Seeding `STATE.md` with feature/slice rows — `project-setup` leaves the board empty.
+- Seeding `docs/test-contract.md` with a real row, or writing `state: ACTIVE` on any row — the file ships
+  empty and activation is the user's one-way act.
+- Writing the `TC-1` shape example as a live row under `## Rows` instead of the fenced example under
+  `## Row format` — `## Rows` is the section that binds, so a repo would open with a fake guarantee in it.
+- Overwriting an existing `docs/test-contract.md` — it is the user's content; skip it like `CONTEXT.md`.
 - Writing the behavioral `CLAUDE.md` template into an `AGENTS.md`, or over a `CLAUDE.md` that already exists.
 - Summarising, re-wording, or trimming `docs/workflow.md` instead of copying the bundled template verbatim.
 - Passing over an existing `docs/workflow.md` without diffing it against the bundled template — or finding
   a drift and neither re-copying nor telling the user their copy no longer matches.
 - Overwriting a drifted or hand-edited `docs/workflow.md` without showing the difference and asking first.
+- Overwriting or re-scaffolding an existing `docs/session-state.md` — its `## Log` is append-only and the
+  entries in it exist nowhere else.
+- Seeding `docs/session-state.md` with a log entry, or filling in any of the five fields.
+- Leaving `docs/session-state.md` matched by `.gitignore`, or adding it there — an ignored log dies on the
+  next fresh clone.
+- Writing the `## Agent skills` block without the session-log section, so nothing tells a fresh agent to
+  read `docs/session-state.md` before it starts. A log nobody reads is a maintained file with no consumer.
 
 ## Verification (ending criteria)
 
@@ -271,13 +527,35 @@ Done when **all** hold:
 - `CONTEXT.md` (or `CONTEXT-MAP.md` for multi-context) exists at the repo root.
 - `CONTEXT.md` contains a `## Glossary` heading (for multi-context, each per-context `CONTEXT.md` does).
 - `docs/adr/` and `docs/features/` directories exist.
+- `docs/test-contract.md` exists, carrying a `## Rows` heading with **no rows under it** — the `TC-1` shape
+  example sits in the fenced block under `## Row format`, and no row under `## Rows` reads `state: ACTIVE`.
+  Scope the check to that section: the file explains what an activated row looks like, so `state: ACTIVE`
+  appears in its prose by design, and a check that scans the whole file fails on the file it just wrote. It
+  also carries the two states, the one-way human activation rule, the `acceptance.md` boundary, and what
+  happens when an ACTIVE row is touched — a reader who has never seen this project can add a row from the
+  file alone.
 - `docs/workflow.md` exists, carrying all six sections: `## The stages`, `## Who owns each gate`,
   `## Where a run ends`, `## What stops a run`, `## What is frozen`, `## What never happens`.
 - `docs/workflow.md` is byte-identical to the bundled `assets/workflow.template.md` — or, on a re-run over
   a copy that had drifted, the difference was shown to the user and they chose to keep their version. A
   drift that was never surfaced fails this criterion; a drift the user knowingly kept does not.
+- `docs/session-state.md` exists, carrying the five field headings — `## Current objective`,
+  `## Current state`, `## Remaining issues`, `## Boundaries`, `## Next phase` — and a `## Log` heading,
+  with **no log entries** under `## Log` and no field filled in. Scope this check the same way: the entry
+  template lives inside an HTML comment, so a bare `^### ` scan hits it and reports a log that is empty.
+  Its text states the append-only rule, that an attempt to
+  change an earlier entry is reported as a violation, what an entry holds and what it never holds, that it
+  is the weakest source, and the promotion route to `docs/adr/` — a reader who has never seen this project
+  can add an entry, and correct a wrong one, from the file alone.
+- `docs/session-state.md` is not matched by any `.gitignore` pattern; if one matched it, that was surfaced
+  to the user rather than silently changed.
+- A pre-existing `docs/session-state.md` was left untouched — no entry under its `## Log` was reworded,
+  re-ordered, or removed.
 - Exactly one of `CLAUDE.md` / `AGENTS.md` contains an `## Agent skills` block referencing `STATE.md`,
-  `CONTEXT.md`, `docs/adr/`, and `docs/workflow.md`; the other file was not created.
+  `CONTEXT.md`, `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, and `docs/session-state.md`; the
+  other file was not created.
+- That `## Agent skills` block tells a fresh agent to read `docs/session-state.md` — both zones — **before
+  starting work**, and states that `## Log` is append-only. Without that line the log has no reader.
 - If a fresh `CLAUDE.md` was created (neither file existed and the user chose it), it leads with the bundled
   behavioral template and the `## Agent skills` block follows; no template was written into an `AGENTS.md` or
   over a pre-existing `CLAUDE.md`.
@@ -293,10 +571,16 @@ Emits the repo substrate the whole suite consumes:
 | `CONTEXT.md` | repo root | `## Glossary` (terms only, no implementation detail) |
 | `docs/adr/` | repo-wide | the ADR home (`ADR-<NNN>-<slug>.md`) |
 | `docs/features/` | repo-wide | per-feature artifact root (`docs/features/<slug>/`) |
+| `docs/test-contract.md` | repo-wide | `## Rows` (permanent scenarios, each `PENDING` or `ACTIVE`; scaffolded with none ACTIVE). An ACTIVE row may never be skipped, weakened, or narrowed by any slice in any run; activation is one-way and human-only |
 | `docs/workflow.md` | repo-wide | the six process sections — stages · gate owners · where a run ends · what stops a run · what is frozen · what never happens — a verbatim copy of `assets/workflow.template.md`, re-synced (with the user's yes) whenever a re-run finds it drifted |
+| `docs/session-state.md` | repo-wide | the five snapshot fields (`## Current objective` · `## Current state` · `## Remaining issues` · `## Boundaries` · `## Next phase`) plus `## Log`, append-only and scaffolded empty. Entries hold the decision, the reason, what was ruled out, and what is still open — never what git already shows. Earlier entries never change, and an attempt to change one is reported as a violation. Weakest source in the repo: outranked by `docs/adr/` and a signed `acceptance.md`, with promotion to `docs/adr/` as the way out. Committed, never ignored |
 | `CLAUDE.md` / `AGENTS.md` | repo root | the `## Agent skills` block; a fresh `CLAUDE.md` also leads with the bundled behavioral template |
 
 Downstream consumers: `interview-me`/`idea-refine` → `docs/features/<slug>/intent.md`; `spec-grilling` →
 appends `CONTEXT.md` + writes `docs/adr/`; `to-prd`/`acceptance-criteria`/`environment-manifest` → `docs/features/<slug>/`;
-`plan-breakdown` → adds feature blocks + PRD-namespaced slice rows to `STATE.md`; the orchestrator drives
+`plan-breakdown` → adds feature blocks + PRD-namespaced slice rows to `STATE.md`; `test-driven-development`
+and `quality-verification` → read `docs/test-contract.md` and enforce its ACTIVE rows (neither ever edits
+it); `handoff` → writes the five fields of `docs/session-state.md` and appends to its `## Log`;
+`using-agent-skills` → reads that file at the start of every session, before any work begins; the
+orchestrator drives
 the slice/gate columns. tracker = local. `STATE.md` update by `project-setup`: create the empty board only.
