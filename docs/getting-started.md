@@ -9,7 +9,7 @@ IDEATE   →   SPEC   →   PLAN   →   IMPLEMENT   →   VERIFY   →   REVIEW
 (human-led: Ideate · Spec · Plan)        (agent-led, autonomous: Implement → Ship)
 ```
 
-The **human owns Ideate + Spec + Plan** (the thinking). The agent then runs **Implement → Verify → Review → Ship** fully autonomously, never halting mid-run, and terminates at **risk-banded open draft PRs** for async human merge. It never auto-merges to main.
+The **human owns Ideate + Spec + Plan** (the thinking). The agent then runs **Implement → Verify → Review → Ship** fully autonomously — it never blocks waiting for your input, and where a stop condition fires it terminates and reports instead of waiting ([workflow.md](workflow.md) lists them) — and terminates at **risk-banded open draft PRs** for async human merge. It never auto-merges to main.
 
 ## How Skills Work
 
@@ -106,7 +106,7 @@ Ship:       pull-request → shipping-and-launch
 
 ### Autonomous run
 
-To hand the agent the whole agent-led tail (Implement → Verify → Review → Ship) in one autonomous pass, use the **orchestrator** skill (via `/orchestrate`). It's the wave-parallel DAG runner: it sequences slices, fans review out across personas, and terminates at risk-banded open draft PRs — pausing on failures or risky steps, never auto-merging.
+To hand the agent the whole agent-led tail (Implement → Verify → Review → Ship) in one autonomous pass, use the **orchestrator** skill (via `/orchestrate`). It's the wave-parallel DAG runner: it sequences slices, runs the review fan-out once over each wave's combined diff (one fresh code-cold subagent per axis — the skill itself, not a role), and terminates at risk-banded open draft PRs — on one of the conditions `docs/workflow.md` lists it stops and reports rather than pausing for an answer, and it never auto-merges. Risky work is not one of those conditions: it raises the PR's risk band for the human at the merge gate.
 
 ### Context-aware loading
 
@@ -193,7 +193,7 @@ The lifecycle commands create working artifacts as the agent moves through the s
 
 | Stage | Artifact(s) | Produced by |
 |-------|-------------|-------------|
-| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/` | project-setup |
+| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/workflow.md`, the `## Agent skills` block | project-setup |
 | Ideate | `intent.md` | interview-me, idea-refine |
 | Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md` (+ ADRs) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest |
 | Plan | `plan.md` | plan-breakdown (reads Spec's `research.md`) |

@@ -18,7 +18,7 @@ skills/          → 38 skills, one discipline each (skills/<name>/SKILL.md)
 agents/          → 5 review personas (code-cold subagents)
 commands/        → 11 slash commands (*.md) — 9 lifecycle + 2 standalone
 references/      → shared checklists (testing, performance, security, …)
-docs/            → per-agent setup guides
+docs/            → per-agent setup guides + workflow.md (this repo's own copy of the process contract)
 .claude-plugin/  → plugin.json + marketplace.json (install manifests)
 plugin.json      → legacy root manifest; .claude-plugin/plugin.json is authoritative (version lives there)
 ```
@@ -59,8 +59,14 @@ They exist to preserve **maker≠checker** — the reviewer never shares the mak
 | [adversarial-reviewer](./agents/adversarial-reviewer.md) | doubt-driven-development | independent skeptic for confident / high-stakes in-flight calls |
 
 Composition rule: **a slash command (or the user) is the orchestrator; personas do not invoke other
-personas.** A persona may invoke skills. The only multi-persona pattern is parallel fan-out with a merge
-step (used by `/review`).
+personas.** A persona may invoke skills.
+
+`/review` is **not** a multi-persona pattern. It dispatches each review *skill* — `code-review`,
+`code-simplification`, `security-and-hardening`, `performance-optimization` — as its own fresh-context,
+code-cold subagent, in parallel, over the union of the diffs under review. The skill is the method; there
+is no role to play on top of it. Findings are attributed to their owning slice **by file**, then merged
+into one ranked list. Reach for a persona when a human wants a single code-cold pass outside a run, or on
+a platform with no skill tool — not to build the `/review` fan-out.
 
 ## The house envelope
 
@@ -72,11 +78,13 @@ rename headings. References live in `references/`, never inside a skill director
 
 ## Safety & autonomy rules (must-follow)
 
-- **Risk-banded draft PRs only.** Autonomous runs terminate at an **open draft PR** with a risk band;
-  they never halt mid-run and never block waiting for input.
+- **Risk-banded draft PRs only.** Autonomous runs terminate at an **open draft PR** with a risk band and
+  never block waiting for input. Named conditions do stop a run early, but a stopped run terminates and
+  reports rather than waiting — [docs/workflow.md](./docs/workflow.md) lists them.
 - **Never auto-merge to main.** A human merges. The agent opens the PR; the human decides.
-- **maker≠checker.** Verify and Review run as fresh, code-cold subagents (the `agents/` personas) that
-  do not share the implementer's context. The maker never grades its own work.
+- **maker≠checker.** Verify and Review run as fresh, code-cold subagents that do not share the
+  implementer's context — each one dispatched as the skill itself, not as a role played on top of it.
+  The maker never grades its own work.
 - **TDD order.** Write the failing test before implementation (`test-driven-development`, applied by
   `incremental-implementation`). One thin vertical slice at a time, skeleton-first.
 

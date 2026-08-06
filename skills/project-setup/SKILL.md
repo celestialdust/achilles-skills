@@ -1,6 +1,6 @@
 ---
 name: project-setup
-description: Scaffolds the repo ecosystem every achilles skill assumes — a one-time bootstrap that creates the STATE.md board, the CONTEXT.md glossary, docs/adr/, and docs/features/, and — when the repo has neither a CLAUDE.md nor an AGENTS.md and you opt to create CLAUDE.md — seeds it from a bundled behavioral template. Run this ONCE before the first feature, before interview-me or spec-grilling. The pipeline skills read these files cold and will have nowhere to write without it, so do this first.
+description: Scaffolds the repo ecosystem every achilles skill assumes — a one-time bootstrap that creates the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, and docs/workflow.md (the process contract stating the stages, who owns each gate, where a run ends, and what stops one), and — when the repo has neither a CLAUDE.md nor an AGENTS.md and you opt to create CLAUDE.md — seeds it from a bundled behavioral template. Run this ONCE before the first feature, before interview-me or spec-grilling. The pipeline skills read these files cold and will have nowhere to write without it, so do this first.
 ---
 
 ## Purpose
@@ -82,6 +82,9 @@ Show the user a draft of everything before writing, and let them edit:
 
 - The `STATE.md` skeleton (the empty board with the legend; see "STATE.md seed" below).
 - The `CONTEXT.md` stub (glossary-only).
+- The bundled process contract (`assets/workflow.template.md`) that becomes `docs/workflow.md`. Show it —
+  it states the stages, the gate owners, and the stop conditions on the repo's behalf — but copy it
+  verbatim; it is one shared text, not a per-repo draft.
 - The `## Agent skills` block to add to whichever of `CLAUDE.md` / `AGENTS.md` is being edited.
 - If a fresh `CLAUDE.md` is being created, the bundled behavioral template (`assets/CLAUDE.template.md`) that
   seeds it — the user can edit it now or later (it's a starting point, not a fixed contract).
@@ -101,7 +104,8 @@ Show the user a draft of everything before writing, and let them edit:
   below it (see "CLAUDE.md seed" below). A fresh `AGENTS.md` gets the `## Agent skills` block only — no
   behavioral template. Never seed over a `CLAUDE.md` that already exists; edit it in place.
 
-Then create the substrate (skip anything that already exists; never clobber):
+Then create the substrate (skip anything that already exists; never clobber). The one exception is
+`docs/workflow.md`, which is compared rather than skipped — see item 6 for why and how.
 
 1. **`STATE.md`** at the repo root — the empty two-level board with the legend (see seed below).
 2. **`CONTEXT.md`** at the repo root (or `CONTEXT-MAP.md` + per-context `CONTEXT.md` for multi-context) —
@@ -111,7 +115,22 @@ Then create the substrate (skip anything that already exists; never clobber):
 4. **`docs/features/`** — per-feature artifact root (`docs/features/<slug>/` holds intent.md, prd.md,
    acceptance.md, environment.md, plan.md per feature; seed a `.gitkeep`).
 5. The **`## Agent skills`** block in the chosen file (see below), pointing at `STATE.md`, `CONTEXT.md`,
-   and `docs/adr/`. The domain-doc consumer rules carry over from `references/domain-docs.md`.
+   `docs/adr/`, and `docs/workflow.md`. The domain-doc consumer rules carry over from
+   `references/domain-docs.md`.
+6. **`docs/workflow.md`** — the process contract, copied **verbatim** from the bundled
+   `assets/workflow.template.md`: the stages, who owns each gate, where a run ends, what stops a run, what
+   is frozen, and what never happens. It exists so a person can read the whole process from the repo's own
+   files, with nothing installed — so do not summarise it, re-word it, or trim it to fit. A repo whose copy
+   has drifted documents a process that is not the one running in it.
+
+   **If the file already exists, compare it against the bundled template instead of skipping it.** This
+   one file is shared text rather than the user's own writing, so "it's already there" is no evidence it
+   is current: a copy left over from an older version, or a well-meant hand-edit, is exactly the drift
+   that makes the repo describe a process it is not running. If the two differ, show the difference and
+   ask before writing anything. On a yes, re-copy the bundled template over it. On a no, leave their copy
+   untouched and say plainly that it no longer matches the process the skills actually run, so they can
+   decide later. Never overwrite it silently — asking first is what keeps the never-clobber rule whole
+   while still giving drift a way to get fixed.
 
 The `## Agent skills` block:
 
@@ -133,6 +152,11 @@ Single-context: `CONTEXT.md` + `docs/adr/` at the root. (Multi-context: `CONTEXT
 ### Per-feature artifacts
 Each feature's intent.md / prd.md / acceptance.md / environment.md / plan.md live under
 `docs/features/<slug>/`.
+
+### Process contract
+`docs/workflow.md` states how work ships here: the stages, who owns each gate, where a run ends, what
+stops one, what is frozen, and what never happens. Read it first — nothing has to be installed to read
+it. It is shared text copied verbatim, not a per-repo draft; do not edit it locally.
 ```
 
 ### 5. Done
@@ -140,7 +164,10 @@ Each feature's intent.md / prd.md / acceptance.md / environment.md / plan.md liv
 Tell the user setup is complete and which skills now read from these files (`spec-grilling` appends
 `CONTEXT.md` and writes `docs/adr/`; `interview-me`/`idea-refine` write `docs/features/<slug>/intent.md`;
 `plan-breakdown` adds feature blocks + slice rows to `STATE.md`; the orchestrator drives `STATE.md`).
-Mention the docs are hand-editable later; re-running `project-setup` is only needed to repair or re-scaffold.
+Mention that `STATE.md`, `CONTEXT.md`, and the per-feature docs are theirs to hand-edit later, but
+`docs/workflow.md` is shared text — editing it locally makes the repo describe a process it is not
+running. Re-running `project-setup` is only needed to repair, re-scaffold, or re-sync a `docs/workflow.md`
+that has drifted from the bundled contract.
 
 ## STATE.md seed
 
@@ -166,11 +193,11 @@ origin:  prd.md · acceptance.md · plan.md
 | PWR-1  | request reset link | `docs/features/pwr/design-contract.md` | impl | agent | —      | —         |
 | PWR-2  | expire stale tokens| —                              | impl    | agent | PWR-1     | —         |
 -->
+```
 
 `Design ref` holds the signed design contract + prototype the slice builds against, or `—` for a slice that
 builds no UI. The orchestrator copies it into both the implement and the verify dispatch brief, so a `—` has
 to be recorded rather than left blank — blank reads as "nobody looked".
-```
 
 ## CONTEXT.md seed
 
@@ -211,6 +238,12 @@ that case you edit the existing file and add only the `## Agent skills` block.
   never create both.
 - "I'll dump all the choices in one message to save turns." → No. One decision at a time; assume the user
   doesn't know the terms.
+- "`docs/workflow.md` is already there — skip it like everything else." → No. Everything else in the
+  substrate is the user's content, so existing means leave it. This file is shared text, so existing only
+  means *some* copy is there. Diff it against the bundled template; if it drifted, show the difference and
+  ask before re-copying.
+- "Their `docs/workflow.md` is out of date, so I'll just overwrite it." → No. Ask first. Silent overwrite
+  is the clobber this skill exists to avoid, and a hand-edit may be deliberate.
 
 ## Red flags
 
@@ -220,6 +253,10 @@ that case you edit the existing file and add only the `## Agent skills` block.
 - Writing any value, secret, or shell command into a scaffolded file (these files are structure, not config).
 - Seeding `STATE.md` with feature/slice rows — `project-setup` leaves the board empty.
 - Writing the behavioral `CLAUDE.md` template into an `AGENTS.md`, or over a `CLAUDE.md` that already exists.
+- Summarising, re-wording, or trimming `docs/workflow.md` instead of copying the bundled template verbatim.
+- Passing over an existing `docs/workflow.md` without diffing it against the bundled template — or finding
+  a drift and neither re-copying nor telling the user their copy no longer matches.
+- Overwriting a drifted or hand-edited `docs/workflow.md` without showing the difference and asking first.
 
 ## Verification (ending criteria)
 
@@ -234,8 +271,13 @@ Done when **all** hold:
 - `CONTEXT.md` (or `CONTEXT-MAP.md` for multi-context) exists at the repo root.
 - `CONTEXT.md` contains a `## Glossary` heading (for multi-context, each per-context `CONTEXT.md` does).
 - `docs/adr/` and `docs/features/` directories exist.
+- `docs/workflow.md` exists, carrying all six sections: `## The stages`, `## Who owns each gate`,
+  `## Where a run ends`, `## What stops a run`, `## What is frozen`, `## What never happens`.
+- `docs/workflow.md` is byte-identical to the bundled `assets/workflow.template.md` — or, on a re-run over
+  a copy that had drifted, the difference was shown to the user and they chose to keep their version. A
+  drift that was never surfaced fails this criterion; a drift the user knowingly kept does not.
 - Exactly one of `CLAUDE.md` / `AGENTS.md` contains an `## Agent skills` block referencing `STATE.md`,
-  `CONTEXT.md`, and `docs/adr/`; the other file was not created.
+  `CONTEXT.md`, `docs/adr/`, and `docs/workflow.md`; the other file was not created.
 - If a fresh `CLAUDE.md` was created (neither file existed and the user chose it), it leads with the bundled
   behavioral template and the `## Agent skills` block follows; no template was written into an `AGENTS.md` or
   over a pre-existing `CLAUDE.md`.
@@ -251,6 +293,7 @@ Emits the repo substrate the whole suite consumes:
 | `CONTEXT.md` | repo root | `## Glossary` (terms only, no implementation detail) |
 | `docs/adr/` | repo-wide | the ADR home (`ADR-<NNN>-<slug>.md`) |
 | `docs/features/` | repo-wide | per-feature artifact root (`docs/features/<slug>/`) |
+| `docs/workflow.md` | repo-wide | the six process sections — stages · gate owners · where a run ends · what stops a run · what is frozen · what never happens — a verbatim copy of `assets/workflow.template.md`, re-synced (with the user's yes) whenever a re-run finds it drifted |
 | `CLAUDE.md` / `AGENTS.md` | repo root | the `## Agent skills` block; a fresh `CLAUDE.md` also leads with the bundled behavioral template |
 
 Downstream consumers: `interview-me`/`idea-refine` → `docs/features/<slug>/intent.md`; `spec-grilling` →

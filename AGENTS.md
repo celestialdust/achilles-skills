@@ -33,16 +33,18 @@ The division of labor is fixed. Do not cross it.
 
 - **The human owns Ideate + Spec + Plan** — the thinking. The agent may *assist* (run the interview, draft the
   PRD, map the codebase, propose the plan) but the human signs off before any code exists.
-- **The agent owns Implement → Verify → Review → Ship** — and runs it **fully autonomously, never halting
-  mid-run**. No "should I continue?" checkpoints between slices.
+- **The agent owns Implement → Verify → Review → Ship** — and runs it **fully autonomously**: no "should I
+  continue?" checkpoints between slices, and where a stop condition fires the run terminates and
+  reports rather than waiting on you (`docs/workflow.md` lists them).
 - **Terminate at risk-banded, open *draft* PRs.** The end state of an autonomous run is one or more draft pull
   requests, each labeled with a risk band, left open for **async human merge**.
 - **Never auto-merge to main.** The agent does not merge, does not push to a protected branch, does not close
   the loop. A human merges.
 - **maker ≠ checker.** The agent that wrote a slice never reviews or verifies its own work. Verification
   (`quality-verification`) and review (`code-review`, `security-and-hardening`, `performance-optimization`,
-  `doubt-driven-development`) run as **fresh, code-cold** passes — dispatched as separate personas where the
-  platform supports subagents, or as a clean session otherwise. A self-graded slice is not verified.
+  `doubt-driven-development`) run as **fresh, code-cold** passes — each dispatched as the skill itself in
+  its own subagent where the platform supports subagents, or as a clean session otherwise. A self-graded
+  slice is not verified.
 
 If a Spec or Plan input is missing, **stop and ask the human** — do not invent the spec and proceed. If an
 in-flight decision is high-stakes, confident, or irreversible, invoke `doubt-driven-development` (the
@@ -110,7 +112,7 @@ follow its Process section as written before producing output.
 | Add structured logging, RED metrics, OTel tracing | `observability-and-instrumentation` |
 | Remove an old system, migrate users, sunset a feature | `deprecation-and-migration` |
 | Record an ADR / document the *why* | `documentation-and-adrs` |
-| One-time repo bootstrap (STATE.md, CONTEXT.md, docs/adr/) | `project-setup` |
+| One-time repo bootstrap (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/workflow.md, the `## Agent skills` block) | `project-setup` |
 | Gate a parallel wave on environment readiness | `preflight-readiness` |
 | Run the autonomous wave-parallel DAG to open PRs | `orchestrator` |
 | Compact a session into a fresh-agent handoff doc | `handoff` |
@@ -213,10 +215,14 @@ paste only the diff under review.
 
 - **The user (or a command) is the orchestrator. Personas do not invoke other personas.** A persona may invoke
   skills.
-- The only endorsed multi-persona pattern is **parallel fan-out + merge**: at REVIEW (`/review`), run
-  `code-reviewer`, `security-auditor`, and `performance-auditor` concurrently on the same diff, then
-  synthesize their reports. Do not build a "router" persona that decides which other persona to call — that is
-  the job of the commands and the intent map above.
+- **REVIEW is not a multi-persona pattern.** `/review` dispatches each review *skill* — `code-review`,
+  `code-simplification`, `security-and-hardening`, `performance-optimization` — as its own fresh,
+  code-cold subagent, in parallel, over the union of the diffs under review. The skill is the method;
+  there is no role to play on top of it. Every finding cites a file, and file ownership is disjoint, so
+  each finding maps to exactly one owning slice; merge the streams into one ranked list. Reach for a
+  persona when a human wants one code-cold pass outside a run, or on a platform with no skill tool.
+- Do not build a "router" persona that decides which other persona to call — that is the job of the
+  commands and the intent map above.
 - `adversarial-reviewer` (`doubt-driven-development`) runs **in-flight**, not as a merge gate. Reach for it
   when a confident, high-stakes, or irreversible decision needs a second mind before you commit to it.
 
@@ -232,7 +238,7 @@ These thoughts are incorrect and must be ignored:
 - "I can just quickly implement this." → If a skill applies, use it; do not jump to code.
 - "I'll gather context first." → The matching skill *is* how you gather context.
 - "I'll write the tests after." → BUILD applies `test-driven-development`; tests are not a follow-up.
-- "I'll review my own slice." → maker ≠ checker. Dispatch a fresh persona / clean session.
+- "I'll review my own slice." → maker ≠ checker. Dispatch a fresh code-cold subagent / clean session.
 - "I'm confident, so I'll merge." → Never auto-merge. End at a risk-banded draft PR for the human.
 - "The spec is obvious, I'll just start." → DEFINE and PLAN are human-owned. If they're missing, ask.
 
