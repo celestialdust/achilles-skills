@@ -130,14 +130,25 @@ Arrange tasks so that:
 3. Verification checkpoints occur after every 2-3 tasks
 4. High-risk tasks are early (fail fast)
 
-Add explicit checkpoints:
+A checkpoint is a **done-condition, not a pause**. It is a fact the agent proves against the running build
+while the run is going, and a fact a human reads afterwards on the pull request. Both readers get it; the
+run never stops for either.
+
+So do not write a checkpoint box that asks a person for permission to continue. The executor is not allowed
+to honor it — it runs Implement → Verify → Review → Ship straight through and ends at an open draft PR, and
+the human's two decision points are the plan signature before the run and the PR after it. A "check with the
+human first" line is therefore either dead text or an instruction to deadlock. Whatever you wanted a human
+to look at, write it as a fact in the checkpoint instead: then it reaches the PR, where a human is actually
+reading.
+
+Write each box as behavior. "Tests pass" and "builds without errors" are the floor under every slice — they
+say nothing about whether *this* slice did the thing it existed to do.
 
 ```markdown
 ## Checkpoint: After Tasks 1-3
-- [ ] All tests pass
-- [ ] Application builds without errors
-- [ ] Core user flow works end-to-end
-- [ ] Review with human before proceeding
+- [ ] Submitting a bad email shows the inline error (US-1)
+- [ ] A valid reset link updates the password and redirects to login (US-2)
+- [ ] An expired token is rejected and swept from the table (US-3)
 ```
 
 ## No placeholders (plan failures — never write them)
@@ -270,6 +281,10 @@ one-line prose body. No `TBD`/`TODO`/`add validation`/`handle edge cases` placeh
 - [Question needing human input]
 ```
 
+`## Open Questions` is a **pre-signature** section: every entry is answered before the human signs, and the
+section is empty at handoff. It is not a queue the run will drain. Once the run starts there is no channel
+back to a person, so an unanswered question becomes a guess the implementer makes silently.
+
 ## Parallelization Opportunities
 
 When multiple agents or sessions are available:
@@ -286,6 +301,7 @@ When multiple agents or sessions are available:
 | "The tasks are obvious" | Write them down anyway. Explicit tasks surface hidden dependencies and forgotten edge cases. |
 | "Planning is overhead" | Planning is the task. Implementation without a plan is just typing. |
 | "I can hold it all in my head" | Context windows are finite. Written plans survive session boundaries and compaction. |
+| "This slice is risky — I'll add a 'confirm with the human' checkpoint." | The run has no pause for that line to land in, so it buys no safety. Put the risk in `## Risks and Mitigations`, and put the thing you wanted checked into the checkpoint as a fact — that reaches the PR, where a human reads. |
 
 ## Red Flags
 
@@ -294,6 +310,7 @@ When multiple agents or sessions are available:
 - No verification steps in the plan
 - All tasks are XL-sized
 - No checkpoints between tasks
+- A checkpoint box that asks for human approval mid-run — the executor cannot stop, so the line is dead text or a deadlock
 - Dependency order isn't considered
 
 ## Verification
@@ -305,7 +322,10 @@ Before starting implementation, confirm:
 - [ ] Task dependencies are identified and ordered correctly
 - [ ] No task touches more than ~5 files
 - [ ] Checkpoints exist between major phases
-- [ ] The human has reviewed and approved the plan
+- [ ] No checkpoint asks a human to approve mid-run — every box is a fact the agent can prove against the
+      running build and the PR can show
+- [ ] The human has reviewed and approved the plan — this signature is the pre-run gate, and the open PR is
+      the post-run one; the plan must not invent a third gate in between
 - [ ] Every **non-trivial** step names all four fields: `file` · `lines` · `snippet` · `test`.
 - [ ] No-placeholder grep is clean (`## No placeholders` patterns return zero hits).
 - [ ] Every slice spans ≥2 layers and ends at an **observable** Checkpoint (not "compiles").

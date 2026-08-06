@@ -175,11 +175,18 @@ The loop is **Ideate → Spec → Plan → Implement → Verify → Review → S
 
 - **Human owns Ideate + Spec + Plan** (all the thinking). One upstream gate: the **Spec sign-off**
   (signs intent.md + prd.md + acceptance.md + environment.md + — when UI — frontend-design's design contract).
-- **Agent runs Implement → Verify → Review → Ship FULLY AUTONOMOUSLY, no mid-run halt.** It terminates at
+- **Agent runs Implement → Verify → Review → Ship autonomously — it never blocks waiting for input.** No
+  "should I continue?" checkpoint sits between slices; nobody has to watch it. It terminates at
   **risk-banded OPEN draft PRs** on the cluster branch; the **async human merge is the surviving final gate**
   (never auto-merge to main; auto-deploy is out of v1).
-- A human gate re-appears ONLY on the failure-escalation path: a slice that exhausts its bounded retries
-  flips its `gate` column `agent → you` and is surfaced.
+- **A run can still stop.** Two different claims are easy to collapse into one, so keep them apart: a run
+  never *waits*, but named conditions do *end* it early — a missing precondition, an absent or unsigned
+  `acceptance.md`, an attempted edit to a frozen artifact, a security CRITICAL/HIGH or a secret in the
+  diff, exhausted retries. High-risk work is **not** one of them: nothing pauses mid-run for a sign-off
+  nobody is there to give, so auth, payments, migrations, deletions, deploys, and secrets surface at the
+  end instead — as the PR's **risk band**, which the human reads at the merge gate. A stopped slice flips
+  its `gate` column `agent → you`, and the run reports what stopped it and where rather than sitting idle.
+  `docs/workflow.md` in the repo carries the full list — read it there rather than counting from memory.
 
 Artifact chain (each stage emits what the next consumes cold):
 ```
@@ -195,8 +202,8 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Stage | Skill | One-line summary |
 |-------|-------|------------------|
 | Cross-cut | using-agent-skills | this meta-dispatcher: task → skill + lifecycle map |
-| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr, docs/features) |
-| Cross-cut | orchestrator | wave-parallel DAG executor; platform-adaptive; halts only at gates |
+| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr, docs/features, docs/workflow.md, the `## Agent skills` block) |
+| Cross-cut | orchestrator | wave-parallel DAG executor; platform-adaptive; runs to open draft PRs, never waits |
 | Cross-cut | preflight-readiness | env-readiness gate; blocks the wave until provisioned |
 | Cross-cut | handoff | per-session compaction to a fresh-agent doc |
 | Ideate | interview-me | optional front door: surface what the user actually wants → intent.md |

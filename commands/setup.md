@@ -1,5 +1,5 @@
 ---
-description: "One-time repo bootstrap — scaffold the shared substrate every achilles skill assumes: the STATE.md board, the CONTEXT.md glossary, docs/adr/, and docs/features/."
+description: "One-time repo bootstrap — scaffold the shared substrate every achilles skill assumes: the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, docs/workflow.md, and the `## Agent skills` block."
 ---
 
 Invoke the **project-setup** skill — the one-time bootstrap that creates the repo ecosystem the rest of the suite reads cold.
@@ -12,6 +12,6 @@ Run-once and **human-confirmed** — this is NOT part of the autonomous Implemen
 
 - Run **once per repo**, before the first feature — before `/ideate` or `/spec`. Skip if `STATE.md` already exists and the substrate is intact (re-run only to repair).
 - Distinct from `preflight-readiness`: that's the per-wave environment gate; this is the one-time repo scaffold.
-- Scaffolds the substrate — `STATE.md` (empty two-level board), `CONTEXT.md` (`## Glossary` stub), `docs/adr/`, `docs/features/`. No values, secrets, or commands; no feature/slice rows.
+- Scaffolds the substrate — `STATE.md` (empty two-level board), `CONTEXT.md` (`## Glossary` stub), `docs/adr/`, `docs/features/`, `docs/workflow.md` (the process contract, copied verbatim from the bundled template), and the `## Agent skills` block in `CLAUDE.md` or `AGENTS.md`. No values, secrets, or commands; no feature/slice rows.
 - If the repo has neither a `CLAUDE.md` nor an `AGENTS.md` and you choose to create `CLAUDE.md`, it's seeded with a small set of project-agnostic behavioral guidelines (a bundled template) above the `## Agent skills` wiring.
 - Hands off to `/ideate` (fresh idea → intent.md) or `/spec`; downstream skills then read and append to these files.

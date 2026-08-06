@@ -148,7 +148,7 @@ required.
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization as fan-out) | Quality gate before merge |
 | `/ship` | shipping-and-launch (+ pull-request) | Release: checklist · staged rollout · rollback |
 | `/orchestrate` | orchestrator | Autonomous wave-parallel DAG runner to open draft PRs |
-| `/setup` | project-setup | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` |
+| `/setup` | project-setup | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/workflow.md` · the `## Agent skills` block |
 | `/explain` | literate-explainer | **Standalone** — explain code or a system in prose |
 | `/quiz` | comprehension-quiz | **Standalone** — check comprehension of a change or codebase area |
 

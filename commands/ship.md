@@ -13,7 +13,7 @@ Ship is the terminal stage of Ideate → Spec → Plan → Implement → Verify 
 
 ## Mode
 
-Ship is **agent-run** and **autonomous** — the agent owns Implement → Ship. Run without halting mid-stage. The terminal artifact is a **risk-banded open draft PR** left for async human merge. **Never auto-merge to main** — the human owns the merge decision.
+Ship is **agent-run** and **autonomous** — the agent owns Implement → Ship. It never pauses mid-stage to ask whether to continue. It can still stop, on what the two skills actually check. **pull-request** opens no PR unless the verify gate is green and the review fan-out is clear. **shipping-and-launch** refuses to run with an unprovisioned `environment.md` or no identifiable rollback path. Both hard-halt on a security CRITICAL/HIGH finding or a secret in the diff. High-risk work does not stop the stage — it raises the PR's **risk band** for the human at the merge gate. The terminal artifact is a **risk-banded open draft PR** left for async human merge. **Never auto-merge to main** — the human owns the merge decision.
 
 ## Notes
 
