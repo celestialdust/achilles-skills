@@ -52,7 +52,7 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 | `agents/` | The 5 fresh-context personas |
 | `commands/` | The 11 slash commands — thin wrappers over the skills |
 | `references/` | Shared checklists and format contracts the skills point at |
-| `docs/` | Reader-facing documentation: getting started + per-agent setup guides, plus `workflow.md` — this repo's own copy of the process contract |
+| `docs/` | Reader-facing documentation: getting started + per-agent setup guides, plus `workflow.md` — this repo's own copy of the process contract. `CONTEXT.md` at the root is the same idea: the suite runs its own process, so it carries the artifacts that process produces |
 
 `docs/` is for readers of this repo. The pipeline artifacts the suite produces (`STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`) live in **your** project once `/setup` scaffolds them there — not in this one. `docs/workflow.md` is the exception: `/setup` scaffolds a copy into your project, and this repo keeps its own copy because this repo runs the same loop.
 
@@ -176,7 +176,7 @@ Skills for Kiro live under `.kiro/skills/` and can be stored at Project or Globa
 <details>
 <summary><b>Codex / Other Agents</b></summary>
 
-Skills are plain Markdown — they work with any agent that accepts system prompts or instruction files. Point your agent at `skills/` and `AGENTS.md`. See [docs/codex-setup.md](docs/codex-setup.md).
+Skills are plain Markdown — they work with any agent that accepts system prompts or instruction files. Point your agent at `skills/` and `AGENTS.md`. There is no separate setup file for these agents, because there is no separate mechanism: see [docs/getting-started.md](docs/getting-started.md).
 
 </details>
 

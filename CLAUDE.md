@@ -20,8 +20,11 @@ commands/        → 11 slash commands (*.md) — 9 lifecycle + 2 standalone
 references/      → shared checklists (testing, performance, security, …)
 docs/            → per-agent setup guides + workflow.md (this repo's own copy of the process contract)
 .claude-plugin/  → plugin.json + marketplace.json (install manifests)
-plugin.json      → legacy root manifest; .claude-plugin/plugin.json is authoritative (version lives there)
 ```
+
+There is exactly **one** plugin manifest: `.claude-plugin/plugin.json`. It is the only file that states
+the version, and the only path the plugin loader reads. Never add a second manifest at the repo root —
+two files that both claim to be the manifest drift apart silently, because nothing forces them to agree.
 
 ## The 11 commands → which skill they run
 

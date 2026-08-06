@@ -100,7 +100,7 @@ Verify:     quality-verification
             (browser-testing-with-devtools, debugging-and-error-recovery)
 Review:     code-review + code-simplification + security-and-hardening + performance-optimization
             (doubt-driven-development for in-flight skepticism)
-Ship:       pull-request → shipping-and-launch
+Ship:       shipping-and-launch → pull-request
             (git-workflow, ci-cd, observability-and-instrumentation, deprecation-and-migration, documentation-and-adrs)
 ```
 
@@ -218,8 +218,12 @@ achilles-skills installs into every major coding agent. The mechanism differs pe
 | Windsurf | Add skill contents to Windsurf rules | `docs/windsurf-setup.md` |
 | OpenCode | Agent-driven execution via `AGENTS.md` + the `skill` tool | `docs/opencode-setup.md` |
 | GitHub Copilot | `agents/` as personas + `.github/copilot-instructions.md` | `docs/copilot-setup.md` |
-| Kiro IDE & CLI | Skills under `.kiro/skills/`; also supports `AGENTS.md` | `docs/kiro-setup.md` |
+| Kiro IDE & CLI | Skills under `.kiro/skills/`; also supports `AGENTS.md` | [kiro.dev/docs/skills](https://kiro.dev/docs/skills/) |
 | Codex / Other | Plain Markdown via system prompt or `AGENTS.md` | this guide |
+
+Kiro and the plain-Markdown agents have no setup file in `docs/`, because neither needs one: Kiro's own
+documentation is the guide for Kiro, and for any other Markdown-reading agent this guide plus
+[`AGENTS.md`](../AGENTS.md) is the whole setup.
 
 Every skill is plain Markdown, so any agent that accepts system prompts or instruction files can run them directly. [`AGENTS.md`](../AGENTS.md) at the repo root is the universal entry point for agents that read it.
 

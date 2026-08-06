@@ -74,7 +74,7 @@ Task arrives
     │   ├── Committing/branching? ─────────────→ git-workflow
     │   ├── CI/CD pipeline work? ──────────────→ ci-cd
     │   ├── Logs/metrics/traces? ──────────────→ observability-and-instrumentation    (instrument as you build)
-    │   ├── Release/launch? ───────────────────→ shipping-and-launch  (post-merge · release-level)
+    │   ├── Release/launch? ───────────────────→ shipping-and-launch  (before the PR · release-level)
     │   ├── Deprecating/migrating? ────────────→ deprecation-and-migration
     │   └── Writing docs/ADRs? ────────────────→ documentation-and-adrs
     │

@@ -63,7 +63,7 @@ Six skills (`code-review`, `security-and-hardening`, `test-driven-development`, 
 
 ## Adding a command
 
-A command is a thin entry point at `commands/<name>.md` that maps **one lifecycle stage** to the skill(s) that run it — not a restatement of the skill. The suite ships nine: `/ideate`, `/spec`, `/plan`, `/implement`, `/verify`, `/review`, `/ship`, `/orchestrate`, `/setup`.
+A command is a thin entry point at `commands/<name>.md` that maps **one lifecycle stage** to the skill(s) that run it — not a restatement of the skill. The suite ships eleven. Nine are lifecycle commands: `/ideate`, `/spec`, `/plan`, `/implement`, `/verify`, `/review`, `/ship`, `/orchestrate`, `/setup`. The other two, `/explain` and `/quiz`, are standalone and belong to no stage.
 
 A command file is Markdown with YAML frontmatter — a single `description` key, then the prompt as the body:
 
@@ -76,7 +76,7 @@ Invoke the <skill-name> skill (+ any fan-out skills this stage drives).
 Describe modes/arguments and the stage's handoff, then stop.
 ```
 
-Keep the body a wrapper: name the skill(s) to invoke and the stage's inputs/outputs; let the skill carry the method. New commands are rare — the nine map cleanly to the lifecycle. Add one only when a genuinely new stage appears, and say why in the PR.
+Keep the body a wrapper: name the skill(s) to invoke and the stage's inputs/outputs; let the skill carry the method. New commands are rare — the nine lifecycle commands map cleanly to the loop. Add one only when a genuinely new stage appears, and say why in the PR.
 
 ## Adding a persona
 
@@ -107,6 +107,8 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
 
 - Every `SKILL.md` has valid frontmatter with exactly `name` + `description`.
 - `agents/` and `commands/` filenames match the arrays in `.claude-plugin/plugin.json`.
+- Exactly one plugin manifest exists — `.claude-plugin/plugin.json`, which states the version. There is
+  no second manifest at the repo root; a duplicate would drift, since nothing forces the two to agree.
 - No per-skill `evals/` directory.
 - No terse-stem skill pointers reintroduced; artifact/tool/object tokens left verbatim.
 

@@ -132,14 +132,17 @@ Arrange tasks so that:
 
 A checkpoint is a **done-condition, not a pause**. It is a fact the agent proves against the running build
 while the run is going, and a fact a human reads afterwards on the pull request. Both readers get it; the
-run never stops for either.
+run never waits for either.
 
 So do not write a checkpoint box that asks a person for permission to continue. The executor is not allowed
-to honor it — it runs Implement → Verify → Review → Ship straight through and ends at an open draft PR, and
-the human's two decision points are the plan signature before the run and the PR after it. A "check with the
-human first" line is therefore either dead text or an instruction to deadlock. Whatever you wanted a human
-to look at, write it as a fact in the checkpoint instead: then it reaches the PR, where a human is actually
-reading.
+to honor it — it runs Implement → Verify → Review → Ship straight through to an open draft PR, and the
+human's two decision points are the plan signature before the run and the PR after it. Keep two claims
+apart here, because they are easy to collapse into one: a run never *waits* for an answer, but named
+conditions do *end* it early — a missing precondition, an unsigned contract, an attempted edit to a frozen
+artifact, a security Critical or High, exhausted retries. Stopping is something the run does on its own and
+reports; waiting is the thing it cannot do. So a "check with the human first" line is either dead text or
+an instruction to deadlock. Whatever you wanted a human to look at, write it as a fact in the checkpoint
+instead: then it reaches the PR, where a human is actually reading.
 
 Write each box as behavior. "Tests pass" and "builds without errors" are the floor under every slice — they
 say nothing about whether *this* slice did the thing it existed to do.
@@ -310,7 +313,7 @@ When multiple agents or sessions are available:
 - No verification steps in the plan
 - All tasks are XL-sized
 - No checkpoints between tasks
-- A checkpoint box that asks for human approval mid-run — the executor cannot stop, so the line is dead text or a deadlock
+- A checkpoint box that asks for human approval mid-run — the executor cannot wait for an answer, so the line is dead text or a deadlock
 - Dependency order isn't considered
 
 ## Verification
