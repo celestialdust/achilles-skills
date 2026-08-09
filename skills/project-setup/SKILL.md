@@ -292,7 +292,10 @@ to be recorded rather than left blank — blank reads as "nobody looked".
 ## CONTEXT.md seed
 
 Write this glossary stub — the `## Glossary` heading is the stable section `spec-grilling` appends terms
-under (canonical heading; do not rename); no terms yet (those emerge as the ubiquitous language is sharpened):
+under (canonical heading; do not rename); no terms yet (those emerge as the ubiquitous language is
+sharpened). The seed comment states the entry shape rather than inventing one: `spec-grilling`'s
+`references/CONTEXT-FORMAT.md` is what the appender writes to, so a seed describing a different shape
+opens a file whose first entries disagree with every entry appended after them.
 
 ```markdown
 # <project>
@@ -300,7 +303,9 @@ under (canonical heading; do not rename); no terms yet (those emerge as the ubiq
 ## Glossary
 
 <!-- Domain terms are appended here by spec-grilling as the ubiquitous language emerges.
-One term per line: term — one-sentence definition. No implementation detail. -->
+One entry per term: the term in bold on its own line, its one-or-two-sentence definition
+beneath it. No implementation detail. Group with ### subheadings once clusters emerge —
+never with a second ## section, which splits the glossary in two. -->
 ```
 
 For multi-context, seed `CONTEXT-MAP.md` at the root plus one per-context `CONTEXT.md`, each carrying its
@@ -590,7 +595,45 @@ Done when **all** hold:
   `| Slice | Title | Design ref | State | Gate | Blocked by | Artifacts |` — so the rows `plan-breakdown`
   writes later land in a board shape the orchestrator can read.
 - `CONTEXT.md` (or `CONTEXT-MAP.md` for multi-context) exists at the repo root.
-- `CONTEXT.md` contains a `## Glossary` heading (for multi-context, each per-context `CONTEXT.md` does).
+- Every `CONTEXT.md` the repo declares — the root one, plus each per-context file `CONTEXT-MAP.md` names —
+  carries **exactly one** `## Glossary` heading and **every term entry sits under it**; no sibling `##`
+  section holds entries. Check the entries, not the heading: a file whose terms
+  all live under a heading of their own still contains `## Glossary`, so "the heading exists" reports a
+  pass over exactly the arrangement this criterion forbids, while `spec-grilling` and
+  `documentation-and-adrs` go on appending to a section the terms are not in.
+
+  **The entry shape is the one `spec-grilling`'s `references/CONTEXT-FORMAT.md` prescribes** — the term in
+  bold at the start of its own line, with or without a leading bullet. That file governs a repo's
+  `CONTEXT.md` because `spec-grilling` is what writes the entries into it. Anchor on the bold headword
+  rather than on a term, which hits every sentence that merely uses one. Clusters group under `###`
+  beneath `## Glossary`; a cluster written as `##` is the arrangement this criterion exists to catch.
+
+  ```bash
+  set --
+  [ -f CONTEXT.md ] && set -- CONTEXT.md
+  [ -f CONTEXT-MAP.md ] && set -- "$@" $(sed -n 's|.*(\([^)]*CONTEXT\.md\)).*|\1|p' CONTEXT-MAP.md)
+  [ "$#" -gt 0 ] || { echo "no CONTEXT.md to check"; exit 1; }
+  awk 'FNR==1 && NR>1 && g!=1 { print prev": "(g?g" ## Glossary headings":"no ## Glossary heading"); b=1 }
+       FNR==1 { g=0; s=""; prev=FILENAME }
+       /^## Glossary$/ { g++ }
+       /^## / { s=$0 }
+       /^([-*+] )?\*\*/ && s!="## Glossary" { print FILENAME":"FNR": entry outside ## Glossary"; b=1 }
+       END { if (g!=1) { print prev": "(g?g" ## Glossary headings":"no ## Glossary heading"); b=1 } exit b }' "$@"
+  ```
+
+  The file list is built rather than hardcoded, so the check covers what this criterion says: a
+  multi-context repo has no root `CONTEXT.md`, and a check naming that path fails to open a file instead
+  of reading the ones that exist. `CONTEXT-MAP.md` is deliberately absent from the list — its
+  `## Relationships` lines are bold headwords that are not glossary terms, and scanning it would report a
+  correct repo as broken.
+
+  The file this skill just seeded has no entries yet and passes with nothing to inspect. The criterion
+  earns its keep on a re-run over a repo whose glossary already carries terms, where one can have drifted
+  into a section of its own. **Exercise it in both directions before trusting it**: park the entries under
+  a sibling `##` heading and confirm it exits non-zero naming their line numbers, then move them back under
+  `## Glossary` and confirm it exits 0. A check only ever seen passing is not known to work: an anchor
+  matching only bulleted entries reports a clean pass over a file written in the unbulleted shape
+  `CONTEXT-FORMAT.md` prescribes, which is the arrangement it was added to catch.
 - `docs/adr/` and `docs/features/` directories exist.
 - `docs/test-contract.md` exists, carrying a `## Rows` heading with **no rows under it** — the `TC-1` shape
   example sits in the fenced block under `## Row format`, and no row under `## Rows` reads `state: ACTIVE`.

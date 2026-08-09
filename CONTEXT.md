@@ -7,9 +7,8 @@
 
 <!-- One entry per ubiquitous-language term: **Term** — plain-language definition (no code, no file paths). -->
 
-## achilles-skills vocabulary
-
-> The structural vocabulary of the suite itself (not the consuming project's domain language).
+The terms below are the structural vocabulary of the suite itself, not a consuming project's domain
+language. Every term this repository defines lives in this one section.
 
 - **Skill** — a single discipline written in the house envelope, living at `skills/<name>/SKILL.md`. Reachable
   by the agent automatically or by a command. Names are descriptive and function-implying (e.g.

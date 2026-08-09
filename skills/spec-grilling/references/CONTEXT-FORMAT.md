@@ -27,7 +27,7 @@ _Avoid_: Client, buyer, account
 - **Be opinionated.** When multiple words exist for the same concept, pick the best one and list the others under `_Avoid_`.
 - **Keep definitions tight.** One or two sentences max. Define what it IS, not what it does.
 - **Only include terms specific to this project's context.** General programming concepts (timeouts, error types, utility patterns) don't belong even if the project uses them extensively. Before adding a term, ask: is this a concept unique to this context, or a general programming concept? Only the former belongs.
-- **Group terms under subheadings** when natural clusters emerge. If all terms belong to a single cohesive area, a flat list is fine.
+- **Group terms under `###` subheadings** when natural clusters emerge, always beneath `## Glossary`. Never open a second `##` section for terms: every entry in the file lives under the one `## Glossary` heading, because that is the section this skill and `documentation-and-adrs` append to, and a sibling `##` holding terms leaves the next appender no way to choose between them. If all terms belong to a single cohesive area, a flat list is fine.
 
 ## Single vs multi-context repos
 
