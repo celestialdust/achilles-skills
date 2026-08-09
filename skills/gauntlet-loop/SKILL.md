@@ -1,6 +1,6 @@
 ---
 name: gauntlet-loop
-description: 'Grinds a throwaway prototype until it beats a real outside reference — set one named, fetchable bar the work must beat, split the goal into the smallest independently judgeable pieces, run a builder against a separate blind critic on each, and loop until the critic picks ours. Emits a paste-ready prompt for a fresh session, and runs the loop here when asked. This is the fast path for a proof of concept; production work uses the lifecycle skills. Use when someone types /gauntlet-loop or says "gauntlet this", "loop until it beats X", "run the gauntlet", or asks for a gauntlet prompt. A POC-shaped ask alone never selects it — "quick" is a tone, not a scope, so using-agent-skills offers this path beside the full loop and the human picks. All work lands in the .gauntlet/ scratch the repository is made to ignore, and nothing it produces is shippable. Fetching the bar can mean cloning, installing, and running code from outside the repository, so it shows you exactly what it is about to fetch and waits for your yes each time, and hands it no credentials. Standalone — no lifecycle gates, nothing blocks, /orchestrate untouched.'
+description: 'Grinds a throwaway prototype until it beats a real outside reference — name one fetchable bar, split the goal into independently judgeable pieces, and run a builder against a separate blind critic on each until the critic picks ours. Emits a paste-ready prompt for a fresh session, and runs the loop here when asked. The fast path for a proof of concept; anything that will ship uses the lifecycle skills. Use when someone types /gauntlet-loop or says "gauntlet this", "loop until it beats X", "run the gauntlet", or asks for a gauntlet prompt. An ask that merely sounds fast never selects it — quick is a tone, not a scope, so using-agent-skills offers this path beside the full loop and the human picks. Needs a person in the session: fetching a bar can mean running code from outside the repository, and every fetch waits for your yes. Standalone — no lifecycle gates, nothing blocks, /orchestrate untouched.'
 ---
 
 # Gauntlet loop — grind a throwaway prototype until it beats a real reference
@@ -25,10 +25,8 @@ the per-piece work, the progress page, the output. `src/` is not touched and the
 **What that ignore line does, exactly: it stops a commit.** An ordinary `git add` cannot sweep a POC into the
 tracked tree, and that much holds whether or not anyone reads this file. It is also the whole of what it does.
 It does not stop someone copying a file out — nothing does — so the prohibition is written down too, under
-*Rationalizations*. And it is not a sandbox: git declining to track a directory does not confine what runs
-inside it, does not hide this session's credentials from it, and does not bound what it reads from disk or
-sends over the network. A bar you install and run is ordinary code with ordinary reach. Step 6 is where that
-is gated, and the gate is you.
+*Rationalizations*. And it is not a sandbox: a bar you install and run is ordinary code with ordinary reach,
+and git declining to track a directory confines none of it. Step 6 is where that is gated, and the gate is you.
 
 The ignore line is not assumed. Nothing is written until `.gauntlet/` is in the target repository's
 `.gitignore` — the Process says where that check sits, and the prompt this skill emits carries the same
@@ -36,15 +34,6 @@ requirement into whatever session runs it. Where the line is absent, say so and 
 `.gitignore` belongs to the human, as `project-setup` also holds. A human who declines it has declined the
 loop, so say that and stop rather than running a throwaway build into a tracked tree.
 `frontend-design` gets its throwaway screens ignored the same way.
-
-**Why this path carries a gate of its own.** Everywhere else in the suite, an external dependency is declared
-in `environment.md` — data, never a command — and `preflight-readiness` probes it value-blind before an
-autonomous wave starts. That shape works because the human is away: nothing executable was ever written down,
-so nothing unreviewed can run unattended. A gauntlet loop cannot borrow it. Its method *is* to obtain somebody
-else's artifact and run it, and it has no manifest to declare that in. What it has instead is the one thing
-the AFK path does not — a human in the session — so its gate is a person looking at the thing before it runs.
-That is a deliberate exception carrying its own gate, not a path that slipped past the other one. It does not
-make this skill read `environment.md` or wait on `preflight-readiness`; step 6 is the whole of it.
 
 **Loop-until-win is legal here, and only here.** `doubt-driven-development` and the orchestrator each bound
 their cycles, each states its own bound, and this skill does not lift either. Those bounds exist because a
@@ -121,8 +110,7 @@ the offer, not the assumption.
    a licensed dataset — name it to the human at this step and let them decide it along with the rest.
 
 7. **Get the real thing.** With the yes in hand, fetch the bar into `.gauntlet/<slug>/bar/` — the screenshot
-   at the stated viewport, the published piece, the cloned repository, the footage. Getting it may mean
-   installing and running something rather than downloading it, which is what step 6 was for. Compare against
+   at the stated viewport, the published piece, the cloned repository, the footage. Compare against
    the artifact, never against a description of it: a critic handed a description invents the comparison. If
    it cannot be obtained on this machine it was never fetchable and it is not a bar — say what failed and go
    back to step 2.
@@ -155,9 +143,8 @@ already better. A bar passes three tests or it is not a bar:
 - **Named.** A specific artifact, not a category. "Stripe's pricing page" is a bar. "Award-winning SaaS
   sites" is not.
 - **Fetchable.** The critic can actually obtain it — screenshot the live page, read the published piece, run
-  the binary, open the repository, watch the footage. What cannot be obtained gets invented. Obtainable is not
-  the same as agreed to — obtaining some of these means running somebody else's code, which is step 6's
-  business, and a bar you may not run is not fetchable for this purpose.
+  the binary, open the repository, watch the footage. What cannot be obtained gets invented. A bar the human
+  will not let you run is not fetchable for this purpose, which step 6 settles.
 - **Comparable.** Both can sit side by side and a judge can pick one. If you cannot picture the A/B, there is
   nothing to judge.
 
@@ -242,15 +229,9 @@ Stop signals disguised as good reasons:
   the floor.
 - *"I will specify the layout and the stack so the builder does not wander."* → Every extra instruction is one
   fewer decision made with the agent's own judgement, after it has seen the bar.
-- *"It is a popular open-source repository, so cloning and running it is fine."* → Popularity is not review,
-  and this bar was picked for being good rather than for being safe. The ask costs one line and one turn;
-  skipping it spends somebody else's machine on a judgement they never made.
 - *"They said yes to the last bar, so this one is covered."* → The yes was about a named thing. A new URL, a
   new package, or a move from downloading to executing is a new ask. Treating one yes as standing permission
   is how a consent step decays into a formality.
-- *"The install wants a token and there is already one in the environment."* → Then the run stops and the
-  human hears about it. A credential being within reach is not the same as it being in scope, and handing
-  outside code this session's secrets is the exact thing step 6 exists to prevent.
 - *"This piece came out well — I will move it into `src/`."* → Nothing leaves `.gauntlet/`. One critic's blind
   pick is not a signed contract, a code-cold review, or a Verify pass, and code nobody else has to maintain is
   held to a different standard than code they do.
@@ -268,10 +249,10 @@ Stop and fix before continuing if any are true:
 - The pair reached the critic under names, paths, an order, or conditions that said which one was ours.
 - A judgement came back as a score, a percentage, or a rubric instead of a pick plus one gap.
 - An exit was taken on a round count rather than on the critic's pick.
-- A clone, an install, or an execution happened before the human saw what was being fetched — or one yes was
-  stretched to cover a second bar, or a yes to downloading was read as a yes to running.
-- Credentials, environment secrets, or repository contents beyond the piece under comparison reached the
-  fetched bar; or a build asked to authenticate somewhere and got a credential instead of a stop.
+- A clone, an install, or an execution happened before the human saw what was being fetched; or one yes was
+  stretched to cover a second bar, or a yes to downloading was read as a yes to running; or credentials,
+  environment secrets, or repository contents beyond the piece under comparison reached the fetched bar, or a
+  build that asked to authenticate got a credential instead of a stop.
 - A write happened while `.gauntlet/` was not in the target repository's `.gitignore`, or the line was added
   without asking, or any file landed outside `.gauntlet/<slug>/`.
 - The `.gitignore` line was treated as though it confined what the fetched bar could run, read, or reach.
@@ -282,11 +263,10 @@ Stop and fix before continuing if any are true:
 
 **Prompt mode** is done when one paste-ready block exists — short, no headings inside it, the bar baked in as
 a named fetchable thing, the gauntlet named in its first line, and both the scratch-directory requirement
-and the ask-before-you-fetch requirement carried inside the block so the session that runs it inherits them —
-and the offer to run it sits under the block on one flat line. The second of those matters most in prompt
-mode, because the session that runs the block is the one that does the fetching, and a gate left behind in
-this file gates nothing there. A turn that offered candidate bars and stopped is not an unfinished prompt
-mode; it is step 2 ending correctly, and the block comes after the pick.
+and the ask-before-you-fetch requirement carried inside the block, because the session that runs it is the
+one that does the fetching and a gate left behind in this file gates nothing there — and the offer to run it
+sits under the block on one flat line. A turn that offered candidate bars and stopped is not an unfinished
+prompt mode; it is step 2 ending correctly, and the block comes after the pick.
 
 **Run mode** is done when ALL hold:
 

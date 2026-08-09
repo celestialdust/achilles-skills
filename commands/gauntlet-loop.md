@@ -11,6 +11,8 @@ Invoke the `gauntlet-loop` skill. Standalone — no lifecycle gates, nothing blo
 - **Where it lands.** Everything — the fetched bar, the per-piece work, the progress page, the output — goes
   in `.gauntlet/<slug>/`, which the repository ignores. `src/` is untouched and there is nothing to commit.
   Where that ignore line is missing, the run asks you before adding it and stops if you say no.
+- **Before it fetches.** Getting the bar can mean cloning, installing, and running somebody else's code, so
+  the run shows you what it is about to fetch and waits for your yes — once per bar. The rule is in the skill.
 - **What ends it.** The critic picks ours, blind, on every piece — or you stop the run.
 
 ## Notes
