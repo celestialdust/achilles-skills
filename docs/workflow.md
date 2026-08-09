@@ -20,7 +20,7 @@ Seven stages, in order. Work does not skip ahead.
 | # | Stage | What happens | What it produces |
 |---|---|---|---|
 | 1 | Ideate | Interview the person with the idea until the intent is clear. Diverge, then converge. Write down what is explicitly *not* being built. | `intent.md` |
-| 2 | Spec | Survey the codebase as it is today, then decide the design against that survey rather than against memory. Record the decisions, the domain vocabulary, the product spec, the behavioral contract, and every external thing the build will need. | `research.md`, the decision records, `CONTEXT.md`, `prd.md`, `acceptance.md`, `environment.md`, and a design contract for UI work |
+| 2 | Spec | Survey the codebase as it is today, then decide the design against that survey rather than against memory. Record the decisions, the domain vocabulary, the product spec, the behavioral contract, the structure the code will be laid out in, and every external thing the build will need. | `research.md`, the decision records, `CONTEXT.md`, `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` with the `architecture.html` page a person reads at the gate, a design contract for UI work, and `ARCHITECTURE.md` where no feature has written the repository's structure down yet |
 | 3 | Plan | Cut the work into thin vertical slices — each one a complete path through the system, not a horizontal layer — and order them into a dependency graph. Each slice declares the files it owns. | `plan.md`, plus slice rows on the board |
 | 4 | Implement | Build one slice. Stub it end to end so it compiles, write the failing test, write the smallest code that passes it, refactor, run the full suite, commit as one revertible unit. | the slice's commit |
 | 5 | Verify | A reader who did not write the code drives the running build through every scenario in the behavioral contract and records, per scenario, whether it passed, failed, or could not be reached. | `qa.md` |
@@ -37,7 +37,7 @@ that decides whether it opens. Ownership is per gate, not per stage.
 | Gate | Opens when | Owner |
 |---|---|---|
 | Ideate sign-off | `intent.md` names the outcome, the user, what success looks like, and what is not being built — and the person with the idea agrees. | person |
-| Spec sign-off | `acceptance.md` is signed rather than draft, and the decision records, `prd.md`, `environment.md`, and glossary are agreed. UI work also needs a signed design contract. | person |
+| Spec sign-off | `acceptance.md` is signed rather than draft, and the decision records, `prd.md`, `environment.md`, and glossary are agreed. UI work also needs a signed design contract. A feature that adds a module, adds a dependency between parts that already exist, or introduces a seam also needs a signed `architecture.md`. | person |
 | Plan sign-off | `plan.md` holds vertical slices with a dependency graph and per-slice file ownership, and the person has read it. | person |
 | Environment readiness | Every row of `environment.md` is green, or is amber and a person has attested it. The probe is read-only and never reads a secret's value; it reports green, amber, or red. Red is a refusal. Amber means the row cannot be checked without spending paid quota or taking a human-only login — it stays a refusal until a person answers the probe's question. An unanswered amber denies. | the agent probes; a person provisions what is missing and answers the amber questions |
 | Run start | The board holds the feature with its slice graph, the environment verdict is green, and the signed `acceptance.md` and the `plan.md` slices exist. | agent |
@@ -90,6 +90,7 @@ an answer.
 | **A frozen artifact was about to be edited to make a gate pass.** See "What is frozen" below. | the slice | A stop, not a pass. The slice halts and the attempted edit is reported. |
 | **A check was about to be weakened.** Dropping a review pass, deleting a guard, switching off a scenario, or merging two checks into one — at any point, including in the plan. | the slice | Refused on the spot rather than parked for approval. The slice halts, and the refusal names the specific measurement that would settle the case — the number that does not exist yet. |
 | **A security finding is Critical or High, or a secret appears in the diff.** | the slice | A hard stop: no retry, no pull request for that slice. The finding is reported as it stands. |
+| **A secret is already committed.** A live credential is in the repository's history, not only in a diff waiting to be committed, so its blast radius is the whole repository rather than one slice. | the run | You are told as soon as it is found. The run freezes at the next barrier — it lets the slices already in flight end, then dispatches nothing more and opens no further pull requests. It does not wait for you. Rotating the credential is yours, and the report names where the secret was found. |
 | **Two sources of truth disagree.** Two documents state the same thing differently and the order under "Source-of-truth order" does not settle which one governs. | the slice | The slice ends. What ended it names both files and the claim they disagree on, and its `gate` flips from the agent to you. Nothing is picked on your behalf, and nothing waits for your answer — the rest of the graph keeps draining and you settle it when you next look. |
 | **The retries ran out.** A real failure first routes into root-cause debugging and is retried a bounded number of times; exhausting those retries is what stops the slice. | the slice | The slice stays at the stage that failed, its `gate` flips from the agent to you, and the failure surfaces with a record of what was tried. |
 | **Gates are failing at a rising rate across the run.** Not one slice going wrong, but the run as a whole drifting. | the run | The run terminates instead of grinding on. What already passed still stands; the rest is reported unfinished. |
@@ -297,6 +298,7 @@ keeps the table from being shrunk until it stops catching anything.
 | `plan.md` | the interface contracts written into it | — | `api-design` | create |
 | `qa.md` | the file | — | `quality-verification` | create |
 | `security-findings.md` | the file, one per owning slice | — | `security-and-hardening` | create |
+| `release.md` | the file, one per release | — | `shipping-and-launch` | create |
 | `spec-review.md` | the file | — | `spec-review` | create |
 | `handoff.md` | the file | — | `handoff` | create |
 | `docs/lessons.md` | the file, its `## Entry shape` heading and the template beneath it | — | `project-setup` | create |
