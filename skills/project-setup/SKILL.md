@@ -245,13 +245,19 @@ Single-context: `CONTEXT.md` + `docs/adr/` at the root. (Multi-context: `CONTEXT
 `references/domain-docs.md`.
 
 ### Per-feature artifacts
-Each feature's intent.md / prd.md / acceptance.md / environment.md / plan.md live under
-`docs/features/<slug>/`.
+Each feature's intent.md / prd.md / acceptance.md / environment.md / architecture.md /
+architecture.html / plan.md live under `docs/features/<slug>/`.
 
 ### Test contract
 `docs/test-contract.md` lists scenarios this repo must never lose, each `PENDING` or `ACTIVE`. An ACTIVE
 row may never be skipped, weakened, or narrowed — by any slice, in any run, ever. Activation is one-way
 and a human act; agents read this file and never edit it. An empty file enforces nothing.
+
+### Structure map
+`ARCHITECTURE.md` holds this repo's structure once it is decided: the domains, the layer order, and the
+dependency edges a diff may add. The **first** feature to run `architecture-design` here writes it; every
+later one starts from it and records only what differs. Nothing scaffolds it — a repo whose layering
+nobody has decided has none, and that is correct rather than missing.
 
 ### Decided look
 `docs/design.md` holds this repo's look once it is decided: the palette, the type, the layout language,
@@ -288,6 +294,15 @@ either has the command's output under it or says the check was not run, and ther
 It is append-only on the same terms as `## Log`, and it is evidence rather than a status page: no entry
 carries a stage, a state, or an owner. `STATE.md` answers who owns the next action, and a second answer
 here would eventually disagree with it.
+
+### Lessons
+`docs/lessons.md` holds what a root-caused defect turned out to be: one entry per defect, seven fields
+each, naming the guard that would catch it coming back.
+
+**Read it before building a slice**, so a pit somebody has already fallen into is not fallen into twice.
+It is append-only on the same terms as `## Log`. The same defect recurring is a second entry, never an
+edit to the first — the count is the signal that the first guard did not hold, and folding two entries
+together destroys it.
 ```
 
 ### 5. Done

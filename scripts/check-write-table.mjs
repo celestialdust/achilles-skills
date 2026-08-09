@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // check-write-table.mjs — does any skill claim a write the rules file does not permit?
 //
-// Reads the "Who writes what" table out of docs/workflow.md, collects every write a
-// skills/*/SKILL.md declares, and compares the two zone by zone.
+// Reads the "Who writes what" table out of docs/workflow.md, collects the writes a
+// skills/*/SKILL.md declares in prose, and compares the two zone by zone. It does not claim to find
+// every one — CONTRIBUTING.md, "The write-table check", says what it does and does not reach, and
+// says it once so this header cannot drift away from it.
 //
 // IT OVER-REPORTS ON PURPOSE, and that is the whole design. A skill declares its writes in prose, so
 // no parser can be certain which zone a sentence means. Two earlier versions guessed, and every guess
@@ -383,7 +385,10 @@ function collectClaims(root, fileTokens) {
       for (let k = 0; k < found.length; k++) {
         const end = k + 1 < found.length ? found[k + 1].at : para.text.length;
         const sentences = para.text.slice(found[k].at, end).split(SENTENCE);
-        if (denies(sentences[0])) continue;
+        // A denial suppresses its own sentence and nothing more. Skipping the whole stretch here
+        // dropped every later sentence in it, so a real write standing next to a "never write X"
+        // was collected from nowhere and printed as nothing — a silent pass. The per-sentence
+        // denial below is what the rule actually needs.
         const acting = [];
         const acts = new Set();
         for (let s = 0; s < sentences.length; s++) {
@@ -399,10 +404,21 @@ function collectClaims(root, fileTokens) {
         const heading = headingFile(found[k].text);
         if (heading) paths.push(heading);
         for (const mark of marks(window)) paths.push(...pathsIn(mark.body));
+        // Keeping only the first marker's claim per file dropped every later marker that widened
+        // the act on that same file — the widening is exactly what needs judging, so losing it was
+        // a silent pass. Merge instead: union the acts, and keep both windows so the report shows
+        // which sentences the verdict was reached from.
         for (const path of paths) {
           const file = coverageOf(path, fileTokens);
-          if (file) { if (!claimed.has(file)) claimed.set(file, { window, acts }); }
-          else if (inRemit(path) && !missing.has(path)) missing.set(path, { window, acts });
+          if (file) {
+            const prev = claimed.get(file);
+            if (prev) { prev.window += ' ' + window; for (const a of acts) prev.acts.add(a); }
+            else claimed.set(file, { window, acts: new Set(acts) });
+          } else if (inRemit(path)) {
+            const prev = missing.get(path);
+            if (prev) { prev.window += ' ' + window; for (const a of acts) prev.acts.add(a); }
+            else missing.set(path, { window, acts: new Set(acts) });
+          }
         }
       }
       const where = { skill: name, path: `skills/${name}/SKILL.md`, line: para.line };

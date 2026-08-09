@@ -16,7 +16,7 @@ the wrong skill runs and a stage gets skipped.
 ## Project Structure
 
 ```
-skills/          → 39 skills, one discipline each (skills/<name>/SKILL.md)
+skills/          → 40 skills, one discipline each (skills/<name>/SKILL.md)
 agents/          → 5 review personas (code-cold subagents)
 commands/        → 12 slash commands (*.md) — 9 lifecycle + 3 standalone
 references/      → shared reference material: checklists (security, performance, accessibility, …) and
@@ -46,8 +46,11 @@ lives.
 | `docs/test-contract.md` | scenarios the repo must never lose, each `PENDING` or `ACTIVE` | a person; agents read it and never edit it |
 | `docs/session-state.md` | where the work stands (five fields, rewritten each time) plus an append-only log of decisions | `handoff` |
 | `docs/design.md` | the repository's decided look — what every interface shares, as against what one screen decides for itself | the **first** UI surface built in the repo, via `frontend-design`; nothing scaffolds it |
-| `docs/adr/` | one file per architectural decision, with the reasoning and what was ruled out | `spec-grilling`, `documentation-and-adrs` |
-| `docs/features/<slug>/` | one feature's `intent.md`, `research.md`, `prd.md`, `acceptance.md`, `environment.md`, `plan.md`, `qa.md` | the stage that produces each one |
+| `docs/adr/` | one file per architectural decision, with the reasoning and what was ruled out | `spec-grilling`, `plan-breakdown`, `documentation-and-adrs` |
+| `ARCHITECTURE.md` | the repository's structure — its domains, the layer order, and the dependency edges a diff may add | the **first** feature to run `architecture-design`; nothing scaffolds it |
+| `docs/progress.md` | the run record — what each slice actually executed: the commands, their real output, and what was not run and why | `project-setup` seeds it; whichever skill runs a slice appends one entry per slice |
+| `docs/lessons.md` | root-caused defects, seven fields each, naming the guard that would catch a recurrence | `project-setup` seeds it; `debugging-and-error-recovery` and `code-review` append |
+| `docs/features/<slug>/` | one feature's `intent.md`, `research.md`, `prd.md`, `acceptance.md`, `environment.md`, `architecture.md`, `architecture.html`, `plan.md`, `qa.md` | the stage that produces each one |
 | `references/language-style.md` | how this suite writes | a person; it ships with the plugin and is never scaffolded into a consumer's repo |
 | `CONTRIBUTING.md` | what a change to a skill, command, or persona must satisfy — naming, the `SKILL.md` envelope, structure rules, the artifact-chain contract, and the pre-PR list | a person; contributor-facing, never scaffolded into a consumer's repo |
 
@@ -124,9 +127,11 @@ a platform with no skill tool — not to build the `/review` fan-out.
 
 - Every skill lives at `skills/<kebab-case-name>/SKILL.md`.
 - Reference other skills rather than duplicating their content.
-- The `SKILL.md` envelope — the frontmatter keys, how the `description` is written, and the body sections
-  in order — is stated once, in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it there before you add or
-  reshape a skill, and do not copy it back here: the second copy is the one that drifts.
+- The `SKILL.md` envelope is defined in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it there before you add
+  or reshape a skill. Its **eight body slots and their order** are stated there and nowhere else — do not
+  copy them back here, because the second copy is the one that drifts. The frontmatter keys and how a
+  `description` is written are not so lucky: the per-agent setup guides state those too, so changing
+  either means finding every site rather than editing one.
 - Use the **new** skill names everywhere (e.g. `performance-optimization`, not `perf`; `quality-verification`,
   not `qa`). Artifact filenames (`qa.md`, `acceptance.md`, `environment.md`, …) and the `git` VCS tool keep
   their names — they are not skill pointers.

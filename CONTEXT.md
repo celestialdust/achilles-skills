@@ -22,7 +22,8 @@ language. Every term this repository defines lives in this one section.
   are *standalone* — `/explain`, `/quiz`, and `/gauntlet-loop` — and belong to no stage; they can run at
   any time without advancing one.
 - **Artifact** — a contract file passed between stages (`intent.md`, `prd.md`, `plan.md`, `research.md`,
-  `acceptance.md`, `environment.md`, `qa.md`, `STATE.md`). Artifact names are independent of skill names.
+  `acceptance.md`, `environment.md`, `architecture.md`, `architecture.html`, `qa.md`, `STATE.md`).
+  Artifact names are independent of skill names.
 - **Feature** — one unit of product work with its own set of documents, kept together under
   `docs/features/<slug>/`: the intent, the product spec, the signed behavioral contract, the plan, and the
   verification record. A feature is what a person signs off. It is then cut into slices, and a slice never
@@ -138,12 +139,14 @@ language. Every term this repository defines lives in this one section.
   that way is the fact worth keeping.
 - **Substrate** — the durable files a stage reads and writes instead of remembering: the board, this
   glossary, the decision records, the per-feature documents, the test contract, the process contract at
-  `docs/workflow.md`, the decided look at `docs/design.md`, and the session state — plus the
-  `## Agent skills` block written into the repo's `CLAUDE.md` or `AGENTS.md`, which is what points a cold
-  agent at the rest. `project-setup` creates them once so every later skill reads them cold — all but
-  `docs/design.md`, which it names so nobody invents a path for it, and which the first user interface
-  built in the repository writes. Files that only describe how this suite itself is written are not
-  substrate; nothing scaffolds those into a consuming project.
+  `docs/workflow.md`, the run record at `docs/progress.md`, the lessons record at `docs/lessons.md`, the
+  decided look at `docs/design.md`, the structure map at `ARCHITECTURE.md`, and the session state — plus
+  the `## Agent skills` block written into the repo's `CLAUDE.md` or `AGENTS.md`, which is what points a
+  cold agent at the rest. `project-setup` creates them once so every later skill reads them cold — all but
+  `docs/design.md` and `ARCHITECTURE.md`, which it names so nobody invents a path for either, and which
+  the first user interface and the first feature to run `architecture-design` write respectively. Files
+  that only describe how this suite itself is written are not substrate; nothing scaffolds those into a
+  consuming project.
 - **Source-of-truth order** — the stated ranking that says which document governs when two of them say
   the same thing differently. It is written down so nobody has to guess, and so a disagreement an agent
   cannot settle ends that slice with both files named, rather than being resolved by whichever document

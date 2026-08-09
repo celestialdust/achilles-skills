@@ -186,13 +186,15 @@ PENDING row enforces nothing and takes rank 8 as written.
 
 Not every document has a rank. `STATE.md`, `CONTEXT.md` and the `CONTEXT-MAP.md` index a multi-context
 repository keeps beside it, and the per-feature `intent.md`, `research.md`, `environment.md`, and `qa.md`
-have none. Two more settle themselves instead of needing one:
+have none. Three more settle themselves instead of needing one:
 `docs/session-state.md` says in its own text that it is the weakest source here and never overrides a
-decision record or a signed `acceptance.md`; and a feature's design contract and `docs/design.md` divide
+decision record or a signed `acceptance.md`; a feature's design contract and `docs/design.md` divide
 one subject rather than compete for it — the contract decides that surface, and `docs/design.md` decides
-every axis the contract marks inherited. Where two documents with no rank between them disagree, nothing
-here settles it, and the stop condition above is what happens: the slice ends, both files and the claim
-are named, and the next move is yours.
+every axis the contract marks inherited; and a feature's `architecture.md` divides one subject with
+`ARCHITECTURE.md` the same way — the feature's delta decides that feature's structure, and
+`ARCHITECTURE.md` decides the layering every feature inherits. Where two documents with no rank between
+them disagree, nothing here settles it, and the stop condition above is what happens: the slice ends,
+both files and the claim are named, and the next move is yours.
 
 ## Who writes what
 
@@ -242,7 +244,8 @@ keeps the table from being shrunk until it stops catching anything.
 | `CLAUDE.md` / `AGENTS.md` | everything else in the file | — | you | create |
 | `docs/workflow.md` | the whole file, copied from the bundled process contract | — | `project-setup` | create |
 | `docs/workflow.md` | any local edit to it | — | nobody | never |
-| `ARCHITECTURE.md` | the whole file | — | you | create |
+| `ARCHITECTURE.md` | the whole file — written from the first feature to run `architecture-design` here, and again where a later feature deliberately moves the repository's structure | — | `architecture-design` | create |
+| `ARCHITECTURE.md` | any part of it, for a feature that records a delta rather than moving the structure | — | nobody | never |
 | `docs/adr/` | the directory | — | `project-setup` | create |
 | `docs/adr/` | a record for a decision taken during Spec | — | `spec-grilling` | create |
 | `docs/adr/` | a record for a decision taken during Plan | — | `plan-breakdown` | create |
@@ -287,6 +290,8 @@ keeps the table from being shrunk until it stops catching anything.
 | `acceptance.md` | any part of it, once signed | — | nobody | never |
 | `environment.md` | the file | — | `environment-manifest` | create |
 | `environment.md` | a decidable fact corrected before the Spec gate | — | `spec-review` | create |
+| `architecture.md` | the file — one feature's structural delta | — | `architecture-design` | create |
+| `architecture.html` | the file, its source block spliced from `architecture.md` | — | `architecture-design` | create |
 | `design-contract.md` | the file | — | `frontend-design` | create |
 | `plan.md` | the file | — | `plan-breakdown` | create |
 | `plan.md` | the interface contracts written into it | — | `api-design` | create |
@@ -294,22 +299,33 @@ keeps the table from being shrunk until it stops catching anything.
 | `security-findings.md` | the file, one per owning slice | — | `security-and-hardening` | create |
 | `spec-review.md` | the file | — | `spec-review` | create |
 | `handoff.md` | the file | — | `handoff` | create |
-| `docs/lessons.md` | an entry for a root-caused defect | — | `debugging-and-error-recovery` | append only |
-| `docs/lessons.md` | an entry for a Critical review finding | — | `code-review` | append only |
+| `docs/lessons.md` | the file, its `## Entry shape` heading and the template beneath it | — | `project-setup` | create |
+| `docs/lessons.md` | an entry for a root-caused defect | `root-caused` | `debugging-and-error-recovery` | append only |
+| `docs/lessons.md` | an entry for a Critical review finding | `Critical:` | `code-review` | append only |
+| `docs/lessons.md` | an entry a slice handed back, appended once the slice is merged | `TERMINAL barrier` | `orchestrator` | append only |
 | `docs/lessons.md` | an entry already written | — | nobody | never |
-| `docs/progress.md` | the whole file | — | nobody | never |
+| `docs/progress.md` | the file and its `## Entry shape` heading | — | `project-setup` | create |
+| `docs/progress.md` | a slice's entry, where that slice ran on its own | `hand-run path` | `incremental-implementation` | append only |
+| `docs/progress.md` | a slice's entry, where a run drove the slice | `per dispatch` | `orchestrator` | append only |
+| `docs/progress.md` | an entry already written | — | nobody | never |
 
-The lessons record is the case worth reading twice. Two parties write it and neither is wrong: one records
-what a defect turned out to be, the other records a Critical finding a review caught. They write different
-entries for different reasons, so the file has two writers and no zone of it has two. Keyed by file alone,
-that arrangement would read as a violation and the rule would have to carve an exception for it — which is
-why the key is the zone, not the file.
+The lessons record is the case worth reading twice. Two parties author entries and neither is wrong: one
+records what a defect turned out to be, the other records a Critical finding a review caught. They write
+different entries for different reasons, so no zone of the file has two authors. A third row lets the
+orchestrator append an entry a slice handed back, because an append made from inside a slice's worktree
+lands on a branch that may never merge. Keyed by file alone, that arrangement would read as a violation
+and the rule would have to carve an exception for it — which is why the key is the zone, not the file.
 
-`ARCHITECTURE.md` and `docs/progress.md` are ranked in the order above and written by no skill here. You
-write the first, if the repository keeps one at all. The second is the record of what each slice actually
-executed, and nothing writes it yet — so its row says `never`, and the skill that starts writing it says
-so in that row in the same commit. That is the point of listing a file nobody writes: an unrowed file
-permits nothing, so a new writer arrives as a decision somebody wrote down rather than as drift.
+`ARCHITECTURE.md` is the one file ranked above that nothing scaffolds. The first feature to run
+`architecture-design` writes it; a repository whose layering nobody has decided has none, and that is
+correct rather than missing. Never **scaffolded** is not never **written by a skill** — the row names its
+writer, and only the create-it-empty step is absent.
+
+**A change that adds a writer adds that writer's row, in the same commit.** A file with no row permits
+nothing, so a new writer arrives as a decision somebody wrote down rather than as drift. This has been got
+wrong four times, and the same way each time: a row reading `never` outlived the wave that gave the file a
+writer, and the table went on reading as current while describing a repository that no longer existed. The
+rule is not what failed; skipping it is.
 
 ## What never happens
 

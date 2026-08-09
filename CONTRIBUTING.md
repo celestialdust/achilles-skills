@@ -71,7 +71,7 @@ Slots are what keep the envelope checkable. An exception written as *which skill
 - Slot 4 accepts **any** heading, so no walk can pick the Process out. What a walk confirms is that at least one heading sits between the Inputs slot and the Rationalizations slot — a region, not a position. The heading that opens that region is often not the Process: `performance-optimization` opens it with `## Core Web Vitals Targets` and reaches `## The Optimization Workflow` further down. Which heading is the Process is something a person reading the file can see and a walk cannot, and the Process wordings above are for that person.
 - A file fails when a slot has no heading left to match after the slot before it: the headings ran out, or the only candidate sits earlier. A file that fills all eight in order passes, whatever they are called and whatever else it carries.
 
-So the walk catches a slot that is missing, and a slot moved past another whose wording it does not match. It does **not** catch a swap between Inputs and the Process, because a walk that has matched Inputs accepts the next heading whatever it says: move `## Inputs` below `## The Increment Cycle` in `incremental-implementation` and the walk still passes. Closing that would mean fixing a wording for the Process, which is the one thing this envelope refuses to do. Check that pair by reading — nothing else will.
+So the walk catches a slot that is missing, and a slot moved past another whose wording it does not match. **Do not rely on it for the Inputs/Process pair.** Whether it catches a swap there depends on how many headings that file's Process region happens to carry, so a pass tells you nothing about that pair either way: move `## Inputs` below `## The Increment Cycle` in `incremental-implementation` and the walk still passes. Closing that would mean fixing a wording for the Process, which is the one thing this envelope refuses to do. Check that pair by reading — nothing else will.
 
 ### Quality bar
 
@@ -85,7 +85,7 @@ Skills should be **specific** (actionable steps, not vague advice), **verifiable
 
 - One `SKILL.md` per skill directory; valid two-key frontmatter.
 - Don't duplicate content between skills — **reference** the other skill instead.
-- Reference material more than one skill reads goes in the top-level `references/`. Material only one skill reads may stay in that skill's own `references/` — seven skills carry one. Promote it the moment a second skill needs it: a shared reference living inside one skill's directory is kept true by a skill that has no reason to keep it true for the other.
+- Reference material more than one skill reads goes in the top-level `references/`. Material only one skill reads may stay in that skill's own `references/` — eight skills carry one. Promote it the moment a second skill needs it: a shared reference living inside one skill's directory is kept true by a skill that has no reason to keep it true for the other.
 - Only add supporting files when content exceeds ~100 lines; don't create empty `scripts/` dirs to mirror another skill.
 
 ### The `## Subagents` block
@@ -135,10 +135,10 @@ Stages don't share memory — they hand off through **artifact files** with fixe
 | Stage | Produces |
 |---|---|
 | Ideate | `intent.md` |
-| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `design-contract.md` (UI only) (+ ADRs, `CONTEXT.md`) |
+| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html`, `design-contract.md` (UI only) (+ ADRs, `CONTEXT.md`) |
 | Plan | `plan.md` |
 | Verify | `qa.md` |
-| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/workflow.md` (the process contract), `docs/test-contract.md` (the repo's permanent cross-feature scenarios), `docs/session-state.md` (where the work stands + an append-only decision log), `docs/design.md` (the repository's decided look, written by the first UI surface) |
+| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/workflow.md` (the process contract), `docs/test-contract.md` (the repo's permanent cross-feature scenarios), `docs/session-state.md` (where the work stands + an append-only decision log), `docs/progress.md` (the run record — what each slice actually executed), `docs/lessons.md` (root-caused defects and the guard for each), `docs/design.md` (the repository's decided look, written by the first UI surface), `ARCHITECTURE.md` (the repository's structure, written by the first feature to run `architecture-design`) |
 
 Each stage reads the upstream artifact and writes the next, so a fresh agent can resume from the files alone. When you add or edit a skill/command, declare what it reads and writes in `## Outputs & handoff contract` using these exact filenames — never introduce a new artifact name for an existing contract file.
 
