@@ -153,6 +153,8 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   no second manifest at the repo root; a duplicate would drift, since nothing forces the two to agree.
 - No per-skill `evals/` directory.
 - No terse-stem skill pointers reintroduced; artifact/tool/object tokens left verbatim.
+- `node scripts/check-write-table.mjs` exits `0` — it fails on any write a skill declares that the write
+  table in `docs/workflow.md` does not give it. Nothing runs it for you; no job covers `scripts/`.
 - This repo's own `docs/workflow.md` still matches the copy `project-setup` ships. Run
   `diff docs/workflow.md skills/project-setup/assets/workflow.template.md`; it must print nothing. The
   two are the same document with two audiences, and `project-setup` — which is the only thing that ever

@@ -144,3 +144,19 @@ language. Every term this repository defines lives in this one section.
   `docs/design.md`, which it names so nobody invents a path for it, and which the first user interface
   built in the repository writes. Files that only describe how this suite itself is written are not
   substrate; nothing scaffolds those into a consuming project.
+- **Source-of-truth order** — the stated ranking that says which document governs when two of them say
+  the same thing differently. It is written down so nobody has to guess, and so a disagreement an agent
+  cannot settle ends that slice with both files named, rather than being resolved by whichever document
+  the agent happened to read first.
+- **Write-permission** — what one party may do to one part of a file: create it, add after what is
+  already there, change a single declared token, or nothing at all. Permission is held per part rather
+  than per file. That is why a file two parties legitimately write is not a conflict, and two parties
+  writing the same part is.
+- **Evidence ledger** — the record of what a run actually executed: one entry per slice, holding the
+  commands that were run, the output they really produced, the files that changed, and what was not run
+  and why. Entries are written as the work happens and never revised afterwards, so a reader can tell a
+  pass that was proved from a pass that was merely asserted.
+- **Lesson** — one root-caused defect written down once: what broke, what it turned out to be, and the
+  guard that would catch it if it happened again. The guard is named when the defect is understood, not
+  when somebody later decides to enforce it — entries that do not each carry their own guard cannot be
+  turned into guards later without working every one of them out from scratch.
