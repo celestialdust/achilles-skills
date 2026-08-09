@@ -93,6 +93,12 @@ A persona file is:
 
 When adding a persona, pair it with its source skill: add the `## Subagents` block to that skill so the method points back at the role.
 
+### What a plugin persona's frontmatter actually reads
+
+Everything in `agents/` ships inside a plugin, and a plugin persona reads thirteen frontmatter fields: `name`, `description`, `tools`, `disallowedTools`, `model`, `maxTurns`, `skills`, `memory`, `background`, `effort`, `isolation`, `color`, `initialPrompt`. Three others — `hooks`, `mcpServers`, `permissionMode` — are dropped silently. No error, no warning: the persona loads and the line behaves as though you never wrote it, which is worse than a field that fails, because the file still reads as configured. Don't ship one. A role that genuinely needs one of the three is not a plugin persona — whoever installs the suite has to copy the file into their own `.claude/agents/` or `~/.claude/agents/` by hand — so say that in the PR rather than leave a line nothing reads.
+
+Composition is enforced below this repo, not by it. A subagent cannot spawn another subagent, and a teammate cannot spawn a team. That is why [CLAUDE.md](CLAUDE.md)'s composition rule — a slash command or the user orchestrates, and personas do not invoke other personas — is not a house preference: a persona written to dispatch another persona doesn't misbehave, it fails to run.
+
 ## The artifact-chain contract
 
 Stages don't share memory — they hand off through **artifact files** with fixed names. The names are independent of skill names and must never be renamed:

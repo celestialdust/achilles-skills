@@ -52,7 +52,7 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 | `skills/` | The 38 skills — one discipline per `SKILL.md` |
 | `agents/` | The 5 fresh-context personas |
 | `commands/` | The 11 slash commands — thin wrappers over the skills |
-| `references/` | Shared reference material: checklists (testing, performance, security, …) and `language-style.md`, the prose style guide for everything this repo ships |
+| `references/` | Shared reference material: checklists (security, performance, accessibility, …) and `language-style.md`, the prose style guide for everything this repo ships |
 | `docs/` | Reader-facing documentation: getting started + per-agent setup guides, plus `workflow.md` and `test-contract.md` — this repo's own copies of the process contract and the test contract. `CONTEXT.md` at the root is the same idea: the suite runs its own process, so it carries the artifacts that process produces |
 
 `docs/` is for readers of this repo. The pipeline artifacts the suite produces (`STATE.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`) live in **your** project once `/setup` scaffolds them there — not in this one. Three are exceptions, and they are here for the same reason: this repo runs the same loop, so it carries them. `/setup` scaffolds a copy of `docs/workflow.md`, `docs/test-contract.md`, and `CONTEXT.md` into your project; this repo keeps its own of each.
@@ -292,7 +292,7 @@ Five specialist agents apply a Review/Verify skill with a **fresh, code-cold con
 
 ## References
 
-Shared material in [`references/`](./references/) that skills pull in on demand: the checklists (testing, security, performance, accessibility, observability, definition-of-done), the orchestration patterns, the unknowns pass, and the artifact shapes the design, teaching, and comprehension skills read. [docs/getting-started.md](./docs/getting-started.md) maps each file to the skills that use it — one list, so a new reference cannot go missing from a second one.
+Shared material in [`references/`](./references/) that skills pull in on demand: the checklists (security, performance, accessibility, observability, definition-of-done), the unknowns pass, and the artifact shapes the design, teaching, and comprehension skills read. [docs/getting-started.md](./docs/getting-started.md) maps each file to the skills that use it — one list, so a new reference cannot go missing from a second one.
 
 ## License
 

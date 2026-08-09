@@ -65,7 +65,7 @@ no doubt cycle. `depth: lite` — the refuse-to-run test is the **triviality tes
 
 This skill is designed for the **main-session orchestrator**, where Step 3 (DOUBT, detailed below) can spawn a fresh-context reviewer.
 
-- doubt runs from the **main-session orchestrator** — the context that can spawn a fresh subagent for Step 3. Do not bury doubt inside a subagent: a subagent that reaches Step 3 cannot spawn a nested subagent (Claude Code blocks nested spawn), so its "fresh-context" review silently degrades to self-questioning — the orchestration anti-pattern named in `../../references/orchestration-patterns.md` (a subagent invoking another subagent).
+- doubt runs from the **main-session orchestrator** — the context that can spawn a fresh subagent for Step 3. Do not bury doubt inside a subagent: a subagent that reaches Step 3 cannot spawn a nested subagent (Claude Code blocks nested spawn), so its "fresh-context" review silently degrades to self-questioning. That is what the composition rule in `../../CLAUDE.md` protects: a slash command or the user is the orchestrator, and nothing it dispatches dispatches further.
 - **If you find yourself applying this skill from inside a subagent context** (where Claude Code prevents nested subagent spawn): the preferred path is to surface to the user that doubt-driven cannot run nested and let the main session handle it. As a last resort only, a degraded self-questioning fallback exists — rewrite ARTIFACT + CONTRACT as a fresh self-prompt with a hard mental separator from your prior reasoning, and walk Steps 1–5. This is **not fresh-context review** (you carry your own context with you), so flag the result as degraded and prefer escalation whenever the user is reachable.
 
 ## The Process
@@ -127,7 +127,7 @@ CONTRACT: <paste contract>
 
 **Pass ARTIFACT + CONTRACT only. Do NOT pass the CLAIM.** Handing the reviewer your conclusion biases it toward agreement. The reviewer must independently determine whether the artifact satisfies the contract.
 
-Dispatch the reviewer as a **fresh, code-cold subagent** — the same fresh-context-per-subagent isolation the Review fan-out uses (see `../../references/orchestration-patterns.md`). The house has no personas to reuse; the reviewer is a generic fresh-context subagent that starts with isolated context by design, handed the adversarial prompt below.
+Dispatch the reviewer as a **fresh, code-cold subagent** — the same fresh-context-per-subagent isolation the Review fan-out uses (see `../../CLAUDE.md`). The house has no personas to reuse; the reviewer is a generic fresh-context subagent that starts with isolated context by design, handed the adversarial prompt below.
 
 The subagent's default instinct is a balanced verdict (strengths + weaknesses); doubt needs **issues-only** output. Paste the adversarial prompt verbatim so it governs the response shape — the subagent finds issues, or states it cannot after thorough examination, and nothing else.
 
@@ -248,7 +248,7 @@ If 3 cycles is "obviously insufficient" because the artifact is large: the artif
 - **`source-driven-development`**: SDD verifies *facts about frameworks* against official docs. Doubt-driven verifies *your reasoning about the artifact*. SDD checks the API exists; doubt-driven checks you used it correctly under the contract.
 - **`test-driven-development`**: TDD's RED step is doubt made concrete — a failing test is a disproof attempt. When TDD applies, that failing test *is* the doubt step for behavioral claims.
 - **`debugging-and-error-recovery`**: when the reviewer surfaces a real failure mode, drop into the debugging skill to localize and fix.
-- **Repo orchestration rules** (`../../references/orchestration-patterns.md`): this skill orchestrates from the main session. A persona calling another persona is anti-pattern B — see Loading Constraints above.
+- **The repo's composition rule** (`../../CLAUDE.md`): this skill orchestrates from the main session. A slash command or the user is the orchestrator; a persona does not invoke another persona — see Loading Constraints above.
 
 ## Verification (ending criteria)
 

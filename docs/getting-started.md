@@ -177,12 +177,10 @@ The `references/` directory contains supplementary checklists that skills pull i
 | Reference | Use with |
 |-----------|----------|
 | [`definition-of-done.md`](../references/definition-of-done.md) | quality-verification, acceptance-criteria |
-| [`testing-patterns.md`](../references/testing-patterns.md) | test-driven-development, quality-verification |
 | [`security-checklist.md`](../references/security-checklist.md) | security-and-hardening |
 | [`performance-checklist.md`](../references/performance-checklist.md) | performance-optimization |
 | [`accessibility-checklist.md`](../references/accessibility-checklist.md) | frontend-design |
 | [`observability-checklist.md`](../references/observability-checklist.md) | observability-and-instrumentation |
-| [`orchestration-patterns.md`](../references/orchestration-patterns.md) | orchestrator |
 | [`finding-unknowns.md`](../references/finding-unknowns.md) | interview-me, idea-refine, spec-grilling |
 | [`design-system-format.md`](../references/design-system-format.md) | frontend-design, quality-verification |
 | [`teaching-artifact-format.md`](../references/teaching-artifact-format.md) | literate-explainer |
