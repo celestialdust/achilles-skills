@@ -47,15 +47,7 @@ git clone https://github.com/celestialdust/achilles-skills.git
 
 #### 2. Choose a skill
 
-Browse the `skills/` directory. Each subdirectory contains a `SKILL.md` with:
-- **Purpose** — what the skill does and why it exists
-- **When to use / when to skip** — triggers that indicate this skill applies, and when it doesn't
-- **Inputs** — what the skill expects to receive
-- **Process** — step-by-step workflow
-- **Rationalizations** — excuses the agent might use to skip steps, with rebuttals
-- **Red flags** — signs the skill is being violated
-- **Verification (ending criteria)** — how to confirm the work is done
-- **Outputs & handoff contract** — what the skill produces and hands to the next stage
+Browse the `skills/` directory. Each subdirectory holds one `SKILL.md` — the workflow itself, written to a fixed format ([CONTRIBUTING.md](../CONTRIBUTING.md#the-house-envelope) states it). Its opening sections say what the skill is for and when it applies, which is what you need to pick one.
 
 #### 3. Load the skill into your agent
 
@@ -120,22 +112,9 @@ Don't load all skills at once — it wastes context. Load skills relevant to the
 
 ## Skill Anatomy
 
-Every skill follows the same **house envelope** — two-key frontmatter plus an ordered set of body sections:
+Every skill follows the same **house envelope**: two-key frontmatter, then a fixed sequence of body slots — one `##` section per slot, always in the same order. The order is the contract; the wording is not. A skill may word any slot for itself, so one opens with `## Purpose` where another opens with `## Overview`, and a skill may hang sections of its own among the slots. Neither is a defect; a missing or out-of-order slot is.
 
-```
-YAML frontmatter (name, description — exactly these two keys)
-├── Purpose                        — what this skill does and why
-├── When to use / when to skip     — triggers and conditions
-├── Inputs                         — what the skill expects
-├── Process                        — step-by-step workflow
-├── (skill-specific sections)      — examples, tables, patterns
-├── Rationalizations               — excuses and rebuttals
-├── Red flags                      — signs the skill is being violated
-├── Verification (ending criteria) — exit criteria checklist
-└── Outputs & handoff contract     — what it produces and hands off
-```
-
-A few chassis skills keep their native `## Overview` / `## The Process` headings — that's intentional. See [CONTRIBUTING.md](../CONTRIBUTING.md) for the format specification and contribution workflow, and [CONTEXT.md](../CONTEXT.md) for the suite's shared vocabulary.
+[CONTRIBUTING.md](../CONTRIBUTING.md#the-house-envelope) states the slots and what fills each, alongside the rest of the contribution workflow. This guide points at it rather than restating it, so there is one statement to keep true. [CONTEXT.md](../CONTEXT.md) carries the suite's shared vocabulary.
 
 ## Using Agents
 

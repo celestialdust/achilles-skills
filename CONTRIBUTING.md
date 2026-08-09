@@ -48,11 +48,11 @@ Every `SKILL.md` follows the same envelope:
 | 2 | When to use | `## When to use / when to skip` | the triggers, and the cases that belong to a different skill |
 | 3 | Inputs | `## Inputs` | what must already exist before the skill runs |
 | 4 | Process | `## Process` | the method — the section the rest of the file exists to serve |
-| — | _(custom sections)_ | — | whatever this one skill needs: tables, worked examples, templates. Any number, including none. They sit between Process and Rationalizations, and nowhere else. |
 | 5 | Rationalizations | `## Rationalizations` | the excuses for skipping the process, each with its rebuttal |
 | 6 | Red flags | `## Red flags` | signs the skill is being violated |
 | 7 | Verification | `## Verification (ending criteria)` | how to tell the skill is finished |
 | 8 | Outputs | `## Outputs & handoff contract` | what it produces, and who reads it next |
+| — | _(custom sections)_ | — | whatever this one skill needs: tables, worked examples, templates. Any number, including none, anywhere among the slots — between any two, or after the last. |
 
 **Word a slot for the skill when that reads better.** This is deliberate, not tolerated. `incremental-implementation` calls its Process slot `## The Increment Cycle` because that is what the process *is*; renaming it to `## Process` would cost the reader the one word that told them. Many shipped skills word at least one slot differently, and none of them is a defect.
 
@@ -65,11 +65,13 @@ A qualifier hung off a slot heading still fills that slot: `## Red flags — STO
 
 > **A defect is a slot that is missing, or slots that appear out of order. An unfamiliar heading is neither.** Never rename a heading merely because you have not seen it before — ask whether all eight slots are present and in sequence, and if they are, leave the wording alone.
 
-Slots are what keep the envelope checkable. An exception written as *which skills may deviate* has to be maintained by hand and goes stale the first time someone adds a skill; a slot walk does not. Read as slots, the envelope is a single pass down a file's `##` headings, matching each slot in turn:
+Slots are what keep the envelope checkable. An exception written as *which skills may deviate* has to be maintained by hand and goes stale the first time someone adds a skill; a slot walk does not. Read as slots, the envelope is a **subsequence**: the eight appear in this order among a file's `##` headings, and any number of other headings may sit anywhere among them. One pass down the headings matches each slot in turn:
 
-- Slots 1–3 and 5–8 each accept a small set of wordings — the house heading, the alternate above, or either carrying a qualifier.
-- Slot 4 accepts **any** heading. Everything from it up to Rationalizations is one band of sections, and a check cannot tell which of them is the Process — nor does it need to, since it confirms only that the band is not empty. The rest of the band is custom and goes unchecked.
-- A file whose headings run out before slot 8, or whose slots resolve in the wrong sequence, fails. A file that fills all eight in order passes, whatever they are called.
+- Slots 1–3 and 5–8 each accept a small set of wordings — the house heading, the alternate above, or either carrying a qualifier. A heading matching none of them is a custom section: skip it and keep looking for the slot.
+- Slot 4 accepts **any** heading, so it is whatever follows Inputs. A check cannot tell which of the headings before Rationalizations is the Process — nor does it need to, since it confirms only that something sits there.
+- A file fails when a slot has no heading left to match after the slot before it: the headings ran out, or the only candidate sits earlier. A file that fills all eight in order passes, whatever they are called and whatever else it carries.
+
+Custom sections are not confined to a band. `interview-me` hangs `## Loading Constraints` between When to use and Inputs; the `## Subagents` pointer (below) sits after slot 8. A walk that demanded the eight be contiguous would reject both, and a check that fails on correct files is one people learn to ignore.
 
 ### Quality bar
 
@@ -143,8 +145,9 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
 ## Validating before a PR
 
 - Every `SKILL.md` has valid frontmatter with exactly `name` + `description`.
-- Every `SKILL.md` carries all eight body slots, in order — see [The house envelope](#the-house-envelope).
-  An unfamiliar heading is not a finding; a missing or out-of-order slot is.
+- Every `SKILL.md` carries all eight body slots in order, read as a subsequence — other headings may sit
+  among them — see [The house envelope](#the-house-envelope). An extra heading is not a finding, wherever
+  it sits; a missing or out-of-order slot is.
 - `agents/` and `commands/` filenames match the arrays in `.claude-plugin/plugin.json`.
 - Exactly one plugin manifest exists — `.claude-plugin/plugin.json`, which states the version. There is
   no second manifest at the repo root; a duplicate would drift, since nothing forces the two to agree.
