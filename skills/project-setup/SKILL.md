@@ -218,10 +218,11 @@ Then create the substrate (skip anything that already exists; never clobber). Th
    before any feature exists, so there is no slice branch for a write to get stranded on.
 
 10. **`docs/lessons.md`** — the lessons record, seeded with its `## Entry shape` heading, the fenced field
-    template beneath it, and the prose that states the rules the two writers read there (see "lessons.md
-    seed" below). Seed no entries: every `##` heading after `## Entry shape` is somebody else's, written
-    by whoever root-causes a defect and by `code-review` for a `Critical:` finding it raised. Skip the
-    file if it already exists, for the same reason as the two above and with the same force: it is
+    template beneath it, and the prose that states the rules every writer of an entry reads there (see
+    "lessons.md seed" below). Seed no entries: every `##` heading after `## Entry shape` is somebody
+    else's, written by whoever root-causes a defect, by `code-review` for a `Critical:` finding it raised,
+    and by the `orchestrator` carrying back an entry a slice handed it. Skip the file if it already
+    exists, for the same reason as the two above and with the same force: it is
     append-only, so overwriting one destroys what earlier defects cost somebody to work out.
 
     **Check `.gitignore` here too.** A lesson is written for the next person to work in that area, who is
@@ -315,7 +316,8 @@ Tell the user setup is complete and which skills now read from these files (`spe
 rows; `handoff` writes `docs/session-state.md` and appends to its log; whichever skill runs a slice —
 `incremental-implementation` on its own, or the `orchestrator` when a run drives it — appends that slice's
 entry to `docs/progress.md`; `debugging-and-error-recovery` appends a `docs/lessons.md` entry whenever a
-defect is root-caused, and `code-review` appends one for a Critical finding and for nothing lesser).
+defect is root-caused, `code-review` appends one for a Critical finding and for nothing lesser, and the
+`orchestrator` appends the entries slices hand back, from the checkout it holds rather than from theirs).
 Say plainly that the test contract
 is empty on purpose and enforces nothing until they activate a
 row, that activating one is theirs to do and one-way, and that no agent will ever move a row in either
@@ -667,10 +669,15 @@ again rather than folded into the entry already there. The count is the signal: 
 second time says the first guard did not hold, which is the one thing a reader most needs to know.
 Merging the two destroys the only evidence of it.
 
-**Two parties write here, and they write different entries.** Whoever root-causes a defect writes one.
+**Three parties write here, and they write different entries.** Whoever root-causes a defect writes one.
 A review writes one only for its most serious class of finding — a `Critical:` finding, once root-caused.
 A Required or lesser finding is refused here and stays in that review's findings list, where it is
 already tracked; admitting those would make this file a second copy of every review.
+
+**The third is a courier, not an author.** An entry written from inside a slice's own checkout lands on a
+branch that may never merge, so a slice hands its finished entry back and the run that drove it appends
+the entry here, from the checkout the run itself holds. The courier carries what it was handed and infers
+nothing from silence: a slice that hands back nothing has nothing appended for it.
 
 ## Entry shape
 
@@ -813,7 +820,8 @@ copy that this arrangement exists to prevent.
 - Asking "where should issues live / GitHub or local?" — that decision is gone (tracker = local `STATE.md`).
 - Writing any value, secret, or shell command into a scaffolded file (these files are structure, not config).
 - Seeding `STATE.md` with feature/slice rows — `project-setup` leaves the board empty.
-- Creating `docs/design.md`, or seeding it empty — the first UI surface writes it, and an empty one says
+- Creating `docs/design.md` or `ARCHITECTURE.md`, or seeding either empty — the first UI surface writes
+  the one and the first feature to run `architecture-design` writes the other, and an empty file says
   exactly what no file already says while reading like a decision somebody made.
 - Seeding `docs/test-contract.md` with a real row, or writing `state: ACTIVE` on any row — the file ships
   empty and activation is the user's one-way act.
@@ -861,7 +869,11 @@ Done when **all** hold:
 
 - `STATE.md` exists at the repo root and contains the three legend lines with the token sets exactly:
   `feature state: spec · plan · building · done`, `slice state: impl · verify · review · ship · done ·
-  blocked · halted`, `gate: you · agent · done`. No feature blocks.
+  blocked · halted`, `gate: you · agent · done`. **On a board this run created, no feature blocks**; on a
+  re-run over one that already existed and was skipped, every block `plan-breakdown` added is left where
+  it is. The legend is what this criterion is about. Demand an empty board over any copy and a repair
+  re-run reports a repository's real work as a defect — and the cheapest way to clear that is to delete
+  the board this skill exists to create.
 - The commented example slice header carries the full column list in order —
   `| Slice | Title | Design ref | State | Gate | Blocked by | Artifacts |` — so the rows `plan-breakdown`
   writes later land in a board shape the orchestrator can read.
@@ -904,13 +916,24 @@ Done when **all** hold:
   `CONTEXT.md` truncated to zero length → non-zero, naming that file. The third is the one that gets
   skipped, and the only one that reaches the empty-file case.
 - `docs/adr/` and `docs/features/` directories exist.
-- `docs/test-contract.md` exists, carrying a `## Rows` heading with **no rows under it** — the `TC-1` shape
-  example sits in the fenced block under `## Row format`, and no row under `## Rows` reads `state: ACTIVE`.
-  Scope the check to that section: the file explains what an activated row looks like, so `state: ACTIVE`
-  appears in its prose by design, and a check that scans the whole file fails on the file it just wrote. It
-  also carries the two states, the one-way human activation rule, the `acceptance.md` boundary, and what
-  happens when an ACTIVE row is touched — a reader who has never seen this project can add a row from the
-  file alone.
+- `docs/test-contract.md` exists, carrying a `## Rows` heading. **On a copy this run created, no rows under
+  it and none reading `state: ACTIVE`** — the `TC-1` shape example sits in the fenced block under
+  `## Row format`. On a re-run over one that already existed and was skipped, every row a person wrote
+  stays where it is, at the state they set it to. Scope the fresh-copy check to that section: the file
+  explains what an activated row looks like, so `state: ACTIVE` appears in its prose by design, and a check
+  that scans the whole file fails on the file it just wrote.
+
+  **The scope is not a convenience.** An ACTIVE row is frozen permanently, in every run —
+  `docs/workflow.md` says so under "What is frozen", and nothing moves a row back in either direction.
+  Demand an empty `## Rows` over any copy and a repair re-run reports a repository's permanent guarantees
+  as a defect, with exactly two ways to clear it: delete the rows, or flip ACTIVE to PENDING. Both are the
+  act the one-way rule exists to prevent, and the seed already says why in its own words — under retry
+  pressure, switching a guarantee off is always the cheapest way to turn a failing gate green. A criterion
+  that rewards that is the pressure.
+
+  The file also carries the two states, the one-way human activation rule, the `acceptance.md` boundary,
+  and what happens when an ACTIVE row is touched — a reader who has never seen this project can add a row
+  from the file alone.
 - `docs/workflow.md` exists, carrying every `##` section the bundled `assets/workflow.template.md`
   carries — as it stands, eight: `## The stages`, `## Who owns each gate`, `## Where a run ends`,
   `## What stops a run`, `## What is frozen`, `## Source-of-truth order`, `## Who writes what`,
@@ -923,13 +946,59 @@ Done when **all** hold:
   a copy that had drifted, the difference was shown to the user and they chose to keep their version. A
   drift that was never surfaced fails this criterion; a drift the user knowingly kept does not.
 - `docs/session-state.md` exists, carrying the five field headings — `## Current objective`,
-  `## Current state`, `## Remaining issues`, `## Boundaries`, `## Next phase` — and a `## Log` heading,
-  with **no log entries** under `## Log` and no field filled in. Scope this check the same way: the entry
-  template lives inside an HTML comment, so a bare `^### ` scan hits it and reports a log that is empty.
-  Its text states the append-only rule, that an attempt to
-  change an earlier entry is reported as a violation, what an entry holds and what it never holds, that it
-  is the weakest source, and the promotion route to `docs/adr/` — a reader who has never seen this project
-  can add an entry, and correct a wrong one, from the file alone.
+  `## Current state`, `## Remaining issues`, `## Boundaries`, `## Next phase` — and a `## Log` heading.
+  **On a copy this run created, no log entry under `## Log` and no field filled in**; on a re-run over one
+  that already existed and was skipped, every entry and every field is theirs and stays exactly as it is.
+  This is the criterion with the most to lose. `## Log` holds reasoning no commit can reconstruct, so a
+  run that cleared an unscoped emptiness check by emptying the log would have destroyed the file to pass a
+  check on it. The five headings and `## Log` are required either way — on an adopted copy a missing one
+  is reported to the user, who adds it; nothing here rewrites their file to make a criterion read true.
+
+  Its text states the append-only rule, that an attempt to change an earlier entry is reported as a
+  violation, what an entry holds and what it never holds, that it is the weakest source, and the promotion
+  route to `docs/adr/` — a reader who has never seen this project can add an entry, and correct a wrong
+  one, from the file alone.
+
+  ```bash
+  fresh=1   # 0 on a re-run over a copy that already existed and was skipped
+  [ -s docs/session-state.md ] || { echo "docs/session-state.md: missing or empty"; exit 1; }
+  awk -v fresh="$fresh" '
+    /<!--/ { c = 1 }
+    c      { if (/-->/) c = 0; next }
+    /^```/ { fence = !fence; next }
+    fence  { next }
+    /^## / { h[$0] = 1
+             field = ($0 ~ /^## (Current objective|Current state|Remaining issues|Boundaries|Next phase)$/)
+             inlog = ($0 == "## Log")
+             next }
+    /^[[:space:]]*$/          { next }
+    fresh && field            { print FILENAME":"FNR": a field is filled in on a copy this run created"; b=1 }
+    fresh && inlog && /^### / { print FILENAME":"FNR": a log entry on a copy this run created"; b=1 }
+    END { split("## Current objective|## Current state|## Remaining issues|## Boundaries|## Next phase|## Log", want, "|")
+          for (i = 1; i <= 6; i++) if (!(want[i] in h)) { print FILENAME": heading missing: "want[i]; b=1 }
+          if (fence) { print FILENAME": a fenced block is left open — every line after it goes unread"; b=1 }
+          if (c)     { print FILENAME": an HTML comment is left open — every line after it goes unread"; b=1 }
+          exit b }' docs/session-state.md
+  ```
+
+  **`fresh` is the whole check, and it is set rather than detected.** Nothing in the file records which run
+  wrote it, so the knob carries the scope: leave it at `1` for a copy this run created, set it to `0` for
+  one that already existed and was skipped. At `0` the two emptiness rules drop and the headings stay,
+  which is the right shape — on an adopted copy the entries *are* the file. What is never right is
+  clearing a report by editing the file. The two records below draw the same line with a separate `fresh()`
+  call because there are two of them; here there is one file, so the scope is a knob rather than a second
+  snippet.
+
+  **`log` is an `awk` built-in**, which is why the variable is `inlog`. That is not a style preference:
+  `awk` refuses the assignment outright with `syntax error` and `illegal statement`, on a line that reads
+  fine to a person. The HTML-comment skip is the other half — the entry template lives inside a comment,
+  so a bare `^### ` scan hits it and reports an entry in a log that is empty.
+
+  **Exercise it in five directions**, on a scratch copy: the seed as written with `fresh=1` → `0`; the seed
+  with the fields filled in and entries appended, still `fresh=1` → non-zero, naming every line; that same
+  populated file with `fresh=0` → `0`, because those entries are what the file is for; `## Log` deleted →
+  non-zero naming that heading, under either value of `fresh`; and the file truncated to zero length →
+  non-zero. The third is the one that gets skipped, and it is the one the repair re-run depends on.
 - `docs/session-state.md` is not matched by any `.gitignore` pattern; if one matched it, that was surfaced
   to the user rather than silently changed.
 - A pre-existing `docs/session-state.md` was left untouched — no entry under its `## Log` was reworded,
@@ -953,8 +1022,13 @@ Done when **all** hold:
   an entry and is left where it is. Its text states that the file is read before a slice
   writes its skeleton, that an entry naming no `Automated guard` is refused, that it is append-only and an
   attempt to change an earlier entry stops the work and is reported, that the same lesson twice is two
-  entries, and which two parties write it and on what terms. A reader who has never seen this project can
-  add an entry from the file alone.
+  entries, and every party that writes an entry, and on what terms. **Take that roster off
+  `docs/workflow.md`'s write table, not off this line.** As it stands, three parties append entries:
+  whoever root-causes a defect, a review with a `Critical:` finding, and the run that carries back an
+  entry a slice handed it. A count written here goes stale the moment the table grows a writer, and this
+  one already did — the courier row was added while both this criterion and the seed it grades still said
+  two, so the criterion passed only for as long as the text it was grading was wrong. A reader who has
+  never seen this project can add an entry from the file alone.
 - `docs/lessons.md` is not matched by any `.gitignore` pattern; if one matched it, that was surfaced to
   the user rather than silently changed.
 - A pre-existing `docs/lessons.md` was left untouched — no entry in it was reworded, re-ordered, or
@@ -1043,9 +1117,14 @@ Done when **all** hold:
   heading, so a bare `grep -c '^## '` counts the template as an entry and reports every fresh scaffold as
   a defect. Exercise it both ways — the two seeds as written → `0`; either seed with one entry appended →
   non-zero, naming the count.
-- Exactly one of `CLAUDE.md` / `AGENTS.md` contains an `## Agent skills` block referencing `STATE.md`,
-  `CONTEXT.md`, `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, and
-  `docs/progress.md`. The other file holds no copy of that block.
+- Exactly one of `CLAUDE.md` / `AGENTS.md` contains an `## Agent skills` block referencing every substrate
+  file this skill scaffolds — as it stands eight: `STATE.md`, `CONTEXT.md`, `docs/adr/`,
+  `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, `docs/progress.md`, and
+  `docs/lessons.md`. **Take the list off item 5 of *Write* above, not off this line.** A hand-written list
+  falls behind the substrate it describes without anything failing: this one named seven for as long as it
+  took `docs/lessons.md` to reach the substrate, and in that state it passed over a block with no route to
+  the record a slice is supposed to read before it builds. `grep -o` for the paths in both places answers
+  it in one comparison. The other file holds no copy of that block.
 - The other filename exists and is a pointer naming the file that holds the block — unless it already
   existed with the user's own content and they declined the pointer line, which was shown to them rather
   than silently skipped.
@@ -1077,9 +1156,17 @@ Done when **all** hold:
   starting work**, and states that `## Log` is append-only. Without that line the log has no reader.
 - It also tells an agent resuming work it was not present for to read `docs/progress.md`, and says what
   that file does not answer. A record with no declared reader is a maintained file nobody opens.
-- That block also names `docs/design.md` and says the first UI surface writes it — and **no
-  `docs/design.md` was created by this run**. A cold agent that has to invent the path invents a different
-  one, which is why the path is named; creating the file is a separate mistake, which is why it is not.
+- And it tells a slice to read `docs/lessons.md` **before it writes its skeleton** — the moment the
+  knowledge is worth anything, since read afterwards a lesson is a post-mortem of work already done. Three
+  append-only records, three declared readers: a record nobody is told to open is a maintained file with
+  no consumer, and this is the third.
+- That block also names `docs/design.md` and `ARCHITECTURE.md` — the first user interface built here writes
+  the one, the first feature to run `architecture-design` writes the other — and **this run created
+  neither**. Both halves are load-bearing, and they pull opposite ways: a cold agent that has to invent a
+  path invents a different one, which is why both are named; and a file scaffolded empty reads like a
+  decision somebody made, which is why neither is created. These two are also why the criterion above
+  counts the *scaffolded* substrate rather than every path the block mentions — a completeness check that
+  swept them in would be demanding the very files this one forbids.
 - If a fresh `CLAUDE.md` was created (neither file existed and the user chose it), it leads with the bundled
   behavioral template and the `## Agent skills` block follows; no template was written into an `AGENTS.md` or
   over a pre-existing `CLAUDE.md`.
@@ -1102,12 +1189,14 @@ Emits the repo substrate the whole suite consumes:
 | `docs/lessons.md` | repo-wide | `## Entry shape` plus the fenced template beneath it, field for field as the *lessons.md seed* section above writes it — scaffolded with no entries. An entry naming no `Automated guard` is refused. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one stops the work and is reported. The same lesson twice is two entries, never a merge. Every other `##` heading is an entry. Committed, never ignored |
 | `CLAUDE.md` / `AGENTS.md` | repo root | one carries the `## Agent skills` block, the other a pointer naming it — never two copies of the block, and never a missing file; a fresh `CLAUDE.md` also leads with the bundled behavioral template |
 
-**Named in the substrate, created by nobody here: `docs/design.md`** — the repo's decided look, which
-every later interface inherits and records only its differences from. The **first** UI surface writes it,
-via `frontend-design`. This skill names the path so a cold agent reads one instead of inventing one, and
-scaffolds nothing. It is the one place the seed-it-empty argument that justifies `docs/test-contract.md`
-does not carry: an empty test contract is a real place a permanent guarantee can land later, and an empty
-design file is not.
+**Named in the substrate, created by nobody here: `docs/design.md` and `ARCHITECTURE.md`** — the repo's
+decided look, which every later interface inherits and records only its differences from, and the repo's
+structure, which every later feature inherits the same way. The **first** UI surface writes the one, via
+`frontend-design`; the **first** feature to run `architecture-design` writes the other. This skill names
+both paths so a cold agent reads one instead of inventing one, and scaffolds neither. They are the two
+places the seed-it-empty argument that justifies `docs/test-contract.md` does not carry: an empty test
+contract is a real place a permanent guarantee can land later, and an empty look or an empty layering is
+not — it reads as a decision somebody made, when nobody has.
 
 Downstream consumers: `interview-me`/`idea-refine` → `docs/features/<slug>/intent.md`; `spec-grilling` →
 appends `CONTEXT.md` + writes `docs/adr/`; `to-prd`/`acceptance-criteria`/`environment-manifest` → `docs/features/<slug>/`;
@@ -1115,9 +1204,9 @@ appends `CONTEXT.md` + writes `docs/adr/`; `to-prd`/`acceptance-criteria`/`envir
 and `quality-verification` → read `docs/test-contract.md` and enforce its ACTIVE rows (neither ever edits
 it); `handoff` → writes the five fields of `docs/session-state.md` and appends to its `## Log`;
 `incremental-implementation` and the `orchestrator` → append one entry per slice to `docs/progress.md`;
-`debugging-and-error-recovery` → appends a `docs/lessons.md` entry per root-caused defect, and
-`code-review` → appends one for a Critical finding and nothing lesser; `incremental-implementation` reads
-`docs/lessons.md` before it writes a slice's skeleton;
+`debugging-and-error-recovery` → appends a `docs/lessons.md` entry per root-caused defect, `code-review` →
+appends one for a Critical finding and nothing lesser, and the `orchestrator` → appends the entries slices
+hand back; `incremental-implementation` reads `docs/lessons.md` before it writes a slice's skeleton;
 `using-agent-skills` → reads `docs/session-state.md` and `docs/progress.md` at the start of every session,
 before any work begins;
 the orchestrator drives
