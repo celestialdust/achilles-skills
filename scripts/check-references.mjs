@@ -200,13 +200,31 @@ for (const path of markdownFiles(ROOT)) {
     const body = m[1].trim();
     if (!PATHLIKE.test(body) || body.includes('<') || body.includes('>') || body.includes('..')) continue;
     if (!SHIPPED.test(body)) continue;
-    const ok = bases.some(base => existsSync(join(base, body)));
+
+    // A provenance line names a path in the project the code came FROM, and that path is not supposed to
+    // exist here — recording it is the entire purpose of a vendoring note, which states the upstream
+    // location and the local one on adjacent lines. Reporting it asks the file to delete the fact it
+    // exists to preserve.
+    const lineText = source.slice(source.lastIndexOf('\n', m.index) + 1, source.indexOf('\n', m.index));
+    if (/\*\*(Source|Upstream|Vendored from|Origin):\*\*/i.test(lineText)) continue;
+
+    // "`spec-grilling`'s `references/CONTEXT-FORMAT.md`" says whose file it is, in the two words before
+    // the path. Resolve it against that skill. Without this the check reads the path bare, finds it
+    // absent from the writer's own directory, and reports prose that already named the owner correctly.
+    const owned = [...bases];
+    const before = source.slice(Math.max(0, m.index - 60), m.index);
+    const possessive = before.match(/`([a-z][a-z0-9-]*)`'s\s*$/);
+    if (possessive && existsSync(join(ROOT, 'skills', possessive[1]))) {
+      owned.push(join(ROOT, 'skills', possessive[1]));
+    }
+
+    const ok = owned.some(base => existsSync(join(base, body)));
     const line = lineOf(source, m.index);
     checked.push({ rel, line, kind: 'path', raw: body, ok });
     if (!ok) {
       findings.push({
         rel, line, raw: body,
-        why: `resolves under none of ${bases.map(b => relative(ROOT, b) || '.').join(', ')}`,
+        why: `resolves under none of ${owned.map(b => relative(ROOT, b) || '.').join(', ')}`,
       });
     }
   }
