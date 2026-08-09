@@ -112,7 +112,7 @@ Don't load all skills at once — it wastes context. Load skills relevant to the
 
 ## Skill Anatomy
 
-Every skill follows the same **house envelope**: two-key frontmatter, then a fixed sequence of body slots — one `##` section per slot, always in the same order. The order is the contract; the wording is not. A skill may word any slot for itself, so one opens with `## Purpose` where another opens with `## Overview`, and a skill may hang sections of its own among the slots. Neither is a defect; a missing or out-of-order slot is.
+Every skill follows the same **house envelope**: a short frontmatter block, then a body built from the same sequence of `##` sections — the slots — plus whatever else that one skill needs.
 
 [CONTRIBUTING.md](../CONTRIBUTING.md#the-house-envelope) states the slots and what fills each, alongside the rest of the contribution workflow. This guide points at it rather than restating it, so there is one statement to keep true. [CONTEXT.md](../CONTEXT.md) carries the suite's shared vocabulary.
 
@@ -215,6 +215,6 @@ Every skill is plain Markdown, so any agent that accepts system prompts or instr
 1. **Start with the meta-skill.** Load `using-agent-skills` first so the agent routes work to the right skill and stage.
 2. **Define before you build.** Run Ideate → Spec → Plan (human-led) before handing the agent the autonomous tail.
 3. **Always load `test-driven-development`** when writing code — tests are the proof, not an afterthought.
-4. **Don't skip verification steps** — the `Verification (ending criteria)` section is the whole point of each skill.
+4. **Don't skip verification steps** — every skill carries a `Verification` section saying how to tell it is finished, and that section is the whole point of it.
 5. **Load skills selectively** — more context isn't always better. Pull in only what the current task needs.
 6. **Use the personas for review** — a fresh, code-cold pass catches what the author cannot.

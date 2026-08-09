@@ -122,12 +122,11 @@ a platform with no skill tool — not to build the `/review` fan-out.
 
 ## Conventions
 
-- Every skill lives at `skills/<kebab-case-name>/SKILL.md` with `name` + `description` frontmatter.
-- Description leads with what the skill does (third person), then trigger conditions ("Use when …").
+- Every skill lives at `skills/<kebab-case-name>/SKILL.md`.
 - Reference other skills rather than duplicating their content.
-- The `SKILL.md` envelope — the two frontmatter keys and the body sections in order — is stated once, in
-  [CONTRIBUTING.md](./CONTRIBUTING.md). Read it there before you add or reshape a skill, and do not copy
-  it back here: the second copy is the one that drifts.
+- The `SKILL.md` envelope — the frontmatter keys, how the `description` is written, and the body sections
+  in order — is stated once, in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it there before you add or
+  reshape a skill, and do not copy it back here: the second copy is the one that drifts.
 - Use the **new** skill names everywhere (e.g. `performance-optimization`, not `perf`; `quality-verification`,
   not `qa`). Artifact filenames (`qa.md`, `acceptance.md`, `environment.md`, …) and the `git` VCS tool keep
   their names — they are not skill pointers.
