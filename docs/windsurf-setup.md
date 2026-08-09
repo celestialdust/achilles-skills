@@ -94,7 +94,7 @@ Cascade which underlying skill(s) to apply:
 | Workflow (`/name`) | achilles-skills command | Underlying skills to reference |
 |---|---|---|
 | `/ideate` | /ideate | interview-me, then idea-refine |
-| `/spec` | /spec | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) |
+| `/spec` | /spec | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, architecture-design, spec-review) |
 | `/plan` | /plan | plan-breakdown (reuses Spec's research.md) |
 | `/implement` | /implement | incremental-implementation (applies test-driven-development) |
 | `/verify` | /verify | quality-verification |
@@ -153,7 +153,7 @@ Pick the skills that match your current phase rather than loading all 40 at once
 
 **Ideate (human-led)** — interview-me · idea-refine
 
-**Spec (human-led)** — codebase-research (first) · spec-grilling · to-prd · frontend-design · acceptance-criteria · environment-manifest · spec-review
+**Spec (human-led)** — codebase-research (first) · spec-grilling · to-prd · frontend-design · acceptance-criteria · environment-manifest · architecture-design · spec-review
 
 **Plan (human-led)** — plan-breakdown · codebase-design · api-design (reuses Spec's research.md)
 

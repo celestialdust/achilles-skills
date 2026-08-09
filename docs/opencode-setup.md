@@ -85,7 +85,7 @@ OpenCode does not require slash commands like `/spec` or `/plan`. The same lifec
 | Stage | Command equivalent | Skills the agent invokes |
 |---|---|---|
 | IDEATE | `/ideate` | `interview-me`, then `idea-refine` |
-| SPEC | `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) |
+| SPEC | `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `architecture-design`, `spec-review`) |
 | PLAN | `/plan` | `plan-breakdown` (reuses Spec's `research.md`; references `codebase-design`, `api-design`) |
 | IMPLEMENT | `/implement` | `incremental-implementation` (applies `test-driven-development`; `source-driven-development` for framework calls; `worktree` for isolation) |
 | VERIFY | `/verify` | `quality-verification` (drives `browser-testing-with-devtools`; `debugging-and-error-recovery` on failure) |

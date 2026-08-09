@@ -67,7 +67,7 @@ Start with the `using-agent-skills` skill loaded. It's the meta-dispatcher: it m
 
 ### Minimal (start here)
 
-Load the meta-dispatcher plus three essential skills into your rules file:
+Load the meta-dispatcher plus the essential skills into your rules file:
 
 1. **using-agent-skills** — routes any task to the right skill + lifecycle stage
 2. **codebase-research → spec-grilling** — for defining what to build: survey the code as it is today (`research.md`), then design the product against it (ADRs + CONTEXT.md). `spec-grilling` refuses to run without the survey, so load the pair.
@@ -82,7 +82,7 @@ Load skills by stage:
 
 ```
 Ideate:     interview-me → idea-refine
-Spec:       codebase-research → spec-grilling → to-prd → acceptance-criteria → environment-manifest → spec-review
+Spec:       codebase-research → spec-grilling → to-prd → acceptance-criteria → environment-manifest → architecture-design → spec-review
             (frontend-design when there's UI)
 Plan:       plan-breakdown
             (reuses Spec's research.md; codebase-design, api-design as referenced disciplines)
@@ -137,7 +137,7 @@ The `commands/` directory contains twelve Markdown slash commands for Claude Cod
 | Command | Skills invoked |
 |---------|----------------|
 | `/ideate` | interview-me, then idea-refine |
-| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) |
+| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, architecture-design, spec-review) |
 | `/plan` | plan-breakdown (reuses Spec's research.md) |
 | `/implement` | incremental-implementation (applies test-driven-development) |
 | `/verify` | quality-verification |
@@ -178,7 +178,7 @@ The lifecycle commands create working artifacts as the agent moves through the s
 |-------|-------------|-------------|
 | Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other | project-setup |
 | Ideate | `intent.md` | interview-me, idea-refine |
-| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html` (+ ADRs) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest, architecture-design |
+| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html` (+ ADRs; plus root `ARCHITECTURE.md` on the repo's first structural pass) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest, architecture-design |
 | Plan | `plan.md` | plan-breakdown (reads Spec's `research.md`) |
 | Verify | `qa.md` | quality-verification |
 

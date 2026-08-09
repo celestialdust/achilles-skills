@@ -97,6 +97,7 @@ the name in these tables.
 | `frontend-design` | the one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | `environment-manifest` | typed-kind manifest (no values, no commands) |
+| `architecture-design` | the structure a person signs before any code is planned: `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md` (refuses without a signed `acceptance.md`) |
 | `spec-review` | fresh code-cold agent fixes the spec before the user reviews |
 
 **Plan (human-led)**
@@ -161,7 +162,7 @@ Add these three to `.cursor/rules/` — they carry the inner Implement → Verif
 Add a rule file when you enter its stage, then remove it when done to manage context limits:
 
 - **Ideate** → `interview-me.md`, `idea-refine.md`
-- **Spec** → `codebase-research.md` (first), `spec-grilling.md`, `to-prd.md`, `acceptance-criteria.md`, `environment-manifest.md`, `frontend-design.md`, `spec-review.md`
+- **Spec** → `codebase-research.md` (first), `spec-grilling.md`, `to-prd.md`, `acceptance-criteria.md`, `environment-manifest.md`, `frontend-design.md`, `architecture-design.md`, `spec-review.md`
 - **Plan** → `plan-breakdown.md`, `codebase-design.md`, `api-design.md` (re-add `codebase-research.md` only to survey a named gap)
 - **Implement** → `source-driven-development.md`, `worktree.md` (plus the essentials above)
 - **Verify** → `quality-verification.md`, `browser-testing-with-devtools.md`, `debugging-and-error-recovery.md`
@@ -181,7 +182,7 @@ command by loading the rule files it bundles and asking Cursor to run that stage
 | Command | Load these rules into `.cursor/rules/` | Then ask Cursor to… |
 |---|---|---|
 | `/ideate` | `interview-me`, `idea-refine` | brainstorm and frame the idea → `intent.md` |
-| `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) | survey the code as-is, then design the product against it |
+| `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `architecture-design`, `spec-review`) | survey the code as-is, then design the product against it |
 | `/plan` | `plan-breakdown` (reuses Spec's `research.md`) | produce a concrete plan → vertical slices + DAG |
 | `/implement` | `incremental-implementation` (applies `test-driven-development`) | build one thin slice (default single-slice) |
 | `/verify` | `quality-verification` | prove a finished slice meets `acceptance.md`, code-cold |

@@ -50,7 +50,7 @@ The plugin registers 12 slash commands. Nine are lifecycle commands — one per 
 | Command | What it does | Activated Skill(s) |
 |---------|--------------|--------------------|
 | `/ideate` | Brainstorm and frame a fresh idea into `intent.md` | `interview-me`, then `idea-refine` |
-| `/spec` | Survey the code as-is, then design the product: grill the intent into ADRs, a PRD, and the behavioral + environment contracts | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) |
+| `/spec` | Survey the code as-is, then design the product: grill the intent into ADRs, a PRD, the behavioral + environment contracts, and the signed structure | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `architecture-design`, `spec-review`) |
 | `/plan` | Turn the spec into a concrete plan — vertical slices + dependency DAG | `plan-breakdown` (reuses Spec's `research.md`) |
 | `/implement` | Build the next thin vertical slice, skeleton-first | `incremental-implementation` (applies `test-driven-development`) |
 | `/verify` | Prove a finished slice meets `acceptance.md`, code-cold | `quality-verification` |
@@ -106,6 +106,7 @@ The suite ships 40 skills, organized by lifecycle stage. Names are descriptive a
 | `frontend-design` | the one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | `environment-manifest` | typed-kind manifest (no values, no commands) |
+| `architecture-design` | the structure a person signs before any code is planned: `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md` (refuses without a signed `acceptance.md`) |
 | `spec-review` | fresh code-cold agent fixes the spec before the user reviews |
 
 **Plan (human-led)**
