@@ -166,12 +166,36 @@ Don't silently fill in ambiguous requirements. The most common failure mode is m
 When you encounter inconsistencies, conflicting requirements, or unclear specifications:
 
 1. **STOP.** Do not proceed with a guess.
-2. Name the specific confusion.
-3. Present the tradeoff or ask the clarifying question.
-4. Wait for resolution before continuing.
+2. Name the specific confusion. Where two documents disagree, name both files and the claim.
+3. Check whether it is already settled. Two documents disagreeing is often not a real conflict:
+   `docs/workflow.md`'s **Source-of-truth order** ranks them, and if it names which one governs, you
+   have your answer and you continue. A confusion that order does not cover, or does not settle,
+   reaches step 4.
+4. Hand it to whoever can settle it — and **who that is depends on whether anybody is there to ask.**
+
+**Which situation you are in.** The question is not which stage you are in, it is whether a person is
+present to answer:
+
+- **Somebody is there** — a human-owned stage (Ideate, Spec, Plan), or a single-slice path a person
+  invoked and is watching. Asking is the whole point: present the tradeoff or the clarifying question
+  and **wait for the answer.** Guessing here throws away the cheapest correction you will ever get.
+- **Nobody is there** — you were dispatched inside a run, the autonomous Implement → Verify → Review →
+  Ship pass. A question has no one to answer it, so asking one is a deadlock: the slice sits open
+  forever and the rest of the graph stops draining behind it. **End the slice instead.** Report what
+  ended it, naming both sides of the inconsistency, and flip its `gate` column `agent → you`. The slice
+  is over, the run keeps going, and the human settles it when they next look.
+
+Ending a slice is not a quieter way of waiting — it is what keeps the rest of the graph moving, and it
+is one of the named stop conditions rather than an exception to autonomy. `docs/workflow.md`'s *What
+stops a run* carries the full list; read it there rather than counting from memory.
 
 **Bad:** Silently picking one interpretation and hoping it's right.
-**Good:** "I see X in the spec but Y in the existing code. Which takes precedence?"
+**Bad:** Asking a clarifying question inside a run, then waiting. Nobody is at the keyboard, so the
+answer never comes and the run never finishes.
+**Good, with a person present:** "I see X in the spec but Y in the existing code. Which takes precedence?"
+**Good, inside a run:** end the slice reporting "ADR-004 expires sessions at 24h, ADR-011 at 1h; both
+are rank 4, so the source-of-truth order does not settle it" — the `gate` flips `agent → you`, and the
+next ready slice starts.
 
 ### 3. Push Back When Warranted
 
@@ -227,7 +251,8 @@ The loop is **Ideate → Spec → Plan → Implement → Verify → Review → S
 - **A run can still stop.** Two different claims are easy to collapse into one, so keep them apart: a run
   never *waits*, but named conditions do *end* it early — a missing precondition, an absent or unsigned
   `acceptance.md`, an attempted edit to a frozen artifact, a security CRITICAL/HIGH or a secret in the
-  diff, exhausted retries. High-risk work is **not** one of them: nothing pauses mid-run for a sign-off
+  diff, two sources of truth the source-of-truth order does not settle, exhausted retries. High-risk
+  work is **not** one of them: nothing pauses mid-run for a sign-off
   nobody is there to give, so auth, payments, migrations, deletions, deploys, and secrets surface at the
   end instead — as the PR's **risk band**, which the human reads at the merge gate. A stopped slice flips
   its `gate` column `agent → you`, and the run reports what stopped it and where rather than sitting idle.
@@ -250,7 +275,7 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Cross-cut | using-agent-skills | this meta-dispatcher: task → skill + lifecycle map |
 | Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, docs/progress.md, docs/lessons.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other) |
 | Cross-cut | orchestrator | wave-parallel DAG executor; platform-adaptive; runs to open draft PRs, never waits |
-| Cross-cut | preflight-readiness | env-readiness gate; blocks the wave until provisioned |
+| Cross-cut | preflight-readiness | env-readiness gate; refuses the wave until provisioned |
 | Cross-cut | handoff | per-session compaction to a fresh-agent doc |
 | Ideate | interview-me | optional front door: surface what the user actually wants → intent.md |
 | Ideate | idea-refine | divergent/convergent refinement + "Not Doing"; shares intent.md |
@@ -306,6 +331,11 @@ Excuses that talk you out of dispatching correctly — each is a failure mode:
   waves and the run can't parallelize or resume.
 - "They said quick, so I'll send it to `gauntlet-loop`." → You do not select that path; you offer it and the
   human picks. See *Offering the fast path, never routing to it*.
+- "The spec contradicts itself, so I'll ask and wait — *Manage Confusion Actively* says not to guess." →
+  It says not to guess, and inside a run it says to end the slice. Waiting is not the cautious reading of
+  that rule, it is the one failure the rule cannot survive: nobody is at the keyboard mid-run, so the
+  slice never resumes and every slice behind it stalls too. Name both sides, end the slice, flip the
+  `gate` to `you`, and let the next ready slice start.
 
 ## Red flags
 
@@ -321,6 +351,7 @@ These are the subtle errors that look like productivity but create problems:
 8. Removing things you don't fully understand
 9. Building without a spec because "it's obvious"
 10. Skipping verification because "it looks right"
+11. Waiting mid-run for an answer nobody is there to give, instead of ending the slice and flipping its gate
 
 ## Verification (ending criteria)
 
