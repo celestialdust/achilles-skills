@@ -1,8 +1,9 @@
 # How this project ships work
 
 This project runs one loop, from idea to merged code. This file is the whole contract: the stages, who
-owns each gate, where a run ends, what stops one, what is frozen, and what never happens. You do not need
-any tool installed to read it.
+owns each gate, where a run ends, what stops one, what is frozen, which document governs when two of them
+disagree, who writes what, and what never happens. One section below per item, in that order. You do not
+need any tool installed to read it.
 
 Two parties do the work. A **person** decides what to build and whether to take the result. A **coding
 agent** does the mechanical mileage in between.
@@ -183,8 +184,9 @@ away. The scope has to reach all three: a slice is written in `plan.md`, so an e
 `acceptance.md` would leave the plan free to narrow a permanent guarantee and stay inside the order. A
 PENDING row enforces nothing and takes rank 8 as written.
 
-Not every document has a rank. `STATE.md`, `CONTEXT.md`, and the per-feature `intent.md`, `research.md`,
-`environment.md`, and `qa.md` have none. Two more settle themselves instead of needing one:
+Not every document has a rank. `STATE.md`, `CONTEXT.md` and the `CONTEXT-MAP.md` index a multi-context
+repository keeps beside it, and the per-feature `intent.md`, `research.md`, `environment.md`, and `qa.md`
+have none. Two more settle themselves instead of needing one:
 `docs/session-state.md` says in its own text that it is the weakest source here and never overrides a
 decision record or a signed `acceptance.md`; and a feature's design contract and `docs/design.md` divide
 one subject rather than compete for it — the contract decides that surface, and `docs/design.md` decides
@@ -206,6 +208,11 @@ Four things a writer may do to a zone:
 - **flip status** — change one declared token in place, and nothing else.
 - **never** — do not write it at all.
 
+The first covers the other two: a writer who may replace a zone outright may also add to it or flip a
+token inside it. The narrower two never widen. **append only** does not license a rewrite, and **flip
+status** does not license a create — which is the point of writing the permission down at all, since a
+writer with a legitimate zone is exactly who would otherwise do more to it than was agreed.
+
 **The table binds the agent.** Where the writer is **you**, no skill writes that zone at all. Where the
 writer is a skill, that skill is the only *skill* that writes it — you may still hand-edit your own
 repository, and `project-setup` says which of these files are yours to edit when it scaffolds them. A
@@ -215,15 +222,17 @@ skill in the writer column is not a claim that you may not touch the file.
 checking the table has to recognize the zone from the words on the page. That column holds the zone's
 **cue**: the tokens a declaration has to repeat, in backticks or bold, for the zone to count as named.
 Alternatives are separated by `/`, and tokens are joined by `+` where all of them are needed. A token
-counts only where a word meaning *write* — write, seed, create, add, append, flip, set, mark, record,
-move, promote, replace, register — stands within sixty characters in front of it, so a line reporting a
-state ("the feature stays in `feature: spec`") is not read as setting one. The cue, not the wording, is
-the zone's identity: rewording a gloss cannot hide a zone already granted to somebody else.
+counts where it stands in a sentence that says something is written, at any distance from the verb — a
+sentence that only reports a state ("the feature stays in `feature: spec`") writes nothing and names no
+zone. The cue, not the wording, is the zone's identity: rewording a gloss cannot hide a zone already
+granted to somebody else.
 
 A cue of `—` means the zone cannot be named from prose. Those zones of a file cannot be told apart, so a
-skill that writes any one of them passes on all of them — give a zone a cue where that distinction has to
-hold. A file with no row at all permits nothing: a declared write to a file this table does not list is a
-conflict, not a gap, which is what keeps the table from being shrunk until it stops catching anything.
+claim naming none of a file's cues is **unresolved**: it might be a legal write to the claimant's own
+zone or a trespass on a neighbour's, and whoever reads the check settles it by hand. Give a zone a cue
+where that distinction has to hold and it settles itself from then on. A file with no row at all permits
+nothing: a declared write to a file this table does not list is a conflict, not a gap, which is what
+keeps the table from being shrunk until it stops catching anything.
 
 | File | Zone | Named by | Who writes it | What they may do |
 |---|---|---|---|---|

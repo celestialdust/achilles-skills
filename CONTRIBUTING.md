@@ -153,25 +153,46 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   no second manifest at the repo root; a duplicate would drift, since nothing forces the two to agree.
 - No per-skill `evals/` directory.
 - No terse-stem skill pointers reintroduced; artifact/tool/object tokens left verbatim.
-- `node scripts/check-write-table.mjs` reports no conflict your own diff introduced. It reads the write
-  table in `docs/workflow.md`, collects every write a `SKILL.md` declares, and exits `1` on any claim the
-  table does not give that skill. **It exits `1` on this repository as it stands**, on ten conflicts that
-  were already here:
+- `node scripts/check-write-table.mjs` reports nothing your own diff introduced. It reads the write
+  table in `docs/workflow.md`, collects the writes each `SKILL.md` declares in prose, and judges each
+  against the zone the table gives that skill. Three verdicts: **permitted**, which is silent;
+  **conflict**, where the zone belongs to somebody else or its permission does not cover what the
+  sentence does or the file has no row at all; and **unresolved**, where no cue matched and the file's
+  uncued zones do not all belong to that skill. Conflict and unresolved both exit `1`.
 
-  ```
-  STATE.md        deprecation-and-migration:239   incremental-implementation:338  interview-me:296
-                  pull-request:194                quality-verification:388        preflight-readiness:144
-                  security-and-hardening:460      frontend-design:324             environment-manifest:163
-  environment.md  preflight-readiness:138
-  ```
+  **It over-reports on purpose, and it does not claim to find everything.** A declaration is a sentence,
+  not a data structure, so the check denies unless the table clearly permits and says `unresolved` rather
+  than waving a sentence through. Some hits are it reading a sentence more literally than a person would —
+  it has no notion of who the subject is, so "`plan-breakdown` seeds the slice rows" inside another
+  skill's paragraph reads as that skill's claim. Answer each hit; do not expect each to be a defect. It
+  also misses a write declared in prose carrying none of its markers, so a clean run is not proof your
+  diff declares nothing.
 
-  Each is a sentence in a `SKILL.md` that claims a zone `docs/workflow.md` gives to another skill, or
-  claims one while holding no row of that file. The last is the check over-reporting: `preflight-readiness`
-  keys a ledger *by* `environment.md` and writes nothing to it. Closing them means rewording those skills,
-  which is a change to the skills and not to the table. So run the check before your diff and after it, and
-  compare: this list is the baseline, and any difference between it and what the command prints is yours.
-  Never close one by widening the table — a row added to turn a red check green is the gate erosion the
-  table exists to catch. Nothing runs it for you; no job covers `scripts/`.
+  **It exits `1` on this repository as it stands.** Capture the output before your change and after it and
+  compare — any difference is yours. Never close a hit by editing the table: a row added or widened to
+  turn a red check green is the gate erosion the table exists to catch. Close it by rewording the skill.
+  Nothing runs it for you; no job covers `scripts/`.
+
+  What is in the standing output, characterised. Sites are named by skill and by the sentence, not by
+  line number, because line numbers move and a stale citation reads exactly like a live one:
+
+  | Site | Claim | Reading |
+  |---|---|---|
+  | `deprecation-and-migration` | registers slice rows and their `impl → verify → review → ship → done` tokens | trespass — the rows are `plan-breakdown`'s and the tokens are the `orchestrator`'s |
+  | `incremental-implementation` | "flip the slice `impl → verify`", "flip its gate `agent → you`" | trespass — that zone is the `orchestrator`'s |
+  | `quality-verification` | slice `verify → review`, and `qa.md` into `Artifacts` | trespass — both zones are the `orchestrator`'s |
+  | `pull-request` | slice row to `ship` then `done`, `Gate: you`, `Artifacts` `+=` | trespass — same two zones |
+  | `security-and-hardening` | "flip the slice to `halted`" | trespass on the flip only; its `security-findings.md` append in the same sentence is legal |
+  | `preflight-readiness` | "flips `gate: agent`" | trespass — the gate column is the `orchestrator`'s |
+  | `frontend-design` | "set `gate: you`" | trespass — same zone |
+  | `interview-me` | "seed the feature row at feature state `spec`, gate `you`" | trespass — feature blocks are `plan-breakdown`'s, `feature:` is the `orchestrator`'s |
+  | `codebase-design` | interface content into `plan.md` | trespass — the table gives that zone to `api-design`, and two skills now claim it |
+  | `environment-manifest` | "the feature sits in `feature: spec`" | over-report — a state report standing beside a legal `origin:` append |
+  | `preflight-readiness` | a ledger keyed *by* `environment.md` row name | over-report — it reads that file and writes `preflight.md` |
+  | `api-design`, `source-driven-development`, `using-agent-skills` | a denial followed by naming who does write it | over-report — the check credits the neighbouring skill's verb to this one |
+  | `orchestrator` | "Every transition is **written** as it happens" | over-report — the zone is `flip status` and the sentence reaches for a create verb |
+  | `literate-explainer`, `project-setup` | `glossary.md`, `ADR-<NNN>-<slug>.md` | over-report — a learner's workspace file and a naming convention, neither a substrate document |
+  | any skill | a file whose row still reads `nobody` / `never` | trespass, and the row is the thing to fix — `docs/workflow.md` says the skill that starts writing such a file names itself in that row **in the same commit**, so the row moves with the skill, never after it |
 - This repo's own `docs/workflow.md` still matches the copy `project-setup` ships. Run
   `diff docs/workflow.md skills/project-setup/assets/workflow.template.md`; it must print nothing. The
   two are the same document with two audiences, and `project-setup` — which is the only thing that ever
