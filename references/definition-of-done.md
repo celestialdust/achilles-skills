@@ -1,6 +1,6 @@
 # Definition of Done
 
-A standing, project-wide bar that every change must clear before it counts as done. Unlike acceptance criteria, which vary per task and answer "did we build the right thing?", the Definition of Done is the same every time and answers "is this finished to our standard?". Use it as the final gate in `planning-and-task-breakdown`, `incremental-implementation`, and `shipping-and-launch`.
+A standing, project-wide bar that every change must clear before it counts as done. Unlike acceptance criteria, which vary per task and answer "did we build the right thing?", the Definition of Done is the same every time and answers "is this finished to our standard?". The skills that read this file are listed once, in `docs/getting-started.md`. Keeping a second list here is how the two come to disagree.
 
 ## Definition of Done vs. Acceptance Criteria
 
@@ -32,7 +32,7 @@ Apply this to every change before declaring it done.
 - [ ] Changes are scoped to the task; no unrelated refactors snuck in
 - [ ] Linting and formatting pass
 
-The depth behind these items lives in `code-review-and-quality` (the five-axis review) and `code-simplification` (reducing complexity without changing behavior).
+The depth behind these items lives in `code-review` (the five-axis review) and `code-simplification` (reducing complexity without changing behavior).
 
 ### Integration
 - [ ] Change works with the rest of the system, not just in isolation
@@ -47,8 +47,10 @@ The depth behind these items lives in `code-review-and-quality` (the five-axis r
 ### Ship-readiness
 - [ ] Security implications reviewed for any untrusted input, auth, or data handling (see `security-and-hardening`)
 - [ ] Observability in place for new critical paths (logs, metrics, traces) (see `observability-and-instrumentation`)
-- [ ] Rollback path exists for anything risky (see `shipping-and-launch`)
+- [ ] Anything risky is reflected in the draft pull request's **risk band** (see `pull-request`)
 - [ ] The human has reviewed and approved before merge or deploy
+
+The rollback plan is not on this list, and its absence is deliberate. `shipping-and-launch` writes it, and that skill starts after a person merges — one slice's pull request is not a release. The compensating control before the merge is the risk band above; `docs/workflow.md` states what it tells the person at the merge gate. Putting the plan itself on this bar would gate every change on a document nothing writes before the merge, and the only way to tick that box would be to invent one.
 
 ## How to Apply
 
