@@ -330,6 +330,11 @@ Stop if you are about to:
 - **open `docs/progress.md`**, or write an entry into it → the run record is the maker's account of what it
   ran, so reading it breaks the isolation this pass is for, and writing a second entry for a slice that
   already has one double-counts it. Return your commands and their output with `qa.md` instead.
+- **author or carry a `docs/lessons.md` entry** for a defect this pass found → you route the failure, you
+  do not root-cause it, and the entry belongs to whoever does. It reaches that record on the slice's
+  hand-back; your part is the failing id in the ledger.
+- **list `qa.md` in the slice's `Artifacts` column yourself** → that column is the `orchestrator`'s, which
+  is also what moves the row. Hand the path back with the verdict.
 
 ## Verification (ending criteria)
 
@@ -389,6 +394,13 @@ contract binds to the running app.
     the artifact or the row id that changed.
   - Frontmatter: `slice · feature · status · rounds`. Change the shape of these sections → update the
     consumers (`pull-request`, the `orchestrator`) in the same commit.
+- **Writes no `docs/lessons.md` entry, and carries none.** An `exercised-fail` is routed to
+  `debugging-and-error-recovery` (Process step 4), and root-causing the defect is what obliges the entry —
+  so that skill authors it, and it leaves the slice with the fix, on `incremental-implementation`'s
+  hand-back to the TERMINAL barrier. Two things follow, and they are why this pass has no part in that
+  record: you never author one, because you route the failure rather than root-cause it; and you never
+  carry one, because it was never handed to you. Recording the failing id in `## Behavioral ledger` is the
+  whole of your part — that ledger is what tells a reader a defect was found here at all.
 - **Writes no entry of its own in `docs/progress.md`, and reads none.** The commands this pass ran and
   their real output are part of what the slice returns, and they belong in that slice's single entry —
   written by the `orchestrator` at the TERMINAL barrier, or by `incremental-implementation` when the slice was
@@ -404,8 +416,13 @@ contract binds to the running app.
   verifier — it may not open `plan.md` — so a field missing from the brief is missing, full stop. Change
   what the brief carries → update the `orchestrator` in the same commit.
 - **STATE.md update:** on `pass`, slice `verify → review`, `gate: agent` (the run continues autonomously to
-  the Review fan-out). On `halted`, slice `→ halted`, **`gate: you`** (failure-escalation human gate); add
-  `qa.md` to the slice's `Artifacts`. qa never sets a slice `done` and never opens a PR.
+  the Review fan-out). On `halted`, slice `→ halted`, **`gate: you`** (failure-escalation human gate). qa
+  never sets a slice `done` and never opens a PR.
+- **Writes no `Artifacts` entry on the slice's row.** Hand `qa.md` back by path with your verdict and the
+  `orchestrator` lists it there, because every entry in that column but the two named specialist ones is
+  the `orchestrator`'s — it owns each slice row's flips, so the entry and the flip that earns it come from
+  one hand. Two writers on one row is how a board and the run it describes start disagreeing, and the
+  reader has no way to tell which of them is stale.
 - **Frozen-under-retry guarantee:** qa is the mechanical enforcement point for the no-engine, no-erosion
   invariants — it grades against frozen oracles and halts on any attempt to move the gate by editing them.
 - **Permanent-freeze guarantee:** the same enforcement point covers ACTIVE `docs/test-contract.md` rows,

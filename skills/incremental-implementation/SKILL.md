@@ -309,6 +309,33 @@ command was run when it was not — put it under "Not run" with the reason, and 
 nothing was skipped. And withhold any credential that appears in output, saying that you withheld it
 rather than dropping the line silently. No hook and no CI checks either one.
 
+## The lesson a slice hands back
+
+`docs/lessons.md` is the defect record. You read it before the skeleton and you never write it — and you
+are still the middle of that record's chain, because you are the slice's terminal. Whatever leaves this
+slice leaves on the hand-back you make to the orchestrator.
+
+`debugging-and-error-recovery` is the discipline you reach for when a slice's tests break, and
+root-causing a defect is what obliges an entry. That skill authors one — every field filled, the guard
+named — and then meets the wall *The run record* above describes, for the same reason and told apart by
+the same fact: it is running in the worktree you were handed, so an append there lands on a branch that
+may never merge. It hands the finished entry back to you instead, and says it is still owed.
+
+**Carry it out, and name it as still owed**, alongside the commands and their output you return for the
+run record. The orchestrator carries it into `docs/lessons.md` at the **TERMINAL barrier**, in the
+checkout it holds — the one place a handed-back entry reaches the main line. Its guard against a dropped
+one fires on a slice *that handed an entry back*, so an entry you never name creates no condition for
+that guard to test. Handed back silently it reads as done, and nothing downstream re-reports it.
+
+**Carrying is not authoring, and the red flag against appending still holds exactly as written.** You do
+not open that file, fill a field, or turn a defect you fixed into an entry of your own — the record has
+two authors and you are neither. Carrying touches no file at all: the entry arrives finished and rides
+out on your return value, the way a command's output does. One author, one courier, one append.
+
+Handed a worktree → return the entry. Working in the repository itself → there is nothing to carry,
+because `debugging-and-error-recovery` appends it where a reader will find it. A repository that keeps
+no `docs/lessons.md` was never set up for one; say so and carry on.
+
 ## Rationalizations
 
 | Rationalization | Reality |
@@ -321,6 +348,8 @@ rather than dropping the line silently. No hook and no CI checks either one.
 | "This refactor is small enough to include" | Refactors mixed with features make both harder to review and debug. Separate them. |
 | "Let me run the build command again just to be sure" | After a successful run, repeating the same command adds nothing unless the code has changed since. Run it again after subsequent edits, not as reassurance. |
 | "I'm in a worktree, but the record is a repo file — I'll append my entry there anyway." | A worktree is a branch that may never merge. The write succeeds and reaches nobody. Hand the evidence back; the orchestrator owns that slice's entry. |
+| "The lesson is written and the fix is committed — the record will pick it up from there." | Nothing reads a diff, or a worktree, for lessons. The entry reaches `docs/lessons.md` only if you name it as still owed on the way out, and the orchestrator's guard against a dropped one is conditioned on your having named it. Unnamed, it reads as done and is gone. |
+| "Carrying that entry out *is* writing the record, and this skill is forbidden to write it." | Carrying touches no file. The entry arrives finished from whoever root-caused the defect, you return it, and the orchestrator appends it once. The refusal is about authorship — writing an entry, or filling a field of one — and returning what you were handed is neither. |
 | "The tests passed; I'll write 'tests green' and skip pasting the output." | An entry asserting a pass with nothing behind it is exactly the claim the record exists to make checkable. Paste what came back, or say the check was not run. |
 | "Nothing was skipped, so the 'Not run' line has nothing to say." | Write it and say nothing was skipped. A missing line and a deliberate silence look identical to the reader. |
 | "The retry fixed it, so the entry describing the failure is now misleading." | It described that attempt correctly and still does. Append a second entry. Editing the first is a **STOP**: the work ends there and the violation is reported by name. |
@@ -344,7 +373,12 @@ rather than dropping the line silently. No hook and no CI checks either one.
   review finding was routed back here and you fixed it without invoking `debugging-and-error-recovery`.
   Fixing a defect decides who fixed it, not who records it: a defect you root-caused is
   `debugging-and-error-recovery`'s entry, and a Critical review finding is recorded by the re-review round
-  that finds it closed
+  that finds it closed. This flag is about **authorship** and reaches nothing else. Returning an entry
+  that skill handed you finished is carrying, not writing — it opens no file — and *The lesson a slice
+  hands back* is where that is required of you
+- Returning from a slice without naming an entry `debugging-and-error-recovery` handed you as still owed
+  — the orchestrator's guard fires on a slice *that handed one back*, so an unnamed entry leaves it
+  nothing to catch. The lesson dies at the slice boundary, and no later stage re-reports it
 - Writing UI in a slice whose `Design ref` names a prototype you never opened — Verify grades fidelity to
   that file, so a first look at it after the code is written is a rewrite waiting to happen
 - Editing `docs/design.md` so the built surface matches it — the decided look is an oracle Verify grades
@@ -414,6 +448,12 @@ Per-increment verification is the local check. Before declaring a task done, app
   reaches nobody, which is the failure this split exists to avoid. One entry per attempt, carrying the
   commands as run, their real output, the files changed, and what was not run and why; append only, and
   no stage, state, gate, or owner in it. Full rule in *The run record* above.
+- **Hands back, on the same return and for the same reason, any lesson this slice owes:** the finished
+  entry `debugging-and-error-recovery` authored when it root-caused a defect here, returned unchanged and
+  named as still owed. This skill is that entry's courier out of the worktree and nothing more — the
+  orchestrator carries it into `docs/lessons.md` at the TERMINAL barrier, and this skill touches that file
+  nowhere. On the hand-run path there is nothing to carry: the author already appended it in the
+  repository itself. Full rule in *The lesson a slice hands back* above.
 - **`STATE.md` update:** on a green slice checkpoint, flip the slice **`impl → verify`** (gate stays `agent`)
   and hand off to `quality-verification`. If the slice cannot pass after the bounded rounds (3 implement→verify→review cycles),
   flip it **`impl → halted`** and **flip its gate `agent → you`** — the failure-escalation path is the only
