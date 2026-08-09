@@ -24,7 +24,7 @@ Seven stages, in order. Work does not skip ahead.
 | 4 | Implement | Build one slice. Stub it end to end so it compiles, write the failing test, write the smallest code that passes it, refactor, run the full suite, commit as one revertible unit. | the slice's commit |
 | 5 | Verify | A reader who did not write the code drives the running build through every scenario in the behavioral contract and records, per scenario, whether it passed, failed, or could not be reached. | `qa.md` |
 | 6 | Review | Read the diff on five axes — correctness, readability including test quality, architecture, security, performance — with parallel passes for simplification, security, and performance. Those four passes are a floor: facts about the diff can add a specialist, and nothing removes one. | a ranked findings list |
-| 7 | Ship | Open a **draft** pull request carrying a risk band, anchored to the diff. Run one stage at a time, a pre-launch checklist and a rollback plan come first; the autonomous runner does neither — it goes straight to the pull request. | an open draft pull request |
+| 7 | Ship | Open a **draft** pull request carrying a risk band, anchored to the diff. That is the whole stage, one slice at a time or inside a run. The pre-launch checklist, the staged rollout, and the rollback plan belong to a release, and a release happens after a person merges. | an open draft pull request |
 
 Stages 1–3 are led by a person. Stages 4–7 are executed by the agent in one pass, called a **run**.
 
@@ -42,7 +42,7 @@ that decides whether it opens. Ownership is per gate, not per stage.
 | Run start | The board holds the feature with its slice graph, the environment verdict is green, and the signed `acceptance.md` and the `plan.md` slices exist. | agent |
 | Verify | Every scenario in `acceptance.md` has been exercised against the running build and recorded, by a reader who did not write the code. A UI slice also passes the design gate. | agent |
 | Review | The five-axis review and its parallel passes leave no Critical finding and no Required finding open on the slice. A Required finding may instead be deferred on the record, with a reason. Optional, Nit, and FYI findings do not hold the gate. A finding sends only its own slice back to Implement. | agent |
-| Ship | The draft pull request is open, carries a risk band, and is anchored to the diff. Nothing is merged. Run one stage at a time, the pre-launch checklist and rollback plan gate it too; inside an autonomous run they are not checked, and that gap is the reason the risk band exists. | agent |
+| Ship | The draft pull request is open, carries a risk band, and is anchored to the diff. Nothing is merged. Neither the pre-launch checklist nor the rollback plan gates this: one slice's pull request is not a release, and the release runbook is written afterwards, on the far side of the merge. The risk band is what tells the person at the merge gate how much blast radius they are taking on. | agent |
 | Merge | A person reads the pull request and merges it. | person |
 
 The shape is deliberate. People own both ends — what gets built, and whether it is taken — and the agent
