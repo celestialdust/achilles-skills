@@ -54,10 +54,33 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 | `commands/` | The 12 slash commands — thin wrappers over the skills |
 | `references/` | Shared reference material: checklists (security, performance, accessibility, …) and `language-style.md`, the prose style guide for everything this repo ships |
 | `docs/` | Reader-facing documentation: getting started + per-agent setup guides, plus `workflow.md` and `test-contract.md` — this repo's own copies of the process contract and the test contract. `CONTEXT.md` at the root is the same idea: the suite runs its own process, so it carries the artifacts that process produces |
+| `scripts/` | The five checks a change to this repo is measured against — see *How a change here is checked* below |
+| `.claude-plugin/` | `plugin.json` and `marketplace.json`, the install manifests. `plugin.json` is the only file that states the version, and the only path the plugin loader reads |
+| `CONTRIBUTING.md` | What a change to a skill, command, or persona has to satisfy — the `SKILL.md` envelope, the artifact-chain contract, and the list to run before opening a PR |
 
 `docs/` is for readers of this repo. The pipeline artifacts the suite produces (`STATE.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`) live in **your** project once `/setup` scaffolds them there — not in this one. Three are exceptions, and they are here for the same reason: this repo runs the same loop, so it carries them. `/setup` scaffolds a copy of `docs/workflow.md`, `docs/test-contract.md`, and `CONTEXT.md` into your project; this repo keeps its own of each.
 
 `docs/design.md` — the decided look — and `ARCHITECTURE.md` — the structure map — are in neither list. Nothing scaffolds either: the first user interface built in a repo writes the one, and the first feature to run `architecture-design` writes the other. This repo builds no interface and has run no such pass, so it has neither. Their absence is a look and a layering nobody has decided yet, which is the correct state here rather than a gap.
+
+`docs/workflow.md` is the process contract, and it decides two things nothing else can. **Source-of-truth order** ranks the documents, so when two of them disagree a reader knows which one governs instead of picking. **Who writes what** is a write table keyed by zone, and it is **deny-by-default**: a write with no row permitting it is a write nobody may make. Between them they are why a skill can be read on its own without also reading the nine files around it.
+
+---
+
+## How a change here is checked
+
+Most of this repo is prose, and CI reaches almost none of it — `.github/workflows/companion-tests.yml` is path-filtered to the vendored companion engine under `skills/frontend-design/scripts/`. For everything else the checker is a person running these:
+
+```
+node scripts/check-envelope.mjs        # two frontmatter keys, eight body slots in order
+node scripts/check-enumerations.mjs    # every stated total, recomputed and diffed against the tree
+node scripts/check-registries.mjs      # membership both ways, judged against each registry's own column
+node scripts/check-references.mjs      # every link, anchor and shipped path resolves
+node scripts/check-write-table.mjs     # every write a skill declares, against the zone the table grants it
+```
+
+The first four are silent when they pass. `check-write-table.mjs` exits non-zero by design — it reports a standing backlog, so compare its output before and after your change rather than reading a clean run as the goal. **Never edit the table to make it green**: widening a row is the gate erosion the table exists to catch, and so is quietly rewording the skill so it stops declaring the write.
+
+Each check states in its own header what it cannot reach, and that half is the one to read. No walk can see a `SKILL.md`'s Process slot, a total worded outside the recognised frames, or anything under `docs/`. Those are yours to read. [CONTRIBUTING.md](./CONTRIBUTING.md) carries the full pre-PR list.
 
 ---
 
