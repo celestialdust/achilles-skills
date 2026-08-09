@@ -1,6 +1,6 @@
 # Definition of Done
 
-A standing, project-wide bar that every change must clear before it counts as done. Unlike acceptance criteria, which vary per task and answer "did we build the right thing?", the Definition of Done is the same every time and answers "is this finished to our standard?". The skills that read this file are listed once, in `docs/getting-started.md`. Keeping a second list here is how the two come to disagree.
+A standing, project-wide bar that every change must clear before it counts as done. Unlike acceptance criteria, which vary per task and answer "did we build the right thing?", the Definition of Done is the same every time and answers "is this finished to our standard?". The skills that read this file are listed once, in `docs/getting-started.md` under *Using References*. Keeping a second list here is how the two come to disagree.
 
 ## Definition of Done vs. Acceptance Criteria
 

@@ -178,15 +178,15 @@ The `references/` directory contains supplementary checklists that skills pull i
 
 | Reference | Use with |
 |-----------|----------|
-| [`definition-of-done.md`](../references/definition-of-done.md) | quality-verification, acceptance-criteria |
-| [`security-checklist.md`](../references/security-checklist.md) | security-and-hardening |
-| [`performance-checklist.md`](../references/performance-checklist.md) | performance-optimization |
-| [`accessibility-checklist.md`](../references/accessibility-checklist.md) | frontend-design |
+| [`definition-of-done.md`](../references/definition-of-done.md) | using-agent-skills, plan-breakdown, incremental-implementation, shipping-and-launch |
+| [`security-checklist.md`](../references/security-checklist.md) | security-and-hardening, code-review, shipping-and-launch |
+| [`performance-checklist.md`](../references/performance-checklist.md) | performance-optimization, code-review, shipping-and-launch |
+| [`accessibility-checklist.md`](../references/accessibility-checklist.md) | quality-verification, shipping-and-launch |
 | [`observability-checklist.md`](../references/observability-checklist.md) | observability-and-instrumentation |
 | [`finding-unknowns.md`](../references/finding-unknowns.md) | interview-me, idea-refine, spec-grilling |
 | [`design-system-format.md`](../references/design-system-format.md) | frontend-design, quality-verification |
 | [`teaching-artifact-format.md`](../references/teaching-artifact-format.md) | literate-explainer |
-| [`comprehension-workspace-format.md`](../references/comprehension-workspace-format.md) | comprehension-quiz |
+| [`comprehension-workspace-format.md`](../references/comprehension-workspace-format.md) | comprehension-quiz, literate-explainer |
 | [`language-style.md`](../references/language-style.md) | every word the plugin ships — contributor-facing, never loaded at runtime |
 
 Load a reference when you need detailed patterns beyond what the skill covers.
