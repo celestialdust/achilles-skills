@@ -209,6 +209,24 @@ This prevents authors from treating all feedback as mandatory and wasting time o
 
 **Lead with what matters.** Order findings by leverage: correctness and security first, then structural regressions and missed simplifications, then everything else. Don't bury a real issue under cosmetic nits — a few high-conviction comments beat a long list. If you have one structural problem and ten nits, the structural problem *is* the review.
 
+**A `Critical:` finding may become a lesson — and only a `Critical:` one.** Where the repo keeps a
+`docs/lessons.md`, root-cause your Critical findings and append one entry each, in the shape that file's
+`## Entry shape` block holds. Review is the second writer of that file; whoever debugs a failure is the
+first. The bound is what keeps the two apart: a Critical finding is a defect that would have shipped, so
+what it teaches outlives this diff, while a Required or lesser finding is a change this author is about to
+make and is already tracked in your findings list.
+
+So an attempt to append anything below `Critical:` is **refused**, not warned about — say which class the
+finding is and that it stays in the findings list. The cost of the softer rule is not hypothetical: a
+lessons file that accepts every Required finding becomes a second copy of every review, and a file nobody
+can skim is a file nobody reads before writing a skeleton, which is the one moment it was for.
+
+Three rules govern the append, each of them the same in every file that states them: an entry that cannot
+name an `Automated guard` is **refused**; editing an entry already there is a **STOP**, reported as a
+violation naming the entry and what would have changed; and a category already recorded gets a **second
+entry**, never an amendment to the first. An absent `docs/lessons.md` means the repo was never set up for
+one — say so in the review and move on; do not create it.
+
 ### Step 5: Verify the Verification
 
 Check the author's verification story:
@@ -388,12 +406,18 @@ Part of code review is dependency review:
 - A bespoke helper that duplicates an existing canonical one, or feature logic placed in a shared module
 - A diff that skips, weakens, narrows, or deletes an ACTIVE `docs/test-contract.md` row, or moves a row's state — that freeze is permanent, so it is a `Critical:` + gate-erosion HALT whatever else the diff did, and the finding names the row id
 - A gate-erosion finding written without naming the artifact, or the contract row id, that changed — the person reading it cannot tell which guarantee was at stake
+- A `Critical:` finding closed with no `docs/lessons.md` entry, where the repo keeps one — the finding dies with this diff and the next author meets the same defect
+- Appending a Required, Optional, Nit, or FYI finding to `docs/lessons.md` — refused; it stays in the findings list, and admitting it makes that file a second copy of every review
+- Writing a lessons entry with `Automated guard` blank — refused, not written with the field left open
+- Editing, re-wording, re-dating, re-ordering, or removing an entry already in `docs/lessons.md`, or folding your entry into an existing one because the category matches → STOP, and report the violation naming the entry and what would have changed. Append a second entry instead
 
 ## Verification
 
 After review is complete:
 
 - [ ] All Critical issues are resolved
+- [ ] Every Critical finding was root-caused and recorded as one `docs/lessons.md` entry, all seven fields
+      filled, and nothing below Critical was recorded there (skip where the repo keeps no such file)
 - [ ] All Required (no-prefix) changes are resolved or explicitly deferred with justification
 - [ ] Tests pass
 - [ ] Build succeeds
@@ -403,7 +427,7 @@ After review is complete:
 
 ## Outputs & handoff contract
 
-**Emits:** `review` — a severity-labeled, leverage-ordered findings list plus a verdict. Stable sections a consumer (the orchestrator's review-gate aggregator and the `pull-request` skill) depends on:
+**Emits:** `review` — a severity-labeled, leverage-ordered findings list plus a verdict — and, where the repo keeps a `docs/lessons.md`, **one appended entry per root-caused `Critical:` finding** and none for any lesser class. That append is this skill's only write, and it lands in a record rather than in the code: the diff, the tests, and the frozen contracts stay untouched, so maker≠checker holds. It is also the one zone of that file review owns — `debugging-and-error-recovery` writes the entries for defects it root-caused — which is why two writers on one file is not a collision here. Stable sections a consumer (the orchestrator's review-gate aggregator and the `pull-request` skill) depends on:
 
 - **`Verdict`** — exactly one of `Approve` | `Request changes`.
 - **`Findings`** — ordered by leverage (correctness & security first, then structural regressions & missed simplifications, then nits). EVERY finding carries a `path:line` citation and a severity prefix (`Critical:` | *(no prefix = Required)* | `Optional:` / `Consider:` | `Nit:` | `FYI`). A few high-conviction comments beat a long list; one structural problem buried under ten nits means the structural problem IS the review.

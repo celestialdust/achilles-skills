@@ -1,6 +1,6 @@
 ---
 name: project-setup
-description: Scaffolds the repo ecosystem every achilles skill assumes — a one-time bootstrap that creates the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, docs/test-contract.md (an empty list of permanent, repo-wide test scenarios that only a human activates), docs/workflow.md (the process contract stating the stages, who owns each gate, where a run ends, and what stops one), docs/session-state.md (where the work stands, plus an append-only log of decisions a resuming session reads before it starts), and docs/progress.md (the run record — what each slice actually executed, appended to and never rewritten, scaffolded with the entry shape and no entries), and the `## Agent skills` block in one of CLAUDE.md / AGENTS.md plus a short pointer to it in the other — and, when the repo has neither and you opt to create CLAUDE.md, seeds it from a bundled behavioral template. Run this ONCE before the first feature, before interview-me or spec-grilling. The pipeline skills read these files cold and will have nowhere to write without it, so do this first.
+description: Scaffolds the repo ecosystem every achilles skill assumes — a one-time bootstrap that creates the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, docs/test-contract.md (an empty list of permanent, repo-wide test scenarios that only a human activates), docs/workflow.md (the process contract stating the stages, who owns each gate, where a run ends, and what stops one), docs/session-state.md (where the work stands, plus an append-only log of decisions a resuming session reads before it starts), docs/progress.md (the run record — what each slice actually executed, appended to and never rewritten, scaffolded with the entry shape and no entries), and docs/lessons.md (the lessons record — what a root-caused defect turned out to be and the guard that would catch it coming back, appended to and never rewritten, scaffolded with the field template and no entries), and the `## Agent skills` block in one of CLAUDE.md / AGENTS.md plus a short pointer to it in the other — and, when the repo has neither and you opt to create CLAUDE.md, seeds it from a bundled behavioral template. Run this ONCE before the first feature, before interview-me or spec-grilling. The pipeline skills read these files cold and will have nowhere to write without it, so do this first.
 ---
 
 ## Purpose
@@ -11,9 +11,10 @@ the repo-wide design substrate (`CONTEXT.md` glossary + `docs/adr/`), the repo's
 contract (`docs/test-contract.md`), the process contract (`docs/workflow.md` — the stages, who owns each
 gate, where a run ends, what stops one), the session state (`docs/session-state.md` — where the work
 stands, plus the append-only log of decisions a resuming session reads first), the run record
-(`docs/progress.md` — what each slice actually executed, one entry per slice), and the rules file that
-carries the `## Agent skills` block, with a pointer to it in whichever of `CLAUDE.md` / `AGENTS.md` does
-not hold it. If that substrate doesn't exist, each skill has to re-derive "where do issues live / where's
+(`docs/progress.md` — what each slice actually executed, one entry per slice), the lessons record
+(`docs/lessons.md` — what each root-caused defect turned out to be, and the guard that would catch it
+coming back), and the rules file that carries the `## Agent skills` block, with a pointer to it in
+whichever of `CLAUDE.md` / `AGENTS.md` does not hold it. If that substrate doesn't exist, each skill has to re-derive "where do issues live / where's
 the glossary / where do ADRs go" — which is exactly the scattered-tracker problem this suite consolidates
 away (one local board, not mp's several issue queues). `project-setup` makes the substrate exist **once**, so the rest of the suite consumes it cold.
 
@@ -30,11 +31,11 @@ re-fires every wave; `project-setup` is the one-time repo bootstrap that runs be
   `CLAUDE.md` / `AGENTS.md` pointer naming a file that is no longer there. Nothing watches for that
   between runs, so the pointer check under "Verification" is what catches it, and it only runs here.
 - **Escape hatch — adopt, don't overwrite:** if the repo already has a `CONTEXT.md`, `docs/test-contract.md`,
-  `docs/session-state.md`, `docs/progress.md`, `docs/adr/`, or a
+  `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, `docs/adr/`, or a
   `CLAUDE.md`/`AGENTS.md` with prior content, adopt them in place. Re-running `project-setup` repairs missing pieces;
-  it never clobbers existing user content. The two append-only files matter most here: `docs/session-state.md`'s
-  `## Log` and every entry in `docs/progress.md` exist nowhere else, so re-scaffolding over either one
-  deletes reasoning and evidence nobody can recover.
+  it never clobbers existing user content. The three append-only files matter most here: `docs/session-state.md`'s
+  `## Log`, every entry in `docs/progress.md`, and every entry in `docs/lessons.md` exist nowhere else, so
+  re-scaffolding over any of them deletes reasoning and evidence nobody can recover.
 
 ## Inputs
 
@@ -45,10 +46,11 @@ reads the repo as-is to decide what already exists:
 - root `CLAUDE.md` and `AGENTS.md` — does either exist? Is there already an `## Agent skills` section?
 - root `CONTEXT.md` / `CONTEXT-MAP.md` — single- or multi-context already?
 - `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`,
-  `docs/progress.md`, `STATE.md` — does prior output already exist? A `docs/workflow.md` that exists is
-  **compared** against the bundled template rather than skipped, so finding it is not the end of the question.
-- `.gitignore` — does any pattern in it match `docs/session-state.md` or `docs/progress.md`? Both have to
-  be committed.
+  `docs/progress.md`, `docs/lessons.md`, `STATE.md` — does prior output already exist? A `docs/workflow.md`
+  that exists is **compared** against the bundled template rather than skipped, so finding it is not the end
+  of the question.
+- `.gitignore` — does any pattern in it match `docs/session-state.md`, `docs/progress.md`, or
+  `docs/lessons.md`? All three have to be committed.
 
 ## Process
 
@@ -61,11 +63,12 @@ Look at the current repo to understand its starting state. Read whatever exists;
 - `CONTEXT.md` and `CONTEXT-MAP.md` at the repo root — is a single- or multi-context layout already implied?
 - `docs/adr/` and any `src/*/docs/adr/` directories.
 - `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`,
-  `docs/progress.md`, and `STATE.md`
+  `docs/progress.md`, `docs/lessons.md`, and `STATE.md`
   — does this skill's prior output already exist? An existing `docs/workflow.md` is the one that gets
   diffed against the bundled template instead of passed over.
-- `.gitignore` — is `docs/session-state.md` or `docs/progress.md` matched by anything in it? Both exist to
-  survive the session that wrote them, so an ignored copy dies on the next fresh clone.
+- `.gitignore` — is `docs/session-state.md`, `docs/progress.md`, or `docs/lessons.md` matched by anything
+  in it? All three exist to survive the session that wrote them, so an ignored copy dies on the next fresh
+  clone.
 
 ### 2. Present findings and ask
 
@@ -115,6 +118,10 @@ Show the user a draft of everything before writing, and let them edit:
   for while you show it: one entry per slice recording what that slice actually executed — the commands,
   their real output, the files that changed, and what was not run. A run's own summary is otherwise the
   only account of itself, and a summary is written by the party with the most reason to round up.
+- The `docs/lessons.md` stub (the field template, no entries; see "lessons.md seed" below). Say what it is
+  for while you show it: one entry per root-caused defect, and every entry names the guard that would catch
+  that defect coming back. A slice reads the file before it writes its skeleton, which is the moment the
+  knowledge is worth anything — read afterwards, a lesson is a post-mortem of work already done.
 - The bundled process contract (`assets/workflow.template.md`) that becomes `docs/workflow.md`. Show it —
   it states the stages, the gate owners, and the stop conditions on the repo's behalf — but copy it
   verbatim; it is one shared text, not a per-repo draft.
@@ -209,6 +216,15 @@ Then create the substrate (skip anything that already exists; never clobber). Th
    You are scaffolding this file in the repository itself, not in a worktree — `project-setup` runs once,
    before any feature exists, so there is no slice branch for a write to get stranded on.
 
+10. **`docs/lessons.md`** — the lessons record, seeded with the **field template and no entries** (see
+    "lessons.md seed" below). Skip it if it already exists, for the same reason as the two files above and
+    with the same force: it is append-only, so overwriting one destroys what earlier defects cost somebody
+    to work out. Seed no entries; entries are written when a defect is root-caused.
+
+    **Check `.gitignore` here too.** A lesson is written for the next person to work in that area, who is
+    usually not the person who wrote it and often arrives on a fresh clone. If a pattern matches it, say so
+    and ask before changing `.gitignore`; that file is the user's.
+
 The `## Agent skills` block:
 
 ```markdown
@@ -280,7 +296,9 @@ Tell the user setup is complete and which skills now read from these files (`spe
 `test-driven-development` and `quality-verification` read `docs/test-contract.md` and enforce its ACTIVE
 rows; `handoff` writes `docs/session-state.md` and appends to its log; whichever skill runs a slice —
 `incremental-implementation` on its own, or the `orchestrator` when a run drives it — appends that slice's
-entry to `docs/progress.md`). Say plainly that the test contract
+entry to `docs/progress.md`; `debugging-and-error-recovery` appends a `docs/lessons.md` entry whenever a
+defect is root-caused, and `code-review` appends one for a Critical finding and for nothing lesser).
+Say plainly that the test contract
 is empty on purpose and enforces nothing until they activate a
 row, that activating one is theirs to do and one-way, and that no agent will ever move a row in either
 direction.
@@ -295,10 +313,14 @@ Say the same about `docs/progress.md`, and say what it is not: it records what e
 came back, and it never says which stage a slice is at or who owns the next action — that is the board's
 question, and one question with two answers is one answer too many. It is append-only and committed for
 the same reasons.
+Say what `docs/lessons.md` is for as well: one entry per root-caused defect, each naming the guard that
+would catch it coming back, read before a slice is built rather than after. It is append-only and committed
+on the same terms, and the same defect recurring is a second entry — the count is the signal that the first
+guard did not hold, and folding the two together destroys it.
 Mention that `STATE.md`, `CONTEXT.md`, `docs/test-contract.md`, the five fields of `docs/session-state.md`,
-and the per-feature docs are theirs to hand-edit later — `## Log` and `docs/progress.md` being the
-exceptions, since correcting an entry in either means appending a new one rather than changing the old
-one — but
+and the per-feature docs are theirs to hand-edit later — `## Log`, `docs/progress.md`, and `docs/lessons.md`
+being the exceptions, since correcting an entry in any of them means appending a new one rather than
+changing the old one — but
 `docs/workflow.md` is shared text — editing it locally makes the repo describe a process it is not
 running. Re-running `project-setup` is only needed to repair, re-scaffold, or re-sync a `docs/workflow.md`
 that has drifted from the bundled contract.
@@ -553,9 +575,10 @@ missing.
 **Append-only.** A new entry goes after the last one. Earlier entries are never edited, re-worded,
 re-dated, re-ordered, or removed — including an entry that recorded a failure the next attempt fixed.
 The same failure twice is two entries; the second never replaces the first. An entry that turned out to
-be wrong is corrected by a **new** entry naming the old one, and an attempt to change or remove an
-earlier one is **reported as a violation**, naming the entry and what would have changed. Refusing
-quietly is not enough — a silent refusal reads as a silent success.
+be wrong is corrected by a **new** entry naming the old one. An attempt to change or remove an earlier
+one is a **STOP**: the work ends there, and the violation is reported, naming the entry and what would
+have changed. Refusing quietly is not enough — a silent refusal reads as a silent success, and the text
+already recorded stays readable in full either way.
 
 **A heading with nothing under it is a slice that started and did not finish.** It is written the moment
 the slice starts, before anything can go wrong with it, so a slice that dies mid-flight still leaves a
@@ -589,6 +612,78 @@ check that passed from a check nobody performed; without it, the two read identi
 
 Seed no entries. An entry is a record of work somebody did, so a seeded one is fiction of exactly the
 kind this file exists to prevent — the same reason `docs/session-state.md` ships with an empty `## Log`.
+
+## lessons.md seed
+
+Write this stub at `docs/lessons.md` — the field template and no entries. `## Entry shape` is the one
+heading the seed ships (canonical heading; do not rename); every other `##` heading in the file is an
+entry, and entries are appended after it, oldest first. The template sits inside a fenced block, which is
+what keeps it from reading as the first entry. The explanation is part of the seed for the same reason it
+is part of the other two append-only files: the rules are only followed if the next person to open the
+file can read them there.
+
+`````markdown
+# Lessons
+
+What a defect turned out to be, so the same pit is not fallen into twice. One entry per root-caused
+defect, appended once the cause is known and the fix is in.
+
+**Read it before you build.** A slice reads this file before it writes its skeleton. That is the moment
+the knowledge is worth anything: the skeleton is where the decisions these entries are about get made,
+and a lesson read after the code is written is a post-mortem of work already done.
+
+**Every entry names a guard.** `Automated guard` says what would catch this defect coming back — a lint
+rule, a test, a helper that makes the mistake unavailable, a checklist item, or an architecture
+invariant. It is filled in as the entry is written, by whoever root-caused the defect and is the only
+person who knows what would have caught it. An entry naming none is **refused**: a lesson nobody can name
+a guard for is a preference, and preferences are what fill a file like this until nobody reads it.
+
+**Append-only.** A new entry goes after the last one. Earlier entries are never edited, re-worded,
+re-dated, re-ordered, or removed. An entry that turned out to be wrong is corrected by a **new** entry
+naming the old one. An attempt to change or remove an earlier entry is a **STOP**: the work ends there,
+and the violation is reported, naming the entry and what would have changed. Refusing quietly is not
+enough — a silent refusal reads as a silent success.
+
+**The same lesson twice is two entries.** A defect whose category is already in the file is recorded
+again rather than folded into the entry already there. The count is the signal: a category appearing a
+second time says the first guard did not hold, which is the one thing a reader most needs to know.
+Merging the two destroys the only evidence of it.
+
+**Two parties write here, and they write different entries.** Whoever root-causes a defect writes one.
+A review writes one only for its most serious class of finding — a `Critical:` finding, once root-caused.
+A Required or lesser finding is refused here and stays in that review's findings list, where it is
+already tracked; admitting those would make this file a second copy of every review.
+
+## Entry shape
+
+Append below, oldest first:
+
+```
+## <date> — <one line: what the defect turned out to be>
+- Tags:              (the area, so a later reader finds the others like it — and can count them)
+- Symptom:           (what was observed, in the form it was observed)
+- Root cause:        (why it happened — the cause, not the place it surfaced)
+- Fix:               (what changed to close it)
+- Prevention:        (what to do differently next time)
+- Automated guard:   (what would catch a recurrence — a lint, a test, a helper, a checklist item, or
+                      an architecture invariant. Never empty: an entry without one is refused)
+- References:        (where to look — the commit, the run-record entry, the failing command)
+```
+
+All seven fields get filled in. `Automated guard` is the one that gets left for later, and later is
+where a lesson dies: by then whoever knew what would have caught the defect has moved on, and working it
+out again costs what the defect cost the first time.
+`````
+
+Seed no entries, for the same reason as the other two: an entry is a record of a defect somebody
+actually hit, so a seeded one is a claim about work that never happened. And do not soften the
+guard-missing rule into a warning while you write the seed. A warning about a missing field is how the
+field ends up optional, and an entry with no guard cannot be acted on later without re-deriving the whole
+lesson from scratch.
+
+Nothing mechanical enforces any of this — no hook and no CI reads the file. The rules are in the seed
+because the seed is what the writer is looking at when the temptation arises, which is the same reason
+the run record carries its two invariant lines.
 
 ## CLAUDE.md seed (only when creating a fresh CLAUDE.md)
 
@@ -673,6 +768,17 @@ copy that this arrangement exists to prevent.
 - "I'll add a state or gate column to the entry shape so a reader can see progress at a glance." → No.
   `STATE.md` answers that, and a second answer diverges from the first the moment one of them is updated
   and the other is not. This file records what ran, and nothing else.
+- "`docs/lessons.md` is what `docs/progress.md` is for — one record is enough." → No. The run record says
+  what a slice executed; this says what a defect turned out to be and what would catch it coming back.
+  Neither answers the other's question, and a reader looking for the second one in the first finds a
+  command log.
+- "`Automated guard` is hard to fill for some defects — I'll seed it as optional so entries still get
+  written." → No. An entry with no guard is refused, and softening that in the seed is how the field
+  becomes decorative. The whole value of the record is that each entry names the thing that makes the
+  lesson stick without anybody remembering it.
+- "The seed should carry one worked entry so the shape is obvious." → No. The shape is in the fenced
+  block, and a seeded entry is a claim that somebody hit that defect here. The file opens empty, exactly
+  like the session log and the run record.
 
 ## Red flags
 
@@ -716,6 +822,14 @@ copy that this arrangement exists to prevent.
   usually arrives on a fresh clone.
 - Writing the `## Agent skills` block without the run-record section, so nothing tells a resuming agent to
   read `docs/progress.md`. A record with no declared reader is a record nobody reads.
+- Overwriting or re-scaffolding an existing `docs/lessons.md` — it is append-only, and its entries are
+  what earlier defects cost somebody to work out.
+- Seeding `docs/lessons.md` with an entry, or writing the field template anywhere but inside the fenced
+  block under `## Entry shape`.
+- Dropping any of the seven fields from the seeded template, or seeding `Automated guard` as optional — a
+  missing guard is a refusal, and a seed that hedges it is where the hedge becomes the rule.
+- Leaving `docs/lessons.md` matched by `.gitignore`, or adding it there — the reader it is written for is
+  usually not the writer, and often arrives on a fresh clone.
 
 ## Verification (ending criteria)
 
@@ -799,7 +913,7 @@ Done when **all** hold:
 - `docs/progress.md` exists, carrying a `## Entry shape` heading with the entry shape in a fenced block
   beneath it — including the "Not run" line and the credential line — and **no other `##` heading**, since
   every other one is an entry. Its text states that the file is append-only, that an attempt to change an
-  earlier entry is reported as a violation, that a heading with nothing under it is a slice that started
+  earlier entry stops the work and is reported, that a heading with nothing under it is a slice that started
   and did not finish, and that no entry carries a stage, a state, or an owner. A reader who has never seen
   this project can add an entry from the file alone.
 - Nothing in `docs/progress.md` is a stage, state, gate, or owner token — not in the shape, not in the
@@ -807,6 +921,43 @@ Done when **all** hold:
 - `docs/progress.md` is not matched by any `.gitignore` pattern; if one matched it, that was surfaced to
   the user rather than silently changed.
 - A pre-existing `docs/progress.md` was left untouched — no entry in it was reworded, re-ordered, or
+  removed.
+- `docs/lessons.md` exists, carrying a `## Entry shape` heading with the seven-field template in a fenced
+  block beneath it and **no other `##` heading**, since every other one is an entry. Its text states that
+  the file is read before a slice writes its skeleton, that an entry naming no `Automated guard` is
+  refused, that it is append-only and an attempt to change an earlier entry stops the work and is
+  reported, that the same lesson twice is two entries, and which two parties write it and on what terms.
+  A reader who has never seen this project can add an entry from the file alone.
+
+  ```bash
+  f=docs/lessons.md
+  [ -s "$f" ] || { echo "$f: missing or empty"; exit 1; }
+  awk -v f="$f" '
+    /^```/ { fence = !fence; next }
+    !fence && /^## / { h++; if ($0 != "## Entry shape") {
+               print f":"FNR": heading other than \"## Entry shape\" — that is an entry, and the seed ships none"; b=1 } }
+    fence && /^- [A-Z]/ { sub(/:.*/, ""); sub(/^- /, ""); got[$0]=1 }
+    END { if (h != 1) { print f": expected exactly one ## heading outside a fence, found "h; b=1 }
+          n = split("Tags|Symptom|Root cause|Fix|Prevention|Automated guard|References", want, "|")
+          for (i = 1; i <= n; i++) if (!(want[i] in got)) { print f": field missing from the fenced entry shape: "want[i]; b=1 }
+          exit b }' "$f"
+  ```
+
+  **The fence handling is the whole check, not a detail.** The template's own first line is
+  `## <date> — …`, so a scan that does not skip fenced lines reports the file it just wrote — the same
+  way a `state: ACTIVE` scan over the whole test contract does. Running it before believing it is what
+  catches that; reading it does not.
+
+  **Exercise it in all five directions**, on a scratch copy: the seed as written → `0`; the
+  `Automated guard` line deleted → non-zero, naming that field; a seeded entry added under a
+  `## <date> — …` heading of its own → non-zero, naming the line; the template moved out of the fenced
+  block → non-zero, naming all seven fields, which is the red flag above made mechanical; and the file
+  truncated to zero length → non-zero. That last one gets skipped and is what a failed write actually
+  produces — `awk` runs no rule at all over an empty file, so without the `[ -s ]` guard ahead of it the
+  check prints nothing and reads as a pass.
+- `docs/lessons.md` is not matched by any `.gitignore` pattern; if one matched it, that was surfaced to
+  the user rather than silently changed.
+- A pre-existing `docs/lessons.md` was left untouched — no entry in it was reworded, re-ordered, or
   removed.
 - Exactly one of `CLAUDE.md` / `AGENTS.md` contains an `## Agent skills` block referencing `STATE.md`,
   `CONTEXT.md`, `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, and
@@ -863,7 +1014,8 @@ Emits the repo substrate the whole suite consumes:
 | `docs/test-contract.md` | repo-wide | `## Rows` (permanent scenarios, each `PENDING` or `ACTIVE`; scaffolded with none ACTIVE). An ACTIVE row may never be skipped, weakened, or narrowed by any slice in any run; activation is one-way and human-only |
 | `docs/workflow.md` | repo-wide | every `##` section the bundled `assets/workflow.template.md` carries, verbatim — the acceptance check under Verification names them, and says to take the list off the template rather than off any copy of it — re-synced (with the user's yes) whenever a re-run finds it drifted |
 | `docs/session-state.md` | repo-wide | the five snapshot fields (`## Current objective` · `## Current state` · `## Remaining issues` · `## Boundaries` · `## Next phase`) plus `## Log`, append-only and scaffolded empty. Entries hold the decision, the reason, what was ruled out, and what is still open — never what git already shows. Earlier entries never change, and an attempt to change one is reported as a violation. Weakest source in the repo: outranked by `docs/adr/` and a signed `acceptance.md`, with promotion to `docs/adr/` as the way out. Committed, never ignored |
-| `docs/progress.md` | repo-wide | `## Entry shape` plus the fenced entry shape beneath it — `<date> · <SLICE-ID> · <title>` heading, then Summary · Commands run · Results · Files changed · Not run · Follow-ups — scaffolded with no entries. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one is reported as a violation. Every other `##` heading is an entry. Holds no stage, state, gate, or owner — that is the board's question. Committed, never ignored |
+| `docs/progress.md` | repo-wide | `## Entry shape` plus the fenced entry shape beneath it — `<date> · <SLICE-ID> · <title>` heading, then Summary · Commands run · Results · Files changed · Not run · Follow-ups — scaffolded with no entries. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one stops the work and is reported. Every other `##` heading is an entry. Holds no stage, state, gate, or owner — that is the board's question. Committed, never ignored |
+| `docs/lessons.md` | repo-wide | `## Entry shape` plus the fenced seven-field template beneath it — `<date> · <one line>` heading, then Tags · Symptom · Root cause · Fix · Prevention · Automated guard · References — scaffolded with no entries. An entry naming no `Automated guard` is refused. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one stops the work and is reported. The same lesson twice is two entries, never a merge. Every other `##` heading is an entry. Committed, never ignored |
 | `CLAUDE.md` / `AGENTS.md` | repo root | one carries the `## Agent skills` block, the other a pointer naming it — never two copies of the block, and never a missing file; a fresh `CLAUDE.md` also leads with the bundled behavioral template |
 
 **Named in the substrate, created by nobody here: `docs/design.md`** — the repo's decided look, which
@@ -879,6 +1031,10 @@ appends `CONTEXT.md` + writes `docs/adr/`; `to-prd`/`acceptance-criteria`/`envir
 and `quality-verification` → read `docs/test-contract.md` and enforce its ACTIVE rows (neither ever edits
 it); `handoff` → writes the five fields of `docs/session-state.md` and appends to its `## Log`;
 `incremental-implementation` and the `orchestrator` → append one entry per slice to `docs/progress.md`;
-`using-agent-skills` → reads both of those files at the start of every session, before any work begins;
+`debugging-and-error-recovery` → appends a `docs/lessons.md` entry per root-caused defect, and
+`code-review` → appends one for a Critical finding and nothing lesser; `incremental-implementation` reads
+`docs/lessons.md` before it writes a slice's skeleton;
+`using-agent-skills` → reads `docs/session-state.md` and `docs/progress.md` at the start of every session,
+before any work begins;
 the orchestrator drives
 the slice/gate columns. tracker = local. `STATE.md` update by `project-setup`: create the empty board only.

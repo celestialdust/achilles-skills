@@ -39,10 +39,17 @@ if a load-bearing input is missing.
 | `acceptance.md` | `acceptance-criteria` (Spec, signed) | the behavioral Given/When/Then scenario ids (e.g. `PWR-A2`) this slice realizes — the **frozen oracle** `test-driven-development` turns RED | the slice references an acceptance id that does not exist |
 | clean worktree | `worktree` (orchestrator) | a provisioned, preflight-green baseline branch for this slice | not running inside the handed worktree |
 
-One more input is read rather than required: **`docs/progress.md`**, the run record, when the repo has
-one. It is where this slice's entry goes on the hand-run path (see *The run record*), and where a
-previous attempt at the same slice said what it ran and what came back. An absent file means the repo
-was never set up for one — carry on; do not create it here, `project-setup` scaffolds it.
+Two further inputs are read rather than required — both when the repo has them, and an absent one means
+the repo was never set up for it. Carry on in that case, and do not create either here; `project-setup`
+scaffolds both.
+
+- **`docs/progress.md`**, the run record. It is where this slice's entry goes on the hand-run path (see
+  *The run record*), and where a previous attempt at the same slice said what it ran and what came back.
+- **`docs/lessons.md`**, the lessons record — **read before you write the skeleton**, not after the code
+  is written. Each entry is a defect somebody root-caused, with the guard that would catch it coming back.
+  The skeleton is where the decisions those entries are about get made, so a lesson read afterwards can
+  only tell you what the rework is. You are reading for the entries that touch the area this slice
+  builds in; a file with no entry near it costs one read and settles the question.
 
 **Disciplines it applies** (consulted, not stages it consumes): `test-driven-development` (RED-GREEN-REFACTOR; test-first order is
 hook-enforced), `source-driven-development` (ground any framework/library decision in fetched official docs, as needed),
@@ -99,6 +106,12 @@ Each slice delivers working end-to-end functionality.
 Within a vertical slice, build the skeleton end-to-end first, then fill it in — absorbed from cr-structure's
 build-order. Each step is independently observable:
 
+- **Read `docs/lessons.md` first, every slice.** Before the stub, open the lessons record and look for
+  entries touching the area this slice builds in. Every entry there is a defect this project already paid
+  for once, and each names the guard that would catch it again — which is a decision about how to build,
+  not a note to file afterwards. This is the only moment reading it changes anything: after the skeleton,
+  the same entry costs a rewrite instead of a choice. A repo with no such file, or none near this area,
+  costs one read.
 - **Read the design ref first (UI slices).** Before the stub, open the prototype and contract named in the
   slice's `Design ref`. The skeleton is where layout, hierarchy and component boundaries get decided, and
   those are exactly what the prototype already decided — start from it and the fidelity check at Verify is
@@ -285,8 +298,9 @@ Three things about the entry, each of which someone gets wrong:
   its commands and output belong in this same entry — `quality-verification` never writes its own.
 - **Append only.** An earlier entry is never edited, re-worded, re-dated, re-ordered, or removed, not
   even the one recording the failure this attempt fixed. A second attempt writes a second entry. An
-  attempt to change an existing one is reported as a violation, naming the entry and what would have
-  changed; refusing quietly reads as a silent success.
+  attempt to change an existing one is a **STOP**: the work ends there, and the violation is reported
+  naming the entry and what would have changed. Refusing quietly reads as a silent success, and the
+  previously recorded text stays readable in full either way.
 - **No state, no gate, no owner.** `STATE.md` says which stage the slice is at and who acts next. This
   file says what ran. One question with two answers is one answer too many.
 
@@ -303,6 +317,7 @@ rather than dropping the line silently. No hook and no CI checks either one.
 | "It's faster to do it all at once" | It *feels* faster until something breaks and you can't find which of 500 changed lines caused it. |
 | "These changes are too small to commit separately" | Small commits are free. Large commits hide bugs and make rollbacks painful. |
 | "I'll add the feature flag later" | If the feature isn't complete, it shouldn't be user-visible. Add the flag now. |
+| "I'll read `docs/lessons.md` if something breaks" | By then the lesson costs a rewrite. Its entries are decisions about how to build, and the skeleton is where those decisions get made — which is why it is read before the stub, not after the failure. |
 | "This refactor is small enough to include" | Refactors mixed with features make both harder to review and debug. Separate them. |
 | "Let me run the build command again just to be sure" | After a successful run, repeating the same command adds nothing unless the code has changed since. Run it again after subsequent edits, not as reassurance. |
 | "I'm in a worktree, but the record is a repo file — I'll append my entry there anyway." | A worktree is a branch that may never merge. The write succeeds and reaches nobody. Hand the evidence back; the orchestrator owns that slice's entry. |
@@ -323,6 +338,8 @@ rather than dropping the line silently. No hook and no CI checks either one.
 - Touching files outside the task scope "while I'm here"
 - Creating new utility files for one-time operations
 - Running the same build/test command twice in a row without any intervening code change
+- Writing a skeleton without having opened `docs/lessons.md` — the entries there are decisions about how
+  to build, and read after the skeleton they are a post-mortem of your own work
 - Writing UI in a slice whose `Design ref` names a prototype you never opened — Verify grades fidelity to
   that file, so a first look at it after the code is written is a rewrite waiting to happen
 - Editing `docs/design.md` so the built surface matches it — the decided look is an oracle Verify grades
@@ -332,8 +349,8 @@ rather than dropping the line silently. No hook and no CI checks either one.
   a branch that may never merge and reaches no reader, while reporting success.
 - Finishing a hand-run slice without an entry, or writing one that asserts a check passed with neither its
   output nor a "Not run" line behind it.
-- Editing, re-ordering, or removing an entry already in `docs/progress.md` — append a new one instead, and
-  report the attempt as a violation naming the entry.
+- Editing, re-wording, re-dating, re-ordering, or removing an entry already in `docs/progress.md` → STOP,
+  and report the violation naming the entry and what would have changed. Append a new entry instead.
 - Pasting a token, key, or password into an entry — withhold the value and say you withheld it.
 
 ## Verification (ending criteria)
