@@ -131,8 +131,9 @@ that is real and worth fixing, and that is the route.
 
 **An ACTIVE test-contract row is frozen permanently, in every run.** There is no loop it thaws after, and
 no Spec change unfreezes it. A person can add a row, and a person can move a row from PENDING to ACTIVE.
-Nothing moves a row back. The agent never moves one in either direction — it reads that file and does not
-write to it.
+Nothing moves a row back. The agent never moves one in either direction: `project-setup` scaffolds the
+empty file and its heading, and after that no skill writes a row or a row's state. "Who writes what"
+below says the same thing per zone, and that is the copy a check can read.
 
 That asymmetry is what makes an ACTIVE row worth writing. A guarantee the agent can switch off is not a
 guarantee: under retry pressure, switching it off is always the cheapest way to make a failing gate green.
@@ -152,9 +153,11 @@ contract a person has not signed.
 The repository's decided look, at `docs/design.md`, is the other half of that oracle: where a contract says
 an axis is unchanged from the rest of the repository, Verify grades that axis against this file. It carries
 no signature of its own — it is written in the same act as the contract a person signs — so the signature
-mechanism above does not reach it, and the rule is stated instead. No slice edits it. Editing the decided
-look so that what was built matches it is weakening a check to turn a failing gate green, which is gate
-erosion and stops the slice like any other.
+mechanism above does not reach it, and the rule is stated instead. Only the surface that decides the look
+writes it — the first user interface built here, or a later one that deliberately moves the whole look, and
+"Who writes what" below says which. No other slice edits it. Editing the decided look so that what was
+built matches it is weakening a check to turn a failing gate green, which is gate erosion and stops the
+slice like any other.
 
 ## Source-of-truth order
 
@@ -172,11 +175,13 @@ authoritative first. A repository that does not have one of these simply skips i
 9. `docs/lessons.md` — what a past defect taught, and the guard that would catch it again
 10. `docs/progress.md` — what each slice actually executed
 
-**One exception, and `docs/test-contract.md` states it itself.** An **ACTIVE** row there beats a feature
-scenario that contradicts it, whatever these two ranks say. A row is ACTIVE only because a person made it
-permanent, and nothing moves it back — so an order that let a feature renegotiate one would hand the
-agent the switch the freeze exists to take away. A PENDING row enforces nothing and takes rank 8 as
-written.
+**One exception, and `docs/test-contract.md` states it itself.** An **ACTIVE** row there beats every
+feature document that contradicts it — `prd.md`, `acceptance.md`, and `plan.md` alike, whatever ranks 5
+through 7 say. A row is ACTIVE only because a person made it permanent, and nothing moves it back, so an
+order that let one feature renegotiate one would hand the agent the switch the freeze exists to take
+away. The scope has to reach all three: a slice is written in `plan.md`, so an exception that named only
+`acceptance.md` would leave the plan free to narrow a permanent guarantee and stay inside the order. A
+PENDING row enforces nothing and takes rank 8 as written.
 
 Not every document has a rank. `STATE.md`, `CONTEXT.md`, and the per-feature `intent.md`, `research.md`,
 `environment.md`, and `qa.md` have none. Two more settle themselves instead of needing one:
@@ -201,70 +206,101 @@ Four things a writer may do to a zone:
 - **flip status** — change one declared token in place, and nothing else.
 - **never** — do not write it at all.
 
-| File | Zone | Who writes it | What they may do |
-|---|---|---|---|
-| `CLAUDE.md` / `AGENTS.md` | the `## Agent skills` block | `project-setup` | create |
-| `CLAUDE.md` / `AGENTS.md` | the pointer line, in whichever of the two does not hold that block | `project-setup` | create |
-| `CLAUDE.md` / `AGENTS.md` | everything else in the file | you | create |
-| `docs/workflow.md` | the whole file, copied from the bundled process contract | `project-setup` | create |
-| `docs/workflow.md` | any local edit to it | nobody | never |
-| `docs/adr/` | the directory | `project-setup` | create |
-| `docs/adr/` | a record for a decision taken during Spec | `spec-grilling` | create |
-| `docs/adr/` | a record for a decision taken outside Spec, and any record superseding another | `documentation-and-adrs` | create |
-| `docs/adr/` | a record already written | nobody | never |
-| `CONTEXT.md` | the file and its `## Glossary` heading | `project-setup` | create |
-| `CONTEXT.md` | a term resolved during Spec | `spec-grilling` | append only |
-| `CONTEXT.md` | a term a decision record introduces | `documentation-and-adrs` | append only |
-| `CONTEXT.md` | a definition already written, corrected before the Spec gate | `spec-review` | create |
-| `docs/test-contract.md` | the file and its `## Rows` heading | `project-setup` | create |
-| `docs/test-contract.md` | a row under `## Rows` | you | append only |
-| `docs/test-contract.md` | a row's `state:` | you | flip status |
-| `docs/test-contract.md` | any part of it, by any skill | nobody | never |
-| `STATE.md` | the legend and the slice-row column list | `project-setup` | create |
-| `STATE.md` | a feature block and its slice rows | `plan-breakdown` | create |
-| `STATE.md` | `origin:` — the `research.md` entry | `codebase-research` | append only |
-| `STATE.md` | `origin:` — the ADR ids | `spec-grilling` | append only |
-| `STATE.md` | `origin:` — the `prd.md` entry | `to-prd` | append only |
-| `STATE.md` | `origin:` — the `acceptance.md` entry | `acceptance-criteria` | append only |
-| `STATE.md` | `origin:` — the `environment.md` entry | `environment-manifest` | append only |
-| `STATE.md` | `origin:` — the `plan.md` entry | `plan-breakdown` | append only |
-| `STATE.md` | a feature block's `feature:` state | `orchestrator` | flip status |
-| `STATE.md` | a slice row's `State` and `Gate` | `orchestrator` | flip status |
-| `STATE.md` | `Artifacts` — the security findings entry | `security-and-hardening` | append only |
-| `STATE.md` | `Artifacts` — the release runbook entry | `shipping-and-launch` | append only |
-| `STATE.md` | `Artifacts` — every other entry | `orchestrator` | append only |
-| `docs/session-state.md` | the file, its five field headings and `## Log` | `project-setup` | create |
-| `docs/session-state.md` | the five fields | `handoff` | create |
-| `docs/session-state.md` | `## Log` | `handoff` | append only |
-| `docs/session-state.md` | an entry already in `## Log` | nobody | never |
-| `docs/design.md` | the whole file, from the first user interface built here | `frontend-design` | create |
-| `docs/design.md` | any part of it, for every surface after the first | nobody | never |
-| `docs/features/<slug>/` | the directory | `project-setup` | create |
-| `docs/features/<slug>/` | the committed prototype under `prototype/` | `frontend-design` | create |
-| `docs/features/<slug>/` | the security findings file | `security-and-hardening` | create |
-| `intent.md` | the file | `interview-me` | create |
-| `intent.md` | its sections, sharpened in place | `idea-refine` | create |
-| `research.md` | the file | `codebase-research` | create |
-| `prd.md` | the file | `to-prd` | create |
-| `prd.md` | a decidable fact corrected before the Spec gate | `spec-review` | create |
-| `acceptance.md` | the file, while it is draft | `acceptance-criteria` | create |
-| `acceptance.md` | a decidable fact corrected before the Spec gate, while it is draft | `spec-review` | create |
-| `acceptance.md` | any part of it, once signed | nobody | never |
-| `environment.md` | the file | `environment-manifest` | create |
-| `environment.md` | a decidable fact corrected before the Spec gate | `spec-review` | create |
-| `design-contract.md` | the file | `frontend-design` | create |
-| `plan.md` | the file | `plan-breakdown` | create |
-| `plan.md` | the interface contracts written into it | `api-design` | create |
-| `qa.md` | the file | `quality-verification` | create |
-| `docs/lessons.md` | an entry for a root-caused defect | `debugging-and-error-recovery` | append only |
-| `docs/lessons.md` | an entry for a Critical review finding | `code-review` | append only |
-| `docs/lessons.md` | an entry already written | nobody | never |
+**The table binds the agent.** Where the writer is **you**, no skill writes that zone at all. Where the
+writer is a skill, that skill is the only *skill* that writes it — you may still hand-edit your own
+repository, and `project-setup` says which of these files are yours to edit when it scaffolds them. A
+skill in the writer column is not a claim that you may not touch the file.
+
+**`Named by` says what makes a claim matchable.** A skill declares its writes in prose, so anything
+checking the table has to recognize the zone from the words on the page. That column holds the zone's
+**cue**: the tokens a declaration has to repeat, in backticks or bold, for the zone to count as named.
+Alternatives are separated by `/`, and tokens are joined by `+` where all of them are needed. A token
+counts only where a word meaning *write* — write, seed, create, add, append, flip, set, mark, record,
+move, promote, replace, register — stands within sixty characters in front of it, so a line reporting a
+state ("the feature stays in `feature: spec`") is not read as setting one. The cue, not the wording, is
+the zone's identity: rewording a gloss cannot hide a zone already granted to somebody else.
+
+A cue of `—` means the zone cannot be named from prose. Those zones of a file cannot be told apart, so a
+skill that writes any one of them passes on all of them — give a zone a cue where that distinction has to
+hold. A file with no row at all permits nothing: a declared write to a file this table does not list is a
+conflict, not a gap, which is what keeps the table from being shrunk until it stops catching anything.
+
+| File | Zone | Named by | Who writes it | What they may do |
+|---|---|---|---|---|
+| `CLAUDE.md` / `AGENTS.md` | the `## Agent skills` block | — | `project-setup` | create |
+| `CLAUDE.md` / `AGENTS.md` | the pointer line, in whichever of the two does not hold that block | — | `project-setup` | create |
+| `CLAUDE.md` / `AGENTS.md` | the bundled behavioral template at the top of `CLAUDE.md`, where the repository had neither file and `CLAUDE.md` is the one you chose | — | `project-setup` | create |
+| `CLAUDE.md` / `AGENTS.md` | everything else in the file | — | you | create |
+| `docs/workflow.md` | the whole file, copied from the bundled process contract | — | `project-setup` | create |
+| `docs/workflow.md` | any local edit to it | — | nobody | never |
+| `ARCHITECTURE.md` | the whole file | — | you | create |
+| `docs/adr/` | the directory | — | `project-setup` | create |
+| `docs/adr/` | a record for a decision taken during Spec | — | `spec-grilling` | create |
+| `docs/adr/` | a record for a decision taken during Plan | — | `plan-breakdown` | create |
+| `docs/adr/` | a record for a decision taken outside Spec and Plan, and any record superseding another | — | `documentation-and-adrs` | create |
+| `docs/adr/` | a record already written | — | nobody | never |
+| `CONTEXT-MAP.md` | the file, in a repository that keeps more than one context | — | `project-setup` | create |
+| `CONTEXT.md` | the file and its `## Glossary` heading | — | `project-setup` | create |
+| `CONTEXT.md` | a term resolved during Spec | — | `spec-grilling` | append only |
+| `CONTEXT.md` | a term a decision record introduces | — | `documentation-and-adrs` | append only |
+| `CONTEXT.md` | a definition already written, corrected before the Spec gate | — | `spec-review` | create |
+| `docs/test-contract.md` | the file and its `## Rows` heading | — | `project-setup` | create |
+| `docs/test-contract.md` | a row under `## Rows` | — | you | append only |
+| `docs/test-contract.md` | a row's `state:` | — | you | flip status |
+| `STATE.md` | the legend and the slice-row column list | — | `project-setup` | create |
+| `STATE.md` | a feature block and its slice rows, at the `impl` they are born at | — | `plan-breakdown` | create |
+| `STATE.md` | `origin:` — the `research.md` entry | `origin:` + `research.md` | `codebase-research` | append only |
+| `STATE.md` | `origin:` — the ADR ids | `origin:` + `ADR-` | `spec-grilling` | append only |
+| `STATE.md` | `origin:` — the `prd.md` entry | `origin:` + `prd.md` | `to-prd` | append only |
+| `STATE.md` | `origin:` — the `acceptance.md` entry | `origin:` + `acceptance.md` | `acceptance-criteria` | append only |
+| `STATE.md` | `origin:` — the `environment.md` entry | `origin:` + `environment.md` | `environment-manifest` | append only |
+| `STATE.md` | `origin:` — the `plan.md` entry | `origin:` + `plan.md` | `plan-breakdown` | append only |
+| `STATE.md` | a feature block's `feature:` state | `feature:` | `orchestrator` | flip status |
+| `STATE.md` | a slice row's `State` and `Gate` once the row exists — every slice token but the `impl` it is born at | `verify` / `review` / `ship` / `done` / `blocked` / `halted` / `gate:` | `orchestrator` | flip status |
+| `STATE.md` | `Artifacts` — the security findings entry | `security-findings.md` | `security-and-hardening` | append only |
+| `STATE.md` | `Artifacts` — the release runbook entry | `release.md` | `shipping-and-launch` | append only |
+| `STATE.md` | `Artifacts` — every other entry | `Artifacts` | `orchestrator` | append only |
+| `docs/session-state.md` | the file, its five field headings and `## Log` | — | `project-setup` | create |
+| `docs/session-state.md` | the five fields | — | `handoff` | create |
+| `docs/session-state.md` | `## Log` | — | `handoff` | append only |
+| `docs/session-state.md` | an entry already in `## Log` | — | nobody | never |
+| `docs/design.md` | the whole file — written from the first user interface built here, and again where a later surface deliberately moves the repository's look | — | `frontend-design` | create |
+| `docs/design.md` | any part of it, for a surface that inherits the look rather than moving it | — | nobody | never |
+| `docs/features/<slug>/` | the directory | — | `project-setup` | create |
+| `docs/features/<slug>/` | the committed prototype under `prototype/` | — | `frontend-design` | create |
+| `intent.md` | the file | — | `interview-me` | create |
+| `intent.md` | its sections, sharpened in place | — | `idea-refine` | create |
+| `research.md` | the file | — | `codebase-research` | create |
+| `prd.md` | the file | — | `to-prd` | create |
+| `prd.md` | a decidable fact corrected before the Spec gate | — | `spec-review` | create |
+| `acceptance.md` | the file, while it is draft | — | `acceptance-criteria` | create |
+| `acceptance.md` | a decidable fact corrected before the Spec gate, while it is draft | — | `spec-review` | create |
+| `acceptance.md` | any part of it, once signed | — | nobody | never |
+| `environment.md` | the file | — | `environment-manifest` | create |
+| `environment.md` | a decidable fact corrected before the Spec gate | — | `spec-review` | create |
+| `design-contract.md` | the file | — | `frontend-design` | create |
+| `plan.md` | the file | — | `plan-breakdown` | create |
+| `plan.md` | the interface contracts written into it | — | `api-design` | create |
+| `qa.md` | the file | — | `quality-verification` | create |
+| `security-findings.md` | the file, one per owning slice | — | `security-and-hardening` | create |
+| `spec-review.md` | the file | — | `spec-review` | create |
+| `handoff.md` | the file | — | `handoff` | create |
+| `docs/lessons.md` | an entry for a root-caused defect | — | `debugging-and-error-recovery` | append only |
+| `docs/lessons.md` | an entry for a Critical review finding | — | `code-review` | append only |
+| `docs/lessons.md` | an entry already written | — | nobody | never |
+| `docs/progress.md` | the whole file | — | nobody | never |
 
 The lessons record is the case worth reading twice. Two parties write it and neither is wrong: one records
 what a defect turned out to be, the other records a Critical finding a review caught. They write different
 entries for different reasons, so the file has two writers and no zone of it has two. Keyed by file alone,
 that arrangement would read as a violation and the rule would have to carve an exception for it — which is
 why the key is the zone, not the file.
+
+`ARCHITECTURE.md` and `docs/progress.md` are ranked in the order above and written by no skill here. You
+write the first, if the repository keeps one at all. The second is the record of what each slice actually
+executed, and nothing writes it yet — so its row says `never`, and the skill that starts writing it says
+so in that row in the same commit. That is the point of listing a file nobody writes: an unrowed file
+permits nothing, so a new writer arrives as a decision somebody wrote down rather than as drift.
 
 ## What never happens
 

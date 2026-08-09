@@ -153,8 +153,25 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   no second manifest at the repo root; a duplicate would drift, since nothing forces the two to agree.
 - No per-skill `evals/` directory.
 - No terse-stem skill pointers reintroduced; artifact/tool/object tokens left verbatim.
-- `node scripts/check-write-table.mjs` exits `0` — it fails on any write a skill declares that the write
-  table in `docs/workflow.md` does not give it. Nothing runs it for you; no job covers `scripts/`.
+- `node scripts/check-write-table.mjs` reports no conflict your own diff introduced. It reads the write
+  table in `docs/workflow.md`, collects every write a `SKILL.md` declares, and exits `1` on any claim the
+  table does not give that skill. **It exits `1` on this repository as it stands**, on ten conflicts that
+  were already here:
+
+  ```
+  STATE.md        deprecation-and-migration:239   incremental-implementation:338  interview-me:296
+                  pull-request:194                quality-verification:388        preflight-readiness:144
+                  security-and-hardening:460      frontend-design:324             environment-manifest:163
+  environment.md  preflight-readiness:138
+  ```
+
+  Each is a sentence in a `SKILL.md` that claims a zone `docs/workflow.md` gives to another skill, or
+  claims one while holding no row of that file. The last is the check over-reporting: `preflight-readiness`
+  keys a ledger *by* `environment.md` and writes nothing to it. Closing them means rewording those skills,
+  which is a change to the skills and not to the table. So run the check before your diff and after it, and
+  compare: this list is the baseline, and any difference between it and what the command prints is yours.
+  Never close one by widening the table — a row added to turn a red check green is the gate erosion the
+  table exists to catch. Nothing runs it for you; no job covers `scripts/`.
 - This repo's own `docs/workflow.md` still matches the copy `project-setup` ships. Run
   `diff docs/workflow.md skills/project-setup/assets/workflow.template.md`; it must print nothing. The
   two are the same document with two audiences, and `project-setup` — which is the only thing that ever
