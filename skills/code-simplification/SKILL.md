@@ -47,8 +47,7 @@ Refuse to run unless ALL of these resolve:
 - **The slice's declared `Regression surface`** — the file set you are allowed to report on. A finding
   cited outside it belongs to a slice that is not under review (Principle 5: Scope to What Changed).
 - **Project conventions** — `CLAUDE.md` / `CONTEXT.md` and the neighboring code, so simplification
-  converges on the house style instead of imposing a foreign one (Principle 2). Simplification that
-  breaks project consistency is churn, not simplification.
+  converges on the house style instead of imposing a foreign one (Principle 2).
 
 **Frozen under this skill (silent-false-green invariant):** `acceptance.md`, the RED/passing tests,
 and the declared `Regression surface` are IMMUTABLE here. So is any **ACTIVE** row under the `## Rows`
@@ -60,12 +59,11 @@ coverage is **gate-erosion → HALT**: stop, return `block`, and surface it — 
 it was a contract row, since "gate erosion" alone does not tell the reader which guarantee was nearly
 traded away. The orchestrator owns the board: it flips the slice's gate column to `you`, and a person
 decides. Never set a row's state yourself in either direction; you read that file and do not edit it. An
-absent file, or one with no ACTIVE rows, changes nothing here. Every finding has to hold with the frozen
-tests exactly as they stand — a finding that needs the tests changed first is the gate moving, not the
-code getting simpler.
-`docs/design.md` is off-limits too, for a different reason than a freeze: Verify grades every contract
-axis marked `inherits: docs/design.md` against it, and only `frontend-design` moves it — a simplification
-never touches the decided look.
+absent file, or one with no ACTIVE rows, changes nothing here.
+`docs/design.md` is **read-only** here rather than frozen — a different constraint for a different
+reason: Verify grades every contract axis marked `inherits: docs/design.md` against it, and only
+`frontend-design` moves it, so a simplification reads the decided look and never writes it. It is not a
+fifth frozen artifact, and a finding that would move it is out of scope rather than gate-erosion.
 
 ## The Five Principles
 
@@ -370,26 +368,19 @@ Before this pass returns, every finding it carries clears this bar:
 ## Outputs & handoff contract
 
 **Emits: `findings`** — the simplification axis, returned to the orchestrator for the Review fan-out's
-one ranked, de-duplicated list. This skill writes no file and changes no code: three sibling axes are
-reading the same files at the same moment, and the slice's own implementer applies the fix on the
-route-back, in a change separate from feature work (Principle 5 / Process Step 3).
+one ranked, de-duplicated list. This skill writes no file and changes no code; **Inputs** gives the
+reason.
 
 **Return to the orchestrator (Review fan-out aggregation)** exactly one verdict token — the same three
-`performance-optimization` returns, so the gate AND-combines the axes without translating between
-vocabularies:
-- `pass` — nothing here warrants simplifying, or only `Optional` / `Nit` findings. Don't simplify for
-  the sake of it.
+`performance-optimization` returns, so those two axes combine without translation. The other two do not:
+`code-review` and `security-and-hardening` each return their own vocabulary, which the orchestrator
+translates before it AND-combines the four. Matching one sibling is not licence to skip that translation:
+- `pass` — nothing here warrants simplifying, or only `Optional` / `Nit` findings.
 - `concerns` — findings the owning slice should take. It goes back to `incremental-implementation`
   (bounded rounds) to apply them.
-- `block` — gate-erosion: the simplification worth having cannot be reached without a frozen artifact
-  moving — a test, an `acceptance.md` assertion, the `Regression surface`, an ACTIVE
-  `docs/test-contract.md` row (named by id), or `docs/design.md`. Name the `file:line` and why, and do
-  **not** also report it as a routine finding: an implementer acting on it would erode the gate. The
-  orchestrator flips the slice's gate column to `you`, and a person decides.
-
-**Invariants on every finding:** it cites a `file:line` inside the slice's `Regression surface`; it
-proposes no test change; it removes and weakens no error handling; its "after" is genuinely easier to
-read than its "before" (if it is not, drop it — not every attempt survives Process Step 4).
+- `block` — gate-erosion: the simplification worth having cannot be reached without one of the artifacts
+  frozen under **Inputs** moving. Return it the way that paragraph says, name the `file:line` and why,
+  and do **not** also report it as a routine finding: an implementer acting on it would erode the gate.
 
 **STATE.md:** this skill writes **no** `STATE.md` row and flips no gate of its own. The orchestrator
 owns the slice's `review` state and advances it only when every review axis (this skill, `code-review`,
