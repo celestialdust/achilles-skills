@@ -284,7 +284,7 @@ commands you ran in the form you ran them, their real output, the files that cha
 run and why, and any follow-ups.
 
 **Inside an orchestrated run you are not the writer.** The orchestrator opened a stub for this slice
-before dispatching you and completes it at the wave barrier, in the checkout it holds. You are inside a
+before dispatching you and completes it at the TERMINAL barrier, in the checkout it holds. You are inside a
 worktree, and a worktree is a branch that may never be merged — an entry appended there succeeds,
 reports success, and reaches no reader on the main line. Hand your commands and their output back
 instead; the orchestrator writes them into the entry it already owns. **The two cases are told apart by
@@ -340,6 +340,11 @@ rather than dropping the line silently. No hook and no CI checks either one.
 - Running the same build/test command twice in a row without any intervening code change
 - Writing a skeleton without having opened `docs/lessons.md` — the entries there are decisions about how
   to build, and read after the skeleton they are a post-mortem of your own work
+- Appending to `docs/lessons.md` — you read that record and never write it, including when a `Critical:`
+  review finding was routed back here and you fixed it without invoking `debugging-and-error-recovery`.
+  Fixing a defect decides who fixed it, not who records it: a defect you root-caused is
+  `debugging-and-error-recovery`'s entry, and a Critical review finding is recorded by the re-review round
+  that finds it closed
 - Writing UI in a slice whose `Design ref` names a prototype you never opened — Verify grades fidelity to
   that file, so a first look at it after the code is written is a rewrite waiting to happen
 - Editing `docs/design.md` so the built surface matches it — the decided look is an oracle Verify grades

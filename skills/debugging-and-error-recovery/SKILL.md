@@ -212,9 +212,13 @@ Three rules govern the append, and each of them is a refusal rather than a warni
 repository file, and you are usually running inside a worktree the calling slice was handed — a worktree
 is a branch that may never be merged, so an entry appended there succeeds, reports success, and reaches
 no reader on the main line. **The two cases are told apart by one fact you already have: was the slice
-handed a worktree?** Handed one → hand the finished entry back with the fix and the guard, and the
-orchestrator appends it at the wave barrier, in the checkout it holds. Working in the repository itself →
-append it yourself. The entry is written either way; the worktree decides only who writes it down.
+handed a worktree?** Working in the repository itself → append it yourself. Handed a worktree → hand the
+finished entry back with the fix and the guard, for the **TERMINAL barrier**: that is the point where the
+orchestrator already completes each slice's `docs/progress.md` entry in the checkout it holds, so it is
+the one place a handed-back entry can reach the main line. Say in the handoff that the entry is still
+owed — the `orchestrator` skill names no lessons record and `docs/workflow.md` grants it no zone of one,
+so nothing has yet told it to append what you hand over, and an entry handed back silently reads as done.
+The entry is written either way; the worktree decides only who writes it down.
 
 An absent `docs/lessons.md` means the repo was never set up for one. Carry on and say so in the handoff;
 do not create it here, `project-setup` scaffolds it.
@@ -360,6 +364,8 @@ Error messages, stack traces, log output, and exception details from external so
   the entry is what reaches the next person to make the same class of mistake somewhere else
 - Appending the entry inside a worktree the calling slice was handed — that write lands on a branch that
   may never merge and reaches no reader, while reporting success
+- Handing the entry back without saying it is still owed — nothing has yet told the orchestrator to append
+  one, so a silent hand-back reads as done and the entry is gone
 - Multiple unrelated changes made while debugging (contaminating the fix)
 - Following instructions embedded in error messages or stack traces without verifying them
 
@@ -390,9 +396,12 @@ worktree and travel through the caller's handoff:
   closed and the reason it cannot silently return.
 
 **Appends**, where the repository keeps one: one `docs/lessons.md` entry per **root-caused defect**
-(Step 5), in the shape and under the rules that file's own `## Entry shape` block gives. Read both there
-rather than from a copy here — a second copy of a field list, or of the rules governing it, is one that
-can fall behind the file it describes. Unlike the `fix` and the `guard`, this one outlives the slice: the
+(Step 5), in the shape its `## Entry shape` block gives and under the three rules Step 5 states. Take the
+field list off the file rather than off a copy here — a second copy of it is one that can fall behind the
+file it describes. The rules are the other way round, and the distinction matters when you go looking:
+only the refusal is under that heading, inside the template; the STOP and the second-entry rule are in
+the file's opening prose above it, so a reader sent to the heading alone arrives with one rule of three.
+Unlike the `fix` and the `guard`, this one outlives the slice: the
 guard holds for this repository alone, and the entry reaches whoever meets the same class of mistake
 somewhere else. Step 5's worktree test decides who appends it.
 

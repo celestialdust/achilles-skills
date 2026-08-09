@@ -216,12 +216,12 @@ Then create the substrate (skip anything that already exists; never clobber). Th
    You are scaffolding this file in the repository itself, not in a worktree — `project-setup` runs once,
    before any feature exists, so there is no slice branch for a write to get stranded on.
 
-10. **`docs/lessons.md`** — the lessons record, seeded with its `## Entry shape` heading and the fenced
-    field template beneath it, and no entries (see "lessons.md seed" below). That heading and that
-    template are the whole of what this skill writes here; every later line in the file is somebody
-    else's entry. Skip the file if it already exists, for the same reason as the two above and with the
-    same force: it is append-only, so overwriting one destroys what earlier defects cost somebody to work
-    out.
+10. **`docs/lessons.md`** — the lessons record, seeded with its `## Entry shape` heading, the fenced field
+    template beneath it, and the prose that states the rules the two writers read there (see "lessons.md
+    seed" below). Seed no entries: every `##` heading after `## Entry shape` is somebody else's, written
+    by whoever root-causes a defect and by `code-review` for a `Critical:` finding it raised. Skip the
+    file if it already exists, for the same reason as the two above and with the same force: it is
+    append-only, so overwriting one destroys what earlier defects cost somebody to work out.
 
     **Check `.gitignore` here too.** A lesson is written for the next person to work in that area, who is
     usually not the person who wrote it and often arrives on a fresh clone. If a pattern matches it, say so
@@ -919,7 +919,9 @@ Done when **all** hold:
 - A pre-existing `docs/session-state.md` was left untouched — no entry under its `## Log` was reworded,
   re-ordered, or removed.
 - `docs/progress.md` exists, carrying a `## Entry shape` heading with the entry shape in a fenced block
-  beneath it — including the "Not run" line and the credential line. Its text states that the file is
+  beneath it — including the "Not run" line and the credential line. **On a copy this run created,
+  `## Entry shape` is the only `##` heading**; on a re-run over one that already existed and was skipped,
+  every other heading is an entry and is left where it is. Its text states that the file is
   append-only, that an attempt to change an earlier entry stops the work and is reported, that a heading
   with nothing under it is a slice that started and did not finish, and that no entry carries a stage, a
   state, or an owner. A reader who has never seen this project can add an entry from the file alone.
@@ -930,7 +932,9 @@ Done when **all** hold:
 - A pre-existing `docs/progress.md` was left untouched — no entry in it was reworded, re-ordered, or
   removed.
 - `docs/lessons.md` exists, carrying a `## Entry shape` heading with the seven-field template in a fenced
-  block beneath it, including the credential line. Its text states that the file is read before a slice
+  block beneath it, including the credential line. **On a copy this run created, `## Entry shape` is the
+  only `##` heading**; on a re-run over one that already existed and was skipped, every other heading is
+  an entry and is left where it is. Its text states that the file is read before a slice
   writes its skeleton, that an entry naming no `Automated guard` is refused, that it is append-only and an
   attempt to change an earlier entry stops the work and is reported, that the same lesson twice is two
   entries, and which two parties write it and on what terms. A reader who has never seen this project can
@@ -941,23 +945,29 @@ Done when **all** hold:
   removed.
 - **Both append-only records carry their entry shape where a check can find it:** one `## Entry shape`
   heading outside any fenced block, and beneath it a fenced template naming every field of that record.
-  That is the whole invariant, and it is deliberately not "and no other `##` heading". Every other
-  heading in either file is an entry; this skill re-runs over repositories that already hold entries, and
-  the escape hatch under "When to use / when to skip" says so in as many words. A criterion that counted
-  headings would report a populated record as a defect — and the cheapest way for an agent to clear that
-  is to delete the entries the file exists to keep.
+  *Beneath* is load-bearing and the check enforces it: the fields are read from the first fenced block
+  that opens after the heading, and from nowhere else. What this criterion deliberately does **not** say,
+  unconditionally, is "and no other `##` heading". Every other heading in either file is an entry; this
+  skill re-runs over repositories that already hold entries, and the escape hatch under "When to use /
+  when to skip" says so in as many words. A criterion that counted headings over any copy would report a
+  populated record as a defect — and the cheapest way for an agent to clear that is to delete the entries
+  the file exists to keep. The fresh-scaffold half is the second check below.
 
   ```bash
   shape() {
     f=$1
     [ -s "$f" ] || { echo "$f: missing or empty"; return 1; }
     awk -v f="$f" -v fields="$2" '
-      /^```/                       { fence = !fence; next }
+      /^```/                       { fence = !fence
+                                     template = (fence && h == 1 && !seen)
+                                     if (template) seen = 1
+                                     next }
       !fence && /^## Entry shape$/ { h++ }
-      fence && /^- [A-Z]/          { k = $0; sub(/:.*/, "", k); sub(/^- /, "", k); got[k] = 1 }
+      template && /^- [A-Z]/       { k = $0; sub(/:.*/, "", k); sub(/^- /, "", k); got[k] = 1 }
       END { if (h != 1) { print f": expected one \"## Entry shape\" heading outside a fenced block, found "h+0; b=1 }
+            if (fence)  { print f": a fenced block is left open — every line after it goes unread"; b=1 }
             n = split(fields, want, "|")
-            for (i = 1; i <= n; i++) if (!(want[i] in got)) { print f": field missing from the fenced entry shape: "want[i]; b=1 }
+            for (i = 1; i <= n; i++) if (!(want[i] in got)) { print f": field missing from the template under the heading: "want[i]; b=1 }
             exit b }' "$f"
   }
   b=0
@@ -966,18 +976,47 @@ Done when **all** hold:
   exit $b
   ```
 
-  **The fence handling is the whole check, not a detail.** Each template's own first line is
-  `## <date> — …`, so a scan that does not skip fenced lines reports the file it just wrote — the same
-  way a `state: ACTIVE` scan over the whole test contract does. Running it before believing it is what
-  catches that; reading it does not.
+  **The fence handling is the whole check, not a detail**, and it does three jobs. Each template's own
+  first line is `## <date> — …`, so a scan that does not skip fenced lines reports the file it just wrote
+  — the same way a `state: ACTIVE` scan over the whole test contract does. Fields are collected from
+  **one** fenced block, the first to open after the heading: collect from every fence instead and any
+  entry that quotes a field supplies it, so a record whose template lost a field starts passing the
+  moment somebody writes an entry, and the check goes blind on exactly the file it was written for. And
+  the open-fence line is that same defect from the other side — an entry that opens a fence and never
+  closes it puts every line after it on the wrong side of the toggle. Running it before believing it is
+  what catches all three; reading it does not.
 
-  **Exercise it in all five directions**, on scratch copies: the two seeds as written → `0`; either seed
-  with two real entries appended after the fenced block → `0`, because entries are the thing these files
-  are for; a field line cut from a fenced template → non-zero, naming that field; a template moved out of
-  its fenced block → non-zero, naming every field of that record, which is the red flag above made
-  mechanical; and either file truncated to zero length → non-zero. The last one gets skipped and is what
-  a failed write actually produces — `awk` runs no rule at all over an empty file, so without the
-  `[ -s ]` guard ahead of it the check prints nothing and reads as a pass.
+  **Exercise it in all seven directions**, on scratch copies: the two seeds as written → `0`; either seed
+  with real entries appended after the fenced block → `0`, because entries are the thing these files are
+  for; a field line cut from a template, plus an entry whose body quotes that field inside a fence →
+  non-zero, naming that field; a template gutted, plus an entry that opens a fence and never closes it →
+  non-zero, naming every field and the open fence; a template moved **above** its heading → non-zero,
+  naming every field, because a template the heading does not sit over is not the one this criterion
+  asks for; a template moved out of its fenced block → non-zero, naming every field of that record,
+  which is the red flag above made mechanical; and either file truncated to zero length → non-zero. The
+  last one gets skipped and is what a failed write actually produces — `awk` runs no rule at all over an
+  empty file, so without the `[ -s ]` guard ahead of it the check prints nothing and reads as a pass.
+
+  **A copy this run created ships no entries, and that is a separate check.** The one above deliberately
+  accepts entries, because it also has to pass over a repository that already holds them. Run this one
+  only over a record you created in this run, and drop the call for one you skipped — pointed at a file
+  somebody else filled, it reports their entries as a defect, and the cheapest way for an agent to clear
+  that is to delete them.
+
+  ```bash
+  fresh() {
+    awk -v f="$1" '
+      /^```/           { fence = !fence; next }
+      !fence && /^## / { n++ }
+      END { if (n != 1) { print f": a record this run created carries one \"## Entry shape\" heading and no entries; found "n+0; exit 1 } }' "$1"
+  }
+  fresh docs/progress.md && fresh docs/lessons.md
+  ```
+
+  It skips fenced lines for the reason above: each template's own first line is a `## <date> — …`
+  heading, so a bare `grep -c '^## '` counts the template as an entry and reports every fresh scaffold as
+  a defect. Exercise it both ways — the two seeds as written → `0`; either seed with one entry appended →
+  non-zero, naming the count.
 - Exactly one of `CLAUDE.md` / `AGENTS.md` contains an `## Agent skills` block referencing `STATE.md`,
   `CONTEXT.md`, `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, and
   `docs/progress.md`. The other file holds no copy of that block.

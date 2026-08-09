@@ -28,6 +28,7 @@ Refuse to run if there is **no diff** to review — with nothing changed there i
 
 **Required**
 - The **slice diff** under review (the code `incremental-implementation` produced for one slice). This is the object of the review.
+- **On a re-review round: the `Critical:` findings from the round that routed this slice back.** You are code-cold, and a diff whose Critical was fixed no longer shows one — so this is the only thing that can tell you a defect existed and is owed a `docs/lessons.md` entry (Step 4). A re-review brief that arrives without them is a broken dispatch, not a clean slice: say so in the review and name whoever dispatched you, rather than concluding from a quiet diff that nothing was ever wrong.
 
 **Read-only context (FROZEN — never edit any of these during a review):**
 - `plan.md` + the slice's row (from `plan-breakdown`) — grade the **plan first, then the diff**: a diff that faithfully executes the wrong plan is still a fail.
@@ -221,14 +222,25 @@ finding is and that it stays in the findings list. The cost of the softer rule i
 lessons file that accepts every Required finding becomes a second copy of every review, and a file nobody
 can skim is a file nobody reads before writing a skeleton, which is the one moment it was for.
 
-**The entry is written when the finding is closed, not when it is found.** Two of the seven fields —
-`Fix` and `References` — name a change and a commit that do not exist while you are still writing
-findings, and an entry is a STOP to edit once written, so a field guessed now is a field nobody can ever
-correct. Append at the close of the review, when the Critical finding has been root-caused and its fix is
-in. A review that ends at `Request changes` with the Critical still open writes nothing: the finding is
-tracked in your findings list, which is where it belongs until somebody closes it, and the entry lands
-when they do — through `debugging-and-error-recovery` if that is where the fix runs, which is its own
-zone of the file and not a second copy of yours.
+**The entry is written when the finding is closed, not when it is found — which is a later review pass
+than the one that found it.** Two of the seven fields — `Fix` and `References` — name a change and a
+commit that do not exist while you are still writing findings, and an entry is a STOP to edit once
+written, so a field guessed now is a field nobody can ever correct. The round that raises a `Critical:`
+ends at `Request changes` and writes nothing: the finding routes its slice back to
+`incremental-implementation` and stays in your findings list, which is where it belongs until somebody
+closes it. The entry is owed by the **re-review round dispatched once that slice re-passes Verify** —
+the first pass that can read the fix and name the commit.
+
+**That round is code-cold, so it has to be told.** Its brief carries the `Critical:` findings from the
+round that routed the slice back (see *Inputs*), and that is the whole of how a fresh subagent knows a
+defect was ever there: the diff in front of it is the fixed one. Reaching the re-review with the finding
+in hand and the fix in the diff is the moment every field can be filled from something that exists.
+
+**Who fixed it changes nothing about who writes it down.** The zone is keyed to the finding, not to the
+party that typed the fix: the entry for a Critical review finding is yours whether the fix ran through
+`debugging-and-error-recovery` or inside `incremental-implementation`, neither of which is a second copy
+of your entry. `debugging-and-error-recovery` writes for defects *it* root-caused — a test or a build
+that broke during implementation — which is the other zone of the same file.
 
 **A guard nobody can name is not a deadlock.** The record refuses an entry whose `Automated guard` is
 blank, and every closed Critical finding has to be recorded, which reads like a trap until you see what
@@ -239,14 +251,23 @@ entry written with the field left open.
 **Where the entry lands.** `docs/lessons.md` is a repository file, and a review dispatched into a slice's
 worktree is reading a branch that may never be merged — an entry appended there succeeds, reports
 success, and reaches no reader on the main line. The two cases are told apart by one fact you already
-have: were you handed a worktree? Handed one → hand the finished entry back with your findings, and the
-orchestrator appends it at the wave barrier, in the checkout it holds. Reviewing in the repository itself
-→ append it yourself.
+have: were you handed a worktree? Reviewing in the repository itself → append it yourself. Handed a
+worktree → hand the finished entry back with your findings, for the **TERMINAL barrier**: that is the
+point where the orchestrator already completes each slice's `docs/progress.md` entry in the checkout it
+holds, so it is the one place a handed-back entry can reach the main line.
+
+**Say, in the same breath, that the entry is still owed.** The `orchestrator` skill names no lessons
+record and `docs/workflow.md` grants it no zone of one, so nothing has yet told the orchestrator to
+append what you hand it. Naming the entry as unwritten is what keeps a dropped one visible; handed back
+silently, it reads as done and is gone.
 
 The rules that govern the append — the refusal, the STOP, the second entry rather than an amendment — are
-stated in `docs/lessons.md` under `## Entry shape`, and you are opening that file to write. Read them
-there; a copy here is one that can fall behind it. An absent `docs/lessons.md` means the repo was never
-set up for one — say so in the review and move on; do not create it.
+stated in `docs/lessons.md` itself, in the prose it opens with as well as in the template under
+`## Entry shape`. Read the file, not one heading in it: the refusal is in the template, and the other two
+sit above the heading, so a reader sent to that section alone arrives with one rule of three and folds
+their entry into an existing one. A copy here is one that can fall behind the file. An absent
+`docs/lessons.md` means the repo was never set up for one — say so in the review and move on; do not
+create it.
 
 ### Step 5: Verify the Verification
 
@@ -431,6 +452,8 @@ Part of code review is dependency review:
 - Appending a Required, Optional, Nit, or FYI finding to `docs/lessons.md` — refused; it stays in the findings list, and admitting it makes that file a second copy of every review
 - Writing the entry while the finding is still open, so `Fix` and `References` name a change and a commit that do not exist yet — the entry is a STOP to edit, so the guess is permanent
 - Appending the entry inside a worktree you were dispatched into — that write lands on a branch that may never merge and reaches no reader, while reporting success
+- Handing the entry back without saying it is still owed — nothing has yet told the orchestrator to append one, so a silent hand-back reads as done and the entry is gone
+- Reading a quiet re-reviewed diff as proof no Critical ever existed, when the brief never carried the round's findings — a broken dispatch and a clean slice look identical from here, which is why the missing input is reported instead of resolved
 
 ## Verification
 
