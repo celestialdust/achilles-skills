@@ -373,15 +373,16 @@ Before this pass returns, every finding it carries clears this bar:
 one ranked, de-duplicated list. This skill writes no file and changes no code; **Inputs** gives the
 reason.
 
-**Return to the orchestrator (Review fan-out aggregation)** exactly one verdict token — the same three
-`performance-optimization` returns. The gate AND-combines the axes' verdicts without translating
-between vocabularies:
-- `pass` — nothing here warrants simplifying, or only `Optional` / `Nit` findings.
-- `concerns` — findings the owning slice should take. It goes back to `incremental-implementation`
-  (bounded rounds) to apply them.
-- `block` — gate-erosion: the simplification worth having cannot be reached without an artifact frozen
-  under **Inputs**, or the read-only `docs/design.md`, moving. Name the `file:line` and why, and do
-  **not** also report it as a routine finding: an implementer acting on it would erode the gate.
+**Return to the orchestrator (Review fan-out aggregation)** exactly one verdict token. The axes'
+vocabularies differ — `code-review` returns `Approve` or `Request changes`, `security-and-hardening`
+writes `pass`, `block`, or `STOP` — so the orchestrator translates each into the gate's terms before
+AND-combining them.
+- `pass` — nothing worth simplifying, or only `Optional` / `Nit` findings.
+- `concerns` — findings the owning slice should take, back through `incremental-implementation`
+  (bounded rounds).
+- `block` — gate-erosion, as **Inputs** defines it for the frozen artifacts and read-only
+  `docs/design.md`. Name the `file:line`, and do **not** also file it as a routine finding: an
+  implementer acting on it would erode the gate.
 
 **STATE.md:** this skill writes **no** `STATE.md` row and flips no gate of its own. The orchestrator
 owns the slice's `review` state and advances it only when every review axis returns non-blocking.
