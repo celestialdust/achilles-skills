@@ -67,7 +67,7 @@ Write the block's trigger as the persona carve-out: a single code-cold pass a pe
 
 ## Adding a command
 
-A command is a thin entry point at `commands/<name>.md` that maps **one lifecycle stage** to the skill(s) that run it — not a restatement of the skill. The suite ships eleven. Nine are lifecycle commands: `/ideate`, `/spec`, `/plan`, `/implement`, `/verify`, `/review`, `/ship`, `/orchestrate`, `/setup`. The other two, `/explain` and `/quiz`, are standalone and belong to no stage.
+A command is a thin entry point at `commands/<name>.md` that maps **one lifecycle stage** to the skill(s) that run it — not a restatement of the skill. The suite ships twelve. Nine are lifecycle commands: `/ideate`, `/spec`, `/plan`, `/implement`, `/verify`, `/review`, `/ship`, `/orchestrate`, `/setup`. The other three, `/explain`, `/quiz`, and `/gauntlet-loop`, are standalone and belong to no stage.
 
 A command file is Markdown with YAML frontmatter — a single `description` key, then the prompt as the body:
 

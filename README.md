@@ -49,9 +49,9 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 
 | Path | What it is |
 |---|---|
-| `skills/` | The 38 skills — one discipline per `SKILL.md` |
+| `skills/` | The 39 skills — one discipline per `SKILL.md` |
 | `agents/` | The 5 fresh-context personas |
-| `commands/` | The 11 slash commands — thin wrappers over the skills |
+| `commands/` | The 12 slash commands — thin wrappers over the skills |
 | `references/` | Shared reference material: checklists (security, performance, accessibility, …) and `language-style.md`, the prose style guide for everything this repo ships |
 | `docs/` | Reader-facing documentation: getting started + per-agent setup guides, plus `workflow.md` and `test-contract.md` — this repo's own copies of the process contract and the test contract. `CONTEXT.md` at the root is the same idea: the suite runs its own process, so it carries the artifacts that process produces |
 
@@ -63,7 +63,7 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 
 ## Commands
 
-Eleven slash commands: one per lifecycle stage plus the autonomous runner and the one-time setup, and two standalone comprehension commands outside the lifecycle. Each is a thin wrapper that activates the right skill(s).
+Twelve slash commands: nine lifecycle commands — one per stage, plus the autonomous runner and the one-time setup — and three standalone commands outside the lifecycle. Each is a thin wrapper that activates the right skill(s).
 
 | Command | What you're doing | Invokes |
 |---|---|---|
@@ -73,11 +73,12 @@ Eleven slash commands: one per lifecycle stage plus the autonomous runner and th
 | `/implement` | One thin vertical slice, skeleton-first, test-driven | incremental-implementation (applies test-driven-development) |
 | `/verify` | Fresh code-cold proof a slice meets acceptance | quality-verification |
 | `/review` | Quality gate before merge (parallel fan-out) | code-review (+ code-simplification, security-and-hardening, performance-optimization) |
-| `/ship` | Release: checklist · staged rollout · rollback | shipping-and-launch (+ pull-request) |
+| `/ship` | Open one slice's risk-banded draft PR; the stage ends there | pull-request as the spine (shipping-and-launch follows once the human has merged) |
 | `/orchestrate` | **The autonomous wave-parallel DAG runner** — drives Implement → Ship to open draft PRs | orchestrator |
 | `/setup` | One-time repo ecosystem scaffold | project-setup |
 | `/explain` | Standalone, no stage: teaching artifact for a diff or a whole repo | literate-explainer |
 | `/quiz` | Standalone, no stage: retrieval practice, graded before reveal → learning ledger | comprehension-quiz |
+| `/gauntlet-loop` | Standalone, no stage: a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch — offered, never auto-selected | gauntlet-loop |
 
 ---
 
@@ -185,7 +186,7 @@ Skills are plain Markdown — they work with any agent that accepts system promp
 
 ---
 
-## All 38 Skills
+## All 39 Skills
 
 Every skill is a structured workflow — purpose, when-to-use, process, rationalizations, red flags, and verification gates — not a reference doc. The commands above are entry points; you can also reach for any skill directly.
 
@@ -258,7 +259,7 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 | Skill | Responsibility |
 |---|---|
 | [pull-request](./skills/pull-request/SKILL.md) | Per-slice design-anchored draft PR; read-the-code checklist; risk band |
-| [shipping-and-launch](./skills/shipping-and-launch/SKILL.md) | Release: pre-launch checklist; staged rollout; rollback |
+| [shipping-and-launch](./skills/shipping-and-launch/SKILL.md) | Release-level, on the far side of the human's merge: pre-launch checklist; staged rollout; rollback |
 | [git-workflow](./skills/git-workflow/SKILL.md) | Trunk-based; atomic commits; secret hygiene |
 | [ci-cd](./skills/ci-cd/SKILL.md) | Shift Left; quality-gate pipeline; feature flags |
 | [observability-and-instrumentation](./skills/observability-and-instrumentation/SKILL.md) | Structured logging; RED metrics; OTel tracing |
@@ -273,6 +274,14 @@ Understand code you didn't write. A standalone loop — diff → explainer → q
 |---|---|
 | [literate-explainer](./skills/literate-explainer/SKILL.md) | Turn a diff or a whole unfamiliar repo into a self-contained teaching artifact — background → intuition → literate tour, Feynman-plain |
 | [comprehension-quiz](./skills/comprehension-quiz/SKILL.md) | Agent-administered retrieval practice — ~5 questions one at a time, graded before the answer, recorded in the learning ledger |
+
+### Throwaway — human-led, standalone
+
+The fast path for work that gets deleted. It runs outside the lifecycle and gates nothing, and the dispatcher never selects it: it names this path and the full loop side by side and stops until the human picks.
+
+| Skill | Responsibility |
+|---|---|
+| [gauntlet-loop](./skills/gauntlet-loop/SKILL.md) | Beat a named outside bar — a builder against a separate blind critic, per piece, until the critic picks ours; everything lands in the `.gauntlet/` scratch the repository ignores |
 
 ---
 

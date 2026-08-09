@@ -16,10 +16,10 @@ the wrong skill runs and a stage gets skipped.
 ## Project Structure
 
 ```
-skills/          → 38 skills, one discipline each (skills/<name>/SKILL.md)
+skills/          → 39 skills, one discipline each (skills/<name>/SKILL.md)
 agents/          → 5 review personas (code-cold subagents)
-commands/        → 11 slash commands (*.md) — 9 lifecycle + 2 standalone
-references/      → shared reference material: checklists (testing, performance, security, …) and
+commands/        → 12 slash commands (*.md) — 9 lifecycle + 3 standalone
+references/      → shared reference material: checklists (security, performance, accessibility, …) and
                    language-style.md, the prose style guide for everything this repo ships
 docs/            → per-agent setup guides + workflow.md and test-contract.md (this repo's own copies)
 .claude-plugin/  → plugin.json + marketplace.json (install manifests)
@@ -60,10 +60,10 @@ repo has no `STATE.md` and must not get one: the suite is not a feature it runs 
 board would have nothing to track. Finding no `STATE.md` here is the expected state, not a missing one;
 route the task to its own stage skill instead.
 
-## The 11 commands → which skill they run
+## The 12 commands → which skill they run
 
 Slash commands are thin entry points. The first nine each map one lifecycle stage to its skill(s); the
-last two are standalone and belong to no stage.
+last three are standalone and belong to no stage.
 
 | Command | Runs | Owner |
 |---|---|---|
@@ -73,14 +73,16 @@ last two are standalone and belong to no stage.
 | `/implement` | incremental-implementation (applies test-driven-development) | agent |
 | `/verify` | quality-verification | agent |
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization fan-out) | agent |
-| `/ship` | shipping-and-launch (+ pull-request) | agent |
+| `/ship` | pull-request — the spine of the stage; shipping-and-launch is release-level and follows once the human has merged | agent |
 | `/orchestrate` | orchestrator — the autonomous wave-parallel DAG runner | agent |
 | `/setup` | project-setup — one-time repo ecosystem | agent |
 | `/explain` | literate-explainer — **standalone**, not a lifecycle stage | human |
 | `/quiz` | comprehension-quiz — **standalone**, not a lifecycle stage | human |
+| `/gauntlet-loop` | gauntlet-loop — **standalone**, not a lifecycle stage; offered, never auto-selected | human |
 
-The **human owns Ideate + Spec + Plan**; the agent runs **Implement → Ship autonomously**. `/explain`
-and `/quiz` sit outside that loop entirely — run either at any time without advancing a stage.
+The **human owns Ideate + Spec + Plan**; the agent runs **Implement → Ship autonomously**. `/explain`,
+`/quiz`, and `/gauntlet-loop` sit outside that loop entirely — run any of them at any time without
+advancing a stage.
 
 ## The 5 personas (agents/)
 

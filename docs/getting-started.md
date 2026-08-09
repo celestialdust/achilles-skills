@@ -28,7 +28,7 @@ Install from the marketplace:
 /plugin install achilles-skills@achilles-skills
 ```
 
-This registers all 38 skills, the 5 review personas in `agents/`, and the 11 commands in `commands/` (9 lifecycle + 2 standalone) from the plugin manifest (`.claude-plugin/plugin.json`).
+This registers all 39 skills, the 5 review personas in `agents/`, and the 12 commands in `commands/` (9 lifecycle + 3 standalone) from the plugin manifest (`.claude-plugin/plugin.json`).
 
 Local / development:
 
@@ -100,8 +100,9 @@ Verify:     quality-verification
             (browser-testing-with-devtools, debugging-and-error-recovery)
 Review:     code-review + code-simplification + security-and-hardening + performance-optimization
             (doubt-driven-development for in-flight skepticism)
-Ship:       shipping-and-launch → pull-request
+Ship:       pull-request
             (git-workflow, ci-cd, observability-and-instrumentation, deprecation-and-migration, documentation-and-adrs)
+            (shipping-and-launch is release-level and runs once the human has merged)
 ```
 
 ### Autonomous run
@@ -152,7 +153,7 @@ Load an agent definition when you need a specialized, independent review. For ex
 
 ## Using Commands
 
-The `commands/` directory contains eleven Markdown slash commands for Claude Code — nine lifecycle commands plus two standalone (`/explain`, `/quiz`). Each is a thin wrapper that activates the right skill(s):
+The `commands/` directory contains twelve Markdown slash commands for Claude Code — nine lifecycle commands plus three standalone (`/explain`, `/quiz`, `/gauntlet-loop`). Each is a thin wrapper that activates the right skill(s):
 
 | Command | Skills invoked |
 |---------|----------------|
@@ -162,11 +163,12 @@ The `commands/` directory contains eleven Markdown slash commands for Claude Cod
 | `/implement` | incremental-implementation (applies test-driven-development) |
 | `/verify` | quality-verification |
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization as fan-out) |
-| `/ship` | shipping-and-launch (+ pull-request) |
+| `/ship` | pull-request — the spine of the stage; shipping-and-launch is release-level and follows the human's merge |
 | `/orchestrate` | orchestrator — the autonomous wave-parallel DAG runner to open PRs |
 | `/setup` | project-setup — one-time repo ecosystem |
 | `/explain` | literate-explainer — **standalone**, not a lifecycle stage |
 | `/quiz` | comprehension-quiz — **standalone**, not a lifecycle stage |
+| `/gauntlet-loop` | gauntlet-loop — **standalone**, not a lifecycle stage; offered, never auto-selected |
 
 Skills also activate based on what you're doing — designing an API pulls in `api-design`, building UI pulls in `frontend-design`, and so on.
 

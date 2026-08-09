@@ -1,8 +1,8 @@
 # Using achilles-skills with GitHub Copilot
 
-achilles-skills is a plugin of 38 engineering skills, 5 reusable agent personas, and 11 commands —
+achilles-skills is a plugin of 39 engineering skills, 5 reusable agent personas, and 12 commands —
 9 lifecycle commands that drive a product from **Ideate → Spec → Plan → Implement → Verify → Review →
-Ship**, plus 2 standalone (`/explain`, `/quiz`). The
+Ship**, plus 3 standalone (`/explain`, `/quiz`, `/gauntlet-loop`). The
 primary distribution target is Claude Code (`/plugin marketplace add celestialdust/achilles-skills`), but
 GitHub Copilot can consume the same `skills/` and `agents/` directories directly.
 
@@ -26,7 +26,7 @@ your repository. Each skill is a `SKILL.md` inside its own directory.
 ```bash
 mkdir -p .github/skills
 
-# Option A — install the full 38-skill roster
+# Option A — install the full 39-skill roster
 cp -R achilles-skills/skills/* .github/skills/
 
 # Option B — cherry-pick the essentials
@@ -37,7 +37,7 @@ cp achilles-skills/skills/code-review/SKILL.md             .github/skills/code-r
 
 For more details, refer to [Creating agent skills for GitHub Copilot](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-skills).
 
-#### The 38-skill roster (new names)
+#### The 39-skill roster (new names)
 
 The suite is organized by lifecycle stage. Each name below is a directory under `skills/`:
 
@@ -49,6 +49,7 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 - `handoff` — per-session compaction to a fresh-agent doc
 - `literate-explainer` — standalone: explain code or a system in prose (`/explain`)
 - `comprehension-quiz` — standalone: check comprehension of a change or codebase area (`/quiz`)
+- `gauntlet-loop` — standalone: a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch (`/gauntlet-loop`); offered, never auto-selected
 
 **Ideate**
 - `interview-me` — brainstorm + frame an idea → intent.md
@@ -88,7 +89,7 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 
 **Ship**
 - `pull-request` — per-slice design-anchored draft PR; read-the-code checklist; risk band
-- `shipping-and-launch` — release: pre-launch checklist; staged rollout; rollback
+- `shipping-and-launch` — release-level, on the far side of the human's merge: pre-launch checklist; staged rollout; rollback
 - `git-workflow` — trunk-based; atomic commits; secret hygiene
 - `ci-cd` — Shift Left; quality-gate pipeline; feature flags
 - `observability-and-instrumentation` — structured logging; RED metrics; OTel tracing
@@ -181,8 +182,8 @@ mirrors the achilles-skills lifecycle (Ideate → Spec → Plan → Implement �
 
 ### Lifecycle Commands
 
-In Claude Code, achilles-skills exposes 11 slash commands (`commands/*.md`) that wrap the skills above —
-9 lifecycle commands plus 2 standalone (`/explain`, `/quiz`).
+In Claude Code, achilles-skills exposes 12 slash commands (`commands/*.md`) that wrap the skills above —
+9 lifecycle commands plus 3 standalone (`/explain`, `/quiz`, `/gauntlet-loop`).
 Copilot does not load these slash commands, so reach for the underlying skill or persona instead. The
 mapping is the same:
 
@@ -194,11 +195,12 @@ mapping is the same:
 | /implement | incremental-implementation (applies test-driven-development) | follow the slice workflow in chat |
 | /verify | quality-verification | `@test-engineer` |
 | /review | code-review (+ code-simplification, security-and-hardening, performance-optimization) | `@code-reviewer`, `@security-auditor`, `@performance-auditor` |
-| /ship | shipping-and-launch (+ pull-request) | paste skill content for the release pass |
+| /ship | pull-request — the spine of the stage; shipping-and-launch is release-level and follows the human's merge | paste skill content for the draft-PR pass |
 | /orchestrate | orchestrator | the autonomous wave-parallel DAG runner (Claude Code primary) |
 | /setup | project-setup | paste skill content for the one-time repo bootstrap |
 | /explain | literate-explainer | paste skill content to explain code or a system (**standalone**) |
 | /quiz | comprehension-quiz | paste skill content to check comprehension (**standalone**) |
+| /gauntlet-loop | gauntlet-loop | paste skill content to run the throwaway builder/critic loop (**standalone**; offered, never auto-selected) |
 
 ## Usage Tips
 

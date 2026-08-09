@@ -1,8 +1,8 @@
 # Using achilles-skills with Gemini CLI
 
-achilles-skills ships **38 skills**, **5 reusable agent personas** (`agents/`), and **11 slash
+achilles-skills ships **39 skills**, **5 reusable agent personas** (`agents/`), and **12 slash
 commands** (`commands/`) — 9 lifecycle commands covering the full **Ideate → Spec → Plan → Implement →
-Verify → Review → Ship** loop, plus 2 standalone (`/explain`, `/quiz`). This guide explains how to wire them into Gemini CLI.
+Verify → Review → Ship** loop, plus 3 standalone (`/explain`, `/quiz`, `/gauntlet-loop`). This guide explains how to wire them into Gemini CLI.
 
 ## Setup
 
@@ -123,8 +123,8 @@ This is useful when you want to ensure a specific workflow is followed without w
 
 ## Slash Commands
 
-The repo ships **11 slash commands** under `commands/` — 9 lifecycle plus 2 standalone (`/explain`,
-`/quiz`) — as Markdown definitions (Claude Code's native
+The repo ships **12 slash commands** under `commands/` — 9 lifecycle plus 3 standalone (`/explain`,
+`/quiz`, `/gauntlet-loop`) — as Markdown definitions (Claude Code's native
 format). Gemini CLI uses its own **TOML** command format under `.gemini/commands/`, so wrap each command's
 body in a Gemini TOML file — Gemini's `prompt` is the achilles command file's Markdown body (everything below
 its frontmatter):
@@ -146,11 +146,12 @@ required.
 | `/implement` | incremental-implementation (applies test-driven-development) | Build one thin vertical slice |
 | `/verify` | quality-verification | Fresh code-cold proof a slice works |
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization as fan-out) | Quality gate before merge |
-| `/ship` | shipping-and-launch (+ pull-request) | Release: checklist · staged rollout · rollback |
+| `/ship` | pull-request — the spine of the stage | Open one slice's risk-banded draft PR; the stage ends there. shipping-and-launch is release-level and follows the human's merge. |
 | `/orchestrate` | orchestrator | Autonomous wave-parallel DAG runner to open draft PRs |
 | `/setup` | project-setup | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other |
 | `/explain` | literate-explainer | **Standalone** — explain code or a system in prose |
 | `/quiz` | comprehension-quiz | **Standalone** — check comprehension of a change or codebase area |
+| `/gauntlet-loop` | gauntlet-loop | **Standalone** — a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch; offered, never auto-selected |
 
 > **Note on `/plan`:** Gemini CLI reserves `plan` for an internal command, so the bundled `/plan` may not be
 > reachable from the prompt. If it collides, rename the copied file (e.g. `.gemini/commands/planning.toml`)
@@ -183,8 +184,9 @@ Act as the @agents/security-auditor.md persona and audit the current diff.
    and *when* it should trigger, so auto-discovery works across tools (Claude Code, Gemini CLI, etc.).
 3. **Use personas for review** — Load `agents/code-reviewer.md` (and the other four personas) when you want a
    structured, code-cold review pass.
-4. **Combine with references** — Reference the supplementary checklists in `references/` when working on
-   specific quality areas like testing, performance, or security.
+4. **Combine with references** — The suite's shared material lives in `references/`;
+   [docs/getting-started.md](./getting-started.md) maps every file there to the skills that use it. Load
+   the relevant one when you need detail beyond the workflow, rather than the whole skill.
 5. **Let `using-agent-skills` route you** — When unsure which skill fits, load the `using-agent-skills`
    meta-dispatcher; it maps a task to the right skill and lifecycle stage.
 </content>

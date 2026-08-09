@@ -81,7 +81,7 @@ Task arrives
     │   ├── Committing/branching? ─────────────→ git-workflow
     │   ├── CI/CD pipeline work? ──────────────→ ci-cd
     │   ├── Logs/metrics/traces? ──────────────→ observability-and-instrumentation    (instrument as you build)
-    │   ├── Release/launch? ───────────────────→ shipping-and-launch  (before the PR · release-level)
+    │   ├── Release/launch? ───────────────────→ shipping-and-launch  (release-level · AFTER the human merges)
     │   ├── Deprecating/migrating? ────────────→ deprecation-and-migration
     │   └── Writing docs/ADRs? ────────────────→ documentation-and-adrs
     │
@@ -121,7 +121,7 @@ of the trigger phrases the skill's `description` lists. That is the pick already
 
 2. **Skills are workflows, not suggestions.** Follow the steps in order. Don't skip verification steps.
 
-3. **Multiple skills can apply.** A feature implementation might involve `idea-refine` → `codebase-research` → `spec-grilling` → `plan-breakdown` → `incremental-implementation` → `test-driven-development` → `code-review` → `code-simplification` → `shipping-and-launch` in sequence.
+3. **Multiple skills can apply.** A feature implementation might involve `idea-refine` → `codebase-research` → `spec-grilling` → `plan-breakdown` → `incremental-implementation` → `test-driven-development` → `code-review` → `code-simplification` → `pull-request` in sequence. The sequence ends at the open draft PR, because that is where the agent's span ends — `shipping-and-launch` picks up on the far side of the human's merge and is not part of the chain a slice walks.
 
 4. **When in doubt, start with a spec — and a spec starts with the survey.** If the task is non-trivial and there's no spec, begin with `codebase-research`, then `spec-grilling`. Going straight to `spec-grilling` gets you refused: it will not decide a design against recollection, so it requires the `research.md` the survey writes.
 
@@ -257,8 +257,8 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Review | security-and-hardening | OWASP Top 10; auth; secrets; dependency audit |
 | Review | performance-optimization | measure-first; Core Web Vitals; profiling |
 | Review | doubt-driven-development | in-flight adversarial review (during plan/implement) |
-| Ship | pull-request | per-slice design-anchored draft PR; read-the-code checklist |
-| Ship | shipping-and-launch | release workhorse: checklist · flags · rollout · rollback |
+| Ship | pull-request | the spine of Ship: per-slice design-anchored draft PR; read-the-code checklist; the stage ends here |
+| Ship | shipping-and-launch | release workhorse, release-level and post-merge: checklist · flags · rollout · rollback. A slice still at an open draft PR belongs to `pull-request`. |
 | Ship | git-workflow | trunk-based; atomic commits; secret hygiene |
 | Ship | ci-cd | Shift Left; quality-gate pipeline |
 | Ship | observability-and-instrumentation | structured logs; RED metrics; tracing; symptom alerts |

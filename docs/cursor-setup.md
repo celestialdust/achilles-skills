@@ -62,7 +62,7 @@ cat /path/to/achilles-skills/skills/code-review/SKILL.md >> .cursorrules
 `.cursorrules` is the legacy single-file format; prefer Option 1 for anything beyond two or three skills so
 you can load and unload disciplines independently and stay under Cursor's context limits.
 
-## The skill roster (38 skills)
+## The skill roster (39 skills)
 
 Use the **NEW** descriptive names below when copying rule files — the directory name under `skills/` matches
 the name in these tables.
@@ -78,6 +78,7 @@ the name in these tables.
 | `handoff` | per-session compaction to a fresh-agent doc |
 | `literate-explainer` | standalone: explain code or a system in prose (`/explain`) |
 | `comprehension-quiz` | standalone: check comprehension of a change or codebase area (`/quiz`) |
+| `gauntlet-loop` | standalone: a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch (`/gauntlet-loop`); offered, never auto-selected |
 
 **Ideate (human-led)**
 
@@ -138,7 +139,7 @@ the name in these tables.
 | Skill | Responsibility |
 |---|---|
 | `pull-request` | per-slice design-anchored draft PR; read-the-code checklist; risk band |
-| `shipping-and-launch` | release: pre-launch checklist; staged rollout; rollback |
+| `shipping-and-launch` | release-level, on the far side of the human's merge: pre-launch checklist; staged rollout; rollback |
 | `git-workflow` | trunk-based; atomic commits; secret hygiene |
 | `ci-cd` | Shift Left; quality-gate pipeline; feature flags |
 | `observability-and-instrumentation` | structured logging; RED metrics; OTel tracing |
@@ -172,8 +173,8 @@ For example, when working on performance, copy `performance-optimization/SKILL.m
 
 ## Lifecycle commands in Cursor
 
-The suite ships eleven slash commands as `commands/*.md` — nine lifecycle plus two standalone (`/explain`,
-`/quiz`) — these are entry points for agents (like Claude
+The suite ships twelve slash commands as `commands/*.md` — nine lifecycle plus three standalone (`/explain`,
+`/quiz`, `/gauntlet-loop`) — these are entry points for agents (like Claude
 Code) that execute Markdown slash commands natively. **Cursor has no native slash-command runner**, so reproduce a
 command by loading the rule files it bundles and asking Cursor to run that stage:
 
@@ -185,11 +186,12 @@ command by loading the rule files it bundles and asking Cursor to run that stage
 | `/implement` | `incremental-implementation` (applies `test-driven-development`) | build one thin slice (default single-slice) |
 | `/verify` | `quality-verification` | prove a finished slice meets `acceptance.md`, code-cold |
 | `/review` | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization` as fan-out) | run the quality gate before merge |
-| `/ship` | `shipping-and-launch` (+ `pull-request`) | release: checklist · staged rollout · rollback |
+| `/ship` | `pull-request` — the spine of the stage | open one slice's risk-banded draft PR; the stage ends there. `shipping-and-launch` is release-level and follows the human's merge. |
 | `/orchestrate` | `orchestrator` | run the autonomous wave-parallel DAG to open PRs |
 | `/setup` | `project-setup` | scaffold the one-time repo ecosystem |
 | `/explain` | `literate-explainer` | explain code or a system in prose (**standalone**, no stage) |
 | `/quiz` | `comprehension-quiz` | check comprehension of a change or codebase area (**standalone**, no stage) |
+| `/gauntlet-loop` | `gauntlet-loop` | build a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch (**standalone**, no stage; offered, never auto-selected) |
 
 The `commands/*.md` files are short — open the one you want and copy its prompt text into Cursor verbatim
 to drive the stage exactly as the command would.
