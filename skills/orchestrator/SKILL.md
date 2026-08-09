@@ -18,13 +18,20 @@ moves slices across it.
 ## When to use / when to skip
 
 **Use when:** the Spec gate is signed, `preflight-readiness` is green, and `STATE.md` holds a feature
-at `feature: building` with slice rows whose `Blocked by` column forms a DAG — and you want
-the build run autonomously to open PRs. This is the default executor; sequential execution
-is just the degenerate case (a wave of one).
+carrying slice rows whose `Blocked by` column forms a DAG — and you want the build run autonomously to
+open PRs. That feature reads **`feature: plan`** on a first run, which is where `plan-breakdown` leaves
+it, or **`feature: building`** on a resumed one, which is where *you* left it. Being invoked is the
+human's Plan sign-off: the rows are born at gate `you` precisely because a person has to read the plan
+first, and a person starting the run is that reading. Flipping `plan → building` is this skill's own
+first write — Process step 3. This is the default executor; sequential execution is just the degenerate
+case (a wave of one).
 
-**Skip when:** you are still in Spec or Plan (the human owns those — there are no slice rows
-yet, the feature sits at `spec`/`plan`); you are doing a single one-off edit with no DAG; or
-`preflight-readiness` is red/amber (fix the environment first — the wave must not start).
+**Skip when:** the feature has no slice rows yet — it sits at `feature: spec`, or at `feature: plan`
+with nothing under it, and the human still owns Spec or Plan; you are doing a single one-off edit with
+no DAG; or `preflight-readiness` is red/amber (fix the environment first — the wave must not start).
+**Slice rows, not the feature token, are what say Plan is finished.** A board reading `feature: plan`
+*with* rows under it is the normal starting board, not a skip: nothing writes `building` before you do,
+so refusing that board refuses every board `plan-breakdown` has ever produced.
 
 **Escape hatch (`depth: lite`):** a single ready slice with no siblings still runs the full
 Implement → Verify → (aggregate) Review loop and the barriers — do not "just do it inline." For a
@@ -36,8 +43,11 @@ per-slice review; the barriers, the worktree, and the three gates are the point 
 Refuse to run (CRISPY refuse-to-run) unless ALL are present:
 
 - **`STATE.md`** (repo root, created by `project-setup`) — the two-level board. The `Blocked by`
-  column IS the slice DAG. There must be a feature at `feature: building` with at least one
-  slice row in `impl`. Absent / no building feature → refuse.
+  column IS the slice DAG. There must be a feature at **`feature: plan`** with at least one slice row
+  in `impl` — the board `plan-breakdown` hands over — or at **`feature: building`**, which is a run
+  you already started and are resuming. Absent, no feature carrying slice rows, or a feature still at
+  `feature: spec` → refuse. The `plan → building` flip is yours and happens in step 3; do not require
+  the board to already say `building`, because nothing else writes that token.
 - **`preflight-readiness` verdict = GREEN** — every `environment.md` row provisioned. Red or
   un-attested amber → refuse to start the wave.
 - **`plan.md` + slices** (`docs/features/<slug>/`) — each slice's concrete steps, exact
@@ -77,12 +87,26 @@ contract paths, not the session history.
 2. **Build the DAG.** Parse every slice's `Blocked by` into edges; topologically sort into
    **waves** (each wave = one topological level). Verify no cycles — a cycle blocks the run;
    surface it and stop (the human must reorder dependencies).
-3. **Select the ready wave, then order it.** A slice is ready when every blocker is `done`. Apply
+3. **Open the run — flip the feature to `building`.** The board still reads `feature: plan`: that is
+   where `plan-breakdown` leaves it, and this flip is yours and nobody else's (docs/workflow.md, *Who
+   writes what*: `a feature block's feature: state`, `orchestrator`, flip status). Do it once the three
+   things that warrant it are true and not before — the feature carries slice rows whose `Blocked by`
+   DAG steps 1–2 just read and found acyclic, the `preflight-readiness` verdict is green, and the signed
+   `acceptance.md` plus the `plan.md` slices exist. Those three *are* the Run-start gate, which is the
+   one gate in the lifecycle this skill owns; flipping the token is what opening it looks like on the
+   board, and a run whose board never says `building` is a run no reader can tell started. In the same
+   write, move each slice row's `Gate` from `you` to `agent`: the rows are born `you` because a person
+   signs the plan, and the run is what takes them over.
+   **Flip the state token only.** The feature block, its `origin:` line, its rows, their titles, and
+   their `Design ref` cells belong to `plan-breakdown` and are not yours to rewrite — the write table
+   grants you `flip status` there, which is one token and no more. A board already at `feature: building` is a
+   resumed run: nothing to flip, and a row already past `you` keeps the gate it has.
+4. **Select the ready wave, then order it.** A slice is ready when every blocker is `done`. Apply
    the **disjoint-file guard** (below) to the ready set, then put what survives into the order
    *Dispatch order* (below) defines — deepest downstream chain first, transitive dependent count as
    the second key, `plan.md` order last. Selection decides *which* slices run; the order decides *which one starts first*,
    and that is what sets the run's wall clock the moment the guard splits the wave into sub-waves.
-4. **Open each slice's entry, provision isolation, then run the design-ref gate.** The moment a slice
+5. **Open each slice's entry, provision isolation, then run the design-ref gate.** The moment a slice
    enters the wave — before its brief is assembled, before any gate can stop it — append its **stub** to
    `docs/progress.md`: the entry heading, and nothing under it (see *The run record*). Then each ready
    slice gets its own clean
@@ -92,7 +116,7 @@ contract paths, not the session history.
    anything for that slice** (see *Design-ref gate at dispatch*). Absent or `status: draft` → that
    slice is **`halted` here**, its halt reason naming the unsigned contract by path; no implementer
    runs, so no partially built interface exists to reach Verify or Review.
-5. **Run Implement + Verify per slice** for every ready slice — in parallel (one dispatch call
+6. **Run Implement + Verify per slice** for every ready slice — in parallel (one dispatch call
    per slice, all in one response = concurrent execution): `incremental-implementation` (applies
    `test-driven-development`) → `quality-verification` (Verify, fresh code-cold). Verify stays
    **per-slice** — behavioral acceptance is a property of the individual slice, not the wave.
@@ -106,10 +130,10 @@ contract paths, not the session history.
    `docs/design.md`, carry that path in both briefs too: a contract axis marked
    `inherits: docs/design.md` is graded against that file, so a verifier handed only the contract is
    handed half its oracle.
-6. **Verify barrier.** Wait for every ready slice to reach `verify` green **or** a terminal state
+7. **Verify barrier.** Wait for every ready slice to reach `verify` green **or** a terminal state
    (a slice that halts at Verify never enters the review). This barrier is what lets the next step
    review the wave as one changeset instead of N.
-7. **Aggregate Review over the whole wave.** Run the four floor axes (`code-review` +
+8. **Aggregate Review over the whole wave.** Run the four floor axes (`code-review` +
    `code-simplification` + `security-and-hardening` + `performance-optimization`) — plus any reviewer
    the trigger table below adds — as fresh code-cold
    subagents (one axis each, in parallel), **once over the union of the verify-green slices' diffs**
@@ -120,21 +144,21 @@ contract paths, not the session history.
    slice, so attribution is unambiguous. A finding routes *only its owning slice* back to
    `incremental-implementation` (bounded retries); after that slice re-passes Verify, **re-review
    only its diff**, never the whole wave again.
-8. **Evaluator floors + DRAFT PR per slice** — still per-slice (each slice owns its plan steps and
+9. **Evaluator floors + DRAFT PR per slice** — still per-slice (each slice owns its plan steps and
    regression surface). A slice whose attributed review findings are clear and whose floors are met
    opens its own DRAFT PR. Bounded retries: **2 per gate, 3 implement→verify→review cycles per
    slice**.
-9. **TERMINAL barrier.** Wait for EVERY slice in the wave to reach a **TERMINAL** state
+10. **TERMINAL barrier.** Wait for EVERY slice in the wave to reach a **TERMINAL** state
    (`done | halted | blocked`) — **never `success`**. Write every transition + gate flip to
    `STATE.md` as it happens. **Complete each slice's entry** in `docs/progress.md` from what the slice
    returned — the commands, their real output, the files it changed, and what it did not run and why (see
    *The run record*). A slice that returned nothing keeps the stub it was given and is completed with
    that fact. In the same pass, carry over any lessons entry the slice handed back, into the same
    checkout (see *The lessons a slice hands back*). Then advance to the next wave.
-10. **Integration gate.** After a connected DAG component's slices are all green, run the
+11. **Integration gate.** After a connected DAG component's slices are all green, run the
     merged-union suite once in an integration worktree before presenting. Union-fail →
     the component's PRs go DRAFT + a blocker is recorded.
-11. **Terminate** on exactly one predicate (see Verification). Append the inverted risk
+12. **Terminate** on exactly one predicate (see Verification). Append the inverted risk
     report; leave risk-banded OPEN PRs for the human.
 
 ## Wave executor & the TERMINAL barrier
@@ -410,10 +434,19 @@ mechanical invariants, not a human halt:
    repo has one) plus the running build — and never the implementer's reasoning, so the oracles never
    drift.
 4. **Integration gate** — the merged-union suite on a connected DAG component (above).
-5. **Inverted risk report** — every SHIPPED slice carries a risk band (which floors landed
-   at the line, qa coverage %, rounds consumed, any test/acceptance touched, surface
-   narrowing), surfaced ALONGSIDE the halts — to draw the human's scarce attention to the
-   quiet greens where unattended defects actually ship.
+5. **Inverted risk report** — every SHIPPED slice carries the risk band `pull-request` computed for
+   it, reproduced here **alongside the halts and highest band first**, to draw the human's scarce
+   attention both to what the wave's diffs *touched* and to the quiet greens where unattended defects
+   actually ship. **The rule that produces a band is `pull-request` Step 2, and it is not restated
+   here** — read it there, including which diffs raise a band and how high. Only two facts about it
+   belong at this layer: a band has **two** inputs, the diff's blast radius and the slice's own record,
+   and it is the higher of them — so a slice can band HIGH on a spotless first-round record, and a run
+   report that sorts by how cleanly slices passed is sorting by the wrong input.
+   Carry the bands over; never recompute or assign one yourself. Two parties computing one number is
+   how the number stops meaning anything, and this is the number a person triages the merge queue by.
+   A HIGH band is **not** a stop condition and never halts a slice — nothing in a run pauses for
+   high-risk work (docs/workflow.md, *High-risk work is not one of these*), which is precisely why the
+   band has to reach the human unchanged.
 
 ## Changing what judges the work
 
@@ -518,6 +551,11 @@ diff nobody has reviewed yet.
 
 | You catch yourself thinking… | Reality |
 |---|---|
+| "The board reads `feature: plan`, not `building` — the plan can't be signed, so I refuse." | Nothing writes `building` but you (step 3). `plan-breakdown` leaves the feature at `plan` with rows at gate `you`, and a person starting the run *is* the sign-off. Refusing that board refuses every board the planner has ever produced. Check for slice rows, not for the token. |
+| "I'll flip to `building` first thing so the board shows I've started." | Not before steps 1–2 read the DAG and find it acyclic and preflight reads green. `building` claims a wave is dispatching; a run that stops on a cycle would leave that claim standing with nothing behind it. |
+| "The feature block is stale in other ways — while I'm in there I'll tidy the row titles." | Your permission on that block is `flip status`: one token, and the `State`/`Gate` cells. The block, its `origin:`, its titles, and its `Design ref` cells are `plan-breakdown`'s. |
+| "The slice handed back its PR url — let it write its own `Artifacts` cell." | Same failure as the run record. The slice is in a worktree, on a branch that may never merge; the write succeeds and reaches nobody. You hold the pen for that column too. |
+| "This slice touches auth — I'll bump its band before I report it." | The band is `pull-request`'s, computed at its Step 2 from blast radius and the slice's record. Reproduce it; do not recompute it. Two parties computing one number is how the number stops meaning anything. |
 | "This wave has one ready slice — I'll just run it inline." | A wave of one still gets a worktree, the three gates, and the TERMINAL barrier. Run the loop. |
 | "The test is flaky; I'll relax that assertion so the gate passes." | That is gate-erosion — a loosening, so it needs a measurement and a human. Frozen artifacts → HALT. Fix the code or escalate. |
 | "I'll dispatch a senior-reviewer persona to gut-check this." | No role-play. Dispatch the real `code-review`/`code-simplification`/`security-and-hardening`/`performance-optimization` skills as fresh code-cold subagents. |
@@ -566,6 +604,17 @@ diff nobody has reviewed yet.
 - Advancing the barrier on `success` instead of TERMINAL → STOP.
 - About to promote a DRAFT PR from the same context that wrote the tests → STOP (need a code-cold verifier).
 - Security CRITICAL/HIGH or secret-in-diff → hard halt that slice, no retry, never a PR; committed secret → PushNotification + freeze barrier.
+- Refusing to start on a feature that reads `feature: plan` and **carries slice rows** → STOP. That is
+  the board `plan-breakdown` hands over; the `plan → building` flip is step 3 and it is yours. Refuse on
+  a missing feature, missing rows, `feature: spec`, or a red/amber preflight — never on the token alone.
+- Writing anything in a feature block beyond its `feature:` token, or in a slice row beyond its `State`
+  and `Gate` → STOP. That permission is `flip status`; the rest of the block is `plan-breakdown`'s.
+- Completing a slice at the barrier without carrying its handed-back `Artifacts` entry (`qa.md`,
+  `PR #<n>`) into the row → STOP. It cannot land itself from a worktree, and nothing re-reports a
+  dropped one — same failure as a dropped lesson.
+- Computing, adjusting, or assigning a risk band yourself → STOP. `pull-request` Step 2 computes it;
+  you carry it. Equally: treating a HIGH band as a reason to halt, hold, or hide a slice → STOP, a run
+  never pauses for high-risk work.
 - Re-dispatching a slice `STATE.md` marks `done` → STOP (read the board, `docs/progress.md`, and `git log`
   after any compaction).
 - Appending to `docs/progress.md` from inside a slice's worktree → STOP. That write lands on a branch that
@@ -615,6 +664,12 @@ or an owner, so the record cannot be read as a second board. Check the last of t
 lesson a slice handed back is in `docs/lessons.md`**, carried over in that same checkout — none was left
 behind in the worktree it was written in, and none was reworded on the way.
 
+Also true of every terminated run: **the board records the run itself.** The feature read
+`feature: building` from step 3 onward, and every artifact a slice handed back — its `qa.md`, its
+`PR #<n>` — sits in that slice's `Artifacts` cell, appended in the checkout this skill holds. A board
+still reading `feature: plan` describes a run that never started; a `done` slice with an empty
+`Artifacts` cell lost something on the way back from a worktree, and nothing else will report it.
+
 Also true of every terminated run: **no slice entered `impl` without passing the design-ref gate** —
 its `Design ref` was `—`, or the contract that ref names read `status: signed` at the moment the
 implementer was dispatched. Any slice failing that check is `halted` with the contract named, and
@@ -623,10 +678,23 @@ carries no diff, no worktree changes, and no PR.
 ## Outputs & handoff contract
 
 - **Emits → `STATE.md` state transitions** (registry artifact). Stable surface the next reader
-  depends on: the **slice table** (per-slice `State` column moving `impl→verify→review→ship→
-  done|blocked|halted`) and the **`gate` column** (`you|agent|done`). Every transition is
+  depends on: the **feature block's `feature:` token** (flipped `plan → building` at step 3, the write
+  that says this run started), the **slice table** (per-slice `State` column moving
+  `impl→verify→review→ship→done|blocked|halted`) and the **`gate` column** (`you|agent|done`, moved off
+  the `you` the rows are born at in that same step-3 write). Every transition is
   written as it happens — `STATE.md` is the resume spine; a fresh agent resumes the run cold
-  from it. Change the table's shape → update every reader in the same commit.
+  from it. Every write named in this bullet is `flip status`: a token changes, and the block, its
+  `origin:` line, and its rows stay as `plan-breakdown` left them. Change the table's shape → update
+  every reader in the same commit.
+- **Appends → the `Artifacts` column** of each slice row, as the artifacts land. Two entries there name
+  their own writer — the security-findings entry (`security-and-hardening`) and the release-runbook
+  entry (`shipping-and-launch`). **Every other entry in that column is yours**, and a slice cannot land
+  its own for the same reason it cannot land its run-record entry: it is inside a worktree, on a branch
+  that may never merge, so the write succeeds and reaches no reader. The Verify ledger a slice hands
+  back, the `PR #<n>` its `pull-request` dispatch hands back, and any decision-record id it recorded all
+  reach the board through you — in the checkout you hold, at the moment you complete that slice's
+  run-record entry, which is the same courier run and needs no second pass. Append only: never reword or
+  remove an entry already in a cell, and never author one no slice handed you.
 - **Dispatch briefs** — each slice's brief carries the slice id; its frozen contract paths, including
   `docs/test-contract.md` when the repo has one, since a code-cold verifier cannot grade an ACTIVE row
   it was never handed; `docs/design.md` when the repo has one and the slice builds UI, for the same
@@ -651,7 +719,9 @@ carries no diff, no worktree changes, and no PR.
   is never edited, and an attempt to change one is a **STOP**, reported by name. It carries no stage, state,
   gate, or owner; `STATE.md` above is where a resuming controller reads what is `done`.
 - **Appends to `docs/lessons.md`** — the lessons slices handed back, one entry each, at the **TERMINAL barrier** and in the checkout this skill holds, for the same reason the run record lands there. Append only: each entry arrives finished from whoever root-caused the defect or closed the Critical review finding, and this skill carries it rather than authoring it. Where the repository keeps no such file there is nothing to carry, and the slice says so.
-- **Inverted risk report** appended at run terminal, alongside the halts.
+- **Inverted risk report** appended at run terminal, alongside the halts — each shipped slice's band
+  exactly as `pull-request` computed it (that skill's Step 2 owns the rule), ordered highest band first
+  so the merge queue reads in triage order. This skill reproduces bands; it does not compute them.
 - **Terminal hand-off:** risk-banded OPEN PRs on cluster branches for async human merge — the
   surviving downstream gate. No `session-state.md` 5-field handoff needed unless context fills
   mid-run (then `handoff` compacts; the artifacts let a fresh agent resume cold).
