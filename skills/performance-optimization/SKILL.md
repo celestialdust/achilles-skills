@@ -7,7 +7,7 @@ description: 'Measure-first performance review of a code change. Use the moment 
 
 ## Purpose
 
-**Stage: Review (fan-out lens — the measure-first performance axis).** This skill is one of the four Review lenses (`code-review` · `code-simplification` · `security-and-hardening` · `performance-optimization`) the orchestrator dispatches as fresh, code-cold subagents in parallel on independent axes. Its job here is not to apply fixes but to *judge a diff on evidence*: profile, then report findings.
+**Stage: Review (fan-out lens — the measure-first performance axis).** This skill is the performance lens of the Review fan-out the orchestrator dispatches as fresh, code-cold subagents in parallel on independent axes. Its job here is not to apply fixes but to *judge a diff on evidence*: profile, then report findings.
 
 Measure before optimizing. Performance work without measurement is guessing — and guessing leads to premature optimization that adds complexity without improving what matters. Profile first, identify the actual bottleneck, fix it, measure again. Optimize only what measurements prove matters.
 
@@ -374,7 +374,7 @@ Emit **findings** (the perf axis) to `docs/features/<slug>/reviews/<SLICE-ID>-pe
   - `pass` = measured, within budget, no anti-pattern in the changed paths.
 - `## Findings` — a list; each item carries: severity (`blocker` | `major` | `minor`), a `file:line` citation into the diff, the **before/after measurement** that justifies it (numbers, not adjectives), and a recommended fix. No finding without a measurement or a named anti-pattern.
 
-Handoff: you do **not** flip `STATE.md` — the orchestrator owns the board. It AND-combines the four Review lenses' verdicts into the slice's review gate; any `block` halts the slice's PR promotion. Your contract ends at the findings file.
+Handoff: you do **not** flip `STATE.md` — the orchestrator owns the board. It AND-combines the Review lenses' verdicts into the slice's review gate; any `block` halts the slice's PR promotion. Your contract ends at the findings file.
 
 ## Subagents
 

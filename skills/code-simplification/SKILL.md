@@ -1,6 +1,6 @@
 ---
 name: code-simplification
-description: 'Reduce code complexity without changing behavior — the Review-stage QUALITY axis. Use the moment a slice''s code is green but reads heavier than it should: deep nesting, nested ternaries, dead code, generic names, copy-paste duplication, speculative abstractions. Apply Chesterton''s Fence (understand before you cut) and stay scoped to what changed. Quality only — it does NOT hunt for bugs (that is `code-review`/`security-and-hardening`). It REPORTS findings and edits nothing — not the code, not the tests; a simplification that cannot be had without moving behavior or a frozen test is a HALT, not a finding.'
+description: 'Reduce code complexity without changing behavior — the Review-stage QUALITY axis. Use the moment a slice''s code is green but reads heavier than it should: deep nesting, nested ternaries, dead code, generic names, copy-paste duplication, speculative abstractions. Apply Chesterton''s Fence (understand before you cut) and stay scoped to what changed. Quality only — it does NOT hunt for bugs (that is `code-review`/`security-and-hardening`). It REPORTS findings and edits nothing — not the code, not the tests; a simplification that cannot be had without moving behavior, a frozen test, or the repo''s decided look is a HALT, not a finding.'
 ---
 
 # Code Simplification
@@ -31,7 +31,7 @@ Find the complexity in a change and name the simpler version, without changing w
 
 **Stage:** Review — one axis of the parallel fan-out. The orchestrator dispatches this as a fresh,
 code-cold subagent on the *simplification* axis (maker≠checker; `parallelism.md` mech f). It reports
-findings; it does not edit the code it grades. Three sibling axes are reading those same files at the
+findings; it does not edit the code it grades. Sibling axes are reading those same files at the
 same moment, so a write here lands under a reviewer mid-read — and a checker that rewrites what it
 just graded has stopped being a checker. The slice's own implementer applies the fix on the
 route-back.
@@ -62,8 +62,10 @@ decides. Never set a row's state yourself in either direction; you read that fil
 absent file, or one with no ACTIVE rows, changes nothing here.
 `docs/design.md` is **read-only** here rather than frozen — a different constraint for a different
 reason: Verify grades every contract axis marked `inherits: docs/design.md` against it, and only
-`frontend-design` moves it, so a simplification reads the decided look and never writes it. It is not a
-fifth frozen artifact, and a finding that would move it is out of scope rather than gate-erosion.
+`frontend-design` moves it. It is not a fifth frozen artifact, and this skill never writes it. Reading
+rather than writing removes the authority to move that file, not the duty to report a collision with
+it — so a simplification that cannot be had unless the decided look moves is **gate-erosion → HALT**
+on the same terms: return `block`, and a person decides.
 
 ## The Five Principles
 
@@ -372,17 +374,16 @@ one ranked, de-duplicated list. This skill writes no file and changes no code; *
 reason.
 
 **Return to the orchestrator (Review fan-out aggregation)** exactly one verdict token — the same three
-`performance-optimization` returns, so those two axes combine without translation. The other two do not:
-`code-review` and `security-and-hardening` each return their own vocabulary, which the orchestrator
-translates before it AND-combines the four. Matching one sibling is not licence to skip that translation:
+`performance-optimization` returns. The gate AND-combines the axes' verdicts without translating
+between vocabularies:
 - `pass` — nothing here warrants simplifying, or only `Optional` / `Nit` findings.
 - `concerns` — findings the owning slice should take. It goes back to `incremental-implementation`
   (bounded rounds) to apply them.
-- `block` — gate-erosion: the simplification worth having cannot be reached without one of the artifacts
-  frozen under **Inputs** moving. Return it the way that paragraph says, name the `file:line` and why,
-  and do **not** also report it as a routine finding: an implementer acting on it would erode the gate.
+- `block` — gate-erosion: the simplification worth having cannot be reached without an artifact frozen
+  under **Inputs**, or the read-only `docs/design.md`, moving. Name the `file:line` and why, and do
+  **not** also report it as a routine finding: an implementer acting on it would erode the gate.
 
 **STATE.md:** this skill writes **no** `STATE.md` row and flips no gate of its own. The orchestrator
-owns the slice's `review` state and advances it only when every review axis (this skill, `code-review`,
-`security-and-hardening`, `performance-optimization`) returns non-blocking. Stable sections other skills
-depend on: none beyond the `## Verification` checklist above, which is the bar every finding clears.
+owns the slice's `review` state and advances it only when every review axis returns non-blocking.
+Stable sections other skills depend on: none beyond the `## Verification` checklist above, which is
+the bar every finding clears.
