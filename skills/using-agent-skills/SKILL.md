@@ -16,7 +16,7 @@ apply the right skill, in the right order, for the current task.
 ## When to use / when to skip
 
 **Use** at the start of every session, and any time you are unsure which skill applies or which stage you
-are in. Read `STATE.md` and `docs/session-state.md` first, then route.
+are in. Read `STATE.md`, `docs/session-state.md`, and `docs/progress.md` first, then route.
 
 **Skip** only once you are already executing a named skill mid-stage — you do not re-dispatch on every turn.
 You still re-consult this index when the stage changes (e.g. plan signed → moving to Implement) or when a
@@ -31,6 +31,13 @@ task spans phases (a feature flows Ideate → … → Ship; a bug fix may need o
   work stands; `## Log` beneath them says why, and which questions are already settled. Read both before
   you route, so a question the log already answers is not re-opened. Reversing a logged decision is a new
   entry with a reason, not a debate restarted from zero. No file → nothing to read; route on.
+- **`docs/progress.md`** (when the repo has one) — the run record: what each slice actually executed, one
+  entry per slice, with the commands as they were run and their real output. Read it with the two above
+  before you route, and read it whenever you are resuming work you were not present for. The board says
+  where things stand, the log says why, and this says what was actually done — the question a summary of a
+  finished run is least reliable about. A heading with nothing under it is a slice that started and did not
+  finish. It carries no stage and no owner, so never route off it; and nothing here writes it. No file →
+  nothing to read; route on.
 - **The full skill roster** (this file's Process tree + Quick reference) — the set of skills you may route to.
 - **The task in the prompt** — classify it to a stage.
 
@@ -38,8 +45,9 @@ This skill is the entry point, so it does not refuse-to-run; its one hard rule i
 
 ## Process
 
-This skill runs first. Read `docs/session-state.md` — both zones — before you route, so the questions
-this project has already settled are in hand. Then identify the stage from `STATE.md`'s `gate` column
+This skill runs first. Read `docs/session-state.md` — both zones — and `docs/progress.md` before you
+route, so the questions this project has already settled are in hand, along with what the last run
+actually executed. Then identify the stage from `STATE.md`'s `gate` column
 (or, if no STATE.md exists yet, run `project-setup`) and route the task to the stage skill below. The
 Core Operating Behaviors (further down) apply at all times, regardless of which skill is active.
 
@@ -307,6 +315,9 @@ These are the subtle errors that look like productivity but create problems:
 Dispatch is complete when ALL hold:
 - `docs/session-state.md` was read before you routed — both the five fields and `## Log` — where the repo
   has one, and no question the log already answers was re-opened.
+- `docs/progress.md` was read before you routed, where the repo has one, so what the last run actually
+  executed is in hand rather than reconstructed from a summary of it. Nothing was routed off it: it says
+  what ran, never who acts next.
 - You named the applicable skill(s) AND its stage (Ideate/Spec/Plan/Implement/Verify/Review/Ship/cross-cut).
 - You confirmed the skill's consuming artifact exists (per its `Inputs`); if it is missing, you routed
   upstream to the skill that emits it rather than running the downstream skill against a gap.
@@ -324,5 +335,6 @@ Dispatch is complete when ALL hold:
 - **Stable hand-off:** names exactly one next skill and the artifact it will read/write, so the dispatched
   skill starts cold without re-deriving context.
 - **STATE.md:** this skill **does not write** STATE.md — the dispatched stage skill (or the orchestrator)
-  records the transition. The dispatcher only reads STATE.md to decide.
+  records the transition. The dispatcher only reads STATE.md to decide. The same holds for
+  `docs/session-state.md` and `docs/progress.md`: it reads all three and writes none of them.
 - **Re-entry:** on any stage change or a `gate` flip in STATE.md, re-consult this skill.

@@ -67,10 +67,13 @@ contract paths, not the session history.
 
 ## Process
 
-1. **Resume cold.** Read `STATE.md` and the progress ledger first. Any slice marked
-   `done`/`ship` is DONE — never re-dispatch it (subagent-driven-development §Durable
-   Progress: re-dispatching completed work is the single most expensive failure). Trust the
-   ledger + `git log` over recollection after compaction.
+1. **Resume cold.** Read `STATE.md` and `docs/progress.md` first. The board says which slices are
+   `done`/`ship` — never re-dispatch one (subagent-driven-development §Durable
+   Progress: re-dispatching completed work is the single most expensive failure). The run record says
+   what the last attempt actually executed and what came back, and a heading in it with nothing under it
+   is a slice that was dispatched and died before returning. Trust those two plus `git log` over
+   recollection after compaction: the board answers what state a slice is in, the record answers what was
+   run, and neither answers the other's question.
 2. **Build the DAG.** Parse every slice's `Blocked by` into edges; topologically sort into
    **waves** (each wave = one topological level). Verify no cycles — a cycle blocks the run;
    surface it and stop (the human must reorder dependencies).
@@ -79,7 +82,10 @@ contract paths, not the session history.
    *Dispatch order* (below) defines — deepest downstream chain first, transitive dependent count as
    the second key, `plan.md` order last. Selection decides *which* slices run; the order decides *which one starts first*,
    and that is what sets the run's wall clock the moment the guard splits the wave into sub-waves.
-4. **Provision isolation, then run the design-ref gate.** Each ready slice gets its own clean
+4. **Open each slice's entry, provision isolation, then run the design-ref gate.** The moment a slice
+   enters the wave — before its brief is assembled, before any gate can stop it — append its **stub** to
+   `docs/progress.md`: the entry heading, and nothing under it (see *The run record*). Then each ready
+   slice gets its own clean
    worktree (the `worktree` mechanism this skill owns). Platform-adaptive (below). While assembling
    the brief, read the slice row's **`Design ref`** — it travels with the slice from here on. If it
    is not `—`, open the `design-contract.md` it names and read `status:` **before dispatching
@@ -120,7 +126,10 @@ contract paths, not the session history.
    slice**.
 9. **TERMINAL barrier.** Wait for EVERY slice in the wave to reach a **TERMINAL** state
    (`done | halted | blocked`) — **never `success`**. Write every transition + gate flip to
-   `STATE.md` as it happens. Then advance to the next wave.
+   `STATE.md` as it happens. **Complete each slice's entry** in `docs/progress.md` from what the slice
+   returned — the commands, their real output, the files it changed, and what it did not run and why (see
+   *The run record*). A slice that returned nothing keeps the stub it was given and is completed with
+   that fact. Then advance to the next wave.
 10. **Integration gate.** After a connected DAG component's slices are all green, run the
     merged-union suite once in an integration worktree before presenting. Union-fail →
     the component's PRs go DRAFT + a blocker is recorded.
@@ -135,6 +144,55 @@ resumable from `STATE.md` alone. The barrier waits for **TERMINAL, not SUCCESS**
 (parallelism.md mech-f): a `halted` or `blocked` slice still satisfies the barrier — the run
 does not stall waiting for a slice that will never pass. Its dependents transitively flip to
 `blocked`; every *other* independent branch keeps draining.
+
+## The run record
+
+**Appends to `docs/progress.md`** — one entry per slice, per dispatch. An entry carries the commands that
+were run in the form they were run, their real output, the files that changed, and what was **not** run
+and why. It exists because the alternative account of a run is the run's own summary, and a summary is
+written by the party with the most reason to round up.
+
+**Where the write lands, and this is the part that has gone wrong before.** The entry is appended in the
+checkout **you** hold — the branch the run was started from — never inside a slice's worktree. A worktree
+is a separate branch that may never be merged: a write there succeeds, reports success, and reaches no
+reader on the main line. Slices run in worktrees; the record does not. That is why the orchestrator holds
+the pen for every slice in an orchestrated run rather than letting each slice write its own entry, and it
+is the whole reason adapter B exists for the hand-run case (`incremental-implementation`, which has no
+worktree to be stranded in).
+
+**Two writes per slice, at two moments:**
+
+1. **The stub, at dispatch.** The moment a slice enters the wave, append its heading —
+   `## <date> — <SLICE-ID> — <title>` — with nothing under it. It carries the slice id and nothing else:
+   no state, no gate, no owner. A stub is not a status; it is the fact that this slice started.
+2. **The completion, at the TERMINAL barrier.** Fill the fields under that heading from what the slice
+   returned.
+
+Writing only at the barrier cannot record a slice that died on the way there, and a slice that dies has
+to be distinguishable from one that was never dispatched. The stub is what makes the difference visible:
+a heading with nothing under it started and did not finish; a slice never dispatched has no heading at
+all. It also survives *you* — a run that ends between dispatch and barrier leaves the stubs behind, which
+is the case a barrier-only write loses entirely.
+
+**Completing a stub adds lines under it. It never rewrites the heading, and never touches an entry that
+is already complete.** A retried slice is dispatched again, so it gets its own stub and its own entry —
+the same failure twice is two entries, and the second never replaces the first. An attempt to edit,
+re-order, re-date, or remove an existing entry is **reported as a violation** naming the entry and what
+would have changed; refusing quietly is not enough, because a silent refusal reads as a silent success.
+
+**Verify's result belongs to the slice's entry, not a second one.** `quality-verification` hands back its
+commands and their output with `qa.md`; those go into the fields under that slice's heading. One slice,
+one entry per dispatch — a second entry for the same attempt would let a reader count one slice twice.
+
+**Two lines nothing checks, and they are the ones that matter.** Never write that a command was run when
+it was not — put it under "Not run" with the reason. And withhold any credential appearing in output,
+saying that you withheld it rather than dropping the line. No hook, no validator, and no CI enforces
+either; the entry shape in `docs/progress.md` states them where the writer can see them, and that is the
+whole mechanism.
+
+**The record answers what ran. It never answers who acts next.** No entry carries a stage, a state, or an
+owner — `STATE.md` is the board and this is the evidence. Two files answering one question is one answer
+too many, and the one that goes stale is the one nobody is driving.
 
 ## Verify barrier & wave-aggregate review
 
@@ -186,7 +244,9 @@ reads a diff and cannot see one.
 
 **The drop half is deferred, and this is the evidence it waits on.** The symmetric rule — removing an
 axis from a wave that has nothing for it — needs a per-axis finding rate measured over real runs, and
-no such journal exists yet. Until a run journal records, wave by wave, which axis produced findings
+no such journal exists yet. `docs/progress.md` is not it and does not become it: it records what each
+slice executed, not which axis's finding changed which diff. Until a run journal records, wave by wave,
+which axis produced findings
 that changed a diff, dropping an axis is a loosening with no measurement behind it and is refused on
 exactly those grounds (*Changing what judges the work*). The deferral ends when that journal holds
 enough waves to compute the rate — not when the fan-out starts to feel expensive.
@@ -455,6 +515,13 @@ diff nobody has reviewed yet.
 | "The run is too slow — I'll trim the fan-out to two axes." | Fewer checks is not where speed comes from; it is where silent gaps come from. Speed is dispatch order and parallelism. The four axes are a floor. |
 | "Replacing these three narrow checks with one broad one is a simplification, not a weakening." | Ambiguous direction defaults to loosening. Measurement plus a human, or it does not ship. |
 | "This diff only touches the CI workflow — the review fan-out is overkill." | A pipeline edit changes what judges every later run, and removing a step there is a loosening. It also fires a trigger row: `ci-cd` joins the fan-out. |
+| "I'll write the run record at the barrier — one write per slice is cheaper than two." | Then a slice that dies between dispatch and barrier leaves no trace at all, and reads exactly like a slice that was never dispatched. The stub costs one line and is the only thing that survives a run ending mid-wave. |
+| "The slice runs in its own worktree, so let it append its own entry there." | A worktree is a branch that may never be merged. The write succeeds, reports success, and reaches no reader on the main line. You hold the pen; the entry lands in your checkout. |
+| "This slice failed the same way twice — I'll update the first entry rather than add a near-identical second." | Both failures are the record; that it failed twice the same way is the finding. Editing an existing entry is a violation, reported by name, not quietly refused. |
+| "I'll put the slice's state in its entry so the record reads on its own." | `STATE.md` is the board and this is the evidence. Two files answering "who acts next" disagree the moment one is updated and the other is not. |
+| "Verify ran its own commands — it should get its own entry." | One slice, one entry per dispatch. Verify hands back its commands and output; they go into the fields under that slice's heading. A second entry lets a reader count one slice twice. |
+| "The output has a token in it — I'll just drop those lines." | Withhold the value and say you withheld it. A silently dropped line reads as output that never existed, which is the thing the record exists to make impossible. |
+| "Nothing was skipped on this slice, so I'll leave the 'Not run' line off." | The line is never omitted. "Nothing was skipped" is an answer; a missing line is indistinguishable from an author who did not want to say. |
 | "I should check in before the next wave." | No mid-run halt. The human gets the open PRs at the end. |
 | "This PR is green — I'll merge it to save the human a click." | Never auto-merge to main. Terminal state is an OPEN PR. |
 | "I'll promote my own DRAFT PR to ready — I wrote it, I know it's good." | Promotion needs a fresh code-cold verifier with no test-write access (maker≠checker). |
@@ -478,7 +545,18 @@ diff nobody has reviewed yet.
 - Advancing the barrier on `success` instead of TERMINAL → STOP.
 - About to promote a DRAFT PR from the same context that wrote the tests → STOP (need a code-cold verifier).
 - Security CRITICAL/HIGH or secret-in-diff → hard halt that slice, no retry, never a PR; committed secret → PushNotification + freeze barrier.
-- Re-dispatching a slice the ledger marks `done` → STOP (read the ledger + `git log` after any compaction).
+- Re-dispatching a slice `STATE.md` marks `done` → STOP (read the board, `docs/progress.md`, and `git log`
+  after any compaction).
+- Appending to `docs/progress.md` from inside a slice's worktree → STOP. That write lands on a branch that
+  may never merge and reaches no reader, while reporting success.
+- Dispatching a slice without first appending its stub → STOP. A slice that then dies is indistinguishable
+  from one that was never dispatched.
+- Editing, re-wording, re-dating, re-ordering, or removing an entry already in `docs/progress.md` → STOP,
+  and report the violation naming the entry and what would have changed.
+- Writing a stage, state, gate, or owner into an entry → STOP. The board answers that question; the record
+  answers what was executed.
+- Recording that a check passed with neither its output nor a "Not run" line behind it → STOP. There is no
+  third state, and a bare assertion of success is the one this file exists to make visible.
 - Pasting prior-wave summaries / session history into a slice dispatch → STOP (hand the brief + frozen-contract paths as files).
 
 ## Verification (ending criteria)
@@ -501,6 +579,13 @@ measurement named. A scenario Verify reported `not-reachable` was **not** droppe
 contract (`acceptance.md`, or the ACTIVE row it came from) and its ack line is in the PR, which is what
 "not dropped" means here. And **the dispatch order is reproducible**: replaying the run against the same
 plan and the same `git` state would start the same slice first.
+
+Also true of every terminated run: **every slice the run touched has an entry in `docs/progress.md`, and
+every entry was written outside the worktrees.** Each entry either carries the real output of the commands
+it names or says under "Not run" that a check was not performed and why — there is no entry asserting a
+pass with nothing behind it. A slice dispatched twice has two entries. No entry carries a stage, a state,
+or an owner, so the record cannot be read as a second board. Check the last of these the direct way: a
+`git log` over `docs/progress.md` shows commits on the run's branch and none on any slice branch.
 
 Also true of every terminated run: **no slice entered `impl` without passing the design-ref gate** —
 its `Design ref` was `—`, or the contract that ref names read `status: signed` at the moment the
@@ -526,8 +611,13 @@ carries no diff, no worktree changes, and no PR.
   gate**, so every path a brief carries points at a contract that read `status: signed` at dispatch;
   a slice halted by the gate produces no brief at all, and its STATE row carries the halt reason with
   the unsigned contract's path.
-- **Progress ledger** updated per terminal slice (`Slice <id>: terminal=<state> (commits
-  <base7>..<head7>, PR #<n>)`), so a compacted controller never re-dispatches completed work.
+- **Appends to `docs/progress.md`** — the run record. One entry per slice per dispatch: a stub carrying
+  the slice id the moment the slice enters the wave, completed at the TERMINAL barrier with the commands
+  that were run, their real output, the files changed, and what was not run and why. Appended in the
+  checkout this skill holds, never inside a slice's worktree — a worktree is a branch that may never
+  merge, so a write there reaches nobody while reporting success. Append only: an entry already written
+  is never edited, and an attempt to change one is reported as a violation. It carries no stage, state,
+  gate, or owner; `STATE.md` above is where a resuming controller reads what is `done`.
 - **Inverted risk report** appended at run terminal, alongside the halts.
 - **Terminal hand-off:** risk-banded OPEN PRs on cluster branches for async human merge — the
   surviving downstream gate. No `session-state.md` 5-field handoff needed unless context fills

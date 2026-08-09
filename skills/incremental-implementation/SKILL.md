@@ -39,6 +39,11 @@ if a load-bearing input is missing.
 | `acceptance.md` | `acceptance-criteria` (Spec, signed) | the behavioral Given/When/Then scenario ids (e.g. `PWR-A2`) this slice realizes — the **frozen oracle** `test-driven-development` turns RED | the slice references an acceptance id that does not exist |
 | clean worktree | `worktree` (orchestrator) | a provisioned, preflight-green baseline branch for this slice | not running inside the handed worktree |
 
+One more input is read rather than required: **`docs/progress.md`**, the run record, when the repo has
+one. It is where this slice's entry goes on the hand-run path (see *The run record*), and where a
+previous attempt at the same slice said what it ran and what came back. An absent file means the repo
+was never set up for one — carry on; do not create it here, `project-setup` scaffolds it.
+
 **Disciplines it applies** (consulted, not stages it consumes): `test-driven-development` (RED-GREEN-REFACTOR; test-first order is
 hook-enforced), `source-driven-development` (ground any framework/library decision in fetched official docs, as needed),
 `debugging-and-error-recovery` (five-step triage when a slice's tests break). It does **not** re-derive the
@@ -257,6 +262,39 @@ After each increment, verify:
 
 **Note:** Run each verification command after a change that could affect it. After a successful run, don't repeat the same command unless the code has changed since — re-running on unchanged code adds no information.
 
+## The run record
+
+When a slice is run by hand — no orchestrator dispatched it, and you are working in the repository
+itself rather than in a worktree handed to you — **append that slice's entry to `docs/progress.md`**
+when the attempt finishes. One entry, in the shape the file's `## Entry shape` section holds: the
+commands you ran in the form you ran them, their real output, the files that changed, what was **not**
+run and why, and any follow-ups.
+
+**Inside an orchestrated run you are not the writer.** The orchestrator opened a stub for this slice
+before dispatching you and completes it at the wave barrier, in the checkout it holds. You are inside a
+worktree, and a worktree is a branch that may never be merged — an entry appended there succeeds,
+reports success, and reaches no reader on the main line. Hand your commands and their output back
+instead; the orchestrator writes them into the entry it already owns. **The two cases are told apart by
+one fact you already have: were you handed a worktree?** Handed one → return the evidence. Working in
+the repository → append.
+
+Three things about the entry, each of which someone gets wrong:
+
+- **One entry for the attempt, not one per increment.** A thin slice is many increments by design, and
+  an entry per increment buries the slice it was meant to describe. If a Verify pass ran on this attempt,
+  its commands and output belong in this same entry — `quality-verification` never writes its own.
+- **Append only.** An earlier entry is never edited, re-worded, re-dated, re-ordered, or removed, not
+  even the one recording the failure this attempt fixed. A second attempt writes a second entry. An
+  attempt to change an existing one is reported as a violation, naming the entry and what would have
+  changed; refusing quietly reads as a silent success.
+- **No state, no gate, no owner.** `STATE.md` says which stage the slice is at and who acts next. This
+  file says what ran. One question with two answers is one answer too many.
+
+Two lines nothing enforces, and they are the reason the file is worth keeping. Never write that a
+command was run when it was not — put it under "Not run" with the reason, and write that line even when
+nothing was skipped. And withhold any credential that appears in output, saying that you withheld it
+rather than dropping the line silently. No hook and no CI checks either one.
+
 ## Rationalizations
 
 | Rationalization | Reality |
@@ -267,6 +305,11 @@ After each increment, verify:
 | "I'll add the feature flag later" | If the feature isn't complete, it shouldn't be user-visible. Add the flag now. |
 | "This refactor is small enough to include" | Refactors mixed with features make both harder to review and debug. Separate them. |
 | "Let me run the build command again just to be sure" | After a successful run, repeating the same command adds nothing unless the code has changed since. Run it again after subsequent edits, not as reassurance. |
+| "I'm in a worktree, but the record is a repo file — I'll append my entry there anyway." | A worktree is a branch that may never merge. The write succeeds and reaches nobody. Hand the evidence back; the orchestrator owns that slice's entry. |
+| "The tests passed; I'll write 'tests green' and skip pasting the output." | An entry asserting a pass with nothing behind it is exactly the claim the record exists to make checkable. Paste what came back, or say the check was not run. |
+| "Nothing was skipped, so the 'Not run' line has nothing to say." | Write it and say nothing was skipped. A missing line and a deliberate silence look identical to the reader. |
+| "The retry fixed it, so the entry describing the failure is now misleading." | It described that attempt correctly and still does. Append a second entry. Editing the first is a violation, reported by name. |
+| "I'll add the slice's state to the entry so the record is readable on its own." | The board already answers that, and two answers diverge the moment one is updated. The record says what ran. |
 
 ## Red flags
 
@@ -285,6 +328,13 @@ After each increment, verify:
 - Editing `docs/design.md` so the built surface matches it — the decided look is an oracle Verify grades
   inherited axes against, and it carries no signature of its own to protect it. Moving it to clear a
   design gate is gate-erosion → HALT. A slice reads that file; it never writes it.
+- Appending to `docs/progress.md` from inside a worktree the orchestrator handed you — that write lands on
+  a branch that may never merge and reaches no reader, while reporting success.
+- Finishing a hand-run slice without an entry, or writing one that asserts a check passed with neither its
+  output nor a "Not run" line behind it.
+- Editing, re-ordering, or removing an entry already in `docs/progress.md` — append a new one instead, and
+  report the attempt as a violation naming the entry.
+- Pasting a token, key, or password into an entry — withhold the value and say you withheld it.
 
 ## Verification (ending criteria)
 
@@ -335,6 +385,13 @@ Per-increment verification is the local check. Before declaring a task done, app
   an edit. Moving the decided look so the built surface matches the code is weakening a check to clear a
   gate — the same gate-erosion **HALT**, retry or not. Only `frontend-design` writes that file, under the
   sign-off of a surface that means to move the whole look.
+- **Appends to `docs/progress.md`** — this slice's entry, **only on the hand-run path**: no orchestrator
+  dispatched it and no worktree was handed over, so the append lands in the repository itself, where a
+  reader will find it. Inside a run the orchestrator owns the entry and this skill returns its commands
+  and their output instead — an entry appended from a worktree lands on a branch that may never merge and
+  reaches nobody, which is the failure this split exists to avoid. One entry per attempt, carrying the
+  commands as run, their real output, the files changed, and what was not run and why; append only, and
+  no stage, state, gate, or owner in it. Full rule in *The run record* above.
 - **`STATE.md` update:** on a green slice checkpoint, flip the slice **`impl → verify`** (gate stays `agent`)
   and hand off to `quality-verification`. If the slice cannot pass after the bounded rounds (3 implement→verify→review cycles),
   flip it **`impl → halted`** and **flip its gate `agent → you`** — the failure-escalation path is the only
