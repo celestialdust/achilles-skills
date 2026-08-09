@@ -18,9 +18,9 @@ language. Every term this repository defines lives in this one section.
   preserve maker≠checker — the reviewer never shares the maker's context.
 - **Command** — a slash command at `commands/<name>.md` that names the skill(s) that run it. A command is a
   thin entry point, not a restatement of the skill. Most are *lifecycle* commands, mapping one stage
-  (Ideate · Spec · Plan · Implement · Verify · Review · Ship, plus `/orchestrate` and `/setup`). Two are
-  *standalone* — `/explain` and `/quiz` — and belong to no stage; they can run at any time without
-  advancing one.
+  (Ideate · Spec · Plan · Implement · Verify · Review · Ship, plus `/orchestrate` and `/setup`). Three
+  are *standalone* — `/explain`, `/quiz`, and `/gauntlet-loop` — and belong to no stage; they can run at
+  any time without advancing one.
 - **Artifact** — a contract file passed between stages (`intent.md`, `prd.md`, `plan.md`, `research.md`,
   `acceptance.md`, `environment.md`, `qa.md`, `STATE.md`). Artifact names are independent of skill names.
 - **Feature** — one unit of product work with its own set of documents, kept together under
