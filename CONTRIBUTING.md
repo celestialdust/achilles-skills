@@ -40,9 +40,36 @@ Every `SKILL.md` follows the same envelope:
 
 - **Frontmatter:** exactly two keys — `name` and `description`. Nothing else.
 - The `description` starts with what the skill does (third person), then names its trigger conditions ("Use when…" / "Use the moment…"). The `description` is the only thing the dispatcher reads to decide whether to load the skill, so make it concrete.
-- **Body sections, in order:** `## Purpose` · `## When to use / when to skip` · `## Inputs` · `## Process` · _(custom sections as needed)_ · `## Rationalizations` · `## Red flags` · `## Verification (ending criteria)` · `## Outputs & handoff contract`.
+- **Body: eight `##` slots, in this order.** The order is the contract. The wording is not.
 
-> **Chassis skills keep their native headings.** A handful of skills carry their original `## Overview` / `## The Process` headings verbatim. When editing one of those, do not rename its headings to match the envelope — preserve the chassis prose as-is.
+| # | Slot | House heading | What it holds |
+|---|---|---|---|
+| 1 | Purpose | `## Purpose` | what the skill does, and why it exists |
+| 2 | When to use | `## When to use / when to skip` | the triggers, and the cases that belong to a different skill |
+| 3 | Inputs | `## Inputs` | what must already exist before the skill runs |
+| 4 | Process | `## Process` | the method — the section the rest of the file exists to serve |
+| — | _(custom sections)_ | — | whatever this one skill needs: tables, worked examples, templates. Any number, including none. They sit between Process and Rationalizations, and nowhere else. |
+| 5 | Rationalizations | `## Rationalizations` | the excuses for skipping the process, each with its rebuttal |
+| 6 | Red flags | `## Red flags` | signs the skill is being violated |
+| 7 | Verification | `## Verification (ending criteria)` | how to tell the skill is finished |
+| 8 | Outputs | `## Outputs & handoff contract` | what it produces, and who reads it next |
+
+**Word a slot for the skill when that reads better.** This is deliberate, not tolerated. `incremental-implementation` calls its Process slot `## The Increment Cycle` because that is what the process *is*; renaming it to `## Process` would cost the reader the one word that told them. Many shipped skills word at least one slot differently, and none of them is a defect.
+
+Two kinds of variation are already in the tree. Both are **worked examples, not a closed list** — a heading that does not appear here is not wrong for being absent from it:
+
+- **An alternate wording of a fixed slot.** `## Overview` for Purpose · `## When to Use` for When to use · `## Common Rationalizations` for Rationalizations · `## Red Flags` for Red flags · `## Verification` for Verification.
+- **A Process slot named for its own method.** `## The Increment Cycle` (`incremental-implementation`) · `## The Optimization Workflow` (`performance-optimization`) · `## The Quality Gate Pipeline` (`ci-cd`) · `## The Pre-Launch Checklist` (`shipping-and-launch`) · `## The Five-Axis Review` (`code-review`) · `## Core Principles` (`api-design`, `git-workflow`).
+
+A qualifier hung off a slot heading still fills that slot: `## Red flags — STOP`, `## Red flags (STOP)`, `## Process — the turn protocol`, and `## Process: Threat Model First` each do.
+
+> **A defect is a slot that is missing, or slots that appear out of order. An unfamiliar heading is neither.** Never rename a heading merely because you have not seen it before — ask whether all eight slots are present and in sequence, and if they are, leave the wording alone.
+
+Slots are what keep the envelope checkable. An exception written as *which skills may deviate* has to be maintained by hand and goes stale the first time someone adds a skill; a slot walk does not. Read as slots, the envelope is a single pass down a file's `##` headings, matching each slot in turn:
+
+- Slots 1–3 and 5–8 each accept a small set of wordings — the house heading, the alternate above, or either carrying a qualifier.
+- Slot 4 accepts **any** heading. Everything from it up to Rationalizations is one band of sections, and a check cannot tell which of them is the Process — nor does it need to, since it confirms only that the band is not empty. The rest of the band is custom and goes unchecked.
+- A file whose headings run out before slot 8, or whose slots resolve in the wrong sequence, fails. A file that fills all eight in order passes, whatever they are called.
 
 ### Quality bar
 
@@ -116,6 +143,8 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
 ## Validating before a PR
 
 - Every `SKILL.md` has valid frontmatter with exactly `name` + `description`.
+- Every `SKILL.md` carries all eight body slots, in order — see [The house envelope](#the-house-envelope).
+  An unfamiliar heading is not a finding; a missing or out-of-order slot is.
 - `agents/` and `commands/` filenames match the arrays in `.claude-plugin/plugin.json`.
 - Exactly one plugin manifest exists — `.claude-plugin/plugin.json`, which states the version. There is
   no second manifest at the repo root; a duplicate would drift, since nothing forces the two to agree.
