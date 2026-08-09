@@ -210,9 +210,9 @@ This prevents authors from treating all feedback as mandatory and wasting time o
 **Lead with what matters.** Order findings by leverage: correctness and security first, then structural regressions and missed simplifications, then everything else. Don't bury a real issue under cosmetic nits — a few high-conviction comments beat a long list. If you have one structural problem and ten nits, the structural problem *is* the review.
 
 **A `Critical:` finding may become a lesson — and only a `Critical:` one.** Where the repo keeps a
-`docs/lessons.md`, root-cause your Critical findings and append one entry each, in the shape that file's
-`## Entry shape` block holds. Review is the second writer of that file; whoever debugs a failure is the
-first. The bound is what keeps the two apart: a Critical finding is a defect that would have shipped, so
+`docs/lessons.md`, root-cause your Critical findings and record one entry each, in the shape that file's
+`## Entry shape` block holds and at the moment the next paragraph names. Review is the second writer of
+that file; whoever debugs a failure is the first. The bound is what keeps the two apart: a Critical finding is a defect that would have shipped, so
 what it teaches outlives this diff, while a Required or lesser finding is a change this author is about to
 make and is already tracked in your findings list.
 
@@ -221,11 +221,32 @@ finding is and that it stays in the findings list. The cost of the softer rule i
 lessons file that accepts every Required finding becomes a second copy of every review, and a file nobody
 can skim is a file nobody reads before writing a skeleton, which is the one moment it was for.
 
-Three rules govern the append, each of them the same in every file that states them: an entry that cannot
-name an `Automated guard` is **refused**; editing an entry already there is a **STOP**, reported as a
-violation naming the entry and what would have changed; and a category already recorded gets a **second
-entry**, never an amendment to the first. An absent `docs/lessons.md` means the repo was never set up for
-one — say so in the review and move on; do not create it.
+**The entry is written when the finding is closed, not when it is found.** Two of the seven fields —
+`Fix` and `References` — name a change and a commit that do not exist while you are still writing
+findings, and an entry is a STOP to edit once written, so a field guessed now is a field nobody can ever
+correct. Append at the close of the review, when the Critical finding has been root-caused and its fix is
+in. A review that ends at `Request changes` with the Critical still open writes nothing: the finding is
+tracked in your findings list, which is where it belongs until somebody closes it, and the entry lands
+when they do — through `debugging-and-error-recovery` if that is where the fix runs, which is its own
+zone of the file and not a second copy of yours.
+
+**A guard nobody can name is not a deadlock.** The record refuses an entry whose `Automated guard` is
+blank, and every closed Critical finding has to be recorded, which reads like a trap until you see what
+an un-nameable guard means: the finding is not root-caused yet. Say that in the review, name it as the
+reason the verdict stays `Request changes`, and hand it to whoever owns the fix. What never happens is an
+entry written with the field left open.
+
+**Where the entry lands.** `docs/lessons.md` is a repository file, and a review dispatched into a slice's
+worktree is reading a branch that may never be merged — an entry appended there succeeds, reports
+success, and reaches no reader on the main line. The two cases are told apart by one fact you already
+have: were you handed a worktree? Handed one → hand the finished entry back with your findings, and the
+orchestrator appends it at the wave barrier, in the checkout it holds. Reviewing in the repository itself
+→ append it yourself.
+
+The rules that govern the append — the refusal, the STOP, the second entry rather than an amendment — are
+stated in `docs/lessons.md` under `## Entry shape`, and you are opening that file to write. Read them
+there; a copy here is one that can fall behind it. An absent `docs/lessons.md` means the repo was never
+set up for one — say so in the review and move on; do not create it.
 
 ### Step 5: Verify the Verification
 
@@ -408,16 +429,17 @@ Part of code review is dependency review:
 - A gate-erosion finding written without naming the artifact, or the contract row id, that changed — the person reading it cannot tell which guarantee was at stake
 - A `Critical:` finding closed with no `docs/lessons.md` entry, where the repo keeps one — the finding dies with this diff and the next author meets the same defect
 - Appending a Required, Optional, Nit, or FYI finding to `docs/lessons.md` — refused; it stays in the findings list, and admitting it makes that file a second copy of every review
-- Writing a lessons entry with `Automated guard` blank — refused, not written with the field left open
-- Editing, re-wording, re-dating, re-ordering, or removing an entry already in `docs/lessons.md`, or folding your entry into an existing one because the category matches → STOP, and report the violation naming the entry and what would have changed. Append a second entry instead
+- Writing the entry while the finding is still open, so `Fix` and `References` name a change and a commit that do not exist yet — the entry is a STOP to edit, so the guess is permanent
+- Appending the entry inside a worktree you were dispatched into — that write lands on a branch that may never merge and reaches no reader, while reporting success
 
 ## Verification
 
 After review is complete:
 
 - [ ] All Critical issues are resolved
-- [ ] Every Critical finding was root-caused and recorded as one `docs/lessons.md` entry, all seven fields
-      filled, and nothing below Critical was recorded there (skip where the repo keeps no such file)
+- [ ] Every Critical finding closed here was root-caused and recorded as one `docs/lessons.md` entry, all
+      seven fields filled from what exists rather than from what is planned, and nothing below Critical was
+      recorded there (skip where the repo keeps no such file)
 - [ ] All Required (no-prefix) changes are resolved or explicitly deferred with justification
 - [ ] Tests pass
 - [ ] Build succeeds
@@ -427,11 +449,18 @@ After review is complete:
 
 ## Outputs & handoff contract
 
-**Emits:** `review` — a severity-labeled, leverage-ordered findings list plus a verdict — and, where the repo keeps a `docs/lessons.md`, **one appended entry per root-caused `Critical:` finding** and none for any lesser class. That append is this skill's only write, and it lands in a record rather than in the code: the diff, the tests, and the frozen contracts stay untouched, so maker≠checker holds. It is also the one zone of that file review owns — `debugging-and-error-recovery` writes the entries for defects it root-caused — which is why two writers on one file is not a collision here. Stable sections a consumer (the orchestrator's review-gate aggregator and the `pull-request` skill) depends on:
+**Emits:** `review` — a severity-labeled, leverage-ordered findings list plus a verdict. Stable sections a consumer (the orchestrator's review-gate aggregator and the `pull-request` skill) depends on:
 
 - **`Verdict`** — exactly one of `Approve` | `Request changes`.
 - **`Findings`** — ordered by leverage (correctness & security first, then structural regressions & missed simplifications, then nits). EVERY finding carries a `path:line` citation and a severity prefix (`Critical:` | *(no prefix = Required)* | `Optional:` / `Consider:` | `Nit:` | `FYI`). A few high-conviction comments beat a long list; one structural problem buried under ten nits means the structural problem IS the review.
 - **`Verification story`** — what the author ran (tests / build / manual) and whether it holds up.
+
+**Appends**, where the repository keeps one: one `docs/lessons.md` entry per closed `Critical:` finding
+and none for any lesser class. That append is the only thing this skill puts on disk, and it lands in a
+record rather than in the code: the diff, the tests and the frozen contracts stay untouched, so
+maker≠checker holds. It is the one zone of that file review owns — the entries for a defect somebody
+debugged belong to `debugging-and-error-recovery` — which is why two writers on one file is not a
+collision here. Step 4 says when the entry is filled in and who appends it.
 
 **Gate role:** this skill is the **Review-fan-out leg** — ONE of three AND-combined agent-internal gates (quality-verification + Review fan-out + evaluator floors). It does NOT flip `STATE.md` and does NOT open or promote a PR. The orchestrator aggregates all legs; a passing slice stops at a **DRAFT PR** that a separate fresh code-cold verifier later promotes. A `Request changes` verdict routes the slice back to `incremental-implementation` (bounded rounds), not forward.
 

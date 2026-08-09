@@ -216,10 +216,12 @@ Then create the substrate (skip anything that already exists; never clobber). Th
    You are scaffolding this file in the repository itself, not in a worktree — `project-setup` runs once,
    before any feature exists, so there is no slice branch for a write to get stranded on.
 
-10. **`docs/lessons.md`** — the lessons record, seeded with the **field template and no entries** (see
-    "lessons.md seed" below). Skip it if it already exists, for the same reason as the two files above and
-    with the same force: it is append-only, so overwriting one destroys what earlier defects cost somebody
-    to work out. Seed no entries; entries are written when a defect is root-caused.
+10. **`docs/lessons.md`** — the lessons record, seeded with its `## Entry shape` heading and the fenced
+    field template beneath it, and no entries (see "lessons.md seed" below). That heading and that
+    template are the whole of what this skill writes here; every later line in the file is somebody
+    else's entry. Skip the file if it already exists, for the same reason as the two above and with the
+    same force: it is append-only, so overwriting one destroys what earlier defects cost somebody to work
+    out.
 
     **Check `.gitignore` here too.** A lesson is written for the next person to work in that area, who is
     usually not the person who wrote it and often arrives on a fresh clone. If a pattern matches it, say so
@@ -668,6 +670,10 @@ Append below, oldest first:
 - Automated guard:   (what would catch a recurrence — a lint, a test, a helper, a checklist item, or
                       an architecture invariant. Never empty: an entry without one is refused)
 - References:        (where to look — the commit, the run-record entry, the failing command)
+
+Withhold any credential that appears in output, and say that you withheld it. `Symptom` and
+`References` are the two fields one arrives in, and no entry here is ever edited — a value written
+into one cannot be taken back out.
 ```
 
 All seven fields get filled in. `Automated guard` is the one that gets left for later, and later is
@@ -815,7 +821,7 @@ copy that this arrangement exists to prevent.
 - Seeding `docs/progress.md` with an entry, or writing the entry shape anywhere but inside the fenced
   block under `## Entry shape`.
 - Dropping the "Not run" line or the credential line from the seeded shape — they are the two lines the
-  file exists for, and nothing else in the repo states them.
+  file exists for, and the seed is what the writer is looking at when the temptation arises.
 - Putting a stage, a state, a gate, or an owner into the entry shape — the board answers that, and a
   second answer is one that can disagree.
 - Leaving `docs/progress.md` matched by `.gitignore`, or adding it there — its reader was not present and
@@ -828,6 +834,8 @@ copy that this arrangement exists to prevent.
   block under `## Entry shape`.
 - Dropping any of the seven fields from the seeded template, or seeding `Automated guard` as optional — a
   missing guard is a refusal, and a seed that hedges it is where the hedge becomes the rule.
+- Dropping the credential line from the seeded template — `Symptom` and `References` carry output
+  verbatim, and an entry here is never edited, so a token written into one cannot be taken back out.
 - Leaving `docs/lessons.md` matched by `.gitignore`, or adding it there — the reader it is written for is
   usually not the writer, and often arrives on a fresh clone.
 
@@ -911,11 +919,10 @@ Done when **all** hold:
 - A pre-existing `docs/session-state.md` was left untouched — no entry under its `## Log` was reworded,
   re-ordered, or removed.
 - `docs/progress.md` exists, carrying a `## Entry shape` heading with the entry shape in a fenced block
-  beneath it — including the "Not run" line and the credential line — and **no other `##` heading**, since
-  every other one is an entry. Its text states that the file is append-only, that an attempt to change an
-  earlier entry stops the work and is reported, that a heading with nothing under it is a slice that started
-  and did not finish, and that no entry carries a stage, a state, or an owner. A reader who has never seen
-  this project can add an entry from the file alone.
+  beneath it — including the "Not run" line and the credential line. Its text states that the file is
+  append-only, that an attempt to change an earlier entry stops the work and is reported, that a heading
+  with nothing under it is a slice that started and did not finish, and that no entry carries a stage, a
+  state, or an owner. A reader who has never seen this project can add an entry from the file alone.
 - Nothing in `docs/progress.md` is a stage, state, gate, or owner token — not in the shape, not in the
   prose that introduces it. This file records what ran; the board records who acts next.
 - `docs/progress.md` is not matched by any `.gitignore` pattern; if one matched it, that was surfaced to
@@ -923,42 +930,54 @@ Done when **all** hold:
 - A pre-existing `docs/progress.md` was left untouched — no entry in it was reworded, re-ordered, or
   removed.
 - `docs/lessons.md` exists, carrying a `## Entry shape` heading with the seven-field template in a fenced
-  block beneath it and **no other `##` heading**, since every other one is an entry. Its text states that
-  the file is read before a slice writes its skeleton, that an entry naming no `Automated guard` is
-  refused, that it is append-only and an attempt to change an earlier entry stops the work and is
-  reported, that the same lesson twice is two entries, and which two parties write it and on what terms.
-  A reader who has never seen this project can add an entry from the file alone.
-
-  ```bash
-  f=docs/lessons.md
-  [ -s "$f" ] || { echo "$f: missing or empty"; exit 1; }
-  awk -v f="$f" '
-    /^```/ { fence = !fence; next }
-    !fence && /^## / { h++; if ($0 != "## Entry shape") {
-               print f":"FNR": heading other than \"## Entry shape\" — that is an entry, and the seed ships none"; b=1 } }
-    fence && /^- [A-Z]/ { sub(/:.*/, ""); sub(/^- /, ""); got[$0]=1 }
-    END { if (h != 1) { print f": expected exactly one ## heading outside a fence, found "h; b=1 }
-          n = split("Tags|Symptom|Root cause|Fix|Prevention|Automated guard|References", want, "|")
-          for (i = 1; i <= n; i++) if (!(want[i] in got)) { print f": field missing from the fenced entry shape: "want[i]; b=1 }
-          exit b }' "$f"
-  ```
-
-  **The fence handling is the whole check, not a detail.** The template's own first line is
-  `## <date> — …`, so a scan that does not skip fenced lines reports the file it just wrote — the same
-  way a `state: ACTIVE` scan over the whole test contract does. Running it before believing it is what
-  catches that; reading it does not.
-
-  **Exercise it in all five directions**, on a scratch copy: the seed as written → `0`; the
-  `Automated guard` line deleted → non-zero, naming that field; a seeded entry added under a
-  `## <date> — …` heading of its own → non-zero, naming the line; the template moved out of the fenced
-  block → non-zero, naming all seven fields, which is the red flag above made mechanical; and the file
-  truncated to zero length → non-zero. That last one gets skipped and is what a failed write actually
-  produces — `awk` runs no rule at all over an empty file, so without the `[ -s ]` guard ahead of it the
-  check prints nothing and reads as a pass.
+  block beneath it, including the credential line. Its text states that the file is read before a slice
+  writes its skeleton, that an entry naming no `Automated guard` is refused, that it is append-only and an
+  attempt to change an earlier entry stops the work and is reported, that the same lesson twice is two
+  entries, and which two parties write it and on what terms. A reader who has never seen this project can
+  add an entry from the file alone.
 - `docs/lessons.md` is not matched by any `.gitignore` pattern; if one matched it, that was surfaced to
   the user rather than silently changed.
 - A pre-existing `docs/lessons.md` was left untouched — no entry in it was reworded, re-ordered, or
   removed.
+- **Both append-only records carry their entry shape where a check can find it:** one `## Entry shape`
+  heading outside any fenced block, and beneath it a fenced template naming every field of that record.
+  That is the whole invariant, and it is deliberately not "and no other `##` heading". Every other
+  heading in either file is an entry; this skill re-runs over repositories that already hold entries, and
+  the escape hatch under "When to use / when to skip" says so in as many words. A criterion that counted
+  headings would report a populated record as a defect — and the cheapest way for an agent to clear that
+  is to delete the entries the file exists to keep.
+
+  ```bash
+  shape() {
+    f=$1
+    [ -s "$f" ] || { echo "$f: missing or empty"; return 1; }
+    awk -v f="$f" -v fields="$2" '
+      /^```/                       { fence = !fence; next }
+      !fence && /^## Entry shape$/ { h++ }
+      fence && /^- [A-Z]/          { k = $0; sub(/:.*/, "", k); sub(/^- /, "", k); got[k] = 1 }
+      END { if (h != 1) { print f": expected one \"## Entry shape\" heading outside a fenced block, found "h+0; b=1 }
+            n = split(fields, want, "|")
+            for (i = 1; i <= n; i++) if (!(want[i] in got)) { print f": field missing from the fenced entry shape: "want[i]; b=1 }
+            exit b }' "$f"
+  }
+  b=0
+  shape docs/progress.md 'Summary|Commands run|Results|Files changed|Not run|Follow-ups' || b=1
+  shape docs/lessons.md 'Tags|Symptom|Root cause|Fix|Prevention|Automated guard|References' || b=1
+  exit $b
+  ```
+
+  **The fence handling is the whole check, not a detail.** Each template's own first line is
+  `## <date> — …`, so a scan that does not skip fenced lines reports the file it just wrote — the same
+  way a `state: ACTIVE` scan over the whole test contract does. Running it before believing it is what
+  catches that; reading it does not.
+
+  **Exercise it in all five directions**, on scratch copies: the two seeds as written → `0`; either seed
+  with two real entries appended after the fenced block → `0`, because entries are the thing these files
+  are for; a field line cut from a fenced template → non-zero, naming that field; a template moved out of
+  its fenced block → non-zero, naming every field of that record, which is the red flag above made
+  mechanical; and either file truncated to zero length → non-zero. The last one gets skipped and is what
+  a failed write actually produces — `awk` runs no rule at all over an empty file, so without the
+  `[ -s ]` guard ahead of it the check prints nothing and reads as a pass.
 - Exactly one of `CLAUDE.md` / `AGENTS.md` contains an `## Agent skills` block referencing `STATE.md`,
   `CONTEXT.md`, `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, and
   `docs/progress.md`. The other file holds no copy of that block.
@@ -1014,8 +1033,8 @@ Emits the repo substrate the whole suite consumes:
 | `docs/test-contract.md` | repo-wide | `## Rows` (permanent scenarios, each `PENDING` or `ACTIVE`; scaffolded with none ACTIVE). An ACTIVE row may never be skipped, weakened, or narrowed by any slice in any run; activation is one-way and human-only |
 | `docs/workflow.md` | repo-wide | every `##` section the bundled `assets/workflow.template.md` carries, verbatim — the acceptance check under Verification names them, and says to take the list off the template rather than off any copy of it — re-synced (with the user's yes) whenever a re-run finds it drifted |
 | `docs/session-state.md` | repo-wide | the five snapshot fields (`## Current objective` · `## Current state` · `## Remaining issues` · `## Boundaries` · `## Next phase`) plus `## Log`, append-only and scaffolded empty. Entries hold the decision, the reason, what was ruled out, and what is still open — never what git already shows. Earlier entries never change, and an attempt to change one is reported as a violation. Weakest source in the repo: outranked by `docs/adr/` and a signed `acceptance.md`, with promotion to `docs/adr/` as the way out. Committed, never ignored |
-| `docs/progress.md` | repo-wide | `## Entry shape` plus the fenced entry shape beneath it — `<date> · <SLICE-ID> · <title>` heading, then Summary · Commands run · Results · Files changed · Not run · Follow-ups — scaffolded with no entries. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one stops the work and is reported. Every other `##` heading is an entry. Holds no stage, state, gate, or owner — that is the board's question. Committed, never ignored |
-| `docs/lessons.md` | repo-wide | `## Entry shape` plus the fenced seven-field template beneath it — `<date> · <one line>` heading, then Tags · Symptom · Root cause · Fix · Prevention · Automated guard · References — scaffolded with no entries. An entry naming no `Automated guard` is refused. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one stops the work and is reported. The same lesson twice is two entries, never a merge. Every other `##` heading is an entry. Committed, never ignored |
+| `docs/progress.md` | repo-wide | `## Entry shape` plus the fenced entry shape beneath it, field for field as the *progress.md seed* section above writes it — scaffolded with no entries. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one stops the work and is reported. Every other `##` heading is an entry. Holds no stage, state, gate, or owner — that is the board's question. Committed, never ignored |
+| `docs/lessons.md` | repo-wide | `## Entry shape` plus the fenced template beneath it, field for field as the *lessons.md seed* section above writes it — scaffolded with no entries. An entry naming no `Automated guard` is refused. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one stops the work and is reported. The same lesson twice is two entries, never a merge. Every other `##` heading is an entry. Committed, never ignored |
 | `CLAUDE.md` / `AGENTS.md` | repo root | one carries the `## Agent skills` block, the other a pointer naming it — never two copies of the block, and never a missing file; a fresh `CLAUDE.md` also leads with the bundled behavioral template |
 
 **Named in the substrate, created by nobody here: `docs/design.md`** — the repo's decided look, which

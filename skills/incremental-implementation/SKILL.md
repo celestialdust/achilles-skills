@@ -323,7 +323,7 @@ rather than dropping the line silently. No hook and no CI checks either one.
 | "I'm in a worktree, but the record is a repo file — I'll append my entry there anyway." | A worktree is a branch that may never merge. The write succeeds and reaches nobody. Hand the evidence back; the orchestrator owns that slice's entry. |
 | "The tests passed; I'll write 'tests green' and skip pasting the output." | An entry asserting a pass with nothing behind it is exactly the claim the record exists to make checkable. Paste what came back, or say the check was not run. |
 | "Nothing was skipped, so the 'Not run' line has nothing to say." | Write it and say nothing was skipped. A missing line and a deliberate silence look identical to the reader. |
-| "The retry fixed it, so the entry describing the failure is now misleading." | It described that attempt correctly and still does. Append a second entry. Editing the first is a violation, reported by name. |
+| "The retry fixed it, so the entry describing the failure is now misleading." | It described that attempt correctly and still does. Append a second entry. Editing the first is a **STOP**: the work ends there and the violation is reported by name. |
 | "I'll add the slice's state to the entry so the record is readable on its own." | The board already answers that, and two answers diverge the moment one is updated. The record says what ran. |
 
 ## Red flags

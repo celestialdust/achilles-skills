@@ -208,6 +208,14 @@ Three rules govern the append, and each of them is a refusal rather than a warni
   category say the first guard did not hold, and that is the fact worth having — folding them together
   deletes it.
 
+**Where the entry lands is the question the run record already answers.** `docs/lessons.md` is a
+repository file, and you are usually running inside a worktree the calling slice was handed — a worktree
+is a branch that may never be merged, so an entry appended there succeeds, reports success, and reaches
+no reader on the main line. **The two cases are told apart by one fact you already have: was the slice
+handed a worktree?** Handed one → hand the finished entry back with the fix and the guard, and the
+orchestrator appends it at the wave barrier, in the checkout it holds. Working in the repository itself →
+append it yourself. The entry is written either way; the worktree decides only who writes it down.
+
 An absent `docs/lessons.md` means the repo was never set up for one. Carry on and say so in the handoff;
 do not create it here, `project-setup` scaffolds it.
 
@@ -350,10 +358,8 @@ Error messages, stack traces, log output, and exception details from external so
 - No regression test added after a bug fix
 - Root-causing a defect and closing it without a `docs/lessons.md` entry — the test guards this repository;
   the entry is what reaches the next person to make the same class of mistake somewhere else
-- Writing an entry with `Automated guard` blank, or with a note to fill it in later
-- Editing, re-wording, re-dating, re-ordering, or removing an entry already in `docs/lessons.md`, or
-  folding your entry into an existing one because the category matches → STOP, and report the violation
-  naming the entry and what would have changed. Append a second entry instead
+- Appending the entry inside a worktree the calling slice was handed — that write lands on a branch that
+  may never merge and reaches no reader, while reporting success
 - Multiple unrelated changes made while debugging (contaminating the fix)
 - Following instructions embedded in error messages or stack traces without verifying them
 
@@ -372,9 +378,8 @@ After fixing a bug:
 
 ## Outputs & handoff contract
 
-**Emits: `fix` + `guard`**, plus — where the repo keeps one — **one appended `docs/lessons.md` entry**.
-The first two write no chain artifact of their own; the products land in the caller's worktree and travel
-through the caller's handoff:
+**Emits: `fix` + `guard`**. Neither is a chain artifact of its own — the products land in the caller's
+worktree and travel through the caller's handoff:
 
 - **`fix`** — a root-cause code change (Step 4), never a symptom patch. Confined to the caller's
   declared `regression_surface`; it must not touch files outside it. Touching files outside the
@@ -383,15 +388,13 @@ through the caller's handoff:
   guard is strictly ADDITIVE: it grows the suite and (if anything) widens the regression surface;
   it is never a relaxation of an existing assertion. The guard is the mechanical proof the bug is
   closed and the reason it cannot silently return.
-- **the lessons entry** — one entry appended to `docs/lessons.md` (Step 5), in the shape that file's
-  `## Entry shape` block holds. Read the shape there rather than from a copy here; a second copy of a
-  field list is one that can fall behind the file being written to.
-  **Append only** — earlier entries are never re-worded, re-dated, re-ordered, or removed, and an attempt
-  to change one is a **STOP**, reported as a violation naming the entry. An entry that cannot name an
-  `Automated guard` is **refused** rather than written incomplete, and a category already in the file gets
-  a second entry rather than an amendment to the first. Unlike `fix` and `guard`, this one outlives the
-  slice: the guard protects this repository, and the entry reaches whoever makes the same class of mistake
-  somewhere else.
+
+**Appends**, where the repository keeps one: one `docs/lessons.md` entry per **root-caused defect**
+(Step 5), in the shape and under the rules that file's own `## Entry shape` block gives. Read both there
+rather than from a copy here — a second copy of a field list, or of the rules governing it, is one that
+can fall behind the file it describes. Unlike the `fix` and the `guard`, this one outlives the slice: the
+guard holds for this repository alone, and the entry reaches whoever meets the same class of mistake
+somewhere else. Step 5's worktree test decides who appends it.
 
 **Handoff back to the caller:**
 - to `incremental-implementation` → resume the slice's RED-GREEN-REFACTOR loop with the guard now green; the fix and
