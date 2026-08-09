@@ -3,8 +3,15 @@
 //
 // Reads the "Who writes what" table out of docs/workflow.md, collects the writes a
 // skills/*/SKILL.md declares in prose, and compares the two zone by zone. It does not claim to find
-// every one — CONTRIBUTING.md, "The write-table check", says what it does and does not reach, and
-// says it once so this header cannot drift away from it.
+// every one — CONTRIBUTING.md, "Validating before a PR", says what it does and does not reach at
+// more length than belongs here.
+//
+// IT READS DECLARATIONS, NOT BEHAVIOUR, and that is its softest edge. A skill's write is a sentence
+// about a write, so the cheapest way to turn a hit green is to stop declaring: drop the `**Writes:**`
+// marker, or the backticks around the path, and the claim disappears while the skill goes on doing
+// exactly what it did. Nothing here can see that, because there is nothing left to see. Widening a
+// table row and narrowing a declaration are the same erosion from two sides, and CONTRIBUTING.md
+// forbids both — close a hit by narrowing the *write*, never by narrowing the *sentence*.
 //
 // IT OVER-REPORTS ON PURPOSE, and that is the whole design. A skill declares its writes in prose, so
 // no parser can be certain which zone a sentence means. Two earlier versions guessed, and every guess
@@ -44,12 +51,14 @@
 //
 // A DENIAL REACHES ONE SENTENCE, AND ONLY WHERE IT IS THE WHOLE OF IT. "does not write", "update:
 // none", "writes nowhere else" — a sentence saying one of those and nothing else about writing
-// contributes nothing, and where it is the *first* sentence the whole stretch is dropped, because a
-// declaration whose own predicate is a denial declares nothing. Cut the denial out and something that
-// still writes is still a claim: "preflight's only write is the gate flip — it does not write the
-// feature transition" declares a gate flip and is judged as one. A denial used to carry for two
-// hundred characters and to need no such test, which let it retract claims about a different file and
-// let one added clarifying sentence turn a reported trespass green.
+// contributes nothing, and *nothing beyond that sentence is dropped*, wherever in the stretch it
+// stands. First position is not special, and an earlier header said it was: dropping the whole stretch
+// from a leading denial threw away every later sentence in it, so a real write standing after "never
+// writes X" was collected from nowhere and printed as nothing — a silent pass. Cut the denial out and
+// something that still writes is still a claim: "preflight's only write is the gate flip — it does not
+// write the feature transition" declares a gate flip and is judged as one. A denial used to carry for
+// two hundred characters and to need no such test, which let it retract claims about a different file
+// and let one added clarifying sentence turn a reported trespass green.
 //
 // Two paths are still not read as claims. A path under the plugin's own tree — `assets/`, `skills/`,
 // `references/` and friends — is a working file rather than one of the documents this contract is

@@ -15,14 +15,36 @@
 //
 // HOW IT FINDS A REGISTRY. Not by heading text, which drifts. A registry is a markdown table whose
 // header row names the kind — a column called `Skill`, `Command` or `Persona` — and the entries are
-// the backticked tokens in that column. The routing tree in `using-agent-skills` is not a table, so it
-// is read as the union of that file's fenced blocks. Both readings are deliberately loose about where
-// the list sits and strict about what counts as an entry.
+// the tokens in that column, backticked or bare. Both readings are deliberately loose about where the
+// list sits and strict about what counts as an entry.
 //
-// WHAT IT DOES NOT REACH. It knows about three kinds of thing. The artifacts a release adds —
-// `ARCHITECTURE.md`, `docs/progress.md`, `docs/lessons.md` and the rest — are enumerated in prose
-// rather than in a column, and no parser picks those out of a sentence. Those are the ones that went
-// wrong most often in this build, and they still have to be swept by hand.
+// MEMBERSHIP IS JUDGED AGAINST THE COLUMN, NEVER AGAINST THE FILE, and the difference is the whole
+// worth of this check. Four legs used to ask whether the *file* held the name anywhere — a substring
+// test — and every one of them passed on a deleted row, because the name almost always survives in a
+// sentence beside the table it was deleted from. Deleting the `/quiz` row from CLAUDE.md's command
+// table was silent; deleting `/setup` from README's was silent; only the rows whose name happened to
+// be written nowhere else were caught, which is luck and not a check. A name in a paragraph is not a
+// row in a registry, and a reader sent to a table finds the table, not the paragraph.
+//
+// The routing tree in `using-agent-skills` is a fence, not a table, and it gets the same treatment: a
+// row is a fenced line carrying `→`, and the destination is what stands after the first arrow with
+// any parenthetical cut off. Reading the fence as one body of text let the tree's own closing
+// paragraph — "the orchestrator runs code-review / code-simplification / …" — stand in for the
+// routing rows those names have, so deleting `code-review`'s row passed. The parenthetical is cut for
+// the same reason: `(wave-parallel DAG · preflight-readiness gate · handoff)` is an aside on the
+// `orchestrator` row and would otherwise stand in for two other skills' rows.
+//
+// WHAT IT DOES NOT REACH.
+//   · Artifacts. `ARCHITECTURE.md`, `docs/progress.md`, `docs/lessons.md` and the rest are enumerated
+//     in prose rather than in a column, and no parser picks those out of a sentence. Those are the
+//     ones that went wrong most often in this build, and they still have to be swept by hand.
+//   · The routing tree in the MISSING direction only. A destination token that names nothing — what a
+//     rename leaves behind — is not reported there, because a destination is prose and `re-run` is
+//     shaped exactly like a skill that was deleted. The rename is still caught: the same rename shows
+//     as a PHANTOM in the Quick reference table, which is a column and can be read exactly.
+//   · `.claude-plugin/plugin.json`'s `skills` key. It is the string `./skills` — a pointer at the
+//     directory, not an enumeration — so there is nothing there to be out of step with the tree. Its
+//     `commands` and `agents` arrays are enumerations and are checked.
 //
 // NOTHING RUNS THIS FOR YOU. .github/workflows/companion-tests.yml is path-filtered to
 // skills/frontend-design/scripts/**, so this directory is covered by no job at all. It is on the pre-PR
@@ -121,14 +143,40 @@ function entriesInColumn(markdown, columnMatch) {
   return found;
 }
 
-// The routing tree is a fenced block, not a table. Read the union of a file's fences as one body of
-// text: which fence a name sits in is not the question, only whether the tree names it at all.
-function fencedText(markdown) {
+// The routing tree is a fenced block, not a table, so its rows have to be cut out by hand. A row is a
+// fenced line carrying `→`; its destination is everything after the first arrow, with parentheticals
+// dropped. The first arrow and not the last, because an aside states arrows of its own — `(Ideate →
+// intent.md)` names an artifact, not a destination.
+function routingDestinations(markdown) {
   const out = [];
   const rx = /^(?:`{3,}|~{3,})[^\n]*\n([\s\S]*?)^(?:`{3,}|~{3,})[^\n]*$/gm;
   let m;
-  while ((m = rx.exec(markdown)) !== null) out.push(m[1]);
+  while ((m = rx.exec(markdown)) !== null) {
+    for (const line of m[1].split('\n')) {
+      const arrow = line.indexOf('→');
+      if (arrow === -1) continue;
+      out.push(line.slice(arrow + 1).replace(/\([^)]*\)/g, ' '));
+    }
+  }
   return out.join('\n');
+}
+
+// The two enumerations in the plugin manifest. `skills` is the string `./skills` and enumerates
+// nothing, so it is not read here — the header says so.
+function manifestEntries(source, key) {
+  const found = new Map();
+  let parsed;
+  try { parsed = JSON.parse(source); } catch { die('.claude-plugin/plugin.json is not readable JSON'); }
+  const list = parsed[key];
+  if (!Array.isArray(list)) die(`.claude-plugin/plugin.json has no \`${key}\` array`);
+  const lines = source.split('\n');
+  for (const item of list) {
+    const raw = String(item);
+    const name = raw.slice(raw.lastIndexOf('/') + 1).replace(/\.md$/, '');
+    const at = lines.findIndex(l => l.includes(raw));
+    found.set(name, at === -1 ? 0 : at + 1);
+  }
+  return found;
 }
 
 // ---------------------------------------------------------------- run
@@ -140,12 +188,24 @@ const personas = fileNames('agents');
 const dispatcher = read('skills/using-agent-skills/SKILL.md');
 const claudeMd = read('CLAUDE.md');
 const readme = read('README.md');
+const manifest = read('.claude-plugin/plugin.json');
 
-const tree = fencedText(dispatcher);
+const destinations = routingDestinations(dispatcher);
+
+// Both directions read the same map, so they can never disagree about what a registry holds. A
+// command is written `/name` in its column; a bare `name` is accepted too, because the column, not
+// the spelling, is what makes a token a row.
+const holds = entries => name => entries.has(`/${name}`) || entries.has(name);
+
 const quickRef = entriesInColumn(dispatcher, /^skill$/i);
+const readmeSkills = entriesInColumn(readme, /^skill$/i);
+const claudeCommands = entriesInColumn(claudeMd, /^command$/i);
+const readmeCommands = entriesInColumn(readme, /^command$/i);
+const claudePersonas = entriesInColumn(claudeMd, /^persona$/i);
+const readmePersonas = entriesInColumn(readme, /^persona$/i);
+const manifestCommands = manifestEntries(manifest, 'commands');
+const manifestAgents = manifestEntries(manifest, 'agents');
 
-// A command is written `/name` wherever it is listed. A persona is written by its bare name, and is
-// also linked as `agents/<name>.md`, so either spelling counts as listing it.
 const REGISTRIES = [
   {
     kind: 'skill', where: 'skills/using-agent-skills/SKILL.md · the routing tree',
@@ -153,27 +213,39 @@ const REGISTRIES = [
     // the one place it cannot send you is where you already are, so requiring a self-route would be
     // demanding a row that would mean nothing.
     tree: skills.filter(n => n !== 'using-agent-skills'),
-    lists: name => new RegExp(`\\b${name}\\b`).test(tree), entries: null,
+    lists: name => new RegExp(`\\b${name}\\b`).test(destinations), entries: null,
   },
   {
     kind: 'skill', where: 'skills/using-agent-skills/SKILL.md · the Quick reference table',
-    tree: skills, lists: name => quickRef.has(name), entries: quickRef,
+    tree: skills, lists: holds(quickRef), entries: quickRef,
+  },
+  {
+    kind: 'skill', where: 'README.md · the skill roster',
+    tree: skills, lists: holds(readmeSkills), entries: readmeSkills,
   },
   {
     kind: 'command', where: 'CLAUDE.md · the command table',
-    tree: commands, lists: name => claudeMd.includes(`\`/${name}\``),
-    entries: entriesInColumn(claudeMd, /^command$/i),
+    tree: commands, lists: holds(claudeCommands), entries: claudeCommands,
   },
   {
     kind: 'command', where: 'README.md · the command table',
-    tree: commands, lists: name => readme.includes(`\`/${name}\``),
-    entries: entriesInColumn(readme, /^command$/i),
+    tree: commands, lists: holds(readmeCommands), entries: readmeCommands,
+  },
+  {
+    kind: 'command', where: '.claude-plugin/plugin.json · the `commands` array',
+    tree: commands, lists: holds(manifestCommands), entries: manifestCommands,
   },
   {
     kind: 'persona', where: 'CLAUDE.md · the persona table',
-    tree: personas,
-    lists: name => claudeMd.includes(`agents/${name}.md`) || claudeMd.includes(`[${name}]`),
-    entries: entriesInColumn(claudeMd, /^persona$/i),
+    tree: personas, lists: holds(claudePersonas), entries: claudePersonas,
+  },
+  {
+    kind: 'persona', where: 'README.md · the persona table',
+    tree: personas, lists: holds(readmePersonas), entries: readmePersonas,
+  },
+  {
+    kind: 'persona', where: '.claude-plugin/plugin.json · the `agents` array',
+    tree: personas, lists: holds(manifestAgents), entries: manifestAgents,
   },
 ];
 
@@ -196,7 +268,7 @@ if (listOnly) {
     const missing = reg.tree.filter(n => !reg.lists(n));
     console.log(`${reg.where}`);
     console.log(`  lists ${reg.tree.length - missing.length}/${reg.tree.length} ${reg.kind}s${missing.length ? `; missing: ${missing.join(', ')}` : ''}`);
-    if (reg.entries) console.log(`  ${reg.entries.size} entries in its column`);
+    if (reg.entries) console.log(`  ${reg.entries.size} entries read from it, and membership judged against those`);
   }
   process.exit(0);
 }
@@ -217,6 +289,7 @@ for (const g of gaps) {
 console.log(`${skills.length} skills · ${commands.length} commands · ${personas.length} personas, against ${REGISTRIES.length} registries`);
 if (!gaps.length) {
   console.log('Every skill, command and persona is listed everywhere it has to be, and no registry lists a ghost.');
+  console.log('Membership was judged against each registry\'s own column, not against the file around it.');
   console.log('Artifacts enumerated in prose rather than in a column are out of reach here. Sweep those by hand.');
   process.exit(0);
 }

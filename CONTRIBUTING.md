@@ -71,7 +71,12 @@ Slots are what keep the envelope checkable. An exception written as *which skill
 - Slot 4 accepts **any** heading, so no walk can pick the Process out. What a walk confirms is that at least one heading sits between the Inputs slot and the Rationalizations slot — a region, not a position. The heading that opens that region is often not the Process: `performance-optimization` opens it with `## Core Web Vitals Targets` and reaches `## The Optimization Workflow` further down. Which heading is the Process is something a person reading the file can see and a walk cannot, and the Process wordings above are for that person.
 - A file fails when a slot has no heading left to match after the slot before it: the headings ran out, or the only candidate sits earlier. A file that fills all eight in order passes, whatever they are called and whatever else it carries.
 
-So the walk catches a slot that is missing, and a slot moved past another whose wording it does not match. **Do not rely on it for the Inputs/Process pair.** Whether it catches a swap there depends on how many headings that file's Process region happens to carry, so a pass tells you nothing about that pair either way: move `## Inputs` below `## The Increment Cycle` in `incremental-implementation` and the walk still passes. Closing that would mean fixing a wording for the Process, which is the one thing this envelope refuses to do. Check that pair by reading — nothing else will.
+So the walk catches a slot moved past another whose wording it does not match, and a slot that is missing — with one exception, and the exception is slot 4. **Do not rely on the walk for the Process at all.** Slot 4 accepts any heading, so it consumes whichever heading stands at that point in the file, whatever that heading is. Two things go unseen because of it, and the second is the larger:
+
+- **A swapped Inputs/Process pair.** Move `## Inputs` below `## The Increment Cycle` in `incremental-implementation` and the walk still passes.
+- **A Process that is not there.** A skill carrying `## Glossary` between Inputs and Rationalizations and no Process at all walks clean, and `--list` prints `4:Glossary` as though the slot were filled.
+
+Closing either would mean fixing a wording for the Process, which is the one thing this envelope refuses to do — and it would fail correct files as they stand: slot 4 is filled in this tree by `## Core Web Vitals Targets`, `## Loading Constraints` and `## Choosing a Browser MCP`. So read slot 4 yourself, and ask both questions: is there a Process, and does it sit after the Inputs? Nothing else asks either.
 
 ### Quality bar
 
@@ -96,7 +101,7 @@ Write the block's trigger as the persona carve-out: a single code-cold pass a pe
 
 ## Adding a command
 
-A command is a thin entry point at `commands/<name>.md` that maps **one lifecycle stage** to the skill(s) that run it — not a restatement of the skill. The suite ships twelve. Nine are lifecycle commands: `/ideate`, `/spec`, `/plan`, `/implement`, `/verify`, `/review`, `/ship`, `/orchestrate`, `/setup`. The other three, `/explain`, `/quiz`, and `/gauntlet-loop`, are standalone and belong to no stage.
+A command is a thin entry point at `commands/<name>.md` that maps **one lifecycle stage** to the skill(s) that run it — not a restatement of the skill. The suite ships twelve commands. Nine are lifecycle commands: `/ideate`, `/spec`, `/plan`, `/implement`, `/verify`, `/review`, `/ship`, `/orchestrate`, `/setup`. The other three, `/explain`, `/quiz`, and `/gauntlet-loop`, are standalone and belong to no stage.
 
 A command file is Markdown with YAML frontmatter — a single `description` key, then the prompt as the body:
 
@@ -113,7 +118,7 @@ Keep the body a wrapper: name the skill(s) to invoke and the stage's inputs/outp
 
 ## Adding a persona
 
-A persona is a thin role file at `agents/<name>.md` that a skill dispatches as a **fresh, code-cold subagent**. The persona is the _role_; the skill it points at is the _method_. Personas exist to preserve **maker ≠ checker** — the reviewer never inherits the maker's context. The suite ships five: `code-reviewer`, `security-auditor`, `test-engineer`, `performance-auditor`, `adversarial-reviewer`.
+A persona is a thin role file at `agents/<name>.md` that a skill dispatches as a **fresh, code-cold subagent**. The persona is the _role_; the skill it points at is the _method_. Personas exist to preserve **maker ≠ checker** — the reviewer never inherits the maker's context. The suite ships five personas: `code-reviewer`, `security-auditor`, `test-engineer`, `performance-auditor`, `adversarial-reviewer`.
 
 A persona file is:
 
@@ -146,9 +151,9 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
 
 - `node scripts/check-envelope.mjs` is silent. It walks every `SKILL.md` for exactly `name` +
   `description` in the frontmatter and all eight body slots in order, read as a subsequence — see
-  [The house envelope](#the-house-envelope). **A clean run says nothing about the Inputs/Process pair**:
-  slot 4 accepts any heading, so the walk confirms a region rather than a position and cannot see the two
-  swapped. Read that pair yourself; nothing else will.
+  [The house envelope](#the-house-envelope). **A clean run says nothing about slot 4**: it accepts any
+  heading, so the walk confirms a region rather than a position, and it can see neither the Inputs and
+  the Process swapped nor the Process missing outright. Read slot 4 yourself; nothing else will.
 - `agents/` and `commands/` filenames match the arrays in `.claude-plugin/plugin.json`.
 - Exactly one plugin manifest exists — `.claude-plugin/plugin.json`, which states the version. There is
   no second manifest at the repo root; a duplicate would drift, since nothing forces the two to agree.
@@ -157,17 +162,31 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
 - `node scripts/check-references.mjs` is silent. Every markdown link, heading anchor and backticked path
   under the plugin's own tree resolves. It does not check paths under `docs/` — most of those name
   artifacts the suite scaffolds into *your* project and correctly absent from this one, so checking them
-  would report a false hit on nearly every mention. Read those by hand.
+  would report a false hit on nearly every mention. Read those by hand. It also cannot resolve a section
+  cited by name — `CONTRIBUTING.md, "The house envelope"`, which two of these scripts write — because
+  those citations live in `.mjs` comments and this walks `.md` files. **Rename a heading in this file and
+  grep the old name across `scripts/` before you stop.**
 - `node scripts/check-enumerations.mjs` is silent. Every stated total — skills, personas, commands — is
-  recomputed from the tree and diffed against every sentence that states it. **Never take a count in this
-  repository on trust.** Nine hand-priced enumerations in the v2 build measured wrong and every one was
-  short; one said seven sections where there were eight and would have shipped a duplicate. A count this
-  check cannot reach — the sections in a block, the rows in a table, the steps in a process — is a count
-  you measure with a command before you write it down.
+  recomputed from the tree and diffed against each sentence that states it *in one of five frames*: a
+  definite article with the number straight after it, a structure-block arrow, a bare `All`, a `There
+  are`, and an inventory verb (`ships`, `registers`). **The frame list is finite, and that is the hole.**
+  A total worded some sixth way — "a roster of 39", "40 structured skills" — is unchecked, so rewording a
+  sentence out of the frame is a cheaper way to clear a hit than fixing the number, and nothing reports
+  that you did it. If a wording you wrote went unchecked, add its frame to the script rather than leave
+  the next person the same hole. **Never take a count in this repository on trust.** Nine hand-priced
+  enumerations in the v2 build measured wrong and every one was short; one said seven sections where there
+  were eight and would have shipped a duplicate. A count this check cannot reach — the sections in a
+  block, the rows in a table, the steps in a process — is a count you measure with a command before you
+  write it down.
 - `node scripts/check-registries.mjs` is silent. Every skill, command and persona is listed in each
-  registry that enumerates its kind, and no registry lists something that is not there. The second
-  direction is the one hand-review never does: a rename leaves a row behind that sends a reader to a file
-  that does not exist. Artifacts named in prose rather than in a table column are out of its reach.
+  registry that enumerates its kind — the run's last line prices how many that is — and no registry lists
+  something that is not there. The second direction is the one hand-review never does: a rename leaves a
+  row behind that sends a reader to a file that does not exist. **Membership is judged against the
+  registry's own column, never against the file around it** — a name surviving in a paragraph beside the
+  table it was deleted from is not a row, and reading it as one made every deleted row a silent pass. Out
+  of reach: artifacts named in prose rather than in a table column, and a stale *destination* in the
+  routing tree, which is prose the check reads only in the missing direction. A rename still shows there
+  as a phantom in the Quick reference table.
 - `node scripts/check-write-table.mjs` reports nothing your own diff introduced. It reads the write
   table in `docs/workflow.md`, collects the writes each `SKILL.md` declares in prose, and judges each
   against the zone the table gives that skill. Three verdicts: **permitted**, which is silent;
@@ -188,16 +207,29 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   turn a red check green is the gate erosion the table exists to catch. Close it by rewording the skill.
   Nothing runs it for you; no job covers `scripts/`.
 
-  What is in the standing output, characterised. The run reports **69 to settle — 38 conflicts and 31
-  unresolved**, from 89 write claims over 4051 paragraphs against 70 table rows. Re-derive those numbers
-  from the check's own last line rather than trusting this sentence; they move with every wave that adds
-  a writer, and a count copied by hand is the defect this table exists to catch. What follows characterises
-  the **classes** the conflicts fall into, not one row per finding. Sites are named by skill and by the
-  sentence, not by line number, because line numbers move and a stale citation reads exactly like a live
-  one.
+  **Rewording the skill means narrowing the write, never narrowing the sentence.** The check reads
+  declarations, not behaviour, so its cheapest green is for a skill to stop declaring: delete the
+  `**Writes:**` marker, or the backticks around the path, and the claim vanishes while the skill goes on
+  writing exactly what it wrote. One marker can carry several files' claims at once, so a single unbolding
+  takes all of them out of the run together — measured, not supposed: unbold one `**Writes…**` marker in
+  `gauntlet-loop` and four conflicts leave the output. That is the same erosion as widening a row, entered
+  from the other side of the same door: the table would say who may write a zone, the skill would no
+  longer say it writes there, and between them nobody would be telling the truth. So a hit is closed one
+  of two ways — stop the skill writing outside its zone, or give the zone a row that was always correct
+  and would have been written whatever the check said. If the reworded sentence no longer says what the
+  skill writes, you have hidden the hit, not settled it.
 
-  The **31 unresolved** are a separate category and are not listed below at all. An unresolved finding is
-  one whose claim matched a file the table rows but named no zone cue, so the check cannot tell a legal
+  What is in the standing output, characterised. **This paragraph states no numbers.** An earlier draft
+  did — a count of findings, of claims, of paragraphs, of table rows — and one of the four was already
+  off by one against the check's own last line, inside the sentence telling you never to trust a
+  hand-priced count. They move with every wave that adds a writer, so a copy of them here can only ever
+  be right for a while and wrong silently after that. Run the check and read its last line; that is the
+  count. What follows characterises the **classes** the conflicts fall into, not one row per finding.
+  Sites are named by skill and by the sentence, not by line number, because line numbers move and a stale
+  citation reads exactly like a live one.
+
+  The unresolved findings are a separate category and are not listed below at all. An unresolved finding
+  is one whose claim matched a file the table rows but named no zone cue, so the check cannot tell a legal
   write from a trespass and says so instead of guessing. They cluster on the per-feature artifacts —
   `plan.md`, `prd.md`, `intent.md`, `CONTEXT.md`, `acceptance.md` lead the list — because those rows carry
   `—` in *Named by* and their zones therefore cannot be told apart from prose. Give a zone a cue where the

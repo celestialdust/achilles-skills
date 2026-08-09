@@ -7,12 +7,27 @@
 // contiguous would reject correct files, and a check that fails on correct files is one people learn to
 // ignore.
 //
-// WHAT IT CANNOT CATCH, and CONTRIBUTING.md says this too. Slot 4 accepts any heading, because fixing a
-// wording for the Process is the one thing the envelope refuses to do. So the walk confirms a *region* —
-// at least one heading between Inputs and Rationalizations — rather than a position, and it cannot tell
-// you which heading in that region is the Process. It therefore says nothing either way about the
-// Inputs/Process pair: move `## Inputs` below `## The Increment Cycle` and this still passes. Check that
-// pair by reading. Nothing else will.
+// WHAT IT CANNOT CATCH, and CONTRIBUTING.md says this too. Slot 4 accepts any heading, because fixing
+// a wording for the Process is the one thing the envelope refuses to do. So the walk confirms a
+// *region* — at least one heading between Inputs and Rationalizations — rather than a position, and it
+// cannot tell you which heading in that region is the Process. Two gaps follow, and the second is the
+// larger one:
+//
+//   · It says nothing either way about the Inputs/Process pair. Move `## Inputs` below `## The
+//     Increment Cycle` and this still passes.
+//   · It cannot see the Process MISSING. Slot 4 consumes whatever heading stands at the cursor, so a
+//     file carrying `## Glossary` between Inputs and Rationalizations and no Process at all reports
+//     `ok`, and `--list` prints `4:Glossary` as though the slot were filled. Every other slot's
+//     absence is caught; slot 4's is not.
+//
+// Neither is closable here, for one reason. Slot 4 is filled in this tree by `## Core Web Vitals
+// Targets`, `## Loading Constraints` and `## Choosing a Browser MCP` — correct files, all three — so
+// any rule asking slot 4 to look like a Process would fail them, and a check that fails on correct
+// files is one people learn to ignore. That costs more than the gap does. Read the Process yourself:
+// is there one, and does it sit after the Inputs? Nothing else asks either question.
+//
+// Order IS caught. A slot moved past another whose wording it does not match runs the walk out of
+// headings and fails; so does any of the other seven going missing. Slot 4 is the single exception.
 //
 // NOTHING RUNS THIS FOR YOU. .github/workflows/companion-tests.yml is path-filtered to
 // skills/frontend-design/scripts/**, so this directory is covered by no job at all. It is on the pre-PR
@@ -196,7 +211,8 @@ const faulted = reports.filter(r => r.faults.length);
 console.log(`${scanned} skills walked · ${SLOTS.length} slots each, read as a subsequence`);
 if (!faulted.length) {
   console.log('Every SKILL.md carries two frontmatter keys and all eight slots in order.');
-  console.log('This says nothing about the Inputs/Process pair — slot 4 accepts any heading. Read that pair.');
+  console.log('Slot 4 accepts any heading, so this says nothing about the Inputs/Process pair — and it');
+  console.log('cannot tell a Process from a custom section standing where one should be. Read slot 4.');
   process.exit(0);
 }
 console.log(`${faulted.length} to settle: ${faulted.map(r => r.name).join(', ')}`);

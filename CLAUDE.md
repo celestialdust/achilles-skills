@@ -128,10 +128,12 @@ a platform with no skill tool — not to build the `/review` fan-out.
 - Every skill lives at `skills/<kebab-case-name>/SKILL.md`.
 - Reference other skills rather than duplicating their content.
 - The `SKILL.md` envelope is defined in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it there before you add
-  or reshape a skill. Its **eight body slots and their order** are stated there and nowhere else — do not
-  copy them back here, because the second copy is the one that drifts. The frontmatter keys and how a
-  `description` is written are not so lucky: the per-agent setup guides state those too, so changing
-  either means finding every site rather than editing one.
+  or reshape a skill. Its **eight body slots and their order** are stated there in prose and encoded once
+  in code, in `scripts/check-envelope.mjs` — do not add a third copy here, because a copy nothing executes
+  is the one that drifts. Those two are meant to agree: change the envelope and you change both, in the
+  same commit, or the check starts enforcing the old contract while the prose describes the new one. The
+  frontmatter keys and how a `description` is written have it worse: the per-agent setup guides state
+  those too, so changing either means finding every site rather than editing one.
 - Use the **new** skill names everywhere (e.g. `performance-optimization`, not `perf`; `quality-verification`,
   not `qa`). Artifact filenames (`qa.md`, `acceptance.md`, `environment.md`, …) and the `git` VCS tool keep
   their names — they are not skill pointers.

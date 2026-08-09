@@ -23,6 +23,13 @@
 //     learn to skip. A dangling `docs/workflow.md` therefore goes unreported. Read those by hand.
 //   · Any path holding `<` or `>`: `docs/features/<slug>/plan.md` is a shape, not a file.
 //   · External URLs. Whether a URL is alive is a question for the network, not for this.
+//   · The first backticked path on a `**Source:**` line inside a `VENDORED.md`, which names the
+//     upstream project's file and is not supposed to exist here. Nothing else on that line, and no
+//     provenance line in any other file, is exempt — see the note at the skip itself for why.
+//   · A section cited by its name rather than by an anchor — `CONTRIBUTING.md, "The house envelope"`,
+//     which two scripts in `scripts/` write. Nothing resolves that: this walks `.md` files, and the
+//     citations live in `.mjs` comments. Rename a section and those go stale silently. Grep for the
+//     old section name whenever you rename one.
 //
 // NOTHING RUNS THIS FOR YOU. .github/workflows/companion-tests.yml is path-filtered to
 // skills/frontend-design/scripts/**, so this directory is covered by no job at all. It is on the pre-PR
@@ -104,6 +111,7 @@ function anchorsOf(path) {
   let set = new Set();
   try {
     const lines = readFileSync(path, 'utf8').split('\n');
+    const seen = new Map();
     let fenced = false;
     for (const line of lines) {
       if (/^\s*(?:`{3,}|~{3,})/.test(line)) { fenced = !fenced; continue; }
@@ -111,10 +119,17 @@ function anchorsOf(path) {
       const m = line.match(/^(#{1,6})\s+(.*\S)\s*$/);
       if (!m) continue;
       const base = slugOf(m[2]);
-      // GitHub disambiguates repeats with -1, -2 … Accept those without tracking which is which:
-      // a link to the second "Inputs" is not the defect this check is for.
+      seen.set(base, (seen.get(base) || 0) + 1);
+    }
+    // GitHub disambiguates repeats with -1, -2 …: the first "Inputs" is `#inputs`, the second
+    // `#inputs-1`. Accept exactly as many suffixes as the heading actually repeats, and no more.
+    // Adding six unconditionally meant `#the-house-envelope-6` resolved against a heading written
+    // once — a typo'd fragment with a free pass, in the one check whose whole job is to refuse those.
+    // Which of the repeats a link meant is still not tracked: a link to the second "Inputs" is not
+    // the defect this check is for.
+    for (const [base, n] of seen) {
       set.add(base);
-      for (let i = 1; i <= 6; i++) set.add(`${base}-${i}`);
+      for (let i = 1; i < n; i++) set.add(`${base}-${i}`);
     }
   } catch { set = null; }
   anchorCache.set(path, set);
@@ -201,12 +216,24 @@ for (const path of markdownFiles(ROOT)) {
     if (!PATHLIKE.test(body) || body.includes('<') || body.includes('>') || body.includes('..')) continue;
     if (!SHIPPED.test(body)) continue;
 
-    // A provenance line names a path in the project the code came FROM, and that path is not supposed to
-    // exist here — recording it is the entire purpose of a vendoring note, which states the upstream
-    // location and the local one on adjacent lines. Reporting it asks the file to delete the fact it
-    // exists to preserve.
-    const lineText = source.slice(source.lastIndexOf('\n', m.index) + 1, source.indexOf('\n', m.index));
-    if (/\*\*(Source|Upstream|Vendored from|Origin):\*\*/i.test(lineText)) continue;
+    // A provenance line names a path in the project the code came FROM, and that path is not supposed
+    // to exist here — recording it is the entire purpose of a vendoring note, which states the
+    // upstream location and the local one on adjacent lines. Reporting it asks the file to delete the
+    // fact it exists to preserve.
+    //
+    // The exemption is as narrow as the need: only in a `VENDORED.md`, and only the FIRST backticked
+    // token on the line, which is the upstream one. Written wide it was a suppression switch anybody
+    // could throw — `**Source:**` at the head of any line in any file silenced every shipped path on
+    // it, so a dangling `references/…` went green for the cost of two words. A vendoring note is one
+    // named file; a provenance line anywhere else is ordinary prose and is read as such.
+    if (/(^|\/)VENDORED\.md$/.test(rel)) {
+      const lineStart = source.lastIndexOf('\n', m.index) + 1;
+      const lineEnd = source.indexOf('\n', m.index);
+      const lineText = source.slice(lineStart, lineEnd === -1 ? source.length : lineEnd);
+      const first = lineText.indexOf('`');
+      if (/\*\*(Source|Upstream|Vendored from|Origin):\*\*/i.test(lineText)
+          && first !== -1 && lineStart + first === m.index) continue;
+    }
 
     // "`spec-grilling`'s `references/CONTEXT-FORMAT.md`" says whose file it is, in the two words before
     // the path. Resolve it against that skill. Without this the check reads the path bare, finds it

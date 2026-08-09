@@ -18,19 +18,33 @@
 // them false — which is worse than reporting nothing, because a check that only ever cries wolf is one
 // people learn to skip.
 //
-// So a total is recognised by its *frame*, not by its noun. Two frames state one in this repository and
-// nothing else uses either: a definite article with the number immediately after it (`The 40 skills`),
-// and a structure-block arrow (`skills/ → 40 skills`). Every subset claim in the tree fails both —
-// "eight skills carry one", "the other four personas", "two or three skills" — because English does not
-// front a subset with a bare definite article. A total worded some third way goes unchecked, and the
-// completeness assertion below is what keeps that from being silent: each registry must be claimed
-// somewhere, so deleting the only sentence that states a count fails rather than passes.
+// So a total is recognised by its *frame*, not by its noun. Five frames state one in this repository,
+// and no subset claim in the tree uses any of them: a definite article with the number immediately
+// after it (`The 40 skills`), a structure-block arrow (`skills/ → 40 skills`), a universal quantifier
+// (`All 40 skills`), an existential (`There are 40 skills`), and an inventory verb (`the suite ships
+// 40 skills`, `the plugin registers 12 slash commands`). Every subset claim in the tree fails all five
+// — "eight skills carry one", "the other four personas", "two or three skills" — because English does
+// not front a subset with a bare definite article or a bare `all`.
 //
-// WHAT IT DOES NOT REACH. Only the three registries below, because only these three are countable from
-// the tree without being told what to count. A sentence pricing something else — the sections in a
-// block, the rows in a table, the steps in a process — is invisible here and has to be measured by
-// hand. Those are exactly the ones that went wrong most often, so measure them: do not read a count in
-// this repository without running the command that produces it.
+// THE FRAME LIST IS FINITE, AND THAT IS THE HOLE. A total worded some sixth way is unchecked, and
+// nothing below reports it. The completeness assertion is *not* what closes this, whatever an earlier
+// version of this header claimed: it fires only when a registry has no claim left anywhere in the
+// tree, so while any twin still states a count, rewording one site out of the frame is silent. That
+// makes rewording the cheapest way to clear a live WRONG hit — turn "The 40 skills" into "a roster of
+// 39" and the check goes quiet without the number becoming true. If you are here because a hit
+// annoyed you, fix the number. If you are here because a wording you wrote went unchecked, add its
+// frame to FRAMES below rather than leaving the next person the same hole.
+//
+// WHAT IT DOES NOT REACH.
+//   · Only the three registries below, because only these three are countable from the tree without
+//     being told what to count. A sentence pricing something else — the sections in a block, the rows
+//     in a table, the steps in a process — is invisible here and has to be measured by hand. Those are
+//     exactly the ones that went wrong most often, so measure them: do not read a count in this
+//     repository without running the command that produces it.
+//   · An adjective the noun phrase has not been taught. `40 structured skills` and `5 reusable agent
+//     personas` are totals and go unread, because the adjective group is closed on purpose — opening
+//     it to anything at all is how a subset ("the eight bundled skills") walks in.
+//   · A total worded outside the five frames, as above.
 //
 // NOTHING RUNS THIS FOR YOU. .github/workflows/companion-tests.yml is path-filtered to
 // skills/frontend-design/scripts/**, so this directory is covered by no job at all. It is on the pre-PR
@@ -88,9 +102,19 @@ function countFiles(dir, suffix) {
   return readdirSync(path).filter(name => name.endsWith(suffix)).length;
 }
 
-// The two frames that state a total, and nothing else. `The` has to sit immediately before the number:
+// The five frames that state a total, and nothing else. Each has to sit immediately before the number:
 // "the other four personas" is a subset and stays one, because the number does not follow the article.
-const FRAME = `(?:\\bthe\\s+|→\\s*)`;
+// `MARKUP` lets a bolded count in — `ships **40 skills**` is the same claim as `ships 40 skills`, and
+// reading only the unbolded spelling left every per-agent setup guide's headline total unchecked.
+const MARKUP = `[*_\`]*`;
+const FRAMES = [
+  `\\bthe\\s+`,          // The 40 skills
+  `→\\s*`,               // skills/ → 40 skills
+  `\\ball\\s+`,          // All 40 skills
+  `\\bthere\\s+are\\s+`, // There are 40 skills
+  `\\b(?:ships|registers)\\s+`, // the suite ships 40 skills
+];
+const FRAME = `(?:${FRAMES.join('|')})${MARKUP}`;
 
 // Each registry: what it counts, how to count it, and the noun phrase that states the total, always
 // behind a frame. The adjective group is closed on purpose — see the header.
@@ -193,8 +217,10 @@ if (listOnly) {
   process.exit(0);
 }
 
-// A registry nobody states is a registry this check cannot keep true. Without this, deleting the one
-// sentence that prices a tree turns a failing check green — the quietest way there is to pass.
+// A registry nobody states is a registry this check cannot keep true. It catches the *last* claim
+// going, and only that: one claim anywhere satisfies it, so deleting or rewording one of several twins
+// stays silent. That is the hole the header names, and this assertion does not close it — it is the
+// floor, not the guard.
 const unclaimed = REGISTRIES.filter(reg => !claims.some(c => c.label === reg.label));
 for (const reg of unclaimed) {
   console.log(`UNSTATED    no file states a total for ${reg.label}`);
@@ -217,6 +243,7 @@ console.log(`${claims.length} stated counts checked across ${new Set(claims.map(
 if (!wrong.length && !unclaimed.length) {
   console.log('Every stated count matches the tree it counts.');
   console.log('Counts outside these three registries are unreachable from here. Measure those by hand.');
+  console.log('So is a total worded outside the five frames — a silent count is not a checked one.');
   process.exit(0);
 }
 if (wrong.length) console.log(`${wrong.length} wrong: ${[...new Set(wrong.map(c => `${c.rel}:${c.line}`))].join(', ')}`);
