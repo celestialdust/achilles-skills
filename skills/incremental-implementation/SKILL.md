@@ -33,10 +33,23 @@ if a load-bearing input is missing.
 
 | Input | Source (skill) | Stable sections it reads | Refuse-to-run if absent |
 |---|---|---|---|
-| `plan.md` + slices | `plan-breakdown` | the assigned slice's row keyed by **Slice id** — its **Story-ref · Files (owned) · Regression surface · Checkpoint · Blocked-by** columns — plus the line-level steps and exact tests in the plan body | no `plan.md`, or no concrete steps for the assigned slice |
+| `plan.md` + slices | `plan-breakdown` | the assigned slice's row keyed by **Slice id** — its **Story-ref · Design ref · Files (owned) · Regression surface · Checkpoint · Blocked-by** columns — plus the line-level steps and exact tests in the plan body | no `plan.md`, or no concrete steps for the assigned slice |
+| `Design ref` | the slice row, delivered in the dispatch brief | for a UI slice, the signed `design-contract.md` and the committed prototype it names — **open the prototype before you write the skeleton.** Fidelity to it is what Verify grades, and `acceptance.md` is contractually design-free, so the design floor lives nowhere else: in the prototype, in the contract, and — for any axis the contract marks `inherits: docs/design.md` — in that file, which the contract does not restate. Building first and reconciling later is where the rework comes from. A `Design ref` of `—` means this slice builds no UI — proceed; the `—` is the planner's recorded answer, not a blank | the slice touches UI and the brief carried no `Design ref` at all — ask for it rather than guessing the design |
 | assigned slice id | `STATE.md` (orchestrator) | the PRD-namespaced slice row in state `impl`, gate `agent` | no slice assigned, or it is not in `impl`/`agent` |
 | `acceptance.md` | `acceptance-criteria` (Spec, signed) | the behavioral Given/When/Then scenario ids (e.g. `PWR-A2`) this slice realizes — the **frozen oracle** `test-driven-development` turns RED | the slice references an acceptance id that does not exist |
 | clean worktree | `worktree` (orchestrator) | a provisioned, preflight-green baseline branch for this slice | not running inside the handed worktree |
+
+Two further inputs are read rather than required — both when the repo has them, and an absent one means
+the repo was never set up for it. Carry on in that case, and do not create either here; `project-setup`
+scaffolds both.
+
+- **`docs/progress.md`**, the run record. It is where this slice's entry goes on the hand-run path (see
+  *The run record*), and where a previous attempt at the same slice said what it ran and what came back.
+- **`docs/lessons.md`**, the lessons record — **read before you write the skeleton**, not after the code
+  is written. Each entry is a defect somebody root-caused, with the guard that would catch it coming back.
+  The skeleton is where the decisions those entries are about get made, so a lesson read afterwards can
+  only tell you what the rework is. You are reading for the entries that touch the area this slice
+  builds in; a file with no entry near it costs one read and settles the question.
 
 **Disciplines it applies** (consulted, not stages it consumes): `test-driven-development` (RED-GREEN-REFACTOR; test-first order is
 hook-enforced), `source-driven-development` (ground any framework/library decision in fetched official docs, as needed),
@@ -93,6 +106,17 @@ Each slice delivers working end-to-end functionality.
 Within a vertical slice, build the skeleton end-to-end first, then fill it in — absorbed from cr-structure's
 build-order. Each step is independently observable:
 
+- **Read `docs/lessons.md` first, every slice.** Before the stub, open the lessons record and look for
+  entries touching the area this slice builds in. Every entry there is a defect this project already paid
+  for once, and each names the guard that would catch it again — which is a decision about how to build,
+  not a note to file afterwards. This is the only moment reading it changes anything: after the skeleton,
+  the same entry costs a rewrite instead of a choice. A repo with no such file, or none near this area,
+  costs one read.
+- **Read the design ref first (UI slices).** Before the stub, open the prototype and contract named in the
+  slice's `Design ref`. The skeleton is where layout, hierarchy and component boundaries get decided, and
+  those are exactly what the prototype already decided — start from it and the fidelity check at Verify is
+  a formality; start from a guess and it is a rewrite. A `Design ref` of `—` means no UI: skip straight to
+  Stub.
 - **Stub** — every layer the slice touches returns a hardcoded value; the end-to-end path already runs.
 - **Mock** — swap stubs for mocks at the real boundaries; the shape of the data flows through.
 - **Wire** — replace mocks with the real calls, one boundary at a time.
@@ -251,6 +275,67 @@ After each increment, verify:
 
 **Note:** Run each verification command after a change that could affect it. After a successful run, don't repeat the same command unless the code has changed since — re-running on unchanged code adds no information.
 
+## The run record
+
+When a slice is run by hand — no orchestrator dispatched it, and you are working in the repository
+itself rather than in a worktree handed to you — **append that slice's entry to `docs/progress.md`**
+when the attempt finishes. One entry, in the shape the file's `## Entry shape` section holds: the
+commands you ran in the form you ran them, their real output, the files that changed, what was **not**
+run and why, and any follow-ups.
+
+**Inside an orchestrated run you are not the writer.** The orchestrator opened a stub for this slice
+before dispatching you and completes it at the TERMINAL barrier, in the checkout it holds. You are inside a
+worktree, and a worktree is a branch that may never be merged — an entry appended there succeeds,
+reports success, and reaches no reader on the main line. Hand your commands and their output back
+instead; the orchestrator writes them into the entry it already owns. **The two cases are told apart by
+one fact you already have: were you handed a worktree?** Handed one → return the evidence. Working in
+the repository → append.
+
+Three things about the entry, each of which someone gets wrong:
+
+- **One entry for the attempt, not one per increment.** A thin slice is many increments by design, and
+  an entry per increment buries the slice it was meant to describe. If a Verify pass ran on this attempt,
+  its commands and output belong in this same entry — `quality-verification` never writes its own.
+- **Append only.** An earlier entry is never edited, re-worded, re-dated, re-ordered, or removed, not
+  even the one recording the failure this attempt fixed. A second attempt writes a second entry. An
+  attempt to change an existing one is a **STOP**: the work ends there, and the violation is reported
+  naming the entry and what would have changed. Refusing quietly reads as a silent success, and the
+  previously recorded text stays readable in full either way.
+- **No state, no gate, no owner.** `STATE.md` says which stage the slice is at and who acts next. This
+  file says what ran. One question with two answers is one answer too many.
+
+Two lines nothing enforces, and they are the reason the file is worth keeping. Never write that a
+command was run when it was not — put it under "Not run" with the reason, and write that line even when
+nothing was skipped. And withhold any credential that appears in output, saying that you withheld it
+rather than dropping the line silently. No hook and no CI checks either one.
+
+## The lesson a slice hands back
+
+`docs/lessons.md` is the defect record. You read it before the skeleton and you never write it — and you
+are still the middle of that record's chain, because you are the slice's terminal. Whatever leaves this
+slice leaves on the hand-back you make to the orchestrator.
+
+`debugging-and-error-recovery` is the discipline you reach for when a slice's tests break, and
+root-causing a defect is what obliges an entry. That skill authors one — every field filled, the guard
+named — and then meets the wall *The run record* above describes, for the same reason and told apart by
+the same fact: it is running in the worktree you were handed, so an append there lands on a branch that
+may never merge. It hands the finished entry back to you instead, and says it is still owed.
+
+**Carry it out, and name it as still owed**, alongside the commands and their output you return for the
+run record. The orchestrator carries it into `docs/lessons.md` at the **TERMINAL barrier**, in the
+checkout it holds — the one place a handed-back entry reaches the main line. Its guard against a dropped
+one fires on a slice *that handed an entry back*, so an entry you never name creates no condition for
+that guard to test. Handed back silently it reads as done, and nothing downstream re-reports it.
+
+**Carrying is not authoring, and the red flag against appending still holds exactly as written.** You do
+not open that file, fill a field, or turn a defect you fixed into an entry of your own — the record has
+two authors and you are neither. Carrying touches no file at all: the entry arrives finished and rides
+out on your return value, the way a command's output does. One author, one courier, one append.
+
+Handed a worktree → return the entry. Working in the repository itself → there is nothing to carry,
+because `debugging-and-error-recovery` appends it where a reader will find it. A repository that keeps
+no `docs/lessons.md` was never set up for one; say so and carry on.
+
 ## Rationalizations
 
 | Rationalization | Reality |
@@ -259,8 +344,16 @@ After each increment, verify:
 | "It's faster to do it all at once" | It *feels* faster until something breaks and you can't find which of 500 changed lines caused it. |
 | "These changes are too small to commit separately" | Small commits are free. Large commits hide bugs and make rollbacks painful. |
 | "I'll add the feature flag later" | If the feature isn't complete, it shouldn't be user-visible. Add the flag now. |
+| "I'll read `docs/lessons.md` if something breaks" | By then the lesson costs a rewrite. Its entries are decisions about how to build, and the skeleton is where those decisions get made — which is why it is read before the stub, not after the failure. |
 | "This refactor is small enough to include" | Refactors mixed with features make both harder to review and debug. Separate them. |
 | "Let me run the build command again just to be sure" | After a successful run, repeating the same command adds nothing unless the code has changed since. Run it again after subsequent edits, not as reassurance. |
+| "I'm in a worktree, but the record is a repo file — I'll append my entry there anyway." | A worktree is a branch that may never merge. The write succeeds and reaches nobody. Hand the evidence back; the orchestrator owns that slice's entry. |
+| "The lesson is written and the fix is committed — the record will pick it up from there." | Nothing reads a diff, or a worktree, for lessons. The entry reaches `docs/lessons.md` only if you name it as still owed on the way out, and the orchestrator's guard against a dropped one is conditioned on your having named it. Unnamed, it reads as done and is gone. |
+| "Carrying that entry out *is* writing the record, and this skill is forbidden to write it." | Carrying touches no file. The entry arrives finished from whoever root-caused the defect, you return it, and the orchestrator appends it once. The refusal is about authorship — writing an entry, or filling a field of one — and returning what you were handed is neither. |
+| "The tests passed; I'll write 'tests green' and skip pasting the output." | An entry asserting a pass with nothing behind it is exactly the claim the record exists to make checkable. Paste what came back, or say the check was not run. |
+| "Nothing was skipped, so the 'Not run' line has nothing to say." | Write it and say nothing was skipped. A missing line and a deliberate silence look identical to the reader. |
+| "The retry fixed it, so the entry describing the failure is now misleading." | It described that attempt correctly and still does. Append a second entry. Editing the first is a **STOP**: the work ends there and the violation is reported by name. |
+| "I'll add the slice's state to the entry so the record is readable on its own." | The board already answers that, and two answers diverge the moment one is updated. The record says what ran. |
 
 ## Red flags
 
@@ -274,6 +367,30 @@ After each increment, verify:
 - Touching files outside the task scope "while I'm here"
 - Creating new utility files for one-time operations
 - Running the same build/test command twice in a row without any intervening code change
+- Writing a skeleton without having opened `docs/lessons.md` — the entries there are decisions about how
+  to build, and read after the skeleton they are a post-mortem of your own work
+- Appending to `docs/lessons.md` — you read that record and never write it, including when a `Critical:`
+  review finding was routed back here and you fixed it without invoking `debugging-and-error-recovery`.
+  Fixing a defect decides who fixed it, not who records it: a defect you root-caused is
+  `debugging-and-error-recovery`'s entry, and a Critical review finding is recorded by the re-review round
+  that finds it closed. This flag is about **authorship** and reaches nothing else. Returning an entry
+  that skill handed you finished is carrying, not writing — it opens no file — and *The lesson a slice
+  hands back* is where that is required of you
+- Returning from a slice without naming an entry `debugging-and-error-recovery` handed you as still owed
+  — the orchestrator's guard fires on a slice *that handed one back*, so an unnamed entry leaves it
+  nothing to catch. The lesson dies at the slice boundary, and no later stage re-reports it
+- Writing UI in a slice whose `Design ref` names a prototype you never opened — Verify grades fidelity to
+  that file, so a first look at it after the code is written is a rewrite waiting to happen
+- Editing `docs/design.md` so the built surface matches it — the decided look is an oracle Verify grades
+  inherited axes against, and it carries no signature of its own to protect it. Moving it to clear a
+  design gate is gate-erosion → HALT. A slice reads that file; it never writes it.
+- Appending to `docs/progress.md` from inside a worktree the orchestrator handed you — that write lands on
+  a branch that may never merge and reaches no reader, while reporting success.
+- Finishing a hand-run slice without an entry, or writing one that asserts a check passed with neither its
+  output nor a "Not run" line behind it.
+- Editing, re-wording, re-dating, re-ordering, or removing an entry already in `docs/progress.md` → STOP,
+  and report the violation naming the entry and what would have changed. Append a new entry instead.
+- Pasting a token, key, or password into an entry — withhold the value and say you withheld it.
 
 ## Verification (ending criteria)
 
@@ -308,6 +425,35 @@ Per-increment verification is the local check. Before declaring a task done, app
   tripwire: the failure signature must not move only because a test/acceptance was edited while impl is
   materially unchanged). The way to green is to fix the impl (via `debugging-and-error-recovery`), never to
   move the goalposts. No `--no-verify`, no hook edits, no `SKIP_HOOKS` (security.md / CLAUDE.md).
+  Those three thaw between runs — a person can change them by a signed Spec change, outside the run.
+- **Frozen permanently — ACTIVE `docs/test-contract.md` rows:** a row marked **ACTIVE** under that file's
+  `## Rows` heading is a scenario the whole repo owes, and it is frozen in **every** run, forever. There is
+  no retry loop it thaws after and no Spec change unfreezes it, because activation is one-way and only a
+  person performs it. Skipping, deleting, weakening, or narrowing one to make a gate pass is the same
+  gate-erosion **HALT** — at any moment, retry or not — and the halt **names the row id** (`TC-1`), because
+  "gate erosion" alone tells the person reading it nothing about which guarantee was about to be traded away.
+  Never set a row's state yourself in either direction: you read that file and do not edit it. Proposing a
+  new `PENDING` row costs nothing and needs no measurement. An absent file, or one with no ACTIVE rows, is
+  the normal case and changes nothing here.
+- **Read-only rather than frozen — `docs/design.md`, the repository's decided look.** It is not a fifth
+  frozen artifact; it is a file a slice reads and never writes. Verify grades every contract axis marked
+  `inherits: docs/design.md` against it, and it carries no `status:` of its own, so nothing else catches
+  an edit. Moving the decided look so the built surface matches the code is weakening a check to clear a
+  gate — the same gate-erosion **HALT**, retry or not. Only `frontend-design` writes that file, under the
+  sign-off of a surface that means to move the whole look.
+- **Appends to `docs/progress.md`** — this slice's entry, **only on the hand-run path**: no orchestrator
+  dispatched it and no worktree was handed over, so the append lands in the repository itself, where a
+  reader will find it. Inside a run the orchestrator owns the entry and this skill returns its commands
+  and their output instead — an entry appended from a worktree lands on a branch that may never merge and
+  reaches nobody, which is the failure this split exists to avoid. One entry per attempt, carrying the
+  commands as run, their real output, the files changed, and what was not run and why; append only, and
+  no stage, state, gate, or owner in it. Full rule in *The run record* above.
+- **Hands back, on the same return and for the same reason, any lesson this slice owes:** the finished
+  entry `debugging-and-error-recovery` authored when it root-caused a defect here, returned unchanged and
+  named as still owed. This skill is that entry's courier out of the worktree and nothing more — the
+  orchestrator carries it into `docs/lessons.md` at the TERMINAL barrier, and this skill touches that file
+  nowhere. On the hand-run path there is nothing to carry: the author already appended it in the
+  repository itself. Full rule in *The lesson a slice hands back* above.
 - **`STATE.md` update:** on a green slice checkpoint, flip the slice **`impl → verify`** (gate stays `agent`)
   and hand off to `quality-verification`. If the slice cannot pass after the bounded rounds (3 implement→verify→review cycles),
   flip it **`impl → halted`** and **flip its gate `agent → you`** — the failure-escalation path is the only

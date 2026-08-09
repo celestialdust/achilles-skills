@@ -41,6 +41,13 @@ required input cannot be resolved — a plan invented without the PRD or the cod
    codebase` · `## Open items for Plan`. This is the goal-blind as-is map; every `file`/`lines` your steps
    name must be real per this map, and your steps must follow the existing patterns it records.
 
+3. `architecture.md` — this feature's signed structural delta, and `ARCHITECTURE.md` where the repository
+   has one. A slice's files sit inside the modules and behind the seams these name, and the dependency
+   edges they permit are the ones a slice may add. Plan against them rather than re-deciding structure
+   here: they were signed at the Spec gate, and a plan that contradicts them silently moves a boundary a
+   person agreed to. Where a feature ran no structure pass, say so in the plan and plan against
+   `research.md` alone.
+
 **Referenced disciplines (invoked, not file inputs):** `codebase-design` and `api-design` — see
 `## Referenced disciplines & the ADR trigger`. **Optional context:** `acceptance.md` if present — align each
 step's `test:` tactics to the behavioral scenario ids it realizes (the binding is finalized at Verify by `quality-verification`).
@@ -130,14 +137,32 @@ Arrange tasks so that:
 3. Verification checkpoints occur after every 2-3 tasks
 4. High-risk tasks are early (fail fast)
 
-Add explicit checkpoints:
+A checkpoint is a **done-condition, not a pause**. It is a fact the agent proves against the running build
+while the run is going, and a fact a human reads afterwards on the pull request. Both readers get it; the
+run never waits for either.
+
+So do not write a checkpoint box that asks a person for permission to continue. The executor is not allowed
+to honor it — it runs Implement → Verify → Review → Ship straight through to an open draft PR, and the
+human's two decision points are the plan signature before the run and the PR after it. Keep two claims
+apart here, because they are easy to collapse into one: a run never *waits* for an answer, but named
+conditions do *end* work early. Most of them end only the affected **slice** — an unsigned contract, an
+attempted edit to a frozen artifact, a check about to be weakened, a security Critical or High, exhausted
+retries — and the rest of the graph keeps draining. A few end the whole **run**: a precondition missing at
+run start, a cycle in the slice graph, gates failing at a rising rate across the run. `docs/workflow.md`
+lists every condition with an `Ends` column saying which; read it there rather than restating it here.
+Stopping is something the run does on its own and reports; waiting is the thing it cannot do. So a "check
+with the human first" line is either dead text or
+an instruction to deadlock. Whatever you wanted a human to look at, write it as a fact in the checkpoint
+instead: then it reaches the PR, where a human is actually reading.
+
+Write each box as behavior. "Tests pass" and "builds without errors" are the floor under every slice — they
+say nothing about whether *this* slice did the thing it existed to do.
 
 ```markdown
 ## Checkpoint: After Tasks 1-3
-- [ ] All tests pass
-- [ ] Application builds without errors
-- [ ] Core user flow works end-to-end
-- [ ] Review with human before proceeding
+- [ ] Submitting a bad email shows the inline error (US-1)
+- [ ] A valid reset link updates the password and redirects to login (US-2)
+- [ ] An expired token is rejected and swept from the table (US-3)
 ```
 
 ## No placeholders (plan failures — never write them)
@@ -229,14 +254,23 @@ If a task is L or larger, it should be broken into smaller tasks. An agent perfo
 
 ## Vertical slices
 
-| Slice id | Story-ref | Files (owned, disjoint) | Regression surface | Checkpoint (observable) | Blocked-by |
-|---|---|---|---|---|---|
-| PWR-1 | US-1 | `schema/user.ts`, `api/reset.ts`, `ui/ResetForm.tsx` | `auth/session.ts` | Submit a bad email → inline error shows | — |
-| PWR-2 | US-2 | `api/verify.ts`, `ui/VerifyPage.tsx` | `auth/token.ts` | Valid token → password updates, user redirected to login | PWR-1 |
+| Slice id | Story-ref | Design ref | Files (owned, disjoint) | Regression surface | Checkpoint (observable) | Blocked-by |
+|---|---|---|---|---|---|---|
+| PWR-1 | US-1 | `docs/features/password-reset/design-contract.md` · `prototype/index.html` | `schema/user.ts`, `api/reset.ts`, `ui/ResetForm.tsx` | `auth/session.ts` | Submit a bad email → inline error shows | — |
+| PWR-2 | US-2 | `docs/features/password-reset/design-contract.md` · `prototype/index.html` | `api/verify.ts`, `ui/VerifyPage.tsx` | `auth/token.ts` | Valid token → password updates, user redirected to login | PWR-1 |
+| PWR-3 | US-3 | — | `jobs/expireTokens.ts`, `api/health.ts` | `auth/token.ts` | Expired token → sweep removes it, health endpoint reports the count | PWR-1 |
 
 Each slice is cross-layer (≥2 layers) + independently demoable; the Checkpoint is a fact a human or test
 verifies, never "compiles" / "builds" / "no type errors". The `Blocked-by` edges form the acyclic DAG written
 one-row-per-slice into STATE.md.
+
+**`Design ref` — the pointer to the signed design contract and the prototype this slice builds against**
+(`frontend-design`'s `design-contract.md` plus the committed prototype it names). Fill it once, here, while
+you still have the feature in view: you are the only party who knows which slices carry UI, and the design
+contract is per-feature while slices are per-slice, so one contract covers some slices and not others.
+A `—` means **this slice builds no UI**. That `—` is a *recorded fact*, not an inference an agent makes later
+about work it did not do — the builder is handed the artifact it will be graded against, and the verifier is
+told which case it got instead of guessing from the diff.
 
 ### Slice PWR-1 — [user-facing capability]
 **Step 1 — [what this step does]**
@@ -261,6 +295,10 @@ one-line prose body. No `TBD`/`TODO`/`add validation`/`handle edge cases` placeh
 - [Question needing human input]
 ```
 
+`## Open Questions` is a **pre-signature** section: every entry is answered before the human signs, and the
+section is empty at handoff. It is not a queue the run will drain. Once the run starts there is no channel
+back to a person, so an unanswered question becomes a guess the implementer makes silently.
+
 ## Parallelization Opportunities
 
 When multiple agents or sessions are available:
@@ -277,6 +315,7 @@ When multiple agents or sessions are available:
 | "The tasks are obvious" | Write them down anyway. Explicit tasks surface hidden dependencies and forgotten edge cases. |
 | "Planning is overhead" | Planning is the task. Implementation without a plan is just typing. |
 | "I can hold it all in my head" | Context windows are finite. Written plans survive session boundaries and compaction. |
+| "This slice is risky — I'll add a 'confirm with the human' checkpoint." | The run has no pause for that line to land in, so it buys no safety. Put the risk in `## Risks and Mitigations`, and put the thing you wanted checked into the checkpoint as a fact — that reaches the PR, where a human reads. |
 
 ## Red Flags
 
@@ -285,6 +324,7 @@ When multiple agents or sessions are available:
 - No verification steps in the plan
 - All tasks are XL-sized
 - No checkpoints between tasks
+- A checkpoint box that asks for human approval mid-run — the executor cannot wait for an answer, so the line is dead text or a deadlock
 - Dependency order isn't considered
 
 ## Verification
@@ -296,11 +336,16 @@ Before starting implementation, confirm:
 - [ ] Task dependencies are identified and ordered correctly
 - [ ] No task touches more than ~5 files
 - [ ] Checkpoints exist between major phases
-- [ ] The human has reviewed and approved the plan
+- [ ] No checkpoint asks a human to approve mid-run — every box is a fact the agent can prove against the
+      running build and the PR can show
+- [ ] The human has reviewed and approved the plan — this signature is the pre-run gate, and the open PR is
+      the post-run one; the plan must not invent a third gate in between
 - [ ] Every **non-trivial** step names all four fields: `file` · `lines` · `snippet` · `test`.
 - [ ] No-placeholder grep is clean (`## No placeholders` patterns return zero hits).
 - [ ] Every slice spans ≥2 layers and ends at an **observable** Checkpoint (not "compiles").
 - [ ] Slice ids are PRD-namespaced, the `Blocked-by` DAG is **acyclic**, and one row per slice is written to `STATE.md`.
+- [ ] Every slice row's `Design ref` is filled — a contract + prototype path, or a deliberate `—`. A blank cell
+      is not the same as `—`: `—` says "no UI here, I checked", blank says nobody looked.
 - [ ] Each hard-to-reverse interface/boundary decision is captured as an ADR and referenced by id from plan.md.
 
 ## See Also
@@ -318,9 +363,12 @@ update the consumer in the same commit:**
 - **Plan header** — Goal · Architecture · Tech Stack · File Structure (one-line responsibility per file).
   Sets `incremental-implementation`'s working context.
 - **`## Vertical slices`** table — columns (canonical, per registry): Slice id (PRD-namespaced) · Story-ref ·
+  **Design ref** (the signed design contract + prototype this slice builds against; `—` = builds no UI) ·
   **Files (owned, disjoint)** (cross-layer; the disjoint-file guard the orchestrator parallelizes on) ·
   **Regression surface** (blast-radius set, frozen under retry) · Checkpoint (observable) · Blocked-by.
-  The orchestrator reads `Blocked-by` as the wave DAG, `Files (owned)` for the disjoint-file guard, and
+  The orchestrator reads `Blocked-by` as the wave DAG, `Files (owned)` for the disjoint-file guard,
+  `Design ref` to carry into **both** the implement and verify dispatch briefs (the verifier is code-cold
+  and may not open `plan.md`, so dispatch is the only channel that reaches it), and
   `Regression surface` as the immutable-under-retry contract `incremental-implementation`/`test-driven-development`/`quality-verification`/`git-workflow` consume.
 - **Per-step `file` · `lines` · `snippet` · `test`** on every non-trivial step. `incremental-implementation` pulls these
   step-by-step and treats a missing field as **refuse-to-run**.

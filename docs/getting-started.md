@@ -9,7 +9,7 @@ IDEATE   →   SPEC   →   PLAN   →   IMPLEMENT   →   VERIFY   →   REVIEW
 (human-led: Ideate · Spec · Plan)        (agent-led, autonomous: Implement → Ship)
 ```
 
-The **human owns Ideate + Spec + Plan** (the thinking). The agent then runs **Implement → Verify → Review → Ship** fully autonomously, never halting mid-run, and terminates at **risk-banded open draft PRs** for async human merge. It never auto-merges to main.
+The **human owns Ideate + Spec + Plan** (the thinking). The agent then runs **Implement → Verify → Review → Ship** fully autonomously — it never blocks waiting for your input, and where a stop condition fires it terminates and reports instead of waiting ([workflow.md](workflow.md) lists them) — and terminates at **risk-banded open draft PRs** for async human merge. It never auto-merges to main.
 
 ## How Skills Work
 
@@ -28,7 +28,7 @@ Install from the marketplace:
 /plugin install achilles-skills@achilles-skills
 ```
 
-This registers all 36 skills, the 5 review personas in `agents/`, and the 9 lifecycle commands in `commands/` from the plugin manifest (`.claude-plugin/plugin.json`).
+This registers all 40 skills, the 5 review personas in `agents/`, and the 12 commands in `commands/` (9 lifecycle + 3 standalone) from the plugin manifest (`.claude-plugin/plugin.json`).
 
 Local / development:
 
@@ -47,15 +47,7 @@ git clone https://github.com/celestialdust/achilles-skills.git
 
 #### 2. Choose a skill
 
-Browse the `skills/` directory. Each subdirectory contains a `SKILL.md` with:
-- **Purpose** — what the skill does and why it exists
-- **When to use / when to skip** — triggers that indicate this skill applies, and when it doesn't
-- **Inputs** — what the skill expects to receive
-- **Process** — step-by-step workflow
-- **Rationalizations** — excuses the agent might use to skip steps, with rebuttals
-- **Red flags** — signs the skill is being violated
-- **Verification (ending criteria)** — how to confirm the work is done
-- **Outputs & handoff contract** — what the skill produces and hands to the next stage
+Browse the `skills/` directory. Each subdirectory holds one `SKILL.md` — the workflow itself, written to a fixed format ([CONTRIBUTING.md](../CONTRIBUTING.md#the-house-envelope) states it). Its opening sections say what the skill is for and when it applies, which is what you need to pick one.
 
 #### 3. Load the skill into your agent
 
@@ -75,10 +67,10 @@ Start with the `using-agent-skills` skill loaded. It's the meta-dispatcher: it m
 
 ### Minimal (start here)
 
-Load the meta-dispatcher plus three essential skills into your rules file:
+Load the meta-dispatcher plus the essential skills into your rules file:
 
 1. **using-agent-skills** — routes any task to the right skill + lifecycle stage
-2. **spec-grilling** — for defining what to build (design the product → ADRs + CONTEXT.md)
+2. **codebase-research → spec-grilling** — for defining what to build: survey the code as it is today (`research.md`), then design the product against it (ADRs + CONTEXT.md). `spec-grilling` refuses to run without the survey, so load the pair.
 3. **test-driven-development** — for proving it works (rigid RED-GREEN-REFACTOR)
 4. **code-review** — for verifying quality before merge (five-axis review)
 
@@ -86,27 +78,28 @@ These cover the most critical quality gaps in AI-assisted development: an under-
 
 ### Full lifecycle
 
-For comprehensive coverage, load skills by stage:
+Load skills by stage:
 
 ```
 Ideate:     interview-me → idea-refine
-Spec:       spec-grilling → to-prd → acceptance-criteria → environment-manifest → spec-review
+Spec:       codebase-research → spec-grilling → to-prd → acceptance-criteria → environment-manifest → architecture-design → spec-review
             (frontend-design when there's UI)
-Plan:       codebase-research → plan-breakdown
-            (codebase-design, api-design as referenced disciplines)
+Plan:       plan-breakdown
+            (reuses Spec's research.md; codebase-design, api-design as referenced disciplines)
 Implement:  incremental-implementation + test-driven-development
             (source-driven-development, worktree)
 Verify:     quality-verification
             (browser-testing-with-devtools, debugging-and-error-recovery)
 Review:     code-review + code-simplification + security-and-hardening + performance-optimization
             (doubt-driven-development for in-flight skepticism)
-Ship:       pull-request → shipping-and-launch
+Ship:       pull-request
             (git-workflow, ci-cd, observability-and-instrumentation, deprecation-and-migration, documentation-and-adrs)
+            (shipping-and-launch is release-level and runs once the human has merged)
 ```
 
 ### Autonomous run
 
-To hand the agent the whole agent-led tail (Implement → Verify → Review → Ship) in one autonomous pass, use the **orchestrator** skill (via `/orchestrate`). It's the wave-parallel DAG runner: it sequences slices, fans review out across personas, and terminates at risk-banded open draft PRs — pausing on failures or risky steps, never auto-merging.
+To hand the agent the whole agent-led tail (Implement → Verify → Review → Ship) in one autonomous pass, use the **orchestrator** skill (via `/orchestrate`). It's the wave-parallel DAG runner: it sequences slices, runs the review fan-out once over each wave's combined diff (one fresh code-cold subagent per axis — the skill itself, not a role), and terminates at risk-banded open draft PRs — on one of the conditions `docs/workflow.md` lists it stops and reports rather than pausing for an answer, and it never auto-merges. Risky work is not one of those conditions: it raises the PR's risk band for the human at the merge gate.
 
 ### Context-aware loading
 
@@ -119,22 +112,9 @@ Don't load all skills at once — it wastes context. Load skills relevant to the
 
 ## Skill Anatomy
 
-Every skill follows the same **house envelope** — two-key frontmatter plus an ordered set of body sections:
+Every skill follows the same **house envelope**: a short frontmatter block, then a body built from the same sequence of `##` sections — the slots — plus whatever else that one skill needs.
 
-```
-YAML frontmatter (name, description — exactly these two keys)
-├── Purpose                        — what this skill does and why
-├── When to use / when to skip     — triggers and conditions
-├── Inputs                         — what the skill expects
-├── Process                        — step-by-step workflow
-├── (skill-specific sections)      — examples, tables, patterns
-├── Rationalizations               — excuses and rebuttals
-├── Red flags                      — signs the skill is being violated
-├── Verification (ending criteria) — exit criteria checklist
-└── Outputs & handoff contract     — what it produces and hands off
-```
-
-A few chassis skills keep their native `## Overview` / `## The Process` headings — that's intentional. See [CONTRIBUTING.md](../CONTRIBUTING.md) for the format specification and contribution workflow, and [CONTEXT.md](../CONTEXT.md) for the suite's shared vocabulary.
+[CONTRIBUTING.md](../CONTRIBUTING.md#the-house-envelope) states the slots and what fills each, alongside the rest of the contribution workflow. This guide points at it rather than restating it, so there is one statement to keep true. [CONTEXT.md](../CONTEXT.md) carries the suite's shared vocabulary.
 
 ## Using Agents
 
@@ -152,19 +132,22 @@ Load an agent definition when you need a specialized, independent review. For ex
 
 ## Using Commands
 
-The `commands/` directory contains nine TOML slash commands for Claude Code. Each is a thin wrapper that activates the right skill(s):
+The `commands/` directory contains twelve Markdown slash commands for Claude Code — nine lifecycle commands plus three standalone (`/explain`, `/quiz`, `/gauntlet-loop`). Each is a thin wrapper that activates the right skill(s):
 
 | Command | Skills invoked |
 |---------|----------------|
 | `/ideate` | interview-me, then idea-refine |
-| `/spec` | spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) |
-| `/plan` | plan-breakdown (+ codebase-research first) |
+| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, architecture-design, spec-review) |
+| `/plan` | plan-breakdown (reuses Spec's research.md) |
 | `/implement` | incremental-implementation (applies test-driven-development) |
 | `/verify` | quality-verification |
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization as fan-out) |
-| `/ship` | shipping-and-launch (+ pull-request) |
+| `/ship` | pull-request — the spine of the stage; shipping-and-launch is release-level and follows the human's merge |
 | `/orchestrate` | orchestrator — the autonomous wave-parallel DAG runner to open PRs |
 | `/setup` | project-setup — one-time repo ecosystem |
+| `/explain` | literate-explainer — **standalone**, not a lifecycle stage |
+| `/quiz` | comprehension-quiz — **standalone**, not a lifecycle stage |
+| `/gauntlet-loop` | gauntlet-loop — **standalone**, not a lifecycle stage; offered, never auto-selected |
 
 Skills also activate based on what you're doing — designing an API pulls in `api-design`, building UI pulls in `frontend-design`, and so on.
 
@@ -174,14 +157,16 @@ The `references/` directory contains supplementary checklists that skills pull i
 
 | Reference | Use with |
 |-----------|----------|
-| [`definition-of-done.md`](../references/definition-of-done.md) | quality-verification, acceptance-criteria |
-| [`testing-patterns.md`](../references/testing-patterns.md) | test-driven-development, quality-verification |
-| [`security-checklist.md`](../references/security-checklist.md) | security-and-hardening |
-| [`performance-checklist.md`](../references/performance-checklist.md) | performance-optimization |
-| [`accessibility-checklist.md`](../references/accessibility-checklist.md) | frontend-design |
+| [`definition-of-done.md`](../references/definition-of-done.md) | using-agent-skills, plan-breakdown, incremental-implementation, shipping-and-launch |
+| [`security-checklist.md`](../references/security-checklist.md) | security-and-hardening, code-review, shipping-and-launch |
+| [`performance-checklist.md`](../references/performance-checklist.md) | performance-optimization, code-review, shipping-and-launch |
+| [`accessibility-checklist.md`](../references/accessibility-checklist.md) | quality-verification, shipping-and-launch |
 | [`observability-checklist.md`](../references/observability-checklist.md) | observability-and-instrumentation |
-| [`orchestration-patterns.md`](../references/orchestration-patterns.md) | orchestrator |
 | [`finding-unknowns.md`](../references/finding-unknowns.md) | interview-me, idea-refine, spec-grilling |
+| [`design-system-format.md`](../references/design-system-format.md) | frontend-design, quality-verification |
+| [`teaching-artifact-format.md`](../references/teaching-artifact-format.md) | literate-explainer |
+| [`comprehension-workspace-format.md`](../references/comprehension-workspace-format.md) | comprehension-quiz, literate-explainer |
+| [`language-style.md`](../references/language-style.md) | every word the plugin ships — contributor-facing, never loaded at runtime |
 
 Load a reference when you need detailed patterns beyond what the skill covers.
 
@@ -191,10 +176,10 @@ The lifecycle commands create working artifacts as the agent moves through the s
 
 | Stage | Artifact(s) | Produced by |
 |-------|-------------|-------------|
-| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/` | project-setup |
+| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other | project-setup |
 | Ideate | `intent.md` | interview-me, idea-refine |
-| Spec | `prd.md`, `acceptance.md`, `environment.md` (+ ADRs) | to-prd, acceptance-criteria, environment-manifest, spec-grilling |
-| Plan | `research.md`, `plan.md` | codebase-research, plan-breakdown |
+| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html` (+ ADRs; plus root `ARCHITECTURE.md` on the repo's first structural pass) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest, architecture-design |
+| Plan | `plan.md` | plan-breakdown (reads Spec's `research.md`) |
 | Verify | `qa.md` | quality-verification |
 
 - Keep them in version control during development so the human and the agent share one source of truth.
@@ -214,18 +199,22 @@ achilles-skills installs into every major coding agent. The mechanism differs pe
 | Antigravity CLI | Native plugin (`agy plugin install`) | `docs/antigravity-setup.md` |
 | Gemini CLI | Native skills (`gemini skills install … --path skills`) or `GEMINI.md` | `docs/gemini-cli-setup.md` |
 | Windsurf | Add skill contents to Windsurf rules | `docs/windsurf-setup.md` |
-| OpenCode | Agent-driven execution via `AGENTS.md` + the `skill` tool | `docs/opencode-setup.md` |
+| OpenCode | Agent-driven execution via the `skill` tool, against the rules in `CLAUDE.md` | `docs/opencode-setup.md` |
 | GitHub Copilot | `agents/` as personas + `.github/copilot-instructions.md` | `docs/copilot-setup.md` |
-| Kiro IDE & CLI | Skills under `.kiro/skills/`; also supports `AGENTS.md` | `docs/kiro-setup.md` |
-| Codex / Other | Plain Markdown via system prompt or `AGENTS.md` | this guide |
+| Kiro IDE & CLI | Skills under `.kiro/skills/`; its `AGENTS.md` points at `CLAUDE.md` | [kiro.dev/docs/skills](https://kiro.dev/docs/skills/) |
+| Codex / Other | Plain Markdown via system prompt; rules in `CLAUDE.md` | this guide |
 
-Every skill is plain Markdown, so any agent that accepts system prompts or instruction files can run them directly. [`AGENTS.md`](../AGENTS.md) at the repo root is the universal entry point for agents that read it.
+Kiro and the plain-Markdown agents have no setup file in `docs/`, because neither needs one: Kiro's own
+documentation is the guide for Kiro, and for any other Markdown-reading agent this guide plus
+[`CLAUDE.md`](../CLAUDE.md) is the whole setup.
+
+Every skill is plain Markdown, so any agent that accepts system prompts or instruction files can run them directly. [`CLAUDE.md`](../CLAUDE.md) at the repo root holds the rules whatever the agent; [`AGENTS.md`](../AGENTS.md) beside it is a short pointer to that file, so a tool that reads the other filename lands in the same place.
 
 ## Tips
 
 1. **Start with the meta-skill.** Load `using-agent-skills` first so the agent routes work to the right skill and stage.
 2. **Define before you build.** Run Ideate → Spec → Plan (human-led) before handing the agent the autonomous tail.
 3. **Always load `test-driven-development`** when writing code — tests are the proof, not an afterthought.
-4. **Don't skip verification steps** — the `Verification (ending criteria)` section is the whole point of each skill.
+4. **Don't skip verification steps** — every skill carries a `Verification` section saying how to tell it is finished, and that section is the whole point of it.
 5. **Load skills selectively** — more context isn't always better. Pull in only what the current task needs.
 6. **Use the personas for review** — a fresh, code-cold pass catches what the author cannot.

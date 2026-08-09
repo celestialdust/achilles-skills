@@ -62,7 +62,7 @@ cat /path/to/achilles-skills/skills/code-review/SKILL.md >> .cursorrules
 `.cursorrules` is the legacy single-file format; prefer Option 1 for anything beyond two or three skills so
 you can load and unload disciplines independently and stay under Cursor's context limits.
 
-## The skill roster (36 skills)
+## The skill roster (40 skills)
 
 Use the **NEW** descriptive names below when copying rule files — the directory name under `skills/` matches
 the name in these tables.
@@ -72,10 +72,13 @@ the name in these tables.
 | Skill | Responsibility |
 |---|---|
 | `using-agent-skills` | meta-dispatcher: task → skill + lifecycle map |
-| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ |
+| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/test-contract.md · docs/workflow.md · docs/session-state.md · docs/progress.md · docs/lessons.md · the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other |
 | `orchestrator` | default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | `preflight-readiness` | env-readiness gate; blocks the wave until provisioned |
 | `handoff` | per-session compaction to a fresh-agent doc |
+| `literate-explainer` | standalone: explain code or a system in prose (`/explain`) |
+| `comprehension-quiz` | standalone: check comprehension of a change or codebase area (`/quiz`) |
+| `gauntlet-loop` | standalone: a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch (`/gauntlet-loop`); offered, never auto-selected |
 
 **Ideate (human-led)**
 
@@ -88,19 +91,20 @@ the name in these tables.
 
 | Skill | Responsibility |
 |---|---|
-| `spec-grilling` | design the product from intent → ADRs + CONTEXT.md |
+| `codebase-research` | head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md` |
+| `spec-grilling` | design the product from intent + the survey → ADRs + CONTEXT.md (refuses without `research.md`) |
 | `to-prd` | light dual-audience PRD (product-altitude; references ADRs) |
-| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract |
+| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | `environment-manifest` | typed-kind manifest (no values, no commands) |
+| `architecture-design` | the structure a person signs before any code is planned: `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md` (refuses without a signed `acceptance.md`) |
 | `spec-review` | fresh code-cold agent fixes the spec before the user reviews |
 
 **Plan (human-led)**
 
 | Skill | Responsibility |
 |---|---|
-| `codebase-research` | goal-blind parallel map of the codebase/DB as-is |
-| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG |
+| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's `research.md` |
 | `codebase-design` | referenced discipline: deep-module interfaces (deletion test) |
 | `api-design` | referenced discipline: contract-first interface |
 
@@ -136,7 +140,7 @@ the name in these tables.
 | Skill | Responsibility |
 |---|---|
 | `pull-request` | per-slice design-anchored draft PR; read-the-code checklist; risk band |
-| `shipping-and-launch` | release: pre-launch checklist; staged rollout; rollback |
+| `shipping-and-launch` | release-level, on the far side of the human's merge: pre-launch checklist; staged rollout; rollback |
 | `git-workflow` | trunk-based; atomic commits; secret hygiene |
 | `ci-cd` | Shift Left; quality-gate pipeline; feature flags |
 | `observability-and-instrumentation` | structured logging; RED metrics; OTel tracing |
@@ -158,8 +162,8 @@ Add these three to `.cursor/rules/` — they carry the inner Implement → Verif
 Add a rule file when you enter its stage, then remove it when done to manage context limits:
 
 - **Ideate** → `interview-me.md`, `idea-refine.md`
-- **Spec** → `spec-grilling.md`, `to-prd.md`, `acceptance-criteria.md`, `environment-manifest.md`, `frontend-design.md`, `spec-review.md`
-- **Plan** → `codebase-research.md`, `plan-breakdown.md`, `codebase-design.md`, `api-design.md`
+- **Spec** → `codebase-research.md` (first), `spec-grilling.md`, `to-prd.md`, `acceptance-criteria.md`, `environment-manifest.md`, `frontend-design.md`, `architecture-design.md`, `spec-review.md`
+- **Plan** → `plan-breakdown.md`, `codebase-design.md`, `api-design.md` (re-add `codebase-research.md` only to survey a named gap)
 - **Implement** → `source-driven-development.md`, `worktree.md` (plus the essentials above)
 - **Verify** → `quality-verification.md`, `browser-testing-with-devtools.md`, `debugging-and-error-recovery.md`
 - **Review** → `code-simplification.md`, `security-and-hardening.md`, `performance-optimization.md`, `doubt-driven-development.md`
@@ -170,21 +174,25 @@ For example, when working on performance, copy `performance-optimization/SKILL.m
 
 ## Lifecycle commands in Cursor
 
-The suite ships nine slash commands as `commands/*.md` — these are entry points for agents (like Claude
+The suite ships twelve slash commands as `commands/*.md` — nine lifecycle plus three standalone (`/explain`,
+`/quiz`, `/gauntlet-loop`) — these are entry points for agents (like Claude
 Code) that execute Markdown slash commands natively. **Cursor has no native slash-command runner**, so reproduce a
 command by loading the rule files it bundles and asking Cursor to run that stage:
 
 | Command | Load these rules into `.cursor/rules/` | Then ask Cursor to… |
 |---|---|---|
 | `/ideate` | `interview-me`, `idea-refine` | brainstorm and frame the idea → `intent.md` |
-| `/spec` | `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) | design the product from intent |
-| `/plan` | `plan-breakdown` (+ `codebase-research` first) | produce a concrete plan → vertical slices + DAG |
+| `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `architecture-design`, `spec-review`) | survey the code as-is, then design the product against it |
+| `/plan` | `plan-breakdown` (reuses Spec's `research.md`) | produce a concrete plan → vertical slices + DAG |
 | `/implement` | `incremental-implementation` (applies `test-driven-development`) | build one thin slice (default single-slice) |
 | `/verify` | `quality-verification` | prove a finished slice meets `acceptance.md`, code-cold |
 | `/review` | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization` as fan-out) | run the quality gate before merge |
-| `/ship` | `shipping-and-launch` (+ `pull-request`) | release: checklist · staged rollout · rollback |
+| `/ship` | `pull-request` — the spine of the stage | open one slice's risk-banded draft PR; the stage ends there. `shipping-and-launch` is release-level and follows the human's merge. |
 | `/orchestrate` | `orchestrator` | run the autonomous wave-parallel DAG to open PRs |
 | `/setup` | `project-setup` | scaffold the one-time repo ecosystem |
+| `/explain` | `literate-explainer` | explain code or a system in prose (**standalone**, no stage) |
+| `/quiz` | `comprehension-quiz` | check comprehension of a change or codebase area (**standalone**, no stage) |
+| `/gauntlet-loop` | `gauntlet-loop` | build a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch (**standalone**, no stage; offered, never auto-selected) |
 
 The `commands/*.md` files are short — open the one you want and copy its prompt text into Cursor verbatim
 to drive the stage exactly as the command would.
@@ -217,7 +225,6 @@ review framework."*
    is code-cold; that is how you preserve maker ≠ checker without native subagents.
 4. **Drive commands from their `.md`** — Cursor can't run `commands/*.md` directly, so load the rules a
    command bundles (see the table above) or paste the command's prompt text to reproduce the stage.
-5. **Load `references/` on demand** — the suite's checklists live in `references/` (testing-patterns,
-   performance-checklist, security-checklist, observability-checklist, accessibility-checklist,
-   orchestration-patterns, definition-of-done, finding-unknowns). Paste the relevant one rather than the
-   whole skill when you only need the checklist.
+5. **Load `references/` on demand** — the suite's shared material lives in `references/`;
+   [docs/getting-started.md](./getting-started.md) maps every file there to the skills that use it.
+   Paste the relevant one rather than the whole skill when you only need the checklist.

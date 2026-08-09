@@ -1,7 +1,8 @@
 # Using achilles-skills with GitHub Copilot
 
-achilles-skills is a plugin of 36 engineering skills, 5 reusable agent personas, and 9 lifecycle
-commands that drive a product from **Ideate → Spec → Plan → Implement → Verify → Review → Ship**. The
+achilles-skills is a plugin of 40 engineering skills, 5 reusable agent personas, and 12 commands —
+9 lifecycle commands that drive a product from **Ideate → Spec → Plan → Implement → Verify → Review →
+Ship**, plus 3 standalone (`/explain`, `/quiz`, `/gauntlet-loop`). The
 primary distribution target is Claude Code (`/plugin marketplace add celestialdust/achilles-skills`), but
 GitHub Copilot can consume the same `skills/` and `agents/` directories directly.
 
@@ -25,7 +26,7 @@ your repository. Each skill is a `SKILL.md` inside its own directory.
 ```bash
 mkdir -p .github/skills
 
-# Option A — install the full 36-skill roster
+# Option A — install the full 40-skill roster
 cp -R achilles-skills/skills/* .github/skills/
 
 # Option B — cherry-pick the essentials
@@ -36,32 +37,35 @@ cp achilles-skills/skills/code-review/SKILL.md             .github/skills/code-r
 
 For more details, refer to [Creating agent skills for GitHub Copilot](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-skills).
 
-#### The 36-skill roster (new names)
+#### The 40-skill roster (new names)
 
 The suite is organized by lifecycle stage. Each name below is a directory under `skills/`:
 
 **Cross-cutting / setup**
 - `using-agent-skills` — meta-dispatcher: task → skill + lifecycle map
-- `project-setup` — one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/)
+- `project-setup` — one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, docs/progress.md, docs/lessons.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other)
 - `orchestrator` — default wave-parallel DAG executor; autonomous to open PRs
 - `preflight-readiness` — env-readiness gate; blocks the wave until provisioned
 - `handoff` — per-session compaction to a fresh-agent doc
+- `literate-explainer` — standalone: explain code or a system in prose (`/explain`)
+- `comprehension-quiz` — standalone: check comprehension of a change or codebase area (`/quiz`)
+- `gauntlet-loop` — standalone: a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch (`/gauntlet-loop`); offered, never auto-selected
 
 **Ideate**
 - `interview-me` — brainstorm + frame an idea → intent.md
 - `idea-refine` — refine the idea (divergent/convergent + "Not Doing")
 
 **Spec**
-- `spec-grilling` — design the product from intent → ADRs + CONTEXT.md
+- `codebase-research` — head of Spec: goal-blind parallel map of the codebase/DB as-is → research.md
+- `spec-grilling` — design the product from intent + the survey → ADRs + CONTEXT.md (refuses without research.md)
 - `to-prd` — light dual-audience PRD referencing ADRs
-- `frontend-design` — explore UI variants → commit prototype + design contract
+- `frontend-design` — explore UI variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md`
 - `acceptance-criteria` — BDD prose contract (Given/When/Then), signed
 - `environment-manifest` — typed-kind manifest (no values, no commands)
 - `spec-review` — fresh code-cold agent fixes the spec before the user reviews
 
 **Plan**
-- `codebase-research` — goal-blind parallel map of the codebase/DB as-is
-- `plan-breakdown` — the planner: concrete plan → vertical slices + dependency DAG
+- `plan-breakdown` — the planner: concrete plan → vertical slices + dependency DAG; reads Spec's research.md
 - `codebase-design` — deep-module interfaces (deletion test)
 - `api-design` — contract-first interface
 
@@ -85,7 +89,7 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 
 **Ship**
 - `pull-request` — per-slice design-anchored draft PR; read-the-code checklist; risk band
-- `shipping-and-launch` — release: pre-launch checklist; staged rollout; rollback
+- `shipping-and-launch` — release-level, on the far side of the human's merge: pre-launch checklist; staged rollout; rollback
 - `git-workflow` — trunk-based; atomic commits; secret hygiene
 - `ci-cd` — Shift Left; quality-gate pipeline; feature flags
 - `observability-and-instrumentation` — structured logging; RED metrics; OTel tracing
@@ -178,21 +182,25 @@ mirrors the achilles-skills lifecycle (Ideate → Spec → Plan → Implement �
 
 ### Lifecycle Commands
 
-In Claude Code, achilles-skills exposes 9 slash commands (`commands/*.md`) that wrap the skills above.
+In Claude Code, achilles-skills exposes 12 slash commands (`commands/*.md`) that wrap the skills above —
+9 lifecycle commands plus 3 standalone (`/explain`, `/quiz`, `/gauntlet-loop`).
 Copilot does not load these slash commands, so reach for the underlying skill or persona instead. The
 mapping is the same:
 
 | Command | Invokes (skill) | Copilot equivalent |
 |---|---|---|
 | /ideate | interview-me, then idea-refine | paste the skill into chat for the framing pass |
-| /spec | spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) | paste skill content for the design pass |
-| /plan | plan-breakdown (+ codebase-research first) | paste skill content for the planning pass |
+| /spec | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) | paste skill content for the survey, then the design pass |
+| /plan | plan-breakdown (reuses Spec's research.md) | paste skill content for the planning pass |
 | /implement | incremental-implementation (applies test-driven-development) | follow the slice workflow in chat |
 | /verify | quality-verification | `@test-engineer` |
 | /review | code-review (+ code-simplification, security-and-hardening, performance-optimization) | `@code-reviewer`, `@security-auditor`, `@performance-auditor` |
-| /ship | shipping-and-launch (+ pull-request) | paste skill content for the release pass |
+| /ship | pull-request — the spine of the stage; shipping-and-launch is release-level and follows the human's merge | paste skill content for the draft-PR pass |
 | /orchestrate | orchestrator | the autonomous wave-parallel DAG runner (Claude Code primary) |
 | /setup | project-setup | paste skill content for the one-time repo bootstrap |
+| /explain | literate-explainer | paste skill content to explain code or a system (**standalone**) |
+| /quiz | comprehension-quiz | paste skill content to check comprehension (**standalone**) |
+| /gauntlet-loop | gauntlet-loop | paste skill content to run the throwaway builder/critic loop (**standalone**; offered, never auto-selected) |
 
 ## Usage Tips
 

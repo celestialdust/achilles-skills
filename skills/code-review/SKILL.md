@@ -28,10 +28,12 @@ Refuse to run if there is **no diff** to review — with nothing changed there i
 
 **Required**
 - The **slice diff** under review (the code `incremental-implementation` produced for one slice). This is the object of the review.
+- **On a re-review round: the `Critical:` findings from the round that routed this slice back.** You are code-cold, and a diff whose Critical was fixed no longer shows one — so this is the only thing that can tell you a defect existed and is owed a `docs/lessons.md` entry (Step 4). A re-review brief that arrives without them is a broken dispatch, not a clean slice: say so in the review and name whoever dispatched you, rather than concluding from a quiet diff that nothing was ever wrong.
 
 **Read-only context (FROZEN — never edit any of these during a review):**
 - `plan.md` + the slice's row (from `plan-breakdown`) — grade the **plan first, then the diff**: a diff that faithfully executes the wrong plan is still a fail.
-- `acceptance.md` (the signed behavioral contract) — the human-anchored oracle, frozen under the slice's retry loop. You are dispatched **code-cold**: you see `acceptance.md`, not the conversation that wrote the code, so the oracle never drifts.
+- `acceptance.md` (the signed behavioral contract) — a human-anchored oracle, frozen under the slice's retry loop. You are dispatched **code-cold**: you see `acceptance.md`, not the conversation that wrote the code, so the oracle never drifts.
+- `docs/test-contract.md`, when the repo has one — the repo-level scenarios under its `## Rows` heading, each `PENDING` or `ACTIVE`. An **ACTIVE** row is the other human-anchored oracle: a person activated it, it binds every feature and every run **permanently**, and it is what the gate-erosion breaker below protects. `PENDING` rows enforce nothing. No file, or no ACTIVE rows, is the normal case and changes nothing.
 - `STATE.md` slice row — the PRD-namespaced id of the slice you are reviewing.
 
 **Dispatch contract:** the orchestrator runs you as a **fresh, code-cold subagent on the review axis, in parallel with `code-simplification` / `security-and-hardening` / `performance-optimization`** (maker≠checker; parallelism.md mech f). No persona role-play.
@@ -176,6 +178,7 @@ Tests reveal intent and coverage:
 - Are edge cases covered?
 - Do tests have descriptive names?
 - Would the tests catch a regression if the code changed?
+- Does any ACTIVE `docs/test-contract.md` row lose coverage here — skipped, weakened, narrowed, deleted?
 ```
 
 ### Step 3: Review the Implementation
@@ -206,6 +209,65 @@ Label every comment with its severity so the author knows what's required vs opt
 This prevents authors from treating all feedback as mandatory and wasting time on optional suggestions.
 
 **Lead with what matters.** Order findings by leverage: correctness and security first, then structural regressions and missed simplifications, then everything else. Don't bury a real issue under cosmetic nits — a few high-conviction comments beat a long list. If you have one structural problem and ten nits, the structural problem *is* the review.
+
+**A `Critical:` finding may become a lesson — and only a `Critical:` one.** Where the repo keeps a
+`docs/lessons.md`, root-cause your Critical findings and record one entry each, in the shape that file's
+`## Entry shape` block holds and at the moment the next paragraph names. Review is the second writer of
+that file; whoever debugs a failure is the first. The bound is what keeps the two apart: a Critical finding is a defect that would have shipped, so
+what it teaches outlives this diff, while a Required or lesser finding is a change this author is about to
+make and is already tracked in your findings list.
+
+So an attempt to append anything below `Critical:` is **refused**, not warned about — say which class the
+finding is and that it stays in the findings list. The cost of the softer rule is not hypothetical: a
+lessons file that accepts every Required finding becomes a second copy of every review, and a file nobody
+can skim is a file nobody reads before writing a skeleton, which is the one moment it was for.
+
+**The entry is written when the finding is closed, not when it is found — which is a later review pass
+than the one that found it.** Two of the seven fields — `Fix` and `References` — name a change and a
+commit that do not exist while you are still writing findings, and an entry is a STOP to edit once
+written, so a field guessed now is a field nobody can ever correct. The round that raises a `Critical:`
+ends at `Request changes` and writes nothing: the finding routes its slice back to
+`incremental-implementation` and stays in your findings list, which is where it belongs until somebody
+closes it. The entry is owed by the **re-review round dispatched once that slice re-passes Verify** —
+the first pass that can read the fix and name the commit.
+
+**That round is code-cold, so it has to be told.** Its brief carries the `Critical:` findings from the
+round that routed the slice back (see *Inputs*), and that is the whole of how a fresh subagent knows a
+defect was ever there: the diff in front of it is the fixed one. Reaching the re-review with the finding
+in hand and the fix in the diff is the moment every field can be filled from something that exists.
+
+**Who fixed it changes nothing about who writes it down.** The zone is keyed to the finding, not to the
+party that typed the fix: the entry for a Critical review finding is yours whether the fix ran through
+`debugging-and-error-recovery` or inside `incremental-implementation`, neither of which is a second copy
+of your entry. `debugging-and-error-recovery` writes for defects *it* root-caused — a test or a build
+that broke during implementation — which is the other zone of the same file.
+
+**A guard nobody can name is not a deadlock.** The record refuses an entry whose `Automated guard` is
+blank, and every closed Critical finding has to be recorded, which reads like a trap until you see what
+an un-nameable guard means: the finding is not root-caused yet. Say that in the review, name it as the
+reason the verdict stays `Request changes`, and hand it to whoever owns the fix. What never happens is an
+entry written with the field left open.
+
+**Where the entry lands.** `docs/lessons.md` is a repository file, and a review dispatched into a slice's
+worktree is reading a branch that may never be merged — an entry appended there succeeds, reports
+success, and reaches no reader on the main line. The two cases are told apart by one fact you already
+have: were you handed a worktree? Reviewing in the repository itself → append it yourself. Handed a
+worktree → hand the finished entry back with your findings, for the **TERMINAL barrier**: that is the
+point where the orchestrator already completes each slice's `docs/progress.md` entry in the checkout it
+holds, so it is the one place a handed-back entry can reach the main line.
+
+**Say, in the same breath, that the entry is still owed.** `docs/workflow.md` gives the orchestrator that
+append and its own skill names it, so the courier exists — but it carries what it is handed, and infers
+nothing from a handoff that stays quiet. Naming the entry as unwritten is what keeps a dropped one
+visible; handed back silently, it reads as done and is gone.
+
+The rules that govern the append — the refusal, the STOP, the second entry rather than an amendment — are
+stated in `docs/lessons.md` itself, in the prose it opens with as well as in the template under
+`## Entry shape`. Read the file, not one heading in it: the refusal is in the template, and the other two
+sit above the heading, so a reader sent to that section alone arrives with one rule of three and folds
+their entry into an existing one. A copy here is one that can fall behind the file. An absent
+`docs/lessons.md` means the repo was never set up for one — say so in the review and move on; do not
+create it.
 
 ### Step 5: Verify the Verification
 
@@ -384,12 +446,23 @@ Part of code review is dependency review:
 - A change that grows an already-large file instead of decomposing it
 - New conditionals scattered into unrelated code paths (a missing abstraction)
 - A bespoke helper that duplicates an existing canonical one, or feature logic placed in a shared module
+- A diff that skips, weakens, narrows, or deletes an ACTIVE `docs/test-contract.md` row, or moves a row's state — that freeze is permanent, so it is a `Critical:` + gate-erosion HALT whatever else the diff did, and the finding names the row id
+- A gate-erosion finding written without naming the artifact, or the contract row id, that changed — the person reading it cannot tell which guarantee was at stake
+- A `Critical:` finding closed with no `docs/lessons.md` entry, where the repo keeps one — the finding dies with this diff and the next author meets the same defect
+- Appending a Required, Optional, Nit, or FYI finding to `docs/lessons.md` — refused; it stays in the findings list, and admitting it makes that file a second copy of every review
+- Writing the entry while the finding is still open, so `Fix` and `References` name a change and a commit that do not exist yet — the entry is a STOP to edit, so the guess is permanent
+- Appending the entry inside a worktree you were dispatched into — that write lands on a branch that may never merge and reaches no reader, while reporting success
+- Handing the entry back without saying it is still owed — nothing has yet told the orchestrator to append one, so a silent hand-back reads as done and the entry is gone
+- Reading a quiet re-reviewed diff as proof no Critical ever existed, when the brief never carried the round's findings — a broken dispatch and a clean slice look identical from here, which is why the missing input is reported instead of resolved
 
 ## Verification
 
 After review is complete:
 
 - [ ] All Critical issues are resolved
+- [ ] Every Critical finding closed here was root-caused and recorded as one `docs/lessons.md` entry, all
+      seven fields filled from what exists rather than from what is planned, and nothing below Critical was
+      recorded there (skip where the repo keeps no such file)
 - [ ] All Required (no-prefix) changes are resolved or explicitly deferred with justification
 - [ ] Tests pass
 - [ ] Build succeeds
@@ -405,9 +478,20 @@ After review is complete:
 - **`Findings`** — ordered by leverage (correctness & security first, then structural regressions & missed simplifications, then nits). EVERY finding carries a `path:line` citation and a severity prefix (`Critical:` | *(no prefix = Required)* | `Optional:` / `Consider:` | `Nit:` | `FYI`). A few high-conviction comments beat a long list; one structural problem buried under ten nits means the structural problem IS the review.
 - **`Verification story`** — what the author ran (tests / build / manual) and whether it holds up.
 
+**Appends**, where the repository keeps one: one `docs/lessons.md` entry per closed `Critical:` finding
+and none for any lesser class. That append is the only thing this skill puts on disk, and it lands in a
+record rather than in the code: the diff, the tests and the frozen contracts stay untouched, so
+maker≠checker holds. It is the one zone of that file review owns — the entries for a defect somebody
+debugged belong to `debugging-and-error-recovery` — which is why two writers on one file is not a
+collision here. Step 4 says when the entry is filled in and who appends it.
+
 **Gate role:** this skill is the **Review-fan-out leg** — ONE of three AND-combined agent-internal gates (quality-verification + Review fan-out + evaluator floors). It does NOT flip `STATE.md` and does NOT open or promote a PR. The orchestrator aggregates all legs; a passing slice stops at a **DRAFT PR** that a separate fresh code-cold verifier later promotes. A `Request changes` verdict routes the slice back to `incremental-implementation` (bounded rounds), not forward.
 
-**Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion, deletes/narrows a RED test, or shrinks the declared `Regression surface` while the implementation is materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**. Never `Approve` a diff that moved the goalposts instead of the code (testing-strategy AP1–AP2).
+**Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion, deletes/narrows a RED test, or shrinks the declared `Regression surface` while the implementation is materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**. A diff that edits `docs/design.md` is the same call with no reward-hack qualifier: Verify grades inherited design axes against that file, a slice reads it and never writes it, and only `frontend-design` moves it — under the sign-off of a surface that means to. Those three are frozen for the slice's retry loop; between runs a person can change them by a signed Spec change, so the reward-hack qualifier is what distinguishes erosion from a legitimate edit.
+
+The same breaker covers a diff that **skips, deletes, weakens, or narrows an ACTIVE `docs/test-contract.md` row**, or moves a row's state in either direction — with two differences. That freeze is **permanent, in every run**, because activation is one-way and only a person performs it, so the reward-hack qualifier does not apply: touching an ACTIVE row is the `Critical:` + HALT whatever else the diff did. And the finding **names the row id** (`TC-1`) — "gate erosion" alone tells the person reading it nothing about which guarantee was about to be traded away, so they cannot judge whether the trade was reasonable. A row reported `not-reachable` is not this: it is still ACTIVE, unproven, with a human-ack line in the PR, so nothing stopped being checked.
+
+Never `Approve` a diff that moved the goalposts instead of the code (testing-strategy AP1–AP2).
 
 **Security escalation:** a CRITICAL/HIGH vuln or a secret in the diff is a hard `Critical:` + STOP — the slice gets no PR (security leg); place it at the top of `Findings`.
 
@@ -417,4 +501,6 @@ After review is complete:
 
 For a fresh-context, code-cold pass, dispatch the **`code-reviewer`** agent (`agents/code-reviewer.md`) as an
 independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a slice is green and you need the five-axis review before merge.
+context — preserving maker≠checker. Reach for it when a person wants a single code-cold five-axis review
+**outside a run**, or on a platform with no skill tool. Inside a run this skill is dispatched as itself —
+there is no role to play on top of it.

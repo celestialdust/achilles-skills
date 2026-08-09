@@ -1,36 +1,42 @@
 ---
 name: shipping-and-launch
-description: Prepares production releases and authors the launch runbook. Use the moment you are preparing to ship to production, batching merged PRs into a release, or anyone asks for a pre-launch checklist, a feature-flag rollout, a staged/canary rollout plan, monitoring setup, or a rollback strategy. In the v1 autonomous run this AUTHORS the runbook only — it never fires deploy/rollout/rollback commands itself.
+description: Prepares production releases and authors the launch runbook. Use the moment you are preparing to ship to production, batching merged PRs into a release, or anyone asks for a pre-launch checklist, a feature-flag rollout, a staged/canary rollout plan, monitoring setup, or a rollback strategy. Starts AFTER the human merges — a slice sitting at an open draft PR belongs to `pull-request`, not here. It AUTHORS the runbook only; it never fires deploy/rollout/rollback commands itself.
 ---
 
 # Shipping and Launch
 
 ## Purpose
 
-**Stage: Ship — the release workhorse (post-merge, release-level; may batch slices).**
+**Stage: Ship — the release workhorse. Runs after the human merges; release-level, so one pass may cover a single merged change or batch several.**
 
 Ship with confidence. The goal is not just to deploy — it's to deploy safely, with monitoring in place, a rollback plan ready, and a clear understanding of what success looks like. Every launch should be reversible, observable, and incremental.
 
-> **v1 autonomy fence.** This skill AUTHORS the release runbook; it does **not execute deploy, rollout, or rollback commands**. In the autonomous run the agent's span ends at the open PR (`pull-request` workhorse) — every `DEPLOY` / `ENABLE` / canary-advance / `ROLL BACK` step below is a runbook the **human runs post-merge**, never an action the agent fires unattended. Auto-deploy and auto-merge are out of v1 (`branch-naming.md`: never commit to main). When this skill runs inside the orchestrator, its output is a written plan in `release.md`, not a side effect.
+**Written after the merge, executed at the deploy.** Two different moments, and confusing them breaks the stage. A release runbook is not an input to a pull request: one slice's draft PR is not a release, so `pull-request` neither reads this runbook nor waits for one to exist. This skill starts once the change is on the base branch. The runbook's own steps — deploy, enable the flag, advance the canary, roll back — happen later still, run by the human off the written plan.
+
+A merged change is therefore the entry condition, and that is what puts this skill outside the autonomous run. Nothing in this suite is merged by the agent: a run ends at an open draft PR and the human merges whenever they get to it. Whoever invokes this skill afterwards — the human, or an agent the human starts — is working on the far side of that merge.
+
+> **v1 autonomy fence.** This skill AUTHORS the release runbook; it does **not execute deploy, rollout, or rollback commands**, and it sits **outside the autonomous span**. The agent's run ends at the open draft PR (`pull-request` workhorse); this skill picks up on the far side of the human's merge — every `DEPLOY` / `ENABLE` / canary-advance / `ROLL BACK` step below is a runbook the **human runs**, never an action the agent fires unattended. Auto-deploy and auto-merge are out of v1 (`branch-naming.md`: never commit to main). Whoever invokes it, human or agent, its output is a written plan in `release.md`, not a side effect.
 
 ## When to use / when to skip
 
-- Deploying a feature to production for the first time
+- Preparing a feature's first production deploy
 - Releasing a significant change to users
 - Migrating data or infrastructure
 - Opening a beta or early access program
 - Any deployment that carries risk (all of them)
-- **Skip** when nothing has merged yet (there is no release to prepare) or for a docs-only / config-only change with no user-visible runtime effect.
+- **Skip** for a docs-only / config-only change with no user-visible runtime effect — there is no rollout to stage and nothing to roll back.
 
 ## Inputs
 
 Consumes (refuse to run if absent):
 
-- **The shipped PR(s)** from `pull-request` — one or more design-anchored, risk-banded PRs that are merged or queued for the human's async merge. A release batches the slices that ship together. If no merged/approved PR exists, there is nothing to release — STOP.
+- **The change being released, with its gates green** — the slice (or the set of slices batched into one release) whose `qa.md` `## Verdict` reads **pass** and whose Review fan-out is clear, plus the diff that was merged. Green gates are what makes a change launch-ready. A change nobody has verified or reviewed has nothing to write a runbook about.
 - **`environment.md`** (typed-kind manifest; read-only, value-blind) — names the production + staging targets and the feature-flag / monitoring services as typed rows. It carries NO values and NO commands; read it for *what* exists, never for secrets or shell strings.
 - **`prd.md` + referenced ADRs** — the success definition the rollout decision thresholds bind to (which business metrics matter, what "Good" means for this feature).
 
-Refuse-to-run if: no merged/approved PR (nothing to ship); `environment.md` is missing or its rows are unprovisioned (run `preflight-readiness` first); or no rollback path is identifiable for the change.
+Refuse-to-run if: the change has not cleared Verify and Review (`qa.md` `## Verdict` is not pass, or a Critical/Required review finding is still open) — route it back, there is nothing launch-ready to prepare; `environment.md` is missing or its rows are unprovisioned (run `preflight-readiness` first); or no rollback path is identifiable for the change.
+
+Do gate on the merge. There is no release to plan until the change is on the base branch, and the agent never performs that merge — so this skill starts when the human hands it merged work, never mid-run. A slice still sitting at an open draft PR belongs to `pull-request`; route it back there.
 
 ## The Pre-Launch Checklist
 
@@ -308,7 +314,9 @@ Every deployment needs a rollback plan before it happens:
 
 ## Verification (ending criteria)
 
-Before deploying:
+This skill is done when the runbook is written, not when the deploy happens. The two lists sit on opposite sides of the deploy.
+
+Before deploying — whoever authors the release finishes these, and finishing them is what ends the skill:
 
 - [ ] Pre-launch checklist completed (all sections green)
 - [ ] Feature flag configured (if applicable)
@@ -316,7 +324,7 @@ Before deploying:
 - [ ] Monitoring dashboards set up
 - [ ] Team notified of deployment
 
-After deploying:
+After deploying — the runbook hands these to the human, who works them once the deploy is out; the agent never checks them off itself:
 
 - [ ] Health check returns 200
 - [ ] Error rate is normal
@@ -336,4 +344,6 @@ Emits the **release** artifact → `release.md` under `docs/features/<slug>/` (o
 - **Monitoring setup** — the dashboards/alerts to watch + the first-hour post-launch verification list.
 - **Deploy fence** — an explicit `Executed by: human, post-merge` banner. In v1 the agent authors this runbook but executes no deploy/rollout/rollback command; every action is fenced behind the human's async merge (auto-deploy out of v1).
 
-STATE.md: shipping-and-launch is **release-level and post-merge** — it does NOT own a slice row and never flips a slice `gate` to `agent` for a deploy action. Once the feature's slices are `done` (PRs merged), record `release.md` under that feature's `Artifacts` cell. If a CRITICAL/HIGH security finding or a secret surfaces while preparing the release → hard STOP, fire `PushNotification`, open no release (security.md).
+**Consumer:** the human running the deploy. No skill reads `release.md` — `pull-request` in particular does not, because a slice's draft PR opens well before any release exists and never waits on one.
+
+STATE.md: shipping-and-launch is **release-level and post-merge** — it does NOT own a slice row and never flips a slice `gate` to `agent` for a deploy action (`pull-request` owns the slice row). Once the feature's slices read `done` and their PRs are merged, record `release.md` under that feature's `Artifacts` cell. If a CRITICAL/HIGH security finding or a secret surfaces while preparing the release → hard STOP, fire `PushNotification`, open no release (security.md).

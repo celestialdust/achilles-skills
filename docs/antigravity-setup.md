@@ -1,6 +1,6 @@
 # Using achilles-skills with Antigravity CLI (agy)
 
-The `achilles-skills` suite can be installed as a native plugin in the Antigravity CLI (`agy`), giving the agent access to the full **Ideate → Spec → Plan → Implement → Verify → Review → Ship** lifecycle — 36 structured skills, 5 reusable personas, and 9 lifecycle slash commands.
+The `achilles-skills` suite can be installed as a native plugin in the Antigravity CLI (`agy`), giving the agent access to the full **Ideate → Spec → Plan → Implement → Verify → Review → Ship** lifecycle — 40 structured skills, 5 reusable personas, and 12 slash commands (9 lifecycle + 3 standalone).
 
 The human owns Ideate + Spec + Plan; the agent then runs Implement → Verify → Review → Ship autonomously, terminating at risk-banded open draft PRs for async human merge. It never auto-merges to main.
 
@@ -45,19 +45,22 @@ agy plugin list
 
 ## Slash Commands
 
-The plugin registers 9 lifecycle slash commands — one per stage of the **Ideate → Spec → Plan → Implement → Verify → Review → Ship** loop, plus `/orchestrate` (the autonomous wave-parallel runner) and `/setup` (one-time repo bootstrap). Each command activates its lead skill, which in turn pulls in supporting skills as a fan-out.
+The plugin registers 12 slash commands. Nine are lifecycle commands — one per stage of the **Ideate → Spec → Plan → Implement → Verify → Review → Ship** loop, plus `/orchestrate` (the autonomous wave-parallel runner) and `/setup` (one-time repo bootstrap). The remaining three, `/explain`, `/quiz`, and `/gauntlet-loop`, are standalone and belong to no stage. Each command activates its lead skill, which in turn pulls in supporting skills as a fan-out.
 
 | Command | What it does | Activated Skill(s) |
 |---------|--------------|--------------------|
 | `/ideate` | Brainstorm and frame a fresh idea into `intent.md` | `interview-me`, then `idea-refine` |
-| `/spec` | Design the product: grill the intent into ADRs, a PRD, and the behavioral + environment contracts | `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `spec-review`) |
-| `/plan` | Turn the spec into a concrete plan — vertical slices + dependency DAG | `plan-breakdown` (runs `codebase-research` first) |
+| `/spec` | Survey the code as-is, then design the product: grill the intent into ADRs, a PRD, the behavioral + environment contracts, and the signed structure | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `architecture-design`, `spec-review`) |
+| `/plan` | Turn the spec into a concrete plan — vertical slices + dependency DAG | `plan-breakdown` (reuses Spec's `research.md`) |
 | `/implement` | Build the next thin vertical slice, skeleton-first | `incremental-implementation` (applies `test-driven-development`) |
 | `/verify` | Prove a finished slice meets `acceptance.md`, code-cold | `quality-verification` |
 | `/review` | Quality gate before merge: five-axis review with a parallel fan-out | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization`) |
-| `/ship` | Release: pre-launch checklist, staged rollout, rollback | `shipping-and-launch` (+ `pull-request`) |
+| `/ship` | Open one slice's risk-banded draft PR; the stage ends there. `shipping-and-launch` is release-level and follows the human's merge. | `pull-request` — the spine of the stage |
 | `/orchestrate` | Run the whole lifecycle autonomously as a wave-parallel DAG, to open PRs | `orchestrator` |
-| `/setup` | One-time repo ecosystem bootstrap: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` | `project-setup` |
+| `/setup` | One-time repo ecosystem bootstrap: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · `docs/progress.md` · `docs/lessons.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other | `project-setup` |
+| `/explain` | Explain a piece of code or a system in prose — **standalone**, not a lifecycle stage | `literate-explainer` |
+| `/quiz` | Check comprehension of a change or codebase area — **standalone**, not a lifecycle stage | `comprehension-quiz` |
+| `/gauntlet-loop` | Build a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch — **standalone**, not a lifecycle stage; offered, never auto-selected | `gauntlet-loop` |
 
 Each command automatically invokes the corresponding skill and guides the agent step-by-step.
 
@@ -71,17 +74,20 @@ Antigravity automatically discovers skills inside the plugin's `skills/` directo
 * Antigravity matches user tasks and intents to relevant skills on-demand.
 * If a task matches a skill, the agent will load the skill and prompt you for permission before executing.
 
-The suite ships 36 skills, organized by lifecycle stage. Names are descriptive and function-implying (e.g. `performance-optimization`, not `perf`) so the trigger descriptions match developer intent cleanly.
+The suite ships 40 skills, organized by lifecycle stage. Names are descriptive and function-implying (e.g. `performance-optimization`, not `perf`) so the trigger descriptions match developer intent cleanly.
 
 **Cross-cutting / setup**
 
 | Skill | Responsibility |
 |---|---|
 | `using-agent-skills` | meta-dispatcher: task → skill + lifecycle map |
-| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ |
+| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/test-contract.md · docs/workflow.md · docs/session-state.md · docs/progress.md · docs/lessons.md · the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other |
 | `orchestrator` | default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | `preflight-readiness` | env-readiness gate; blocks the wave until provisioned |
 | `handoff` | per-session compaction to a fresh-agent doc |
+| `literate-explainer` | standalone: explain code or a system in prose (`/explain`) |
+| `comprehension-quiz` | standalone: check comprehension of a change or codebase area (`/quiz`) |
+| `gauntlet-loop` | standalone: a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch (`/gauntlet-loop`); offered, never auto-selected |
 
 **Ideate (human-led)**
 
@@ -94,19 +100,20 @@ The suite ships 36 skills, organized by lifecycle stage. Names are descriptive a
 
 | Skill | Responsibility |
 |---|---|
-| `spec-grilling` | design the product from intent → ADRs + CONTEXT.md |
+| `codebase-research` | head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md` |
+| `spec-grilling` | design the product from intent + the survey → ADRs + CONTEXT.md (refuses without `research.md`) |
 | `to-prd` | light dual-audience PRD (product-altitude; references ADRs) |
-| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract |
+| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | `environment-manifest` | typed-kind manifest (no values, no commands) |
+| `architecture-design` | the structure a person signs before any code is planned: `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md` (refuses without a signed `acceptance.md`) |
 | `spec-review` | fresh code-cold agent fixes the spec before the user reviews |
 
 **Plan (human-led)**
 
 | Skill | Responsibility |
 |---|---|
-| `codebase-research` | goal-blind parallel map of the codebase/DB as-is |
-| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG |
+| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's `research.md` |
 | `codebase-design` | referenced discipline: deep-module interfaces (deletion test) |
 | `api-design` | referenced discipline: contract-first interface |
 
@@ -142,7 +149,7 @@ The suite ships 36 skills, organized by lifecycle stage. Names are descriptive a
 | Skill | Responsibility |
 |---|---|
 | `pull-request` | per-slice design-anchored draft PR; read-the-code checklist; risk band |
-| `shipping-and-launch` | release: pre-launch checklist; staged rollout; rollback |
+| `shipping-and-launch` | release-level, on the far side of the human's merge: pre-launch checklist; staged rollout; rollback |
 | `git-workflow` | trunk-based; atomic commits; secret hygiene |
 | `ci-cd` | Shift Left; quality-gate pipeline; feature flags |
 | `observability-and-instrumentation` | structured logging; RED metrics; OTel tracing |
@@ -166,8 +173,8 @@ agy plugin validate /path/to/achilles-skills
 Antigravity CLI automatically discovers the `SKILL.md` files located in the `skills/` directory of the installed plugin. Using the trigger descriptions in each skill's frontmatter, the agent will dynamically activate the appropriate workflow when it detects matching developer intent.
 
 For example, when you ask the agent to:
-- **Design a new system** &rarr; It will suggest/activate `spec-grilling` (and pull in `to-prd`, `acceptance-criteria`, and `frontend-design`).
-- **Plan the work** &rarr; It will activate `plan-breakdown` after mapping the codebase with `codebase-research`.
+- **Design a new system** &rarr; It will map the codebase with `codebase-research` first, then activate `spec-grilling` (and pull in `to-prd`, `acceptance-criteria`, and `frontend-design`).
+- **Plan the work** &rarr; It will activate `plan-breakdown`, which reuses the `research.md` the Spec-stage survey already wrote.
 - **Implement a feature** &rarr; It will activate `incremental-implementation` and `test-driven-development`.
 - **Fix a bug** &rarr; It will activate `debugging-and-error-recovery`.
 - **Run the whole lifecycle autonomously** &rarr; It will activate `orchestrator` to execute the slice DAG wave-by-wave to open PRs.
@@ -187,7 +194,7 @@ You can invoke these personas directly within your session or when delegating ta
 ## Configuration & Customization
 
 ### Project lifecycle state (`/setup`)
-`achilles-skills` carries its lifecycle discipline in the skills themselves; it does not ship a separate enforcement file. To bootstrap a consuming repo, run `/setup` (the `project-setup` skill) once. It seeds `STATE.md` and `CONTEXT.md` into your workspace root and creates `docs/adr/` and `docs/features/` — the shared artifacts the later stages read and append to. If you want Antigravity to hard-enforce a gate such as "no code before a spec," add an `AGENTS.md` to your workspace root describing that rule; Antigravity reads it to align the agent's behavior and planning phase with your team's conventions.
+`achilles-skills` carries its lifecycle discipline in the skills themselves; it does not ship a separate enforcement file. To bootstrap a consuming repo, run `/setup` (the `project-setup` skill) once. It seeds `STATE.md` and `CONTEXT.md` into your workspace root, creates `docs/adr/` and `docs/features/`, writes `docs/test-contract.md` (the repo's permanent scenarios, seeded with no rows — only a person activates one, and activation is one-way), `docs/workflow.md` (the process contract — stages, gate owners, where a run ends, what stops one), `docs/session-state.md` (where the work stands, plus an append-only log of decisions a resuming session reads first), `docs/progress.md` (the run record — what each slice actually executed), and `docs/lessons.md` (root-caused defects and the guard that would catch each one coming back), and adds an `## Agent skills` block to your `CLAUDE.md` or `AGENTS.md` — the shared artifacts the later stages read and append to. Whichever of the two carries that block is your repo's rules file; the other is created as a short pointer to it, so an agent that reads only that filename still lands in the right place. If you want Antigravity to hard-enforce a gate such as "no code before a spec," write that rule in the rules file — never in the pointer, which holds no rules of its own. Antigravity follows the pointer and reads the rules there to align the agent's behavior and planning phase with your team's conventions.
 
 ### Sandbox Mode
 If you want to run skills or scripts with limited terminal permissions (for safety when running third-party validation tests), launch the CLI with:

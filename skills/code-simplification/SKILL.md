@@ -1,6 +1,6 @@
 ---
 name: code-simplification
-description: 'Reduce code complexity without changing behavior — the Review-stage QUALITY axis. Use the moment a slice''s code is green but reads heavier than it should: deep nesting, nested ternaries, dead code, generic names, copy-paste duplication, speculative abstractions. Apply Chesterton''s Fence (understand before you cut) and stay scoped to what changed. Quality only — it does NOT hunt for bugs (that is `code-review`/`security-and-hardening`). It NEVER edits tests or changes behavior; if a simplification cannot be made without touching behavior, it HALTS instead of weakening the gate.'
+description: 'Reduce code complexity without changing behavior — the Review-stage QUALITY axis. Use the moment a slice''s code is green but reads heavier than it should: deep nesting, nested ternaries, dead code, generic names, copy-paste duplication, speculative abstractions. Apply Chesterton''s Fence (understand before you cut) and stay scoped to what changed. Quality only — it does NOT hunt for bugs (that is `code-review`/`security-and-hardening`). It REPORTS findings and edits nothing — not the code, not the tests; a simplification that cannot be had without moving behavior, a frozen test, or the repo''s decided look is a HALT, not a finding.'
 ---
 
 # Code Simplification
@@ -9,7 +9,7 @@ description: 'Reduce code complexity without changing behavior — the Review-st
 
 ## Overview
 
-Simplify code by reducing complexity while preserving exact behavior. The goal is not fewer lines — it's code that is easier to read, understand, modify, and debug. Every simplification must pass a simple test: "Would a new team member understand this faster than the original?"
+Find the complexity in a change and name the simpler version, without changing what the code does. The goal is not fewer lines — it's code that is easier to read, understand, modify, and debug. Every simplification you report must pass a simple test: "Would a new team member understand this faster than the original?"
 
 ## When to Use
 
@@ -30,27 +30,42 @@ Simplify code by reducing complexity while preserving exact behavior. The goal i
 ## Inputs
 
 **Stage:** Review — one axis of the parallel fan-out. The orchestrator dispatches this as a fresh,
-code-cold subagent on the *simplification* axis (maker≠checker; `parallelism.md` mech f). It applies
-its fixes; it does not just report.
+code-cold subagent on the *simplification* axis (maker≠checker; `parallelism.md` mech f). It reports
+findings; it does not edit the code it grades. Sibling axes are reading those same files at the
+same moment, so a write here lands under a reviewer mid-read — and a checker that rewrites what it
+just graded has stopped being a checker. The slice's own implementer applies the fix on the
+route-back.
 
 Refuse to run unless ALL of these resolve:
 
 - **The slice diff** — the changed code for the slice under review (the working-tree diff / the files
-  the slice touched). This is the only material in scope. *No diff → nothing to simplify → exit clean.*
+  the slice touched). This is the only material in scope. *No diff → nothing to simplify → return `pass`.*
 - **A green test suite for those files** — the behavior oracle. Behavior-preservation is the entire
-  contract (Principle 1); if you cannot run the tests that pin the changed code, you cannot prove you
-  preserved behavior → refuse rather than guess.
-- **The slice's declared `Regression surface`** — the file set you are allowed to touch. Simplify
-  NEVER edits a file outside it (Principle 5: Scope to What Changed).
+  contract (Principle 1), and the tests are what make a finding safe to act on: with nothing pinning
+  the changed code, "this preserves behavior" is a guess you are asking the implementer to take on
+  faith → refuse rather than guess.
+- **The slice's declared `Regression surface`** — the file set you are allowed to report on. A finding
+  cited outside it belongs to a slice that is not under review (Principle 5: Scope to What Changed).
 - **Project conventions** — `CLAUDE.md` / `CONTEXT.md` and the neighboring code, so simplification
-  converges on the house style instead of imposing a foreign one (Principle 2). Simplification that
-  breaks project consistency is churn, not simplification.
+  converges on the house style instead of imposing a foreign one (Principle 2).
 
 **Frozen under this skill (silent-false-green invariant):** `acceptance.md`, the RED/passing tests,
-and the declared `Regression surface` are IMMUTABLE here. A "simplification" that edits a test, weakens
-an assertion, or widens/narrows the surface is **gate-erosion → HALT**: stop, flip the slice's gate
-column to `you`, and surface it. The whole point of this skill is to make the code simpler until the
-frozen tests still pass — never to change the tests until the simpler code passes.
+and the declared `Regression surface` are IMMUTABLE here. So is any **ACTIVE** row under the `## Rows`
+heading of `docs/test-contract.md` when the repo has one — and that one is frozen on stronger terms: the
+first three thaw between runs by a signed Spec change, an ACTIVE row is frozen in every run, forever,
+because activation is one-way and only a person performs it. A simplification you cannot recommend without
+a test being edited, an assertion weakened, the surface widened or narrowed, or an ACTIVE row losing its
+coverage is **gate-erosion → HALT**: stop, return `block`, and surface it — naming the row id (`TC-1`) when
+it was a contract row, since "gate erosion" alone does not tell the reader which guarantee was nearly
+traded away. The orchestrator owns the board: it flips the slice's gate column to `you`, and a person
+decides. Never set a row's state yourself in either direction; you read that file and do not edit it. An
+absent file, or one with no ACTIVE rows, changes nothing here.
+`docs/design.md` is **read-only** here rather than frozen — a different constraint for a different
+reason: Verify grades every contract axis marked `inherits: docs/design.md` against it, and only
+`frontend-design` moves it. It is not a fifth frozen artifact, and this skill never writes it. Reading
+rather than writing removes the authority to move that file, not the duty to report a collision with
+it — so a simplification that cannot be had unless the decided look moves is **gate-erosion → HALT**
+on the same terms: return `block`, and a person decides.
 
 ## The Five Principles
 
@@ -179,35 +194,33 @@ Scan for these patterns — each one is a concrete signal, not a vague smell:
 | Over-engineered patterns | Factory-for-a-factory, strategy-with-one-strategy | Replace with the simple direct approach |
 | Redundant type assertions | Casting to a type that's already inferred | Remove the assertion |
 
-### Step 3: Apply Changes Incrementally
+### Step 3: One Finding per Simplification
 
-Make one simplification at a time. Run tests after each change. **Submit refactoring changes separately from feature or bug fix changes.** A PR that refactors and adds a feature is two PRs — split them.
+Each finding names exactly one simplification, and each has to stand on its own: the implementer applies it, runs the suite against that change alone, and knows which change broke something when something breaks. A finding that bundles four rewrites into "clean this up" costs them that. The finding says so too — **refactoring lands separately from feature or bug fix work**; a PR that refactors and adds a feature is two PRs.
 
 ```
-FOR EACH SIMPLIFICATION:
-1. Make the change
-2. Run the test suite
-3. If tests pass → commit (or continue to next simplification)
-4. If tests fail → revert and reconsider
+FOR EACH SIMPLIFICATION YOU REPORT:
+1. Name one change, cited at file:line
+2. Show the before and the proposed after
+3. Name the tests that pin the behavior it touches — that is what makes it safe to take
+4. Say what the reader gains, not how many lines go away
 ```
 
-Avoid batching multiple simplifications into a single untested change. If something breaks, you need to know which simplification caused it.
+**The Rule of 500:** if a simplification would touch more than 500 lines, say so in the finding and recommend automation (codemods, sed scripts, AST transforms) over hand edits. Manual edits at that scale are error-prone and exhausting to review, and a finding that omits the size hands someone a week of work described as a cleanup.
 
-**The Rule of 500:** If a refactoring would touch more than 500 lines, invest in automation (codemods, sed scripts, AST transforms) rather than making the changes by hand. Manual edits at that scale are error-prone and exhausting to review.
+### Step 4: Test the Finding Before You Report It
 
-### Step 4: Verify the Result
-
-After all simplifications, step back and evaluate the whole:
+Write the proposed version out — it is the "after" the finding carries — and hold it against the original:
 
 ```
 COMPARE BEFORE AND AFTER:
-- Is the simplified version genuinely easier to understand?
-- Did you introduce any new patterns inconsistent with the codebase?
-- Is the diff clean and reviewable?
-- Would a teammate approve this change?
+- Is the proposed version genuinely easier to understand?
+- Does it introduce a pattern inconsistent with the codebase?
+- Is it a small, reviewable change on its own?
+- Would a teammate approve it?
 ```
 
-If the "simplified" version is harder to understand or review, revert. Not every simplification attempt succeeds.
+If the "simplified" version is harder to understand or review, drop the finding. Not every simplification attempt survives being written down — and an attempt dropped here costs nobody anything, while a reported one costs the slice a route-back.
 
 ## Language-Specific Guidance
 
@@ -338,43 +351,40 @@ function UserBadge({ user }: Props) {
 - Renaming things to match your preferences rather than project conventions
 - Removing error handling because "it makes the code cleaner"
 - Simplifying code you don't fully understand
-- Batching many simplifications into one large, hard-to-review commit
-- Refactoring code outside the scope of the current task without being asked
+- Batching many simplifications into one finding nobody can review
+- Reaching outside the scope of the current task without being asked
 
 ## Verification
 
-After completing a simplification pass:
+Before this pass returns, every finding it carries clears this bar:
 
-- [ ] All existing tests pass without modification
-- [ ] Build succeeds with no new warnings
-- [ ] Linter/formatter passes (no style regressions)
-- [ ] Each simplification is a reviewable, incremental change
-- [ ] The diff is clean — no unrelated changes mixed in
-- [ ] Simplified code follows project conventions (checked against CLAUDE.md or equivalent)
-- [ ] No error handling was removed or weakened
-- [ ] No dead code was left behind (unused imports, unreachable branches)
-- [ ] A teammate or review agent would approve the change as a net improvement
+- [ ] The existing tests pin the behavior it touches, and they pass as they stand — unmodified
+- [ ] Taking it needs no test edited, no assertion weakened, no `Regression surface` moved
+- [ ] It is one reviewable, incremental change, not a bundle
+- [ ] It cites a `file:line` inside the slice's declared `Regression surface`
+- [ ] It follows project conventions (checked against `CLAUDE.md` or equivalent), not imported taste
+- [ ] It removes and weakens no error handling
+- [ ] It leaves no dead code behind (unused imports, unreachable branches)
+- [ ] A teammate reading the before and the after would call it a net improvement
 
 ## Outputs & handoff contract
 
-**Emits: `diff`** — a behavior-preserving simplification of the same changed files,
-applied to the working tree as a **separate `refactor:` commit**, never folded into feature work
-(Principle 5 / Process Step 3: "Submit refactoring changes separately"). If nothing warrants
-simplifying, emit no diff and report `clean` — don't simplify for the sake of it.
+**Emits: `findings`** — the simplification axis, returned to the orchestrator for the Review fan-out's
+one ranked, de-duplicated list. This skill writes no file and changes no code; **Inputs** gives the
+reason.
 
-**Return to the orchestrator (Review fan-out aggregation)** exactly one verdict:
-- `applied` — the refactor diff + a one-line summary per simplification, with proof that every
-  existing test passes WITHOUT modification (attach the suite's exit status).
-- `clean` — code is already readable; no change warranted.
-- `halt` — a worthwhile simplification could not be made without changing behavior, OR a frozen
-  artifact would have had to move. Name the `file:line` and why; do not ship the change.
+**Return to the orchestrator (Review fan-out aggregation)** exactly one verdict token. The axes'
+vocabularies differ — `code-review` returns `Approve` or `Request changes`, `security-and-hardening`
+writes `pass`, `block`, or `STOP` — so the orchestrator translates each into the gate's terms before
+AND-combining them.
+- `pass` — nothing worth simplifying, or only `Optional` / `Nit` findings.
+- `concerns` — findings the owning slice should take, back through `incremental-implementation`
+  (bounded rounds).
+- `block` — gate-erosion, as **Inputs** defines it for the frozen artifacts and read-only
+  `docs/design.md`. Name the `file:line`, and do **not** also file it as a routine finding: an
+  implementer acting on it would erode the gate.
 
-**Invariants on the emitted diff:** stays inside the slice's `Regression surface`; zero test files
-changed; no error handling removed or weakened; the "after" is genuinely easier to read than the
-"before" (if not, revert — not every attempt succeeds, per Process Step 4).
-
-**STATE.md:** this skill writes **no** `STATE.md` row of its own. The orchestrator owns the slice's
-`review` state and advances it only when every review axis (this skill, `code-review`, `security-and-hardening`,
-`performance-optimization`) returns non-blocking; a `halt` from this axis bounces the slice back to Implement (bounded
-rounds). Stable sections other skills depend on: none beyond the `## Verification` checklist
-below, which is the done-predicate.
+**STATE.md:** this skill writes **no** `STATE.md` row and flips no gate of its own. The orchestrator
+owns the slice's `review` state and advances it only when every review axis returns non-blocking.
+Stable sections other skills depend on: none beyond the `## Verification` checklist above, which is
+the bar every finding clears.

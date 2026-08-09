@@ -7,7 +7,7 @@ description: 'Measure-first performance review of a code change. Use the moment 
 
 ## Purpose
 
-**Stage: Review (fan-out lens — the measure-first performance axis).** This skill is one of the four Review lenses (`code-review` · `code-simplification` · `security-and-hardening` · `performance-optimization`) the orchestrator dispatches as fresh, code-cold subagents in parallel on independent axes. Its job here is not to apply fixes but to *judge a diff on evidence*: profile, then report findings.
+**Stage: Review (fan-out lens — the measure-first performance axis).** This skill is the performance lens of the Review fan-out the orchestrator dispatches as fresh, code-cold subagents in parallel on independent axes. Its job here is not to apply fixes but to *judge a diff on evidence*: profile, then report findings.
 
 Measure before optimizing. Performance work without measurement is guessing — and guessing leads to premature optimization that adds complexity without improving what matters. Profile first, identify the actual bottleneck, fix it, measure again. Optimize only what measurements prove matters.
 
@@ -374,10 +374,12 @@ Emit **findings** (the perf axis) to `docs/features/<slug>/reviews/<SLICE-ID>-pe
   - `pass` = measured, within budget, no anti-pattern in the changed paths.
 - `## Findings` — a list; each item carries: severity (`blocker` | `major` | `minor`), a `file:line` citation into the diff, the **before/after measurement** that justifies it (numbers, not adjectives), and a recommended fix. No finding without a measurement or a named anti-pattern.
 
-Handoff: you do **not** flip `STATE.md` — the orchestrator owns the board. It AND-combines the four Review lenses' verdicts into the slice's review gate; any `block` halts the slice's PR promotion. Your contract ends at the findings file.
+Handoff: you do **not** flip `STATE.md` — the orchestrator owns the board. The Review lenses do not share one verdict vocabulary (`code-simplification` names the others), so it translates each one before AND-combining them into the slice's review gate; your `block` halts the slice's PR promotion. Your contract ends at the findings file.
 
 ## Subagents
 
 For a fresh-context, code-cold pass, dispatch the **`performance-auditor`** agent (`agents/performance-auditor.md`) as an
 independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a slice touches a hot path, data fetching, bundle size, or render cost.
+context — preserving maker≠checker. Reach for it when a person wants a single code-cold performance pass
+over a diff **outside a run**, or on a platform with no skill tool. Inside a run this skill is dispatched
+as itself — there is no role to play on top of it.

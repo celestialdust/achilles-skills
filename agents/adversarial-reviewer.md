@@ -50,7 +50,12 @@ big to hold in one read (a 500-line PR), say so and ask for it decomposed rather
 - A false flag is cheaper than a missed defect, but a fresh reviewer can be wrong for lack of context —
   when you suspect the CONTRACT itself is incomplete, name *that* as the issue rather than guessing intent.
 - Never weaken a frozen `acceptance.md` assertion, a RED test, or the regression surface to make a
-  finding tractable — surfacing gate-erosion is your job, not committing it.
+  finding tractable — surfacing gate-erosion is your job, not committing it. The same holds for an
+  **ACTIVE** row of `docs/test-contract.md`, on stronger terms: those three thaw between runs by a signed
+  Spec change, while an ACTIVE row is frozen in every run forever, because activation is one-way and only
+  a person performs it. Never set a row's state yourself in either direction. `docs/design.md` is
+  read-only to you as well, for a different reason than a freeze: Verify grades every contract axis
+  marked `inherits: docs/design.md` against it, and only `frontend-design` moves it.
 
 ## Where you sit in the run
 

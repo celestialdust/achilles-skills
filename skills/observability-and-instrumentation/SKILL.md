@@ -1,6 +1,6 @@
 ---
 name: observability-and-instrumentation
-description: Instruments code so production behavior is visible and diagnosable from the outside. Use the moment you add logging, metrics, tracing, or alerting — and as you build ANY feature that runs in production and will need evidence it works. Instrument as you build, not after the first incident becomes archaeology. Use when a production issue is reported but the telemetry can't tell you what happened. Referenced by incremental-implementation (instrument each slice) and ship (pre-launch gate).
+description: Instruments code so production behavior is visible and diagnosable from the outside. Use the moment you add logging, metrics, tracing, or alerting — and as you build ANY feature that runs in production and will need evidence it works. Instrument as you build, not after the first incident becomes archaeology. Use when a production issue is reported but the telemetry can't tell you what happened. Referenced by incremental-implementation (instrument each slice), by pull-request (the telemetry evidence in the draft PR and its risk band), and by shipping-and-launch at the pre-launch gate, which is release-level and runs after the human merges.
 ---
 
 # Observability and Instrumentation
@@ -25,7 +25,10 @@ Code you can't observe is code you can't operate. Observability is the ability t
 ## Inputs
 
 This skill is **referenced**, not its own pipeline stage — `incremental-implementation` invokes it as you build each
-slice, and `shipping-and-launch`/`pull-request` invoke it at the pre-launch gate. It consumes:
+slice; `pull-request` invokes it to put the slice's telemetry evidence in the draft PR and its risk band; and
+`shipping-and-launch` invokes it at the pre-launch gate, which is release-level and sits on the far side of the
+human's merge. The two are different moments, and collapsing them is what makes a reader think a release runbook
+gates a slice's PR. It consumes:
 
 - **The slice being built** (`plan.md` slice + the diff in the worktree) — the code whose production
   behavior must become visible. This is the load-bearing input: without code in hand there is nothing
@@ -231,8 +234,9 @@ Stable hand-off surfaces other skills depend on:
   the alerts test-fired) feeds the design-anchored PR summary and the **risk band** — a slice
   with retries/queues/external calls and zero new telemetry is a HIGH-risk signal in the inverted
   risk report.
-- **Into the pre-launch gate** → `shipping-and-launch`: the **Pre-Launch Gate** section of
-  `../../references/observability-checklist.md` is the release blocker this skill feeds.
+- **Into the pre-launch gate** → `shipping-and-launch`, release-level and post-merge: the **Pre-Launch Gate**
+  section of `../../references/observability-checklist.md` is the release blocker this skill feeds. It blocks a
+  release, never a slice's draft PR — that gate is `pull-request`'s, one line above.
 
 `STATE.md`: this skill owns no slice-state transition of its own; it runs *within* a slice's `impl`
 and `ship` states. Do not advance a slice past `impl` until the `## Verification` checklist passes for

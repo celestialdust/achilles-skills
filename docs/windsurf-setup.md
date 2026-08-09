@@ -1,7 +1,8 @@
 # Using achilles-skills with Windsurf
 
-`achilles-skills` is a self-contained suite of 36 engineering skills, 5 reusable agent personas, and 9
-slash commands that automate the loop **Ideate → Spec → Plan → Implement → Verify → Review → Ship**. The
+`achilles-skills` is a self-contained suite of 40 engineering skills, 5 reusable agent personas, and 12
+slash commands — 9 lifecycle commands that automate the loop **Ideate → Spec → Plan → Implement → Verify
+→ Review → Ship**, plus 3 standalone (`/explain`, `/quiz`, `/gauntlet-loop`). The
 human owns Ideate + Spec + Plan; the agent then runs Implement → Ship.
 
 Windsurf has no plugin marketplace, so you don't "install" the suite the way Claude Code does. Instead you
@@ -10,7 +11,7 @@ wire the skills into Windsurf's three native mechanisms:
 | achilles-skills concept | Windsurf mechanism |
 |---|---|
 | `skills/<name>/SKILL.md` | **Rules** — `.windsurf/rules/*.md` (or legacy `.windsurfrules`) |
-| `commands/*.md` (the 9 slash commands) | **Workflows** — `.windsurf/workflows/*.md`, invoked with `/<name>` in Cascade |
+| `commands/*.md` (the 12 slash commands) | **Workflows** — `.windsurf/workflows/*.md`, invoked with `/<name>` in Cascade |
 | `agents/*.md` (the 5 personas) | **Manual rules** — a code-cold rule you toggle on for a review pass |
 | `references/*.md` (checklists) | Pasted into Cascade chat as a verification checklist |
 
@@ -84,23 +85,26 @@ For skills you want across **every** project, add them to Windsurf's global rule
 > project + global budget). Keep each rule focused on one skill and lean on `manual` / `glob` activation so
 > you only pay for what the current task needs.
 
-## Workflows ↔ the 9 commands
+## Workflows ↔ the 12 commands
 
 Windsurf **Workflows** are markdown files in `.windsurf/workflows/`, invoked as `/<name>` inside Cascade —
-the closest analog to achilles-skills' slash commands. Recreate the 9 commands as workflows that tell
+the closest analog to achilles-skills' slash commands. Recreate the 12 commands as workflows that tell
 Cascade which underlying skill(s) to apply:
 
 | Workflow (`/name`) | achilles-skills command | Underlying skills to reference |
 |---|---|---|
 | `/ideate` | /ideate | interview-me, then idea-refine |
-| `/spec` | /spec | spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) |
-| `/plan` | /plan | plan-breakdown (+ codebase-research first) |
+| `/spec` | /spec | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, architecture-design, spec-review) |
+| `/plan` | /plan | plan-breakdown (reuses Spec's research.md) |
 | `/implement` | /implement | incremental-implementation (applies test-driven-development) |
 | `/verify` | /verify | quality-verification |
 | `/review` | /review | code-review (+ code-simplification, security-and-hardening, performance-optimization as a fan-out) |
-| `/ship` | /ship | shipping-and-launch (+ pull-request) |
+| `/ship` | /ship | pull-request — the spine of the stage; shipping-and-launch is release-level and follows the human's merge |
 | `/orchestrate` | /orchestrate | orchestrator (wave-parallel DAG runner to open PRs) |
 | `/setup` | /setup | project-setup |
+| `/explain` | /explain | literate-explainer (**standalone** — no lifecycle stage) |
+| `/quiz` | /quiz | comprehension-quiz (**standalone** — no lifecycle stage) |
+| `/gauntlet-loop` | /gauntlet-loop | gauntlet-loop (**standalone** — no lifecycle stage; offered, never auto-selected) |
 
 Example — `.windsurf/workflows/review.md`:
 
@@ -139,17 +143,19 @@ rule you toggle on for a dedicated review pass, then toggle off:
 To run a code-cold pass, open a **new** Cascade conversation (so it has no memory of the implementation),
 add the persona file as a manual rule, and paste only the diff.
 
-## The full skill roster (36)
+## The full skill roster (40)
 
-Pick the skills that match your current phase rather than loading all 36 at once.
+Pick the skills that match your current phase rather than loading all 40 at once.
 
 **Cross-cutting / setup** — using-agent-skills · project-setup · orchestrator · preflight-readiness · handoff
 
+**Standalone (no lifecycle stage)** — literate-explainer (`/explain`) · comprehension-quiz (`/quiz`) · gauntlet-loop (`/gauntlet-loop`)
+
 **Ideate (human-led)** — interview-me · idea-refine
 
-**Spec (human-led)** — spec-grilling · to-prd · frontend-design · acceptance-criteria · environment-manifest · spec-review
+**Spec (human-led)** — codebase-research (first) · spec-grilling · to-prd · frontend-design · acceptance-criteria · environment-manifest · architecture-design · spec-review
 
-**Plan (human-led)** — codebase-research · plan-breakdown · codebase-design · api-design
+**Plan (human-led)** — plan-breakdown · codebase-design · api-design (reuses Spec's research.md)
 
 **Implement (agent)** — incremental-implementation · test-driven-development · source-driven-development · worktree
 
@@ -166,7 +172,7 @@ Windsurf's context is limited, so start narrow:
 1. **Always-on (1–2 skills):** `using-agent-skills` (the task → skill dispatcher) and `git-workflow`.
 2. **Glob-activated:** `test-driven-development` on `**/*.test.*`, `frontend-design` on `**/*.tsx`.
 3. **Manual:** the 5 personas, plus heavyweight Review/Ship skills you only need at gates.
-4. Recreate the 9 commands as `/workflows` so the lifecycle is one keystroke away in Cascade.
+4. Recreate the 12 commands as `/workflows` so the lifecycle is one keystroke away in Cascade.
 
 ## Usage tips
 
@@ -174,6 +180,6 @@ Windsurf's context is limited, so start narrow:
    gaps, and prefer `manual` / `glob` activation over `always_on`.
 2. **Reference in conversation.** Paste additional skill content into Cascade when working on a specific
    phase (e.g. paste `security-and-hardening` when building auth).
-3. **Use references as checklists.** Paste `references/security-checklist.md`,
-   `references/performance-checklist.md`, `references/testing-patterns.md`, or
-   `references/definition-of-done.md` and ask Cascade to verify each item before you ship.
+3. **Use references as checklists.** The suite's shared material lives in `references/`;
+   [docs/getting-started.md](./getting-started.md) maps every file there to the skills that use it.
+   Paste the relevant one and ask Cascade to verify each item before you ship.
