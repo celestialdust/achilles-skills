@@ -47,6 +47,8 @@ Core Operating Behaviors (further down) apply at all times, regardless of which 
 Task arrives
     │
     ├── No STATE.md yet? ──────────────────────→ project-setup            (one-time repo ecosystem)
+    ├── Thrown away when it is done? ──────────→ OFFER gauntlet-loop AND the full loop — never pick one
+    │                                            (Standalone · asked BEFORE the stage branches · see below)
     │
     ├── Don't know what you want yet? ─────────→ interview-me     (Ideate · optional front door → intent.md)
     ├── Have a rough idea, need variants? ─────→ idea-refine      (Ideate → intent.md)
@@ -92,6 +94,26 @@ Task arrives
 Review is a fan-out: the orchestrator runs code-review / code-simplification / security-and-hardening / performance-optimization as fresh, code-cold
 subagents in parallel on independent axes (maker≠checker) — never as role-played personas.
 ```
+
+### Offering the fast path, never routing to it
+
+`gauntlet-loop` is the one destination in this tree you never select. Ask its question **before** you walk
+the stage branches, because a throwaway ask matches them too — "prototype the dashboard" reads like a new
+feature — and once you have routed to a stage the offer never gets made. When an ask reads like a throwaway
+proof of concept (a spike, a demo, a bake-off, anything the human says they will delete), name **both** paths
+in one message, one line each, and stop until the human picks:
+
+- **`/gauntlet-loop`** — fast, throwaway, no gates; the work lands in the `.gauntlet/` scratch the repository
+  ignores, and is not shippable.
+- **the full loop** — Ideate → Spec → Plan → Implement → Verify → Review → Ship, which is what anything that
+  will ship goes through.
+
+Deciding this yourself is the failure the offer exists to stop: **"quick" is a tone, not a scope.** "Quick,
+add auth to the login page" is production work said in a hurry, and sent to the fast path it gets no
+`acceptance.md`, no security audit, and no maker≠checker pass. So the permissive path is opt-in: an offer
+nobody answered, a non-answer, and anything short of the human choosing it all mean the full loop. The one
+case that skips the offer is the human naming the gauntlet themselves — typing `/gauntlet-loop`, or using any
+of the trigger phrases the skill's `description` lists. That is the pick already made.
 
 ## Skill Rules
 
@@ -244,6 +266,7 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Ship | documentation-and-adrs | the ADR + doc standard: document the why |
 | Comprehension | literate-explainer | standalone: turn a diff or whole repo into a self-contained teaching artifact; never a gate |
 | Comprehension | comprehension-quiz | standalone: ~5-question retrieval practice, graded before reveal → learning ledger; never a gate |
+| Standalone | gauntlet-loop | fast path for a throwaway POC: beat a named outside bar, blind builder/critic loop, work stays in the `.gauntlet/` scratch the repository ignores; **offered, never auto-selected** |
 
 ## Rationalizations
 
@@ -261,6 +284,8 @@ Excuses that talk you out of dispatching correctly — each is a failure mode:
   it is exactly the silent-false-green the suite is built to prevent.
 - "The plan is close enough, I'll skip plan-breakdown." → Without slices + the DAG, the orchestrator has no
   waves and the run can't parallelize or resume.
+- "They said quick, so I'll send it to `gauntlet-loop`." → You do not select that path; you offer it and the
+  human picks. See *Offering the fast path, never routing to it*.
 
 ## Red flags
 
@@ -287,6 +312,8 @@ Dispatch is complete when ALL hold:
   upstream to the skill that emits it rather than running the downstream skill against a gap.
 - You respected the ownership boundary: an agent-owned stage skill is not run on a slice whose `gate`
   column is `you`, and vice-versa.
+- A throwaway-shaped ask got both paths named and no pick made for the human; `gauntlet-loop` was reached
+  only because the human named it.
 - The project-wide Definition of Done still governs every change the dispatched skill will make
   (`../../references/definition-of-done.md`).
 

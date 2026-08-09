@@ -8,3 +8,7 @@ skills/frontend-design/scripts/node_modules/
 
 # Visual-companion session working dir — holds a live 0600 session key; never commit (SEC-FDM-1, defense-in-depth).
 **/.frontend-design/
+
+# gauntlet-loop scratch — POC-grade work, throwaway by design. Production code never lives here,
+# and this line is what enforces that rather than a warning in prose.
+.gauntlet/

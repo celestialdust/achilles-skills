@@ -19,7 +19,8 @@
     "./commands/orchestrate.md",
     "./commands/setup.md",
     "./commands/explain.md",
-    "./commands/quiz.md"
+    "./commands/quiz.md",
+    "./commands/gauntlet-loop.md"
   ],
   "skills": "./skills",
   "agents": [

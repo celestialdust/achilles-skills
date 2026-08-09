@@ -307,6 +307,7 @@ a real debt to — the work of:
 - **Jesse Vincent — [obra/superpowers](https://github.com/obra/superpowers)**
 - **Addy Osmani — [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills)**
 - **[multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)**
+- **Matt Shumer & Jay E — [robonuggets/gauntlet-loop](https://github.com/robonuggets/gauntlet-loop)** (CC BY 4.0)
 
 And a sincere thank-you to the broader **open-source community** — the authors, maintainers, and contributors
 whose tools, patterns, and hard-won lessons make work like this possible.
