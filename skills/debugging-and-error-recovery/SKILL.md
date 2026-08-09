@@ -216,8 +216,9 @@ handed a worktree?** Working in the repository itself → append it yourself. Ha
 finished entry back with the fix and the guard, for the **TERMINAL barrier**: that is the point where the
 orchestrator already completes each slice's `docs/progress.md` entry in the checkout it holds, so it is
 the one place a handed-back entry can reach the main line. Say in the handoff that the entry is still
-owed — the `orchestrator` skill names no lessons record and `docs/workflow.md` grants it no zone of one,
-so nothing has yet told it to append what you hand over, and an entry handed back silently reads as done.
+owed. `docs/workflow.md` gives the orchestrator that append and its own skill names it, so the courier
+exists — but a courier carries what it is handed, and infers nothing from a handoff that stays quiet. An
+entry handed back without being named reads as done, and is gone.
 The entry is written either way; the worktree decides only who writes it down.
 
 An absent `docs/lessons.md` means the repo was never set up for one. Carry on and say so in the handoff;
@@ -396,7 +397,13 @@ worktree and travel through the caller's handoff:
   closed and the reason it cannot silently return.
 
 **Appends**, where the repository keeps one: one `docs/lessons.md` entry per **root-caused defect**
-(Step 5), in the shape its `## Entry shape` block gives and under the three rules Step 5 states. Take the
+(Step 5), in the shape its `## Entry shape` block gives and under the three rules Step 5 states. **A
+defect routed here by a `Critical:` review finding is that review's entry, not yours** — write none for
+it. The zone is keyed to the finding rather than to whoever typed the fix, so an entry from here as well
+would put two entries in the record for one defect, and no entry can be withdrawn: an edit is a STOP.
+That matters beyond tidiness, because the same category appearing twice is what tells a reader the first
+guard did not hold, and a duplicate destroys the one count the record carries. Yours are the defects you
+root-caused that no review raised — a test or a build that broke during implementation. Take the
 field list off the file rather than off a copy here — a second copy of it is one that can fall behind the
 file it describes. The rules are the other way round, and the distinction matters when you go looking:
 only the refusal is under that heading, inside the template; the STOP and the second-entry rule are in

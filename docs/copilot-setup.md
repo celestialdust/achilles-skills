@@ -1,6 +1,6 @@
 # Using achilles-skills with GitHub Copilot
 
-achilles-skills is a plugin of 39 engineering skills, 5 reusable agent personas, and 12 commands —
+achilles-skills is a plugin of 40 engineering skills, 5 reusable agent personas, and 12 commands —
 9 lifecycle commands that drive a product from **Ideate → Spec → Plan → Implement → Verify → Review →
 Ship**, plus 3 standalone (`/explain`, `/quiz`, `/gauntlet-loop`). The
 primary distribution target is Claude Code (`/plugin marketplace add celestialdust/achilles-skills`), but
@@ -26,7 +26,7 @@ your repository. Each skill is a `SKILL.md` inside its own directory.
 ```bash
 mkdir -p .github/skills
 
-# Option A — install the full 39-skill roster
+# Option A — install the full 40-skill roster
 cp -R achilles-skills/skills/* .github/skills/
 
 # Option B — cherry-pick the essentials
@@ -37,13 +37,13 @@ cp achilles-skills/skills/code-review/SKILL.md             .github/skills/code-r
 
 For more details, refer to [Creating agent skills for GitHub Copilot](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-skills).
 
-#### The 39-skill roster (new names)
+#### The 40-skill roster (new names)
 
 The suite is organized by lifecycle stage. Each name below is a directory under `skills/`:
 
 **Cross-cutting / setup**
 - `using-agent-skills` — meta-dispatcher: task → skill + lifecycle map
-- `project-setup` — one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other)
+- `project-setup` — one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, docs/progress.md, docs/lessons.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other)
 - `orchestrator` — default wave-parallel DAG executor; autonomous to open PRs
 - `preflight-readiness` — env-readiness gate; blocks the wave until provisioned
 - `handoff` — per-session compaction to a fresh-agent doc

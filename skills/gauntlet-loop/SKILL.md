@@ -297,6 +297,6 @@ prompt mode; it is step 2 ending correctly, and the block comes after the pick.
   exception is the `.gauntlet/` line in `.gitignore`, added with the human's yes before the first write where
   the repository lacks it. A finished run leaves the tracked tree otherwise untouched.
 - **Reads no upstream artifact.** It holds no place in the chain `intent.md → research.md → prd.md →
-  acceptance.md → environment.md → plan.md → qa.md`, and nothing downstream consumes it.
+  acceptance.md → environment.md → architecture.md → plan.md → qa.md`, and nothing downstream consumes it.
 - **Next action:** the human's. The run reports and stops.
 - **Standalone:** no lifecycle gates, nothing blocks, `/orchestrate` untouched.

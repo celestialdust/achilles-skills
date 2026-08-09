@@ -144,15 +144,30 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
 
 ## Validating before a PR
 
-- Every `SKILL.md` has valid frontmatter with exactly `name` + `description`.
-- Every `SKILL.md` carries all eight body slots in order, read as a subsequence — see
-  [The house envelope](#the-house-envelope), which says which reorderings that reading catches and which
-  one it does not.
+- `node scripts/check-envelope.mjs` is silent. It walks every `SKILL.md` for exactly `name` +
+  `description` in the frontmatter and all eight body slots in order, read as a subsequence — see
+  [The house envelope](#the-house-envelope). **A clean run says nothing about the Inputs/Process pair**:
+  slot 4 accepts any heading, so the walk confirms a region rather than a position and cannot see the two
+  swapped. Read that pair yourself; nothing else will.
 - `agents/` and `commands/` filenames match the arrays in `.claude-plugin/plugin.json`.
 - Exactly one plugin manifest exists — `.claude-plugin/plugin.json`, which states the version. There is
   no second manifest at the repo root; a duplicate would drift, since nothing forces the two to agree.
 - No per-skill `evals/` directory.
 - No terse-stem skill pointers reintroduced; artifact/tool/object tokens left verbatim.
+- `node scripts/check-references.mjs` is silent. Every markdown link, heading anchor and backticked path
+  under the plugin's own tree resolves. It does not check paths under `docs/` — most of those name
+  artifacts the suite scaffolds into *your* project and correctly absent from this one, so checking them
+  would report a false hit on nearly every mention. Read those by hand.
+- `node scripts/check-enumerations.mjs` is silent. Every stated total — skills, personas, commands — is
+  recomputed from the tree and diffed against every sentence that states it. **Never take a count in this
+  repository on trust.** Nine hand-priced enumerations in the v2 build measured wrong and every one was
+  short; one said seven sections where there were eight and would have shipped a duplicate. A count this
+  check cannot reach — the sections in a block, the rows in a table, the steps in a process — is a count
+  you measure with a command before you write it down.
+- `node scripts/check-registries.mjs` is silent. Every skill, command and persona is listed in each
+  registry that enumerates its kind, and no registry lists something that is not there. The second
+  direction is the one hand-review never does: a rename leaves a row behind that sends a reader to a file
+  that does not exist. Artifacts named in prose rather than in a table column are out of its reach.
 - `node scripts/check-write-table.mjs` reports nothing your own diff introduced. It reads the write
   table in `docs/workflow.md`, collects the writes each `SKILL.md` declares in prose, and judges each
   against the zone the table gives that skill. Three verdicts: **permitted**, which is silent;
@@ -173,8 +188,20 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   turn a red check green is the gate erosion the table exists to catch. Close it by rewording the skill.
   Nothing runs it for you; no job covers `scripts/`.
 
-  What is in the standing output, characterised. Sites are named by skill and by the sentence, not by
-  line number, because line numbers move and a stale citation reads exactly like a live one:
+  What is in the standing output, characterised. The run reports **69 to settle — 38 conflicts and 31
+  unresolved**, from 89 write claims over 4051 paragraphs against 70 table rows. Re-derive those numbers
+  from the check's own last line rather than trusting this sentence; they move with every wave that adds
+  a writer, and a count copied by hand is the defect this table exists to catch. What follows characterises
+  the **classes** the conflicts fall into, not one row per finding. Sites are named by skill and by the
+  sentence, not by line number, because line numbers move and a stale citation reads exactly like a live
+  one.
+
+  The **31 unresolved** are a separate category and are not listed below at all. An unresolved finding is
+  one whose claim matched a file the table rows but named no zone cue, so the check cannot tell a legal
+  write from a trespass and says so instead of guessing. They cluster on the per-feature artifacts —
+  `plan.md`, `prd.md`, `intent.md`, `CONTEXT.md`, `acceptance.md` lead the list — because those rows carry
+  `—` in *Named by* and their zones therefore cannot be told apart from prose. Give a zone a cue where the
+  distinction has to hold, and it settles itself from then on:
 
   | Site | Claim | Reading |
   |---|---|---|
@@ -192,6 +219,11 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   | `api-design`, `source-driven-development`, `using-agent-skills` | a denial followed by naming who does write it | over-report — the check credits the neighbouring skill's verb to this one |
   | `orchestrator` | "Every transition is **written** as it happens" | over-report — the zone is `flip status` and the sentence reaches for a create verb |
   | `literate-explainer`, `project-setup` | `glossary.md`, `ADR-<NNN>-<slug>.md` | over-report — a learner's workspace file and a naming convention, neither a substrate document |
+  | `handoff` | `docs/adr/` and `acceptance.md` in one sentence about what outranks the session log | over-report — it names those files to say they beat the log, and the check credits the sentence's verb to both |
+  | `spec-grilling` | an `origin:` append naming the ADR ids | over-report — that zone is legally its own; the claim reaches `STATE.md` without naming the `origin:` cue |
+  | `plan-breakdown` | feature blocks, slice rows, and their tokens in one paragraph | trespass on the tokens only — the rows are its own, the `impl → verify → …` tokens are the `orchestrator`'s |
+  | `preflight-readiness` | `environment.md`, `docs/features/<slug>/`, and a `gate` flip | over-report on the first two — it reads them and writes `preflight.md`; trespass on the flip, which is the `orchestrator`'s |
+  | `orchestrator`, `project-setup` | `docs/progress.md`, `docs/lessons.md` | over-report — a create verb in a sentence whose zone is `append only`, and a scaffold sentence that names both records' entry zones while creating only their headings |
   | any skill | a file whose row still reads `nobody` / `never` | trespass, and the row is the thing to fix — `docs/workflow.md` says the skill that starts writing such a file names itself in that row **in the same commit**, so the row moves with the skill, never after it |
 - This repo's own `docs/workflow.md` still matches the copy `project-setup` ships. Run
   `diff docs/workflow.md skills/project-setup/assets/workflow.template.md`; it must print nothing. The

@@ -302,7 +302,7 @@ keeps the table from being shrunk until it stops catching anything.
 | `docs/lessons.md` | the file, its `## Entry shape` heading and the template beneath it | — | `project-setup` | create |
 | `docs/lessons.md` | an entry for a root-caused defect | `root-caused` | `debugging-and-error-recovery` | append only |
 | `docs/lessons.md` | an entry for a Critical review finding | `Critical:` | `code-review` | append only |
-| `docs/lessons.md` | an entry a slice handed back, appended once the slice is merged | `TERMINAL barrier` | `orchestrator` | append only |
+| `docs/lessons.md` | an entry a slice handed back, appended at the TERMINAL barrier from the checkout the orchestrator holds | `TERMINAL barrier` | `orchestrator` | append only |
 | `docs/lessons.md` | an entry already written | — | nobody | never |
 | `docs/progress.md` | the file and its `## Entry shape` heading | — | `project-setup` | create |
 | `docs/progress.md` | a slice's entry, where that slice ran on its own | `hand-run path` | `incremental-implementation` | append only |

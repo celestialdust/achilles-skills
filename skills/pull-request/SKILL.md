@@ -99,7 +99,7 @@ gh pr create --draft \
 - <why this slice exists — drawn from prd.md ## Solution / a referenced ADR, NOT commit messages>
 
 ## Upstream artifacts
-- PRD: [prd.md](<path>)  ·  ADRs: <ADR-007, …>  ·  Plan/slice: [plan.md](<path>) (<slice id>)
+- PRD: [prd.md](<path>)  ·  ADRs: <ADR-007, …>  ·  Structure: [architecture.md](<path>)  ·  Plan/slice: [plan.md](<path>) (<slice id>)
 - Acceptance: [acceptance.md](<path>)  ·  Verify ledger: [qa.md](<path>)
 
 ## Diff narration

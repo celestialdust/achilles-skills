@@ -256,10 +256,10 @@ worktree → hand the finished entry back with your findings, for the **TERMINAL
 point where the orchestrator already completes each slice's `docs/progress.md` entry in the checkout it
 holds, so it is the one place a handed-back entry can reach the main line.
 
-**Say, in the same breath, that the entry is still owed.** The `orchestrator` skill names no lessons
-record and `docs/workflow.md` grants it no zone of one, so nothing has yet told the orchestrator to
-append what you hand it. Naming the entry as unwritten is what keeps a dropped one visible; handed back
-silently, it reads as done and is gone.
+**Say, in the same breath, that the entry is still owed.** `docs/workflow.md` gives the orchestrator that
+append and its own skill names it, so the courier exists — but it carries what it is handed, and infers
+nothing from a handoff that stays quiet. Naming the entry as unwritten is what keeps a dropped one
+visible; handed back silently, it reads as done and is gone.
 
 The rules that govern the append — the refusal, the STOP, the second entry rather than an amendment — are
 stated in `docs/lessons.md` itself, in the prose it opens with as well as in the template under

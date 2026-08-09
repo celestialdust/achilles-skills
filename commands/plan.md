@@ -17,4 +17,5 @@ Plan is **human-led** — the human owns Ideate, Spec, and Plan. This command pr
 ## Notes
 
 - Requires the locked spec artifacts (`prd.md`, `acceptance.md`) and `research.md` from /spec. If none exist, stop and tell the user to run /spec first — do not invent requirements, and do not paper over a missing survey by running one here.
+- Reads the signed structure too — this feature's `architecture.md` and, where the repository has one, `ARCHITECTURE.md`. Slices sit inside the modules and behind the seams those name; a plan that moves a boundary a person signed at the Spec gate does so in the open or not at all.
 - `plan.md` is the handoff to **/implement** (one thin slice at a time) or **/orchestrate** (the autonomous wave-parallel DAG runner to open draft PRs). Plan itself stays read-only.

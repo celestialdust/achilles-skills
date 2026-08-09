@@ -167,9 +167,10 @@ Then create the substrate (skip anything that already exists; never clobber). Th
 4. **`docs/features/`** — per-feature artifact root (`docs/features/<slug>/` holds intent.md, prd.md,
    acceptance.md, environment.md, plan.md per feature; seed a `.gitkeep`).
 5. The **`## Agent skills`** block in the chosen file (see below), pointing at `STATE.md`, `CONTEXT.md`,
-   `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, and `docs/session-state.md`, and **naming**
-   `docs/design.md` — which setup does not create; the first UI surface writes it. The domain-doc
-   consumer rules carry over from `references/domain-docs.md`. Then the **pointer** in the other filename
+   `docs/adr/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, `docs/progress.md`,
+   and `docs/lessons.md`, and **naming** `docs/design.md` and `ARCHITECTURE.md` — which setup does not
+   create; the first UI surface writes the one, and the first feature to run `architecture-design` writes
+   the other. The domain-doc consumer rules carry over from `references/domain-docs.md`. Then the **pointer** in the other filename
    (see "pointer seed" below), naming the file that holds the block.
 6. **`docs/workflow.md`** — the process contract, copied **verbatim** from the bundled
    `assets/workflow.template.md`, every section of it. It exists so a person can read the whole process
@@ -974,10 +975,11 @@ Done when **all** hold:
     [ -s "$f" ] || { echo "$f: missing or empty"; return 1; }
     awk -v f="$f" -v fields="$2" '
       /^```/                       { fence = !fence
-                                     template = (fence && h == 1 && !seen)
+                                     template = (fence && h == 1 && !seen && !past)
                                      if (template) seen = 1
                                      next }
-      !fence && /^## Entry shape$/ { h++ }
+      !fence && /^## Entry shape$/ { h++; next }
+      !fence && /^## /             { past = 1 }
       template && /^- [A-Z]/       { k = $0; sub(/:.*/, "", k); sub(/^- /, "", k); got[k] = 1 }
       END { if (h != 1) { print f": expected one \"## Entry shape\" heading outside a fenced block, found "h+0; b=1 }
             if (fence)  { print f": a fenced block is left open — every line after it goes unread"; b=1 }
@@ -1008,9 +1010,18 @@ Done when **all** hold:
   non-zero, naming every field and the open fence; a template moved **above** its heading → non-zero,
   naming every field, because a template the heading does not sit over is not the one this criterion
   asks for; a template moved out of its fenced block → non-zero, naming every field of that record,
-  which is the red flag above made mechanical; and either file truncated to zero length → non-zero. The
-  last one gets skipped and is what a failed write actually produces — `awk` runs no rule at all over an
-  empty file, so without the `[ -s ]` guard ahead of it the check prints nothing and reads as a pass.
+  which is the red flag above made mechanical; and either file truncated to zero length → non-zero. Add an
+  eighth: the template deleted outright, the heading left, and one entry quoting every field inside a
+  fence → non-zero, naming every field. That is what the `past` flag is for — once a `##` heading other
+  than `## Entry shape` has gone by outside a fence, no later fence can be read as the template, so an
+  entry can no longer supply the fields a deleted template owed.
+
+  **Why the `[ -s ]` guard is there** — and it is not the reason it looks like. Over an *empty* file
+  `awk` does run: no rule matches, but `END` fires, prints every missing field, and exits non-zero. The
+  guard is for a *missing* file, where `awk` exits `2` with `can't open file` on stderr — a failure that
+  reports through a different channel than every other one here. The guard turns both into one
+  `missing or empty` line on stdout. Keep it, and keep the reason straight: a right check with a wrong
+  reason attached is one the next reader deletes.
 
   **A copy this run created ships no entries, and that is a separate check.** The one above deliberately
   accepts entries, because it also has to pass over a repository that already holds them. Run this one

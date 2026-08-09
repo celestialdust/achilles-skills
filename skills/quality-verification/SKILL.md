@@ -293,7 +293,7 @@ the code** (weaken a test, reinterpret a scenario). qa defends mechanically, not
   missing-contract block; the slice cannot pass clean.
 - "I ran real commands, so I'll append my own entry to `docs/progress.md`." → No. One slice, one entry.
   Your commands and their output are part of what this slice returns; whoever holds that entry — the
-  orchestrator at the wave barrier, or `incremental-implementation` on the hand-run path — writes them
+  orchestrator at the TERMINAL barrier, or `incremental-implementation` on the hand-run path — writes them
   into it. A second entry for the same slice lets a reader count one slice twice.
 - "Reading `docs/progress.md` would tell me what the maker already tried." → It would, and that is the
   reason not to. It is the maker's account of the work, and you are here to grade the work against
@@ -391,7 +391,7 @@ contract binds to the running app.
     consumers (`pull-request`, the `orchestrator`) in the same commit.
 - **Writes no entry of its own in `docs/progress.md`, and reads none.** The commands this pass ran and
   their real output are part of what the slice returns, and they belong in that slice's single entry —
-  written by the `orchestrator` at the wave barrier, or by `incremental-implementation` when the slice was
+  written by the `orchestrator` at the TERMINAL barrier, or by `incremental-implementation` when the slice was
   run by hand. One slice, one entry per attempt: a second entry for the same attempt lets a reader count
   one slice twice. Not reading it is the same rule that keeps commit messages and implementer notes out of
   the closed set — the record is the maker's account of what it ran.

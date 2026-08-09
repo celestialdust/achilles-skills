@@ -13,7 +13,7 @@
         "source": "github",
         "repo": "celestialdust/achilles-skills"
       },
-      "description": "39 skills, 5 review personas, and 12 slash commands (9 lifecycle + 3 standalone) — covering spec, plan, implement, verify, review, and ship, with maker≠checker discipline throughout.",
+      "description": "40 skills, 5 review personas, and 12 slash commands (9 lifecycle + 3 standalone) — covering spec, plan, implement, verify, review, and ship, with maker≠checker discipline throughout.",
       "homepage": "https://github.com/celestialdust/achilles-skills",
       "license": "MIT",
       "keywords": ["skills", "agents", "engineering", "spec", "tdd", "review", "ship", "autonomous", "orchestrator", "lifecycle"]

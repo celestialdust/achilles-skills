@@ -1,6 +1,6 @@
 # Using achilles-skills with Gemini CLI
 
-achilles-skills ships **39 skills**, **5 reusable agent personas** (`agents/`), and **12 slash
+achilles-skills ships **40 skills**, **5 reusable agent personas** (`agents/`), and **12 slash
 commands** (`commands/`) — 9 lifecycle commands covering the full **Ideate → Spec → Plan → Implement →
 Verify → Review → Ship** loop, plus 3 standalone (`/explain`, `/quiz`, `/gauntlet-loop`). This guide explains how to wire them into Gemini CLI.
 
@@ -148,7 +148,7 @@ required.
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization as fan-out) | Quality gate before merge |
 | `/ship` | pull-request — the spine of the stage | Open one slice's risk-banded draft PR; the stage ends there. shipping-and-launch is release-level and follows the human's merge. |
 | `/orchestrate` | orchestrator | Autonomous wave-parallel DAG runner to open draft PRs |
-| `/setup` | project-setup | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other |
+| `/setup` | project-setup | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · `docs/progress.md` · `docs/lessons.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other |
 | `/explain` | literate-explainer | **Standalone** — explain code or a system in prose |
 | `/quiz` | comprehension-quiz | **Standalone** — check comprehension of a change or codebase area |
 | `/gauntlet-loop` | gauntlet-loop | **Standalone** — a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch; offered, never auto-selected |

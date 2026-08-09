@@ -38,6 +38,12 @@ task spans phases (a feature flows Ideate → … → Ship; a bug fix may need o
   finished run is least reliable about. A heading with nothing under it is a slice that started and did not
   finish. It carries no stage and no owner, so never route off it; and nothing here writes it. No file →
   nothing to read; route on.
+- **`docs/lessons.md`** (when the repo has one) — the lessons record: what a root-caused defect turned out
+  to be, and the guard that would stop it coming back. **Read by a later stage, not by this one.** No
+  routing decision turns on it, so opening it here spends context and settles nothing.
+  `incremental-implementation` reads it before it writes a skeleton, because its entries are decisions
+  about how to build rather than about which skill applies. It is named here so a cold agent learns the
+  record exists and who owes it a read — a file this list never mentions is a file nobody goes looking for.
 - **The full skill roster** (this file's Process tree + Quick reference) — the set of skills you may route to.
 - **The task in the prompt** — classify it to a stage.
 
@@ -67,6 +73,10 @@ Task arrives
     │   ├── UI work? ──────────────────────────→ frontend-design  (Spec → prototype + signed design contract)
     │   ├── Need the behavioral contract? ─────→ acceptance-criteria       (Spec → acceptance.md, behavioral-only)
     │   ├── Capture env needs? ────────────────→ environment-manifest      (Spec/Plan → environment.md)
+    │   ├── Structure nobody wrote down? ──────→ architecture-design       (Spec → architecture.md + the
+    │   │                                        committed architecture.html · after acceptance.md is
+    │   │                                        signed, before spec-review · first pass also writes
+    │   │                                        ARCHITECTURE.md · never scaffolded)
     │   └── Spec done, fix before review? ─────→ spec-review      (Spec → fixed spec + spec-review.md)
     ├── Signed spec, need a plan? ─────────────→ plan-breakdown   (Plan · THE planner → plan.md + slices + DAG)
     │   ├── Need codebase facts? ──────────────→ reuse Spec's research.md; re-run codebase-research only
@@ -226,7 +236,8 @@ The loop is **Ideate → Spec → Plan → Implement → Verify → Review → S
 Artifact chain (each stage emits what the next consumes cold):
 ```
 intent.md → research.md → prd.md (+ ADRs/CONTEXT.md) → acceptance.md → environment.md
-          → plan.md + slices + DAG → [implement → qa.md → review → pr → draft PR]
+          → architecture.md + architecture.html → plan.md + slices + DAG
+          → [implement → qa.md → review → pr → draft PR]
 ```
 `STATE.md` (root) is the two-level board (feature state · slice state · gate) indexing every feature under
 `docs/features/<slug>/`. Read it first to find where you are. Not every task needs every skill — a bug fix
@@ -237,7 +248,7 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Stage | Skill | One-line summary |
 |-------|-------|------------------|
 | Cross-cut | using-agent-skills | this meta-dispatcher: task → skill + lifecycle map |
-| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other) |
+| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, docs/progress.md, docs/lessons.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other) |
 | Cross-cut | orchestrator | wave-parallel DAG executor; platform-adaptive; runs to open draft PRs, never waits |
 | Cross-cut | preflight-readiness | env-readiness gate; blocks the wave until provisioned |
 | Cross-cut | handoff | per-session compaction to a fresh-agent doc |
@@ -249,6 +260,7 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Spec | frontend-design | the one UI skill: throwaway variants → committed prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | Spec | acceptance-criteria | behavioral-only Given/When/Then contract → acceptance.md |
 | Spec | environment-manifest | typed-kind manifest (no values, no commands) → environment.md |
+| Spec | architecture-design | the structure a person signs before any code is planned → architecture.md + the committed architecture.html; the repo's first such pass also writes `ARCHITECTURE.md`. Refuses without a signed acceptance.md |
 | Spec | spec-review | fresh code-cold agent fixes the spec before the human reviews |
 | Plan | plan-breakdown | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's research.md |
 | Plan | codebase-design | referenced discipline: deep-module interfaces (deletion test) |

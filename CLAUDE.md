@@ -71,7 +71,7 @@ last three are standalone and belong to no stage.
 | Command | Runs | Owner |
 |---|---|---|
 | `/ideate` | interview-me, then idea-refine | human |
-| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) | human |
+| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, architecture-design, spec-review) | human |
 | `/plan` | plan-breakdown — reuses /spec's research.md; re-surveys only against a named gap | human |
 | `/implement` | incremental-implementation (applies test-driven-development) | agent |
 | `/verify` | quality-verification | agent |

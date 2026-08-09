@@ -62,7 +62,7 @@ cat /path/to/achilles-skills/skills/code-review/SKILL.md >> .cursorrules
 `.cursorrules` is the legacy single-file format; prefer Option 1 for anything beyond two or three skills so
 you can load and unload disciplines independently and stay under Cursor's context limits.
 
-## The skill roster (39 skills)
+## The skill roster (40 skills)
 
 Use the **NEW** descriptive names below when copying rule files — the directory name under `skills/` matches
 the name in these tables.
@@ -72,7 +72,7 @@ the name in these tables.
 | Skill | Responsibility |
 |---|---|
 | `using-agent-skills` | meta-dispatcher: task → skill + lifecycle map |
-| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/test-contract.md · docs/workflow.md · docs/session-state.md · the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other |
+| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/test-contract.md · docs/workflow.md · docs/session-state.md · docs/progress.md · docs/lessons.md · the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other |
 | `orchestrator` | default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | `preflight-readiness` | env-readiness gate; blocks the wave until provisioned |
 | `handoff` | per-session compaction to a fresh-agent doc |

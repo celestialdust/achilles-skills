@@ -28,7 +28,7 @@ Install from the marketplace:
 /plugin install achilles-skills@achilles-skills
 ```
 
-This registers all 39 skills, the 5 review personas in `agents/`, and the 12 commands in `commands/` (9 lifecycle + 3 standalone) from the plugin manifest (`.claude-plugin/plugin.json`).
+This registers all 40 skills, the 5 review personas in `agents/`, and the 12 commands in `commands/` (9 lifecycle + 3 standalone) from the plugin manifest (`.claude-plugin/plugin.json`).
 
 Local / development:
 
@@ -176,9 +176,9 @@ The lifecycle commands create working artifacts as the agent moves through the s
 
 | Stage | Artifact(s) | Produced by |
 |-------|-------------|-------------|
-| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other | project-setup |
+| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other | project-setup |
 | Ideate | `intent.md` | interview-me, idea-refine |
-| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md` (+ ADRs) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest |
+| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html` (+ ADRs) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest, architecture-design |
 | Plan | `plan.md` | plan-breakdown (reads Spec's `research.md`) |
 | Verify | `qa.md` | quality-verification |
 

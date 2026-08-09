@@ -51,7 +51,12 @@ against what the user actually asked for):
    axes and holds nothing on `Quality floor`, `Restraint`, or `Copy-as-design-material` — an `inherits:`
    or `departs:` on one of those three points at nothing, and this is the last stop before the contract
    is signed and Verify grades the axis against a file with no decision in it.
-7. `docs/test-contract.md` (repo-wide, when the repo has one) — the permanent cross-feature scenarios.
+7. `architecture.md` + `architecture.html` (architecture-design) — **only if the feature ran a structure
+   pass**; read `ARCHITECTURE.md` alongside them when the repo has one. The page carries the markdown's
+   source block verbatim, so the two are one artifact in two forms and the comparison below is what keeps
+   them so. `status:` reads `unsigned` here and stays that way — a person flips it at the gate after
+   reading the page, and nothing an agent does flips it.
+8. `docs/test-contract.md` (repo-wide, when the repo has one) — the permanent cross-feature scenarios.
    Read its `ACTIVE` rows: the bundle has to agree with them. No such file, or no ACTIVE rows → nothing
    to reconcile; proceed.
 
@@ -88,6 +93,8 @@ this stage exists").
 | Placeholder / `TODO` / `TBD` / incomplete section | **Decidable** | Fill from context or remove. A design-contract axis reading `inherits: docs/design.md` or `departs: docs/design.md` is **not** incomplete — never fill either in. The first points at the decided look, the second at that axis's own `## Departure` block; restating what either already says is the second copy the format exists to prevent. |
 | Value or command embedded in `environment.md` (no value column, no command column — structurally illegal) | **Decidable** | Remove. If it is a real secret → also a security STOP (see Red flags). |
 | `acceptance.md` scenario contains a file path / signature / table (behavioral-only) | **Decidable** | Rewrite as an observable outcome. |
+| `architecture.html`'s embedded source block differs from `architecture.md` | **Decidable** | Re-splice the block from the markdown — never retype it. Compare the two byte for byte; a copy that was typed rather than spliced is already drifting while looking exactly like one that is not. This is the last stop before a person signs the page, and they read the page rather than the markdown. |
+| A signed `acceptance.md` scenario traces through no module or seam in `architecture.md` | **Contestable** (spotting it is mechanical; which structure absorbs it is not) | Draft the trace from what the structure already names; **flag it inline**, naming the scenario id. Never edit `acceptance.md` — it is signed. |
 | Acceptance **coverage gap**: a `prd.md` user story or `intent.md` success-criterion with no scenario (every story must map to ≥1 reachable scenario) | **Contestable** | Draft the missing scenario; **flag it inline**. |
 | **ADR-worthiness**: a hard-to-reverse ∧ surprising decision buried in prd prose instead of an ADR | **Contestable** | Propose extracting an ADR; **flag**. |
 | **One feature or two**: `intent.md` describes two independent subsystems crammed into one spec | **Contestable** | Propose the split; **flag**. |

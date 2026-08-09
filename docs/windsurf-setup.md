@@ -1,6 +1,6 @@
 # Using achilles-skills with Windsurf
 
-`achilles-skills` is a self-contained suite of 39 engineering skills, 5 reusable agent personas, and 12
+`achilles-skills` is a self-contained suite of 40 engineering skills, 5 reusable agent personas, and 12
 slash commands — 9 lifecycle commands that automate the loop **Ideate → Spec → Plan → Implement → Verify
 → Review → Ship**, plus 3 standalone (`/explain`, `/quiz`, `/gauntlet-loop`). The
 human owns Ideate + Spec + Plan; the agent then runs Implement → Ship.
@@ -143,9 +143,9 @@ rule you toggle on for a dedicated review pass, then toggle off:
 To run a code-cold pass, open a **new** Cascade conversation (so it has no memory of the implementation),
 add the persona file as a manual rule, and paste only the diff.
 
-## The full skill roster (39)
+## The full skill roster (40)
 
-Pick the skills that match your current phase rather than loading all 39 at once.
+Pick the skills that match your current phase rather than loading all 40 at once.
 
 **Cross-cutting / setup** — using-agent-skills · project-setup · orchestrator · preflight-readiness · handoff
 

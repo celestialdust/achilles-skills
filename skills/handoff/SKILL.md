@@ -47,7 +47,8 @@ first (context-budget rule), then hand off. A handoff written mid-thought is wor
 - **OPTIONAL argument**: a one-line description of what the next session will focus on. Treat it as
   the lens — tailor every field toward that focus.
 - **Read-only, to reference (never restate):** `STATE.md`; the per-feature chain under
-  `docs/features/<slug>/` (`intent.md`, `prd.md`, `acceptance.md`, `plan.md`, `qa.md`); `docs/adr/`;
+  `docs/features/<slug>/` (`intent.md`, `prd.md`, `acceptance.md`, `architecture.md`, `plan.md`,
+  `qa.md`); `docs/adr/`; `ARCHITECTURE.md`; `docs/progress.md`; `docs/lessons.md`;
   recent commits/diffs.
 
 No refuse-to-run gate — a handoff can always be written from the conversation. But **read the

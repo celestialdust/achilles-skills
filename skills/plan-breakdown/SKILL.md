@@ -41,6 +41,13 @@ required input cannot be resolved — a plan invented without the PRD or the cod
    codebase` · `## Open items for Plan`. This is the goal-blind as-is map; every `file`/`lines` your steps
    name must be real per this map, and your steps must follow the existing patterns it records.
 
+3. `architecture.md` — this feature's signed structural delta, and `ARCHITECTURE.md` where the repository
+   has one. A slice's files sit inside the modules and behind the seams these name, and the dependency
+   edges they permit are the ones a slice may add. Plan against them rather than re-deciding structure
+   here: they were signed at the Spec gate, and a plan that contradicts them silently moves a boundary a
+   person agreed to. Where a feature ran no structure pass, say so in the plan and plan against
+   `research.md` alone.
+
 **Referenced disciplines (invoked, not file inputs):** `codebase-design` and `api-design` — see
 `## Referenced disciplines & the ADR trigger`. **Optional context:** `acceptance.md` if present — align each
 step's `test:` tactics to the behavioral scenario ids it realizes (the binding is finalized at Verify by `quality-verification`).

@@ -129,7 +129,8 @@ contract paths, not the session history.
    `STATE.md` as it happens. **Complete each slice's entry** in `docs/progress.md` from what the slice
    returned — the commands, their real output, the files it changed, and what it did not run and why (see
    *The run record*). A slice that returned nothing keeps the stub it was given and is completed with
-   that fact. Then advance to the next wave.
+   that fact. In the same pass, carry over any lessons entry the slice handed back, into the same
+   checkout (see *The lessons a slice hands back*). Then advance to the next wave.
 10. **Integration gate.** After a connected DAG component's slices are all green, run the
     merged-union suite once in an integration worktree before presenting. Union-fail →
     the component's PRs go DRAFT + a blocker is recorded.
@@ -177,8 +178,9 @@ is the case a barrier-only write loses entirely.
 **Completing a stub adds lines under it. It never rewrites the heading, and never touches an entry that
 is already complete.** A retried slice is dispatched again, so it gets its own stub and its own entry —
 the same failure twice is two entries, and the second never replaces the first. An attempt to edit,
-re-order, re-date, or remove an existing entry is **reported as a violation** naming the entry and what
-would have changed; refusing quietly is not enough, because a silent refusal reads as a silent success.
+re-order, re-date, or remove an existing entry is a **STOP**: the work ends there and the violation is
+reported, naming the entry and what would have changed. Refusing quietly is not enough, because a silent
+refusal reads as a silent success.
 
 **Verify's result belongs to the slice's entry, not a second one.** `quality-verification` hands back its
 commands and their output with `qa.md`; those go into the fields under that slice's heading. One slice,
@@ -193,6 +195,25 @@ whole mechanism.
 **The record answers what ran. It never answers who acts next.** No entry carries a stage, a state, or an
 owner — `STATE.md` is the board and this is the evidence. Two files answering one question is one answer
 too many, and the one that goes stale is the one nobody is driving.
+
+### The lessons a slice hands back
+
+One other record reaches the main line through you, and for the same reason as the one above.
+
+**Appends to `docs/lessons.md`** — one entry per lesson a slice hands back, at the **TERMINAL barrier**,
+into the checkout you hold and at the moment you complete that slice's run-record entry. Whoever
+root-causes a defect inside a worktree, and whoever closes a Critical review finding there, both owe the
+lessons record an entry and neither can land one where a reader will find it. They hand the finished entry
+back and say it is still owed. You are its courier, not its author — **append only**, and every entry
+arrives complete. A handed-back entry you do not carry over is a lesson this repository never learned,
+and nothing downstream notices it went missing.
+
+The two records answer different questions and are not interchangeable. The run record says what this
+slice executed; the lessons record says what a defect turned out to be and names the guard that would
+catch it coming back, for whoever meets the same mistake in a repository this run will never touch. That
+is why it outlives the slice, and why dropping one costs more than it looks like it costs. A repository
+that keeps no `docs/lessons.md` was never set up for one: there is nothing to carry, and the slice saying
+so is the whole of it.
 
 ## Verify barrier & wave-aggregate review
 
@@ -517,7 +538,7 @@ diff nobody has reviewed yet.
 | "This diff only touches the CI workflow — the review fan-out is overkill." | A pipeline edit changes what judges every later run, and removing a step there is a loosening. It also fires a trigger row: `ci-cd` joins the fan-out. |
 | "I'll write the run record at the barrier — one write per slice is cheaper than two." | Then a slice that dies between dispatch and barrier leaves no trace at all, and reads exactly like a slice that was never dispatched. The stub costs one line and is the only thing that survives a run ending mid-wave. |
 | "The slice runs in its own worktree, so let it append its own entry there." | A worktree is a branch that may never be merged. The write succeeds, reports success, and reaches no reader on the main line. You hold the pen; the entry lands in your checkout. |
-| "This slice failed the same way twice — I'll update the first entry rather than add a near-identical second." | Both failures are the record; that it failed twice the same way is the finding. Editing an existing entry is a violation, reported by name, not quietly refused. |
+| "This slice failed the same way twice — I'll update the first entry rather than add a near-identical second." | Both failures are the record; that it failed twice the same way is the finding. Editing an existing entry is a **STOP**: the work ends there and the violation is reported by name, not quietly refused. |
 | "I'll put the slice's state in its entry so the record reads on its own." | `STATE.md` is the board and this is the evidence. Two files answering "who acts next" disagree the moment one is updated and the other is not. |
 | "Verify ran its own commands — it should get its own entry." | One slice, one entry per dispatch. Verify hands back its commands and output; they go into the fields under that slice's heading. A second entry lets a reader count one slice twice. |
 | "The output has a token in it — I'll just drop those lines." | Withhold the value and say you withheld it. A silently dropped line reads as output that never existed, which is the thing the record exists to make impossible. |
@@ -553,11 +574,16 @@ diff nobody has reviewed yet.
   from one that was never dispatched.
 - Editing, re-wording, re-dating, re-ordering, or removing an entry already in `docs/progress.md` → STOP,
   and report the violation naming the entry and what would have changed.
+- Closing the barrier on a slice that handed back a lessons entry without carrying it into
+  `docs/lessons.md` → STOP. Nothing downstream re-reports a dropped one, so the lesson is simply lost.
+- Re-wording, re-dating, re-ordering, or removing an entry already in `docs/lessons.md`, or writing one
+  yourself rather than carrying back what a slice handed you → STOP, and report the violation. You are
+  that record's courier; its authors are whoever root-caused the defect or closed the review finding.
 - Writing a stage, state, gate, or owner into an entry → STOP. The board answers that question; the record
   answers what was executed.
 - Recording that a check passed with neither its output nor a "Not run" line behind it → STOP. There is no
   third state, and a bare assertion of success is the one this file exists to make visible.
-- Pasting prior-wave summaries / session history into a slice dispatch → STOP (hand the brief + frozen-contract paths as files).
+- Pasting prior-wave summaries / session history into a slice dispatch → STOP (hand the brief + frozen-contract paths as files). The `Critical:` findings that routed a slice back are **not** session history and are not covered by this: they are a named field of the re-review brief below, and a re-review that arrives without them reports a broken dispatch. Withholding them is the failure this rule is aimed at, not an instance of it.
 
 ## Verification (ending criteria)
 
@@ -585,7 +611,9 @@ every entry was written outside the worktrees.** Each entry either carries the r
 it names or says under "Not run" that a check was not performed and why — there is no entry asserting a
 pass with nothing behind it. A slice dispatched twice has two entries. No entry carries a stage, a state,
 or an owner, so the record cannot be read as a second board. Check the last of these the direct way: a
-`git log` over `docs/progress.md` shows commits on the run's branch and none on any slice branch.
+`git log` over `docs/progress.md` shows commits on the run's branch and none on any slice branch. **Every
+lesson a slice handed back is in `docs/lessons.md`**, carried over in that same checkout — none was left
+behind in the worktree it was written in, and none was reworded on the way.
 
 Also true of every terminated run: **no slice entered `impl` without passing the design-ref gate** —
 its `Design ref` was `—`, or the contract that ref names read `status: signed` at the moment the
@@ -604,7 +632,11 @@ carries no diff, no worktree changes, and no PR.
   it was never handed; `docs/design.md` when the repo has one and the slice builds UI, for the same
   reason rather than because it is frozen — an axis the contract marks `inherits: docs/design.md` is
   graded against that file, and a verifier that may not read outside its brief cannot grade what it was
-  never handed; and the slice row's **`Design ref`** verbatim, to **both** the implementer and the
+  never handed; on a **re-review round**, the `Critical:` findings from the round that routed this slice
+  back — a code-cold reviewer reading a diff whose Critical was fixed sees no sign one ever existed, so
+  without them the round cannot tell a repaired slice from one that was never broken, and the
+  `docs/lessons.md` entry that Critical is owed goes unwritten; and the slice row's **`Design ref`**
+  verbatim, to **both** the implementer and the
   code-cold verifier. `—`
   is emitted as `—`, never dropped; a dropped `—` reads as "unknown" and puts the UI judgement back
   in the verifier's hands. A brief is only ever assembled for a slice that **passed the design-ref
@@ -616,8 +648,9 @@ carries no diff, no worktree changes, and no PR.
   that were run, their real output, the files changed, and what was not run and why. Appended in the
   checkout this skill holds, never inside a slice's worktree — a worktree is a branch that may never
   merge, so a write there reaches nobody while reporting success. Append only: an entry already written
-  is never edited, and an attempt to change one is reported as a violation. It carries no stage, state,
+  is never edited, and an attempt to change one is a **STOP**, reported by name. It carries no stage, state,
   gate, or owner; `STATE.md` above is where a resuming controller reads what is `done`.
+- **Appends to `docs/lessons.md`** — the lessons slices handed back, one entry each, at the **TERMINAL barrier** and in the checkout this skill holds, for the same reason the run record lands there. Append only: each entry arrives finished from whoever root-caused the defect or closed the Critical review finding, and this skill carries it rather than authoring it. Where the repository keeps no such file there is nothing to carry, and the slice says so.
 - **Inverted risk report** appended at run terminal, alongside the halts.
 - **Terminal hand-off:** risk-banded OPEN PRs on cluster branches for async human merge — the
   surviving downstream gate. No `session-state.md` 5-field handoff needed unless context fills

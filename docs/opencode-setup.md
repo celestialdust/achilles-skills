@@ -40,7 +40,7 @@ git clone https://github.com/celestialdust/achilles-skills.git
 - `CLAUDE.md` (root) — the rules, whatever the agent. OpenCode picks up the `AGENTS.md` beside it; that
   file holds no rules, only the line sending you here, so follow it. The rules stay written once and the
   two files cannot drift apart.
-- `skills/` directory (39 skills)
+- `skills/` directory (40 skills)
 - `agents/` directory (5 personas) — optional, used for code-cold review subagents
 
 No additional installation is required.
@@ -51,7 +51,7 @@ No additional installation is required.
 
 ### 1. Skill Discovery
 
-All 39 skills live in:
+All 40 skills live in:
 
 ```
 skills/<skill-name>/SKILL.md
@@ -95,7 +95,7 @@ OpenCode does not require slash commands like `/spec` or `/plan`. The same lifec
 Two cross-cutting commands round out the set:
 
 - `/orchestrate` → `orchestrator` — the autonomous wave-parallel DAG runner that drives every slice Implement → Ship to open draft PRs. Its readiness gate is `preflight-readiness`; per-session compaction is `handoff`.
-- `/setup` → `project-setup` — one-time repo ecosystem bootstrap (`STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other).
+- `/setup` → `project-setup` — one-time repo ecosystem bootstrap (`STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other).
 
 Three further commands are **standalone** — they belong to no stage and can run at any time without advancing one:
 
@@ -210,7 +210,7 @@ The agent will automatically select and execute the correct skills, walking the 
 
 OpenCode integration works by combining:
 
-- Structured skills (this repo — 39 skills in `skills/`)
+- Structured skills (this repo — 40 skills in `skills/`)
 - Reusable code-cold personas (`agents/` — 5 review roles)
 - The repository rules (`CLAUDE.md`)
 - Automatic skill invocation via reasoning
