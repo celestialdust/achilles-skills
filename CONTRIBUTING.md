@@ -198,14 +198,16 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   Such a skill is reported by name as `UNCHECKED`, not failed, because a script that is red on arrival is
   one people learn to skip. It also reads the **inverse shape** — a `Skill` column whose stage is a
   heading or bold label above the table, which is how README and the setup guides are written, plus the
-  same grouping stated inline as `**Spec (human-led)** — codebase-research · spec-grilling · …`. That was
-  the widest gap until README filed `doubt-driven-development` under Review while six other registries had
-  already moved it, green across every check; reading these took coverage from 40 rows in one file to 167
-  in five. Out of reach: a stage stated in prose (`runs in Spec, after to-prd`); tables with a `Stage`
-  column but no `Skill` column, which map stages to artifacts rather than one row per skill; groupings
-  written as a bullet list under a heading, which is how `copilot-setup` states them; and whether a
-  grouping label names the *right* stage — the label is taken as the truth, so a heading that is wrong for
-  its whole table is internally consistent and passes.
+  same grouping stated inline as `**Spec (human-led)** — codebase-research · spec-grilling · …`, and as a
+  bullet list under the label (`- `interview-me` — …`, how `copilot-setup` writes it). That was the widest
+  gap until README filed `doubt-driven-development` under Review while six other registries had already
+  moved it, green across every check; reading all three forms took coverage from 40 rows in one file to
+  198 in six. In a bullet the name must lead and be backticked or linked — a mention inside a sentence is
+  prose, because a check that cries wolf on correct files is one people stop reading. Out of reach: a
+  stage stated in prose (`runs in Spec, after to-prd`); tables with a `Stage` column but no `Skill`
+  column, which map stages to artifacts rather than one row per skill; and whether a grouping label names
+  the *right* stage — the label is taken as the truth, so a heading that is wrong for its whole table is
+  internally consistent and passes.
 - `node scripts/check-write-table.mjs` reports nothing your own diff introduced. It reads the write
   table in `docs/workflow.md`, collects the writes each `SKILL.md` declares in prose, and judges each
   against the zone the table gives that skill. Three verdicts: **permitted**, which is silent;
