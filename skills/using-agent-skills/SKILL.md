@@ -72,8 +72,9 @@ Task arrives
     │   ├── Deep-module interfaces? ───────────→ codebase-design  (Spec · Plan · referenced discipline)
     │   ├── Contract-first API? ───────────────→ api-design       (Spec · Plan · referenced discipline)
     │   ├── Need the product PRD? ─────────────→ to-prd           (Spec → prd.md)
-    │   ├── UI work? ──────────────────────────→ frontend-design  (Spec, after to-prd and before
-    │   │                                        acceptance-criteria and environment-manifest run)
+    │   ├── Changes what a person sees? ───────→ frontend-design  (Spec, after to-prd and before
+    │   │      (ask it of the behaviour, not      acceptance-criteria and environment-manifest run)
+    │   │       of the brief's wording)
     │   ├── Need the behavioral contract? ─────→ acceptance-criteria       (Spec → acceptance.md, behavioral-only)
     │   ├── Capture env needs? ────────────────→ environment-manifest      (Spec/Plan → environment.md)
     │   ├── Structure nobody wrote down? ──────→ architecture-design       (Spec · once acceptance.md exists

@@ -16,13 +16,19 @@ else's — make deliberate, opinionated choices about palette, typography, and l
 and take one real aesthetic risk you can justify.
 
 ## When to use / when to skip
-- **Use** when `prd.md` describes a feature with a **UI surface** (a page, screen, component, or flow) and
-  the look is not already fully pinned. This runs in Spec, after `to-prd`, and **before
+- **Use** when the feature **changes what a person sees or does** — a page, screen, component, or flow —
+  and the look is not already fully pinned. This runs in Spec, after `to-prd`, and **before
   `acceptance-criteria` and `environment-manifest` run** — not merely before they are signed. Exploring an
   interface surfaces behaviour a `prd.md` omits (the empty state, the failed save), and that has to reach
   `acceptance.md` while it is being written rather than after it exists.
-- **Skip** when the feature has **no UI** (a pure API, a CLI, a data pipeline) — then there is no design
-  contract and `quality-verification` runs no design gate. Skip the *exploration* phase (go straight to commit) when the brief
+- Ask that of the **behaviour, not of the brief's vocabulary.** A `prd.md` written entirely in storage or
+  protocol terms — "edits are kept locally and retried" — still reaches a screen the moment it has a
+  restored state to show, a failure to report, or a control to press. Reading such a brief as "no UI" is
+  the common miss, and it costs the whole point of running here: nobody explores, so the states the brief
+  left out never reach `acceptance.md`, and Verify grades a contract that never mentioned them. If you can
+  name one screen this feature changes, it is a UI surface however the brief is worded.
+- **Skip** when nothing this feature does reaches a person: a pure API, a CLI with no interactive surface,
+  a data pipeline. Then there is no design contract and `quality-verification` runs no design gate. Skip the *exploration* phase (go straight to commit) when the brief
   already pins the visual direction exactly — the brief's own words always win, including when it asks for a
   look you'd otherwise call a default.
 - **depth: lite** — a tiny, low-stakes surface (one isolated component, an internal tool) may collapse to a
