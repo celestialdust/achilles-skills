@@ -112,8 +112,8 @@ Every feature covers these classes (a story may not touch all three, but the fea
 `acceptance.md` asserts **what is observable**, and nothing else:
 
 - **NO design content** — no color, typography, spacing, layout, motion, focus-ring, pixel, breakpoint.
-  All of that is `frontend-design`'s signed design contract (the 5th signed Spec artifact for UI
-  features) and, for an axis that contract marks inherited, `docs/design.md`. `quality-verification`'s
+  All of that is `frontend-design`'s signed design contract (a Spec artifact UI features add to the
+  bundle) and, for an axis that contract marks inherited, `docs/design.md`. `quality-verification`'s
   design gate grades those; `acceptance.md` grades behavior. Neither ever carries the other's content.
 - **NO implementation content** — no file path, function/type signature, schema-as-code, table/column
   name, driver or library internal. Scenarios survive a rewrite of the implementation.

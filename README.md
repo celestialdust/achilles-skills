@@ -266,6 +266,12 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 | [source-driven-development](./skills/source-driven-development/SKILL.md) | Ground framework decisions in fetched official docs |
 | [worktree](./skills/worktree/SKILL.md) | Per-slice isolation mechanism (orchestrator-owned) |
 
+### Plan · Implement — in-flight, not a gate
+
+| Skill | Responsibility |
+|---|---|
+| [doubt-driven-development](./skills/doubt-driven-development/SKILL.md) | Independent skeptic for a confident or high-stakes in-flight call; **not** part of the Review gate |
+
 ### Verify — agent
 
 | Skill | Responsibility |
@@ -282,7 +288,6 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 | [code-simplification](./skills/code-simplification/SKILL.md) | Behavior-preserving reduction; Chesterton's Fence |
 | [security-and-hardening](./skills/security-and-hardening/SKILL.md) | OWASP Top 10; secrets; dependency audit |
 | [performance-optimization](./skills/performance-optimization/SKILL.md) | Measure-first; Core Web Vitals; profiling |
-| [doubt-driven-development](./skills/doubt-driven-development/SKILL.md) | In-flight adversarial review (not a merge gate) |
 
 ### Ship — agent
 

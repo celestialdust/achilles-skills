@@ -303,7 +303,7 @@ Done when ALL hold:
 ## Outputs & handoff contract
 - **Emits:** (1) a committed high-fidelity prototype = the **reference-spec build target that production
   re-implements**, at `docs/features/<slug>/prototype/index.html`; (2) the **design contract** — the
-  **5th** signed Spec artifact (UI-only) — written to `docs/features/<slug>/design-contract.md`;
+  signed Spec artifact a UI feature adds to the bundle — written to `docs/features/<slug>/design-contract.md`;
   (3) `docs/design.md`, the repository's decided look, **when this is the repo's first UI surface** or when
   this surface deliberately moves the whole look. Shape: `../../references/design-system-format.md`. Every
   other surface reads that file and writes none of it.
@@ -322,5 +322,8 @@ Done when ALL hold:
   reaches every contract carrying an inherited axis it touched — is stated once, in `docs/workflow.md`'s
   *What an edit un-signs*. Name the affected contracts in this surface's handoff and flip each one.
 - **STATE.md:** the feature stays in `spec`; set `gate: you` so the human signs prd + acceptance +
-  environment + architecture + (this) design contract together at the single Spec sign-off — intent was
-  signed earlier, at the Ideate gate. No slice rows yet (slices are born in Plan).
+  environment + (this) design contract together at the single Spec sign-off — plus architecture where the
+  feature added a module, added a dependency between parts that already exist, or introduced a seam, which
+  is not every feature. `docs/workflow.md` states which artifacts the gate covers; read the bundle from
+  there rather than from this list, which names only what this surface contributes to it. Intent was signed
+  earlier, at the Ideate gate. No slice rows yet (slices are born in Plan).

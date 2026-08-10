@@ -38,8 +38,11 @@ required input cannot be resolved — a plan invented without the PRD or the cod
    signatures** — plan-breakdown is exactly where that product intent gets pinned to concrete files,
    line ranges, and snippets. Every slice back-references a `## User Stories` id.
 2. `research.md` — `## Codebase map` · `## Dependency facts` · `## External APIs` · `## Prior art in the
-   codebase` · `## Open items for Plan`. This is the goal-blind as-is map; every `file`/`lines` your steps
-   name must be real per this map, and your steps must follow the existing patterns it records.
+   codebase` · `## Structural facts` · `## Open items for Plan`. This is the goal-blind as-is map; every
+   `file`/`lines` your steps name must be real per this map, and your steps must follow the existing
+   patterns it records. `## Structural facts` is the one to read before pinning an interface: it records
+   the seams and their adapter counts, the module boundaries, and the conventions in use, so a signature
+   you write matches the style already there instead of forking a second one.
 
 3. `architecture.md` — this feature's signed structural delta, and `ARCHITECTURE.md` where the repository
    has one. A slice's files sit inside the modules and behind the seams these name, and the dependency

@@ -128,6 +128,12 @@ copied from the record; a record with nothing rejected is a §8 question, not so
 owns. A choice the person approved that is too cheap to reverse for a record still gets a row, `ADR`
 empty — it was chosen, and nothing else records that.
 
+For those rows there is nothing to copy from, so `Why` is written here or nowhere. It gives the **reason**,
+never a restatement of the choice: "one writer, so a queue buys nothing" is a reason, "chose to write
+directly" is the `Chosen` cell said twice. A reader who cannot see why a choice was made cannot tell it
+from a default that nobody examined, and for an `ADR`-empty row this table is the only place that
+distinction survives.
+
 A surface's **boundary contract** — resource model, single error envelope, pagination stance, versioning
 and compatibility stance — is cited here rather than in §3, since those are decisions and not edges;
 `api-design` owns the method and `spec-grilling` is where the person answered. A row carries what a

@@ -95,9 +95,10 @@ first two questions — which parts are new, and which dependencies this feature
 reader answers both without prose archaeology.
 
 **4 · Trace every scenario** into section 5, one row per scenario, keyed by its `acceptance.md` id. A
-scenario with no path is a behaviour nothing was designed to handle — hand it back to
-`acceptance-criteria` once, and whatever survives that single round trip is a section 8 row the person
-answers at the gate.
+scenario with no path is a behaviour nothing was designed to handle, and it is far cheaper to find here
+than in Verify — cheaper in both directions now that the contract is still a draft, since the fix may be
+the structure *or* the scenario. Hand it back to `acceptance-criteria` once, and whatever survives that
+single round trip is a section 8 row the person answers at the gate.
 
 **5 · Author `architecture.html`,** self-contained and theme-aware, and **splice** the source block from
 `architecture.md` — read the file and place its bytes between the tags. **Never retype it.** A copy that
