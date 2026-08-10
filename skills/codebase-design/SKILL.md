@@ -1,13 +1,13 @@
 ---
 name: codebase-design
-description: Shared vocabulary and method for designing deep modules — a lot of behaviour behind a small interface, at a clean seam, testable through it. Use when planning a module's interface during plan-breakdown, when the user wants to design or improve an interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary. Reach for it BEFORE you write interface signatures into plan.md — designing the seam after the code exists is too late.
+description: Shared vocabulary and method for designing deep modules — a lot of behaviour behind a small interface, at a clean seam, testable through it. Use when spec-grilling needs a structural variant for a load-bearing question during Spec, when planning a module's interface during plan-breakdown, when the user wants to design or improve an interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary. Reach for it BEFORE you write interface signatures into plan.md — designing the seam after the code exists is too late.
 ---
 
 ## Purpose
 
-**Stage: Plan — referenced discipline, not a sequential stage.** `plan-breakdown` owns the plan;
-this skill is the design language and method it (or a standalone refactor) applies when shaping a module's
-interface.
+**Stage: Spec · Plan — a referenced discipline, not a sequential stage.** `spec-grilling` dispatches it
+in Spec to propose a variant for a load-bearing structural question; `plan-breakdown` reaches for it in
+Plan to shape a module's interface into `plan.md`. It owns no artifact of its own.
 
 Design **deep modules**: a lot of behaviour behind a small interface, placed at a clean seam, testable
 through that interface. Depth buys three things — **leverage** for callers (more capability per unit of
@@ -18,9 +18,10 @@ quietly go wrong.
 
 ## When to use / when to skip
 
-Use during `plan-breakdown` when you're deciding a module's interface or where a seam goes, or standalone
-for a pure refactor (deepening a cluster of shallow modules). Use it whenever another skill needs the
-deep-module vocabulary so everyone names things the same way.
+Use in Spec when `spec-grilling` asks for a structural variant, in Plan when `plan-breakdown` is deciding
+a module's interface or where a seam goes, or standalone for a pure refactor (deepening a cluster of
+shallow modules). Use it whenever another skill needs the deep-module vocabulary so everyone names things
+the same way.
 
 Skip when there's no real module to shape — a one-line config change, a pure data migration, trivial
 glue. Escape hatch: do **not** introduce a seam for a single adapter ("one adapter = hypothetical seam;
@@ -32,11 +33,14 @@ two = real") — that's just indirection, and this skill will tell you so.
   about to write into `plan.md`, plus a sketch of the behaviour that sits behind it.
 - **Its dependencies** — so you can classify them (in-process / local-substitutable / remote-but-owned /
   true-external) per `references/DEEPENING.md`.
+- **`research.md`'s `## Structural facts`** — seams and their adapter counts, module boundaries,
+  conventions in use; `_none_` where there are none. It is what a proposed candidate stands on.
 - **`CONTEXT.md`** (repo-root glossary — its **`## Glossary`** section) for ubiquitous-language names, and
   **`docs/adr/`** for prior boundary decisions, so the interface you name is consistent with the project.
 
-**Refuse to run if** there is no concrete candidate. You cannot design depth in the abstract — ask
-`plan-breakdown` or the user to name the module and what sits behind it first.
+**Refuse to run if** no candidate can be named at all — not even one you propose. The refusal exists to
+stop design in a vacuum, and a surveyed repository is not a vacuum: with `research.md` and the intent in
+hand, name the module and what sits behind it yourself.
 
 ## Process
 

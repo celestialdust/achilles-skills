@@ -22,6 +22,8 @@ commands/        → 12 slash commands (*.md) — 9 lifecycle + 3 standalone
 references/      → shared reference material: checklists (security, performance, accessibility, …) and
                    language-style.md, the prose style guide for everything this repo ships
 docs/            → per-agent setup guides + workflow.md and test-contract.md (this repo's own copies)
+scripts/         → the six consistency checks CI runs over the whole tree — see *How a change here is
+                   checked*
 .claude-plugin/  → plugin.json + marketplace.json (install manifests)
 ```
 
@@ -71,7 +73,7 @@ last three are standalone and belong to no stage.
 | Command | Runs | Owner |
 |---|---|---|
 | `/ideate` | interview-me, then idea-refine | human |
-| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, architecture-design, spec-review) | human |
+| `/spec` | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) | human |
 | `/plan` | plan-breakdown — reuses /spec's research.md; re-surveys only against a named gap | human |
 | `/implement` | incremental-implementation (applies test-driven-development) | agent |
 | `/verify` | quality-verification | agent |
@@ -82,6 +84,11 @@ last three are standalone and belong to no stage.
 | `/explain` | literate-explainer — **standalone**, not a lifecycle stage | human |
 | `/quiz` | comprehension-quiz — **standalone**, not a lifecycle stage | human |
 | `/gauntlet-loop` | gauntlet-loop — **standalone**, not a lifecycle stage; offered, never auto-selected | human |
+
+`frontend-design` runs in Spec after `to-prd` and **before `acceptance-criteria` and
+`environment-manifest` run** — not merely before they are signed. Exploring an interface surfaces
+behaviour a `prd.md` omits (the empty state, the failed save), and that has to reach `acceptance.md`
+while it is being written rather than after it exists.
 
 The **human owns Ideate + Spec + Plan**; the agent runs **Implement → Ship autonomously**. `/explain`,
 `/quiz`, and `/gauntlet-loop` sit outside that loop entirely — run any of them at any time without
@@ -141,11 +148,32 @@ a platform with no skill tool — not to build the `/review` fan-out.
 
 ## How a change here is checked
 
-Most of this repo is prose — skills, commands, personas, docs — and no job checks prose. The one
-exception is the vendored companion engine under `skills/frontend-design/scripts/`: that is Node and
-Bash code with tests, and `.github/workflows/companion-tests.yml` runs them on Linux and macOS. The
-workflow is path-filtered to that directory, so a change anywhere else in the repo lands with no CI at
-all. Run the same four steps yourself, from `skills/frontend-design/scripts/`:
+Most of this repo is prose, and prose is where its defects live: a registry row naming a stage the skill
+no longer runs in, a hand-counted "38 skills" that is now 40, a link to a file somebody renamed. Six
+checks under `scripts/` read the whole tree for exactly those, and
+`.github/workflows/repo-checks.yml` runs them on every push and pull request. It is deliberately **not**
+path-filtered — the drift these catch is usually introduced by a file far from the claim it invalidates.
+
+Run all six before you open a PR. Five must exit 0:
+
+```
+node scripts/check-envelope.mjs        # every SKILL.md has the eight body slots, in order
+node scripts/check-registries.mjs      # no registry lists a skill that is not there, and none omits one
+node scripts/check-references.mjs      # every relative link resolves
+node scripts/check-enumerations.mjs    # every hand-written count matches what is there
+node scripts/check-stages.mjs          # the stage a registry assigns matches the stage the skill declares
+```
+
+The sixth, `node scripts/check-write-table.mjs`, **exits 1 by design**: 68 write claims in `skills/` are
+not yet settled against the table in `docs/workflow.md`. That is pre-existing debt, so CI enforces a
+ratchet rather than exit 0 — the counts may fall, never rise. The pass condition is the summary line
+reading `0 in the table, 37 conflicts, 31 unresolved`, matching `scripts/write-table-baseline.txt`. Never
+edit those numbers to make a build green.
+
+The second workflow, `.github/workflows/companion-tests.yml`, covers the vendored companion engine under
+`skills/frontend-design/scripts/` — Node and Bash code with real tests, run on Linux and macOS. That one
+*is* path-filtered to its directory, because only changes there can break it. Run its four steps yourself
+when you touch it, from `skills/frontend-design/scripts/`:
 
 ```
 npm ci
@@ -154,9 +182,9 @@ bash tests/start-server.test.sh
 bash tests/stop-server.test.sh
 ```
 
-There is no root `package.json`, `Makefile`, or `pyproject.toml`, and nothing checks the repo as a
-whole. For a prose change the checker is you: the pre-PR list in
-[CONTRIBUTING.md](./CONTRIBUTING.md), read against
+There is no root `package.json`, `Makefile`, or `pyproject.toml` — the six checks are plain Node scripts
+you run directly. What they cannot check is whether the prose is any good: for that the checker is still
+you, via the pre-PR list in [CONTRIBUTING.md](./CONTRIBUTING.md), read against
 [references/language-style.md](./references/language-style.md).
 
 ## Boundaries

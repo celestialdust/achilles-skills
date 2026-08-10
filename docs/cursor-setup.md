@@ -94,10 +94,10 @@ the name in these tables.
 | `codebase-research` | head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md` |
 | `spec-grilling` | design the product from intent + the survey → ADRs + CONTEXT.md (refuses without `research.md`) |
 | `to-prd` | light dual-audience PRD (product-altitude; references ADRs) |
-| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
+| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md`. Spec, after `to-prd` and before `acceptance-criteria` and `environment-manifest` run |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | `environment-manifest` | typed-kind manifest (no values, no commands) |
-| `architecture-design` | the structure a person signs before any code is planned: `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md` (refuses without a signed `acceptance.md`) |
+| `architecture-design` | reconciles and renders — traces every scenario, records the invariants, cites the decisions taken in `spec-grilling`; takes none itself. Runs against a draft `acceptance.md`; the two are signed together at the Spec gate. Writes `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md` |
 | `spec-review` | fresh code-cold agent fixes the spec before the user reviews |
 
 **Plan (human-led)**
@@ -105,8 +105,19 @@ the name in these tables.
 | Skill | Responsibility |
 |---|---|
 | `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's `research.md` |
-| `codebase-design` | referenced discipline: deep-module interfaces (deletion test) |
-| `api-design` | referenced discipline: contract-first interface |
+
+**Spec · Plan (referenced disciplines, not a stage)**
+
+| Skill | Responsibility |
+|---|---|
+| `codebase-design` | deep-module interfaces (deletion test). Proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own |
+| `api-design` | contract-first interface. Proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own |
+
+**Plan · Implement (in-flight, not a gate)**
+
+| Skill | Responsibility |
+|---|---|
+| `doubt-driven-development` | in-flight adversarial review; not part of the Review gate |
 
 **Implement (agent)**
 
@@ -133,7 +144,6 @@ the name in these tables.
 | `code-simplification` | behavior-preserving reduction; Chesterton's Fence |
 | `security-and-hardening` | OWASP Top 10; secrets; dependency audit |
 | `performance-optimization` | measure-first; Core Web Vitals; profiling |
-| `doubt-driven-development` | in-flight adversarial review (not a merge gate) |
 
 **Ship (agent)**
 
@@ -162,11 +172,11 @@ Add these three to `.cursor/rules/` — they carry the inner Implement → Verif
 Add a rule file when you enter its stage, then remove it when done to manage context limits:
 
 - **Ideate** → `interview-me.md`, `idea-refine.md`
-- **Spec** → `codebase-research.md` (first), `spec-grilling.md`, `to-prd.md`, `acceptance-criteria.md`, `environment-manifest.md`, `frontend-design.md`, `architecture-design.md`, `spec-review.md`
-- **Plan** → `plan-breakdown.md`, `codebase-design.md`, `api-design.md` (re-add `codebase-research.md` only to survey a named gap)
-- **Implement** → `source-driven-development.md`, `worktree.md` (plus the essentials above)
+- **Spec** → `codebase-research.md` (first), `spec-grilling.md` (which dispatches `codebase-design.md` / `api-design.md`), `to-prd.md`, `frontend-design.md`, `acceptance-criteria.md`, `environment-manifest.md`, `architecture-design.md`, `spec-review.md`
+- **Plan** → `plan-breakdown.md`, `codebase-design.md`, `api-design.md`, `doubt-driven-development.md` (re-add `codebase-research.md` only to survey a named gap)
+- **Implement** → `source-driven-development.md`, `worktree.md`, `doubt-driven-development.md` (plus the essentials above)
 - **Verify** → `quality-verification.md`, `browser-testing-with-devtools.md`, `debugging-and-error-recovery.md`
-- **Review** → `code-simplification.md`, `security-and-hardening.md`, `performance-optimization.md`, `doubt-driven-development.md`
+- **Review** → `code-simplification.md`, `security-and-hardening.md`, `performance-optimization.md`
 - **Ship** → `pull-request.md`, `shipping-and-launch.md`, `git-workflow.md`, `ci-cd.md`, `observability-and-instrumentation.md`, `deprecation-and-migration.md`, `documentation-and-adrs.md`
 
 For example, when working on performance, copy `performance-optimization/SKILL.md` into `.cursor/rules/`
@@ -182,7 +192,7 @@ command by loading the rule files it bundles and asking Cursor to run that stage
 | Command | Load these rules into `.cursor/rules/` | Then ask Cursor to… |
 |---|---|---|
 | `/ideate` | `interview-me`, `idea-refine` | brainstorm and frame the idea → `intent.md` |
-| `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `architecture-design`, `spec-review`) | survey the code as-is, then design the product against it |
+| `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `frontend-design`, `acceptance-criteria`, `environment-manifest`, `architecture-design`, `spec-review`) | survey the code as-is, then design the product against it |
 | `/plan` | `plan-breakdown` (reuses Spec's `research.md`) | produce a concrete plan → vertical slices + DAG |
 | `/implement` | `incremental-implementation` (applies `test-driven-development`) | build one thin slice (default single-slice) |
 | `/verify` | `quality-verification` | prove a finished slice meets `acceptance.md`, code-cold |

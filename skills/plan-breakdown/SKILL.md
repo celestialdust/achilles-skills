@@ -1,6 +1,6 @@
 ---
 name: plan-breakdown
-description: THE planner — turns a signed prd.md + research.md into a concrete, agent-executable plan.md. Reach for it the moment Plan starts and someone says "plan this", "break it into tasks", "write the implementation plan", or is tempted to hand the build agent a prose sketch. Produces vertical tracer-bullet slices (each demoable, cross-layer, with an observable checkpoint) where every non-trivial step names its file, line range, code snippet, and test, plus a Blocked-by dependency DAG written into STATE.md. Refuses horizontal layer-by-layer plans and placeholder steps; references codebase-design + api-design, and escalates hard-to-reverse decisions to an ADR.
+description: THE planner — turns a signed prd.md + research.md + architecture.md into a concrete, agent-executable plan.md. Reach for it the moment Plan starts and someone says "plan this", "break it into tasks", "write the implementation plan", or is tempted to hand the build agent a prose sketch. It ELABORATES the structural decisions already recorded during Spec instead of reopening them, and supplies the depth they left: typed signatures, field lists, vertical tracer-bullet slices (each demoable, cross-layer, with an observable checkpoint) where every non-trivial step names its file, line range, code snippet, and test, plus a Blocked-by dependency DAG written into STATE.md. Refuses horizontal layer-by-layer plans and placeholder steps; references codebase-design + api-design.
 ---
 
 # plan-breakdown — THE planner (Plan stage)
@@ -10,11 +10,11 @@ description: THE planner — turns a signed prd.md + research.md into a concrete
 Decompose work into small, verifiable tasks with explicit acceptance criteria. Good task breakdown is the difference between an agent that completes work reliably and one that produces a tangled mess. Every task should be small enough to implement, test, and verify in a single focused session.
 
 **Stage: Plan** — the last human-owned stage; the human signs the plan before the orchestrator runs.
-plan-breakdown is **THE planner**: the single skill that turns `prd.md` + `research.md` into a concrete,
-vertically-sliced, agent-executable `plan.md`. `codebase-design` (deep modules) and `api-design`
-(contract-first) are **referenced disciplines applied here**, not separate stages; the dropped
-`structure` stage folds in as the vertical-slice + horizontal-plan-rejection discipline below, while its
-stub→mock→wire→fill build-order folds into `incremental-implementation`. The plan IS the slices + the DAG.
+plan-breakdown is **THE planner**: the single skill that turns `prd.md` + `research.md` +
+`architecture.md` into a concrete, vertically-sliced, agent-executable `plan.md`. It **elaborates**
+decisions rather than taking them — the structural ones arrive already made and recorded during
+`spec-grilling` — and what it decides is depth: typed signatures, field lists, slices, the DAG. Build
+order — stub→mock→wire→fill — is `incremental-implementation`'s. The plan IS the slices + the DAG.
 
 ## When to use / when to skip
 
@@ -38,15 +38,19 @@ required input cannot be resolved — a plan invented without the PRD or the cod
    signatures** — plan-breakdown is exactly where that product intent gets pinned to concrete files,
    line ranges, and snippets. Every slice back-references a `## User Stories` id.
 2. `research.md` — `## Codebase map` · `## Dependency facts` · `## External APIs` · `## Prior art in the
-   codebase` · `## Open items for Plan`. This is the goal-blind as-is map; every `file`/`lines` your steps
-   name must be real per this map, and your steps must follow the existing patterns it records.
+   codebase` · `## Structural facts` · `## Open items for Plan`. This is the goal-blind as-is map; every
+   `file`/`lines` your steps name must be real per this map, and your steps must follow the existing
+   patterns it records. `## Structural facts` is the one to read before pinning an interface: it records
+   the seams and their adapter counts, the module boundaries, and the conventions in use, so a signature
+   you write matches the style already there instead of forking a second one.
 
 3. `architecture.md` — this feature's signed structural delta, and `ARCHITECTURE.md` where the repository
    has one. A slice's files sit inside the modules and behind the seams these name, and the dependency
-   edges they permit are the ones a slice may add. Plan against them rather than re-deciding structure
-   here: they were signed at the Spec gate, and a plan that contradicts them silently moves a boundary a
-   person agreed to. Where a feature ran no structure pass, say so in the plan and plan against
-   `research.md` alone.
+   edges they permit are the ones a slice may add. It tells you *where* the structure sits, not why:
+   `architecture-design` reconciles and renders — traces every scenario, records the invariants, cites the
+   decisions taken in `spec-grilling`; takes none itself. Its decisions section is a citation index, so
+   read the reasoning behind a boundary from the record it cites in `docs/adr/`, by id. Where a feature
+   ran no structure pass, say so in the plan and plan against `research.md` alone.
 
 **Referenced disciplines (invoked, not file inputs):** `codebase-design` and `api-design` — see
 `## Referenced disciplines & the ADR trigger`. **Optional context:** `acceptance.md` if present — align each
@@ -190,14 +194,25 @@ Artifacts = `—`. Slices are **born here** — a feature still in spec/plan has
 
 ## Referenced disciplines & the ADR trigger
 
-plan-breakdown **applies** two design disciplines while planning — it does not spawn them as separate stages:
-- **`codebase-design`** (deep modules / deletion test) — shape each module so depth > surface; the concrete
-  interfaces land **inline in plan.md** (File Structure + step snippets).
-- **`api-design`** (contract-first) — define the interface contract before the implementation; the contract
+`codebase-design` and `api-design` are referenced disciplines, not sequential stages: they run in **Spec
+and Plan** — `spec-grilling` dispatches them in Spec to propose a structural variant, `plan-breakdown`
+reaches for them in Plan to pin the interface into `plan.md` — and they own no artifact of their own,
+because what they produce lands in a file another skill owns.
+
+So what reaches this stage is **depth, not direction**. The structural questions were settled with the
+person during `spec-grilling` — as records in `docs/adr/`, or as rows in `architecture.md`'s decisions
+section where the choice was approved but cheap to reverse. Read them the way you read a signed
+`acceptance.md`: cite the decision and build to it. If planning shows one to be wrong, that is an entry in
+`## Open Questions` the person answers before signing — not a boundary you quietly move, because the
+record is the only trace that a person chose it rather than an agent.
+
+- **`codebase-design`** (deep modules / deletion test) — give the chosen module its typed signatures and
+  field lists so depth > surface; they land **inline in plan.md** (File Structure + step snippets).
+- **`api-design`** (contract-first) — pin the chosen surface's contract before the implementation; it
   lands **inline in plan.md**.
 
-Both remain standalone-invokable skills (for a pure refactor). Any **hard-to-reverse** interface/boundary
-decision — one that is hard to reverse ∧ surprising ∧ a real trade-off — is drafted as an ADR at
+Both remain standalone-invokable skills (for a pure refactor). An interface decision this stage is the
+**first** to face — hard to reverse ∧ surprising ∧ a real trade-off — is drafted as an ADR at
 `docs/adr/ADR-<NNN>-<slug>.md` (using the `documentation-and-adrs` standard) and **referenced by id** from
 plan.md; never restate its rationale in the plan. Load-bearing decisions stay durable + visible at the
 gate; reversible detail stays ordinary inline in plan.md.
@@ -206,7 +221,7 @@ gate; reversible detail stays ordinary inline in plan.md.
 
 Models, left alone, plan **by layer** (all DB, then all API, then all UI) — a plan that does not work
 end-to-end until the last slice, with no checkpoint to debug from in between. This is the single failure mode
-this stage inherits cr-structure to prevent. Before handoff, grep your own plan and **rewrite** any hit:
+this stage exists to prevent. Before handoff, grep your own plan and **rewrite** any hit:
 - slice/phase labels naming one layer: `Slice 1: Database`, `Phase 2: Frontend`, `## All API changes`;
 - a slice whose Files-touched column lists files from only one directory/layer (unless it is genuine
   scaffolding with a real cross-layer checkpoint);
@@ -259,10 +274,6 @@ If a task is L or larger, it should be broken into smaller tasks. An agent perfo
 | PWR-1 | US-1 | `docs/features/password-reset/design-contract.md` · `prototype/index.html` | `schema/user.ts`, `api/reset.ts`, `ui/ResetForm.tsx` | `auth/session.ts` | Submit a bad email → inline error shows | — |
 | PWR-2 | US-2 | `docs/features/password-reset/design-contract.md` · `prototype/index.html` | `api/verify.ts`, `ui/VerifyPage.tsx` | `auth/token.ts` | Valid token → password updates, user redirected to login | PWR-1 |
 | PWR-3 | US-3 | — | `jobs/expireTokens.ts`, `api/health.ts` | `auth/token.ts` | Expired token → sweep removes it, health endpoint reports the count | PWR-1 |
-
-Each slice is cross-layer (≥2 layers) + independently demoable; the Checkpoint is a fact a human or test
-verifies, never "compiles" / "builds" / "no type errors". The `Blocked-by` edges form the acyclic DAG written
-one-row-per-slice into STATE.md.
 
 **`Design ref` — the pointer to the signed design contract and the prototype this slice builds against**
 (`frontend-design`'s `design-contract.md` plus the committed prototype it names). Fill it once, here, while
@@ -346,7 +357,8 @@ Before starting implementation, confirm:
 - [ ] Slice ids are PRD-namespaced, the `Blocked-by` DAG is **acyclic**, and one row per slice is written to `STATE.md`.
 - [ ] Every slice row's `Design ref` is filled — a contract + prototype path, or a deliberate `—`. A blank cell
       is not the same as `—`: `—` says "no UI here, I checked", blank says nobody looked.
-- [ ] Each hard-to-reverse interface/boundary decision is captured as an ADR and referenced by id from plan.md.
+- [ ] Every hard-to-reverse decision is referenced by id: Spec's records cited, a new ADR written only
+      where this stage was the first to face one.
 
 ## See Also
 
@@ -355,8 +367,8 @@ Acceptance criteria are per-task and answer "did we build the right thing?". The
 ## Outputs & handoff contract
 
 **Emits:** `docs/features/<slug>/plan.md` — the concrete plan — plus the vertical-slice list and the
-dependency DAG materialized as slice rows in `STATE.md`. Any hard-to-reverse decision also emits an ADR at
-`docs/adr/ADR-<NNN>-<slug>.md`, referenced by id from plan.md.
+dependency DAG materialized as slice rows in `STATE.md`. A hard-to-reverse decision this stage is the
+first to face also emits an ADR at `docs/adr/ADR-<NNN>-<slug>.md`, referenced by id from plan.md.
 
 **Stable sections the consumer (`incremental-implementation`, driven by the orchestrator) reads cold — change the shape,
 update the consumer in the same commit:**

@@ -69,20 +69,21 @@ Task arrives
     ├── New feature, need the design? ─────────→ codebase-research, then spec-grilling     (Spec · in that order)
     │   ├── Survey the code as it is today? ───→ codebase-research         (Spec · head → research.md · goal-blind)
     │   ├── Survey done, decide the design? ───→ spec-grilling    (Spec → ADRs + CONTEXT.md · refuses without research.md)
+    │   ├── Deep-module interfaces? ───────────→ codebase-design  (Spec · Plan · referenced discipline)
+    │   ├── Contract-first API? ───────────────→ api-design       (Spec · Plan · referenced discipline)
     │   ├── Need the product PRD? ─────────────→ to-prd           (Spec → prd.md)
-    │   ├── UI work? ──────────────────────────→ frontend-design  (Spec → prototype + signed design contract)
+    │   ├── Changes what a person sees? ───────→ frontend-design  (Spec, after to-prd and before
+    │   │      (ask it of the behaviour, not      acceptance-criteria and environment-manifest run)
+    │   │       of the brief's wording)
     │   ├── Need the behavioral contract? ─────→ acceptance-criteria       (Spec → acceptance.md, behavioral-only)
     │   ├── Capture env needs? ────────────────→ environment-manifest      (Spec/Plan → environment.md)
-    │   ├── Structure nobody wrote down? ──────→ architecture-design       (Spec → architecture.md + the
-    │   │                                        committed architecture.html · after acceptance.md is
-    │   │                                        signed, before spec-review · first pass also writes
+    │   ├── Structure nobody wrote down? ──────→ architecture-design       (Spec · once acceptance.md exists
+    │   │                                        in draft, before spec-review · first pass also writes
     │   │                                        ARCHITECTURE.md · never scaffolded)
     │   └── Spec done, fix before review? ─────→ spec-review      (Spec → fixed spec + spec-review.md)
     ├── Signed spec, need a plan? ─────────────→ plan-breakdown   (Plan · THE planner → plan.md + slices + DAG)
-    │   ├── Need codebase facts? ──────────────→ reuse Spec's research.md; re-run codebase-research only
-    │   │                                        against a gap you can name in one sentence
-    │   ├── Deep-module interfaces? ───────────→ codebase-design  (referenced during planning → plan.md)
-    │   └── Contract-first API? ───────────────→ api-design       (referenced during planning → plan.md)
+    │   └── Need codebase facts? ──────────────→ reuse Spec's research.md; re-run codebase-research only
+    │                                            against a gap you can name in one sentence
     ├── Implementing a slice? ─────────────────→ incremental-implementation        (Implement · THE implementer → diff)
     │   ├── Writing the test first? ───────────→ test-driven-development              (RED-GREEN-REFACTOR · hook-enforced)
     │   ├── Framework/library decision? ───────→ source-driven-development    (verify against fetched official docs)
@@ -242,8 +243,8 @@ Per-skill verification is the local check. The project-wide bar that applies to 
 
 The loop is **Ideate → Spec → Plan → Implement → Verify → Review → Ship**. Ownership splits hard:
 
-- **Human owns Ideate + Spec + Plan** (all the thinking). One upstream gate: the **Spec sign-off**
-  (signs intent.md + prd.md + acceptance.md + environment.md + — when UI — frontend-design's design contract).
+- **Human owns Ideate + Spec + Plan** (all the thinking). One upstream gate: the **Spec sign-off** —
+  `docs/workflow.md` lists what it signs.
 - **Agent runs Implement → Verify → Review → Ship autonomously — it never blocks waiting for input.** No
   "should I continue?" checkpoint sits between slices; nobody has to watch it. It terminates at
   **risk-banded OPEN draft PRs** on the cluster branch; the **async human merge is the surviving final gate**
@@ -260,7 +261,7 @@ The loop is **Ideate → Spec → Plan → Implement → Verify → Review → S
 
 Artifact chain (each stage emits what the next consumes cold):
 ```
-intent.md → research.md → prd.md (+ ADRs/CONTEXT.md) → acceptance.md → environment.md
+intent.md → research.md → prd.md (+ ADRs/CONTEXT.md) → acceptance.md + environment.md
           → architecture.md + architecture.html → plan.md + slices + DAG
           → [implement → qa.md → review → pr → draft PR]
 ```
@@ -280,16 +281,16 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Ideate | interview-me | optional front door: surface what the user actually wants → intent.md |
 | Ideate | idea-refine | divergent/convergent refinement + "Not Doing"; shares intent.md |
 | Spec | codebase-research | goal-blind map of the codebase/DB as-is → research.md; runs at the head of Spec, and Plan reuses it |
-| Spec | spec-grilling | how to design the product; ADRs + CONTEXT.md (no prd.md) — refuses without research.md |
+| Spec | spec-grilling | how to design the product; ADRs + CONTEXT.md (no prd.md) · fans out `codebase-design` / `api-design` variants on a load-bearing structural question; batches the rest as one-line defaults |
 | Spec | to-prd | light dual-audience PRD; references ADRs by id → prd.md |
 | Spec | frontend-design | the one UI skill: throwaway variants → committed prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | Spec | acceptance-criteria | behavioral-only Given/When/Then contract → acceptance.md |
 | Spec | environment-manifest | typed-kind manifest (no values, no commands) → environment.md |
-| Spec | architecture-design | the structure a person signs before any code is planned → architecture.md + the committed architecture.html; the repo's first such pass also writes `ARCHITECTURE.md`. Refuses without a signed acceptance.md |
+| Spec | architecture-design | reconciles and renders — traces every scenario, records the invariants, cites the decisions taken in `spec-grilling`; takes none itself · runs against a draft `acceptance.md`; the two are signed together at the Spec gate · emits architecture.md + the committed architecture.html |
 | Spec | spec-review | fresh code-cold agent fixes the spec before the human reviews |
 | Plan | plan-breakdown | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's research.md |
-| Plan | codebase-design | referenced discipline: deep-module interfaces (deletion test) |
-| Plan | api-design | referenced discipline: contract-first interface |
+| Spec · Plan | codebase-design | Referenced discipline, Spec and Plan — proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own. Deep modules, deletion test |
+| Spec · Plan | api-design | Referenced discipline, Spec and Plan — proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own. Contract-first interface |
 | Implement | incremental-implementation | THE implementer: one thin vertical slice, skeleton-first |
 | Implement | test-driven-development | rigid RED-GREEN-REFACTOR; realizes acceptance scenarios as tests |
 | Implement | source-driven-development | ground framework decisions in fetched official docs |
@@ -301,7 +302,7 @@ might only need `debugging-and-error-recovery` → `test-driven-development` →
 | Review | code-simplification | behavior-preserving reduction; Chesterton's Fence |
 | Review | security-and-hardening | OWASP Top 10; auth; secrets; dependency audit |
 | Review | performance-optimization | measure-first; Core Web Vitals; profiling |
-| Review | doubt-driven-development | in-flight adversarial review (during plan/implement) |
+| Plan · Implement | doubt-driven-development | in-flight adversarial review; **not** part of the Review gate |
 | Ship | pull-request | the spine of Ship: per-slice design-anchored draft PR; read-the-code checklist; the stage ends here |
 | Ship | shipping-and-launch | release workhorse, release-level and post-merge: checklist · flags · rollout · rollback. A slice still at an open draft PR belongs to `pull-request`. |
 | Ship | git-workflow | trunk-based; atomic commits; secret hygiene |

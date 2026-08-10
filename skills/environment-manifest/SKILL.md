@@ -19,8 +19,10 @@ boundary (there is nowhere to put a command). You author the manifest; `prefligh
 ## When to use / when to skip  (depth: lite)
 
 Use **twice** — two passes over one file:
-- **Pass 1 — Spec (interface-level, signed):** right after `to-prd` lands `prd.md`. Capture the keys / MCPs /
-  services the *product* needs. These rows are part of the single Spec gate sign-off.
+- **Pass 1 — Spec (interface-level, signed):** after `to-prd` lands `prd.md`, and on a UI feature after
+  `frontend-design` has explored the interface — it runs before this skill and `acceptance-criteria` both,
+  because an exploration turns up services a `prd.md` never named. Capture the keys / MCPs / services the
+  *product* needs. These rows are part of the single Spec gate sign-off.
 - **Pass 2 — Plan (implementation-level, appended):** after `plan-breakdown` produces slices. Append the
   fixtures / version-pins / accounts the *implementation* needs; these re-surface at the Verify barrier.
 

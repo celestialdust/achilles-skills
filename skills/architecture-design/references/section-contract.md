@@ -3,14 +3,17 @@
 The shape of what `architecture-design` writes. Read this before writing one; `SKILL.md` carries the
 method, this file carries the format.
 
-**The eight headings and their order are fixed**, unlike the `SKILL.md` envelope where only the order is.
-A person signing reads them in this order, and `spec-review` finds a section by name. Number them as
-below.
+`architecture-design` reconciles and renders: it traces every
+`acceptance.md` scenario through the structure, records the invariants, and cites the decisions taken
+during `spec-grilling` rather than taking them itself. That is why §2, §3 and §4 are inventories and §6
+is an index of citations.
+
+**The eight headings and their order are fixed.** A person signing reads them in this order, and
+`spec-review` finds a section by name. Number them as below.
 
 Two files share the shape. `ARCHITECTURE.md` states the repository — every module, every edge, the layer
 order if one was decided. A feature's `docs/features/<slug>/architecture.md` states only its **delta**:
-what this feature changes about the structure, against the repository map that already exists. The
-sections are the same; the scope is not.
+what this feature changes about the structure, against the repository map that already exists.
 
 ## The header block
 
@@ -49,6 +52,11 @@ One row per unit with a single reason to change. `Layer` is the tier from §3, o
 has decided no order. `New` is a column rather than a sentence because "which parts of the system are
 new" is the first thing the person at the gate has to answer, and a column answers it without reading.
 
+A module earns its row by the deletion test, which `codebase-design` owns and `spec-grilling` applied
+with the person. Carry that test's answer in
+`Responsibility` — what reappears across which callers — not its verdict, since a reader can disagree
+with "deleting it puts retry and backoff into all four callers" and cannot with "it earns its keep".
+
 Follow the table with a **`Not modules.`** paragraph naming what a reader would expect to find here and
 why it is absent — an existing component this feature only calls, a discipline that emits into another
 artifact. A reader cannot derive an omission from a list.
@@ -60,17 +68,18 @@ The dependency edges this feature adds between parts that already exist.
 | From | To | Why this edge exists | Decision |
 |---|---|---|---|
 
-Every edge cites the recorded decision it rests on — an id from §6, or an `ADR-NNN` under `docs/adr/`. An
-edge with an empty `Decision` cell is an edge nobody chose, which is the thing this artifact exists to
-surface rather than to carry.
+Every edge cites what it rests on: an id from §6, an `ADR-NNN` under `docs/adr/`, or `default — not
+contested` where `spec-grilling` stated the answer as a batched default and the person let it stand. A
+default the person saw and did not object to is real provenance, so that cell is complete. An **empty**
+cell is not — it means the edge was never put in front of anyone, which is what this column exists to
+surface.
 
 Then **`Edges a reader might expect and that do not exist:`** — a short list, each with its reason. An
 absent edge is invisible in a table of present ones, and "the rules never read the memory" is exactly the
 kind of constraint a later diff breaks by accident.
 
 Where the repository has decided a layer order, state it above the table and say which edges the order
-permits. Where it has not, see [Where no layer order is decided](#where-no-layer-order-is-decided) below,
-which is the harder case and the one most repositories are in.
+permits. Where it has not, see [Where no layer order is decided](#where-no-layer-order-is-decided) below.
 
 ### `## 4. Seams`
 
@@ -79,38 +88,58 @@ Where an implementation can be swapped without its callers knowing.
 | Adapter | When | Who does the work |
 |---|---|---|
 
-**A seam with one adapter is indirection, not a seam.** Name the second adapter or drop the row — a
-single-implementation interface adds a hop and buys nothing, and calling it a seam hides that.
+**A seam with one adapter is indirection, not a seam.** Name the second adapter or drop the row — that is
+the two-adapter rule, and `codebase-design` owns it.
 
 Say which seams already existed and which this feature introduces. A seam usually exists because
 something went wrong once; when it does, say what, because the next reader will otherwise remove it.
 
-### `## 5. Data flow, per signed scenario`
+### `## 5. Data flow, per scenario`
 
 | Scenario | Behaviour | Path |
 |---|---|---|
 
-One row per **signed scenario in `acceptance.md`, keyed by its id**. `Path` names the §2 modules in the
-order they act, joined with `→`.
+One row per **scenario in `acceptance.md`, keyed by its id**. `Path` names the §2 modules in the order
+they act, joined with `→`.
 
-**Set equality is the check:** every signed scenario id appears exactly once here, and every row here
-names a signed scenario. Not a read-through — take the ids out of both files and compare the sets.
+**Set equality is the check:** every scenario id appears exactly once here, and every row here names a
+scenario. Not a read-through — take the ids out of both files and compare the sets.
 
-This section is why the skill runs after `acceptance-criteria` and not before. A path traced against
-scenarios that can still move traces a contract that may not survive, and the person signing the
-structure would be signing against a moving target.
+`architecture-design` runs against a **draft** `acceptance.md` — present, not signed — and the two are
+signed together in one act at the Spec gate, so the scenarios cannot move between the trace and the
+signature. A scenario that traces through nothing goes back to `acceptance-criteria` while it is still
+editable.
+
+Simultaneity, not sequence, is what stops the moving target, and it does the better job: while the file
+is editable a finding can point either way, at a missing part of the structure or at a scenario that
+should never have been written. Bound it at **one** hand-back; whatever survives is a §8 row.
 
 ### `## 6. Decisions`
 
 | # | Chosen | Rejected | Why | ADR |
 |---|---|---|---|---|
 
-Every decision that shaped §2, §3, or §4. **`Rejected` is not optional** — a decision with no rejected
-alternative was not a decision, and a reader who cannot see what was ruled out cannot tell a choice from
-a default. `Why` gives the reason, not the restatement.
+**A citation index, not a place to decide.** Every row cites a decision the person took during
+`spec-grilling`, including one taken by letting a batched default stand, so §3 has an id to cite and the
+structural reasoning sits in one table rather than spread across `docs/adr/`. `Rejected` and `Why` are
+copied from the record; a record with nothing rejected is a §8 question, not something to improve here.
 
-`ADR` points at the record under `docs/adr/` when the decision is hard to reverse. `documentation-and-adrs`
-owns that format; do not invent a second one here.
+`ADR` points at the record when the decision was hard to reverse, in the format `documentation-and-adrs`
+owns. A choice the person approved that is too cheap to reverse for a record still gets a row, `ADR`
+empty — it was chosen, and nothing else records that.
+
+For those rows there is nothing to copy from, so `Why` is written here or nowhere. It gives the **reason**,
+never a restatement of the choice: "one writer, so a queue buys nothing" is a reason, "chose to write
+directly" is the `Chosen` cell said twice. A reader who cannot see why a choice was made cannot tell it
+from a default that nobody examined, and for an `ADR`-empty row this table is the only place that
+distinction survives.
+
+A surface's **boundary contract** — resource model, single error envelope, pagination stance, versioning
+and compatibility stance — is cited here rather than in §3, since those are decisions and not edges;
+`api-design` owns the method and `spec-grilling` is where the person answered. A row carries what a
+consumer may depend on, never the field lists `plan.md` carries. Any of the four with no record behind it
+is a **§8 row**, because left out it is settled during Implement by whichever slice reaches the surface
+first.
 
 ### `## 7. Invariants`
 
@@ -129,11 +158,14 @@ most needs, and deleting it to make the column look complete removes the only wa
 
 ### `## 8. Open questions for the human`
 
-Numbered. Each states the question, then a **recommended** answer with one sentence of reasoning.
+Numbered. Each states the question, then a **recommended** answer with one sentence of reasoning, and has
+to be answerable at the gate without opening a skill.
 
-These are what the person answers at the gate, so each has to be answerable without opening a skill. A
-first structure pass with an empty §8 usually means the questions were answered silently — which is the
-failure this artifact exists to stop, one indirection removed.
+**Only what `spec-grilling` could not settle belongs here** — a question the dialogue left open, a
+scenario that came back unresolved from §5, a surface whose boundary contract no record answers. A
+question you could have cited a record for is not open, and one you never put to the person is not open
+either. An empty §8 is ordinary now that the dialogue settles these — never because the questions were
+answered silently, which is the failure this artifact exists to stop, one indirection removed.
 
 ## Where no layer order is decided
 
@@ -161,19 +193,19 @@ When `ARCHITECTURE.md` says `layer order: not decided`, its §3 rows are **obser
 - A later feature's `architecture.md` records its own edges the same way, from its own `research.md`.
 - It does not read the recorded set as the set it may add to, and it does not read an absent edge as
   forbidden. Neither reading is available from an observation.
-- Deciding the order is its own decision. It goes through `spec-grilling` into a record under `docs/adr/`,
-  and a person signs it. A feature that settles the order while writing its own structure has made the
-  repository's constitution a side effect of one feature's spec.
+- Deciding the order is its own decision: it goes through `spec-grilling` into a record under
+  `docs/adr/`, and a person signs it.
 - Until someone decides, every feature's §3 carries the same `layer order: not decided` line.
 
 ## The page
 
 `docs/features/<slug>/architecture.html` is hand-authored, committed next to the markdown, and read by the
-person at the gate.
+person at the gate. The markdown stays: a later feature's structure is a delta against this one, and a
+delta needs a base something can diff.
 
 **Self-contained, with no external requests.** Inline the CSS and any script, embed images as `data:` URIs,
 use system font stacks. A colleague who clones the repository months later and opens the file with the
-network off sees the same page. One remote font makes the artifact depend on a host nobody in the
+network off sees the same page; one remote font makes the artifact depend on a host nobody in the
 repository controls.
 
 **Theme-aware.** Define the light palette on bare `:root`, redefine the same tokens under
@@ -198,11 +230,9 @@ repository controls.
 **Splice the block from the file. Do not retype it.** Read `architecture.md` and place its bytes between
 the tags: the opening tag is immediately followed by the file's first byte, and the closing tag
 immediately follows its last. Do not reflow, do not re-wrap a long line, do not fix a typo on the way
-through — correct the typo in `architecture.md` and splice again.
-
-Retyping is the whole reason the block exists. Two hand-authored copies of one fact drift, and an embedded
-copy that was typed rather than spliced drifts on its first character while looking exactly like one that
-was not.
+through — correct the typo in `architecture.md` and splice again. Retyping is the whole reason the block
+exists: two hand-authored copies of one fact drift, and one that was typed rather than spliced drifts on
+its first character while looking exactly like one that was not.
 
 One constraint the embedding puts on the markdown: `architecture.md` must not contain the literal string
 `</script>`, which would end the block early and make the comparison below report drift that is not drift.
@@ -214,9 +244,7 @@ The page cannot silently disagree with its source, and the way that is known is 
 inspection** — reading a page and its markdown side by side is how "38 skills" and "39 skills" both looked
 right at the same byte count.
 
-Compare the embedded block to the file byte for byte. Three outcomes, and the third has to be
-distinguishable from the second, because "the page is stale" and "the page has no source block" are
-different defects with different fixes:
+Compare the embedded block to the file byte for byte. Three outcomes, each with its own fix:
 
 | Exit | Means | Fix |
 |---|---|---|

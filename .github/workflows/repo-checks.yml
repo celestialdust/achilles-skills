@@ -1,0 +1,97 @@
+# CI for the repository's own consistency checks (scripts/check-*.mjs).
+#
+# Most of this repo is prose — 40 skills, 12 commands, 5 personas, the docs — and prose is where its
+# defects live: a registry row naming a stage the skill no longer runs in, a hand-counted "38 skills"
+# that is now 40, a link to a file somebody renamed. Until this workflow existed, a change anywhere
+# outside skills/frontend-design/scripts/ landed with no CI at all, and the six checks ran only if a
+# contributor remembered to run them.
+#
+# Deliberately NOT path-filtered. companion-tests.yml is scoped to the one vendored code tree because
+# only changes there can break it; these checks read the whole tree, and the drift they catch is
+# usually introduced by a file far from the claim it invalidates. Filtering by path would reintroduce
+# exactly the blind spot this exists to close.
+#
+# Every check runs even after one fails (`if: ${{ !cancelled() }}`), so a contributor sees the full
+# list in one run instead of fixing them one build at a time.
+name: repo-checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: repo consistency checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # The five that must exit 0. Each catches a different shape of drift and none subsumes another.
+      - name: envelope — every SKILL.md has the eight body slots, in order
+        if: ${{ !cancelled() }}
+        run: node scripts/check-envelope.mjs
+
+      - name: registries — no registry lists a skill that is not there, and none omits one
+        if: ${{ !cancelled() }}
+        run: node scripts/check-registries.mjs
+
+      - name: references — every relative link resolves to a file that exists
+        if: ${{ !cancelled() }}
+        run: node scripts/check-references.mjs
+
+      - name: enumerations — every hand-written count matches what is actually there
+        if: ${{ !cancelled() }}
+        run: node scripts/check-enumerations.mjs
+
+      - name: stages — the stage a registry assigns matches the stage the skill declares
+        if: ${{ !cancelled() }}
+        run: node scripts/check-stages.mjs
+
+      # The sixth is a ratchet, not a pass/fail. See scripts/write-table-baseline.txt for why.
+      - name: write-table — the unsettled-claim backlog may fall, never rise
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          out=$(node scripts/check-write-table.mjs || true)
+          echo "$out"
+
+          summary=$(printf '%s\n' "$out" | grep -E '[0-9]+ to settle:' || true)
+          if [ -z "$summary" ]; then
+            echo "::error::check-write-table printed no summary line — its output format changed;" \
+                 "update this step and scripts/write-table-baseline.txt together."
+            exit 1
+          fi
+
+          # No process substitution and no indirect expansion: this block has to run identically under
+          # the bash 5 on the runner and the bash 3.2 that ships with macOS, where contributors run it.
+          field() { printf '%s\n' "$summary" | sed -E "s/.*: ([0-9]+) in the table, ([0-9]+) conflicts, ([0-9]+) unresolved.*/\\$1/"; }
+          now_in_table=$(field 1); now_conflicts=$(field 2); now_unresolved=$(field 3)
+
+          base() { grep "^$1=" scripts/write-table-baseline.txt | cut -d= -f2; }
+          base_in_table=$(base in_table); base_conflicts=$(base conflicts); base_unresolved=$(base unresolved)
+
+          echo "measured: in_table=$now_in_table conflicts=$now_conflicts unresolved=$now_unresolved"
+          echo "baseline: in_table=$base_in_table conflicts=$base_conflicts unresolved=$base_unresolved"
+
+          rc=0
+          compare() {
+            if [ "$2" -gt "$3" ]; then
+              echo "::error::$1 rose from $3 to $2 — this change adds an unsettled write claim." \
+                   "Settle it in docs/workflow.md's write table, or say in the PR why it cannot be."
+              rc=1
+            elif [ "$2" -lt "$3" ]; then
+              echo "::notice::$1 fell from $3 to $2 — update scripts/write-table-baseline.txt."
+            fi
+          }
+          compare in_table   "$now_in_table"   "$base_in_table"
+          compare conflicts  "$now_conflicts"  "$base_conflicts"
+          compare unresolved "$now_unresolved" "$base_unresolved"
+          exit $rc

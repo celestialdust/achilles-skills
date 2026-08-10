@@ -1,0 +1,16 @@
+# Baseline for check-write-table.mjs, read by .github/workflows/repo-checks.yml.
+#
+# check-write-table exits 1 by design: it reports every write claim in skills/ that the write table in
+# docs/workflow.md has not settled, and 68 of them are unsettled today. That is pre-existing debt, not a
+# regression, so CI cannot simply require exit 0 — a job that is red on arrival is one people learn to
+# skip, which is how the backlog got here.
+#
+# What CI enforces instead is a ratchet: these numbers may fall, never rise. Settling claims needs no
+# ceremony. Adding an unsettled one fails the build and names which counter moved.
+#
+# When you settle claims, run `node scripts/check-write-table.mjs`, copy the new numbers here, and say in
+# the commit message which claims you settled. Never edit these numbers to make a build green — that is
+# the gate erosion the table exists to prevent.
+in_table=0
+conflicts=37
+unresolved=31

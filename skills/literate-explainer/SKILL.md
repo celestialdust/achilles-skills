@@ -7,6 +7,8 @@ description: 'Turn a diff (the daily case) or a whole unfamiliar target repo (on
 
 ## Purpose
 
+**Stage: standalone · cross-cutting** — it belongs to no lifecycle stage, so no gate waits on it and `/orchestrate` is untouched; reach for it whenever you need to understand code you did not write.
+
 Turn a **diff** (the daily case — an agent just landed a change to your **target repo** and "looks
 right" is not understanding) or a whole **target repo** (the onboarding case — you cloned or inherited
 it and need a real mental model) into a **teaching artifact**: background before the change, intuition
@@ -14,8 +16,7 @@ before details in what → why → how order, a literate code tour in reading or
 enough to re-teach. The goal is participation — that you can pass a quiz on the code and make the next
 change yourself.
 
-This is a **standalone suite**, not a lifecycle stage. It wires into no gate, it never blocks, and it
-leaves `/orchestrate` untouched. It owns two of the three comprehension-workspace surfaces (the
+It owns two of the three comprehension-workspace surfaces (the
 **explainer manifest** and the **learner glossary**); `comprehension-quiz` owns the third (the
 **learning ledger**) and is your next step.
 

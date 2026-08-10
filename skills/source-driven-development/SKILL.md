@@ -7,6 +7,8 @@ description: 'Ground every framework- or library-specific decision in official d
 
 ## Overview
 
+**Stage: Implement — a referenced discipline, not a chain stage.** `incremental-implementation` and `test-driven-development` pull it in mid-slice; it emits no artifact of its own.
+
 Every framework-specific code decision must be backed by official documentation. Don't implement from memory — verify, cite, and let the user see your sources. Training data goes stale, APIs get deprecated, best practices evolve. This skill ensures the user gets code they can trust because every pattern traces back to an authoritative source they can check.
 
 ## When to Use
@@ -26,7 +28,7 @@ Every framework-specific code decision must be backed by official documentation.
 
 ## Inputs
 
-This is a **referenced discipline**, not a chain stage — `incremental-implementation` and `test-driven-development` pull it in mid-slice and it emits no standalone artifact. It still refuses to *guess*. In order of authority it needs:
+It still refuses to *guess*. In order of authority it needs:
 
 - **The dependency manifest** (`package.json` · `pyproject.toml`/`requirements.txt` · `composer.json` · `go.mod` · `Cargo.toml` · `Gemfile`) — the source of truth for *which version* of each framework/library is installed. This is what Step 1 (DETECT) reads.
 - **`environment.md` → `runtime-dep` rows** (typed-kind manifest, closed kind enum incl. `runtime-dep`; **no value column**) — names the frameworks/runtimes the project depends on, to cross-check the manifest. Use it to confirm the stack, never as the version source (it carries no values).

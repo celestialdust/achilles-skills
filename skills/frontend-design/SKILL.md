@@ -16,11 +16,19 @@ else's — make deliberate, opinionated choices about palette, typography, and l
 and take one real aesthetic risk you can justify.
 
 ## When to use / when to skip
-- **Use** when `prd.md` describes a feature with a **UI surface** (a page, screen, component, or flow) and
-  the look is not already fully pinned. This runs in Spec, after `to-prd`, before `acceptance-criteria`/`environment-manifest`
-  sign-off.
-- **Skip** when the feature has **no UI** (a pure API, a CLI, a data pipeline) — then there is no design
-  contract and `quality-verification` runs no design gate. Skip the *exploration* phase (go straight to commit) when the brief
+- **Use** when the feature **changes what a person sees or does** — a page, screen, component, or flow —
+  and the look is not already fully pinned. This runs in Spec, after `to-prd`, and **before
+  `acceptance-criteria` and `environment-manifest` run** — not merely before they are signed. Exploring an
+  interface surfaces behaviour a `prd.md` omits (the empty state, the failed save), and that has to reach
+  `acceptance.md` while it is being written rather than after it exists.
+- Ask that of the **behaviour, not of the brief's vocabulary.** A `prd.md` written entirely in storage or
+  protocol terms — "edits are kept locally and retried" — still reaches a screen the moment it has a
+  restored state to show, a failure to report, or a control to press. Reading such a brief as "no UI" is
+  the common miss, and it costs the whole point of running here: nobody explores, so the states the brief
+  left out never reach `acceptance.md`, and Verify grades a contract that never mentioned them. If you can
+  name one screen this feature changes, it is a UI surface however the brief is worded.
+- **Skip** when nothing this feature does reaches a person: a pure API, a CLI with no interactive surface,
+  a data pipeline. Then there is no design contract and `quality-verification` runs no design gate. Skip the *exploration* phase (go straight to commit) when the brief
   already pins the visual direction exactly — the brief's own words always win, including when it asks for a
   look you'd otherwise call a default.
 - **depth: lite** — a tiny, low-stakes surface (one isolated component, an internal tool) may collapse to a
@@ -301,7 +309,7 @@ Done when ALL hold:
 ## Outputs & handoff contract
 - **Emits:** (1) a committed high-fidelity prototype = the **reference-spec build target that production
   re-implements**, at `docs/features/<slug>/prototype/index.html`; (2) the **design contract** — the
-  **5th** signed Spec artifact (UI-only) — written to `docs/features/<slug>/design-contract.md`;
+  signed Spec artifact a UI feature adds to the bundle — written to `docs/features/<slug>/design-contract.md`;
   (3) `docs/design.md`, the repository's decided look, **when this is the repo's first UI surface** or when
   this surface deliberately moves the whole look. Shape: `../../references/design-system-format.md`. Every
   other surface reads that file and writes none of it.
@@ -316,11 +324,12 @@ Done when ALL hold:
   committed reference-spec mockup and grades the built UI's fidelity against it, plus these seven axes —
   reading an axis marked `inherits:` from `docs/design.md`, and grading each `## Departure` block), and
   gating `quality-verification` (refuses to run against an unsigned/absent contract).
-- **Re-invalidation rule:** any edit to `prd.md` flips the contract back to `status: draft` (it must be
-  re-signed) — design floors can't silently drift from the product they were signed against. An edit to
-  `docs/design.md` does the same to every contract carrying an inherited axis it touched: an inherited
-  axis is graded against whatever that file says at Verify time, so moving the decided look re-grades
-  surfaces nobody re-read. Name those contracts in this surface's handoff and flip each to `status: draft`.
-- **STATE.md:** the feature stays in `spec`; set `gate: you` so the human signs intent + prd + acceptance +
-  environment + (this) design contract together at the single Spec sign-off. No slice rows yet (slices are
-  born in Plan).
+- **Re-invalidation rule:** what a later edit un-signs — including an edit to `docs/design.md`, which
+  reaches every contract carrying an inherited axis it touched — is stated once, in `docs/workflow.md`'s
+  *What an edit un-signs*. Name the affected contracts in this surface's handoff and flip each one.
+- **STATE.md:** the feature stays in `spec`; set `gate: you` so the human signs prd + acceptance +
+  environment + (this) design contract together at the single Spec sign-off — plus architecture where the
+  feature added a module, added a dependency between parts that already exist, or introduced a seam, which
+  is not every feature. `docs/workflow.md` states which artifacts the gate covers; read the bundle from
+  there rather than from this list, which names only what this surface contributes to it. Intent was signed
+  earlier, at the Ideate gate. No slice rows yet (slices are born in Plan).

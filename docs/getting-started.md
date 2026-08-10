@@ -82,19 +82,21 @@ Load skills by stage:
 
 ```
 Ideate:     interview-me → idea-refine
-Spec:       codebase-research → spec-grilling → to-prd → acceptance-criteria → environment-manifest → architecture-design → spec-review
-            (frontend-design when there's UI)
+Spec:       codebase-research → spec-grilling → to-prd → frontend-design (UI only) → acceptance-criteria → environment-manifest → architecture-design → spec-review
 Plan:       plan-breakdown
-            (reuses Spec's research.md; codebase-design, api-design as referenced disciplines)
+            (reuses Spec's research.md)
+Spec·Plan:  codebase-design, api-design — referenced disciplines, not a stage: each proposes a
+            structural variant in Spec, pins the interface into plan.md in Plan; owns no artifact
 Implement:  incremental-implementation + test-driven-development
             (source-driven-development, worktree)
 Verify:     quality-verification
             (browser-testing-with-devtools, debugging-and-error-recovery)
 Review:     code-review + code-simplification + security-and-hardening + performance-optimization
-            (doubt-driven-development for in-flight skepticism)
 Ship:       pull-request
             (git-workflow, ci-cd, observability-and-instrumentation, deprecation-and-migration, documentation-and-adrs)
             (shipping-and-launch is release-level and runs once the human has merged)
+
+Plan · Implement:  doubt-driven-development — in-flight adversarial review; not part of the Review gate
 ```
 
 ### Autonomous run
@@ -137,7 +139,7 @@ The `commands/` directory contains twelve Markdown slash commands for Claude Cod
 | Command | Skills invoked |
 |---------|----------------|
 | `/ideate` | interview-me, then idea-refine |
-| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, architecture-design, spec-review) |
+| `/spec` | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) |
 | `/plan` | plan-breakdown (reuses Spec's research.md) |
 | `/implement` | incremental-implementation (applies test-driven-development) |
 | `/verify` | quality-verification |

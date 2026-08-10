@@ -2,7 +2,7 @@
 description: Turn the spec into a concrete plan — reuse the Spec-stage survey, then plan-breakdown into vertical slices and a dependency DAG.
 ---
 
-Invoke the **plan-breakdown** skill — the planner that turns the locked spec into vertical slices and a dependency DAG. It is grounded in `research.md`, the goal-blind survey **already written during /spec**. Do not re-survey by default.
+Invoke the **plan-breakdown** skill — the planner that turns the locked spec into vertical slices and a dependency DAG.
 
 ## Mode
 
@@ -10,8 +10,8 @@ Plan is **human-led** — the human owns Ideate, Spec, and Plan. This command pr
 
 ## Process
 
-1. **Reuse the Spec-stage survey.** `research.md` already exists — `codebase-research` ran at the head of /spec so the ADRs were decided against the codebase as-is. `plan-breakdown` reads that same file; it requires it and will refuse without it. Run `codebase-research` a second time **only against a gap you can name**: state what you are looking for and why the Spec-stage survey did not cover it, and keep that statement with the work. Plan legitimately needs ground Spec had no reason to record — existing test seams, module boundaries, the exact prior art a slice will extend — and a real gap names itself in one sentence. A second survey with no stated gap is refused: without that clause "run it again" becomes the default and the suite is back to surveying the same repository twice.
-2. **plan-breakdown** — slice the work vertically (one complete path per slice, not horizontal layers), order the slices into a dependency DAG, and give each slice acceptance-anchored done-criteria. Pull in `codebase-design` (deep-module interfaces) and `api-design` (contract-first) as referenced disciplines wherever a slice defines a new module or interface.
+1. **Reuse the Spec-stage survey.** `research.md` already exists — `codebase-research` ran at the head of /spec so the ADRs were decided against the codebase as-is, and `plan-breakdown` refuses without it. Run `codebase-research` a second time **only against a gap you can name**: state what you are looking for and why the Spec-stage survey did not cover it, and keep that statement with the work. Plan legitimately needs ground Spec had no reason to record — the exact prior art a slice will extend, say — and a real gap names itself in one sentence. A second survey with no stated gap is refused: without that clause "run it again" becomes the default and the suite is back to surveying the same repository twice.
+2. **plan-breakdown** — slice the work vertically (one complete path per slice, not horizontal layers), order the slices into a dependency DAG, and give each slice acceptance-anchored done-criteria. `codebase-design` and `api-design` are referenced disciplines, not sequential stages: they run in **Spec and Plan** — `spec-grilling` dispatches them in Spec to propose a structural variant, `plan-breakdown` reaches for them in Plan to pin the interface into `plan.md` — and they own no artifact of their own, because what they produce lands in a file another skill owns. The structural choices therefore arrive already made and recorded in `docs/adr/`; Plan elaborates them into signatures, field lists and slices rather than reopening them.
 3. Present the plan + DAG for human review. Write `plan.md`.
 
 ## Notes

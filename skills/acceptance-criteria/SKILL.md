@@ -1,6 +1,6 @@
 ---
 name: acceptance-criteria
-description: 'Turn a prd.md into acceptance.md — the Given/When/Then prose contract that is the human-anchored oracle for THIS feature''s behavior across the entire autonomous run (the repo''s permanent cross-feature guarantees live in docs/test-contract.md; these two are the only human-anchored oracles the run has). Reach for this the MOMENT a prd.md exists and BEFORE any planning, TDD, or QA — test-driven-development and quality-verification REFUSE to run without a signed acceptance.md. If you are about to write "acceptance criteria", "definition of done", test scenarios, or Given/When/Then for a feature, you need this first. Behavioral-only: keep ALL design floors out (those belong to frontend-design''s contract).'
+description: 'Turn a prd.md into acceptance.md — the Given/When/Then prose contract that is the human-anchored oracle for THIS feature''s behavior across the entire autonomous run (the repo''s permanent cross-feature guarantees live in docs/test-contract.md; these two are the only human-anchored oracles the run has). Reach for this the MOMENT a prd.md exists (on a UI feature, once frontend-design has explored the interface) and BEFORE any planning, TDD, or QA — test-driven-development and quality-verification REFUSE to run without a signed acceptance.md. If you are about to write "acceptance criteria", "definition of done", test scenarios, or Given/When/Then for a feature, you need this first. Behavioral-only: keep ALL design floors out (those belong to frontend-design''s contract).'
 ---
 
 ## Purpose
@@ -22,13 +22,16 @@ job.
 
 It is a **prose contract, not a test framework**: no Cucumber, no step-defs, no `.feature` engine.
 Rigid frameworks are anti-boring-tech and brittle on UI; the agent realizes each scenario as a test
-through `test-driven-development` **by judgment**. Drift control is the intelligent Verify gate reading `acceptance.md`, not a
-mechanical scenario↔test mapping.
+through `test-driven-development` **by judgment**. Drift control is the intelligent Verify gate reading
+`acceptance.md`, not a mechanical scenario↔test mapping.
 
 ## When to use / when to skip
 
-**Use** right after `to-prd` lands `prd.md`, for every feature, before `plan-breakdown`/`test-driven-development`/`quality-verification`. It is
-typically the artifact authored alongside (or just after) the PRD in the Spec stage. If you are reaching
+**Use** after `to-prd` lands `prd.md`, for every feature, before `plan-breakdown`/`test-driven-development`/`quality-verification`. On a UI
+feature one skill sits in between: `frontend-design` runs in Spec after `to-prd` and **before
+`acceptance-criteria` and `environment-manifest` run** — not merely before they are signed. Exploring an
+interface surfaces behaviour a `prd.md` omits (the empty state, the failed save), and that has to reach
+`acceptance.md` while it is being written rather than after it exists. If you are reaching
 for the words "acceptance criteria", "definition of done", or "let me write some test scenarios", you are
 in this skill's territory — use it.
 
@@ -83,9 +86,14 @@ If `STATE.md` / `docs/features/` do not exist, the repo was never set up → run
 6. **Self-check coverage + the behavioral-only boundary** (Verification below). Every story id → ≥1
    scenario; three classes present where applicable; zero design/impl/engine content.
 
-7. **Present for sign-off.** Hand the human a complete draft. On their sign, `status → draft` becomes
-   `signed` and the Spec gate can pass. Note for the human: **editing `prd.md` later re-invalidates
-   `acceptance.md` to `draft`** — the contract must be re-signed if the product spec moves.
+7. **Present for sign-off.** Hand the human a complete draft as soon as it lands — this is the one Spec
+   artifact that presents on its own, because everything downstream depends on it as the oracle. Signing
+   waits: `architecture-design` runs against a **draft** `acceptance.md` — present, not signed — and the
+   two are signed together in one act at the Spec gate, so the scenarios cannot move between the trace and
+   the signature. A scenario that traces through nothing goes back to `acceptance-criteria` while it is
+   still editable. The round trip is bounded at one: anything still unresolved becomes an open question
+   the person answers at the gate. What a later `prd.md` edit un-signs is stated once, in
+   `docs/workflow.md`'s *What an edit un-signs*.
 
 ## The three required scenario classes
 
@@ -104,8 +112,8 @@ Every feature covers these classes (a story may not touch all three, but the fea
 `acceptance.md` asserts **what is observable**, and nothing else:
 
 - **NO design content** — no color, typography, spacing, layout, motion, focus-ring, pixel, breakpoint.
-  All of that is `frontend-design`'s signed design contract (the 5th signed Spec artifact for UI
-  features) and, for an axis that contract marks inherited, `docs/design.md`. `quality-verification`'s
+  All of that is `frontend-design`'s signed design contract (a Spec artifact UI features add to the
+  bundle) and, for an axis that contract marks inherited, `docs/design.md`. `quality-verification`'s
   design gate grades those; `acceptance.md` grades behavior. Neither ever carries the other's content.
 - **NO implementation content** — no file path, function/type signature, schema-as-code, table/column
   name, driver or library internal. Scenarios survive a rewrite of the implementation.
@@ -119,9 +127,9 @@ permanent, cross-feature ones. It states that boundary in full; two duties fall 
 
 - **Put each scenario in one file.** The test is lifetime, not importance: a scenario that dies when this
   feature is deleted is a feature scenario and belongs here; one that must still hold afterwards is a
-  permanent guarantee and belongs in the contract. Parking a permanent guarantee here loses it — an
-  `acceptance.md` is re-signed whenever its `prd.md` moves, so a guarantee kept here is one product-spec
-  edit away from being renegotiated.
+  permanent guarantee and belongs in the contract. Parking a permanent guarantee here loses it: this file
+  is re-signed whenever `prd.md` moves, so the guarantee is one product-spec edit away from being
+  renegotiated.
 - **Never contradict an ACTIVE row.** If a scenario you are about to write would contradict one, the
   ACTIVE row wins and your scenario is wrong. Fix it here, now. Spec is the only place this can be
   settled — downstream, an ACTIVE row is frozen in every run, so the collision would surface as a halted
@@ -207,18 +215,20 @@ Done when ALL hold:
 
 - **Emits:** `docs/features/<slug>/acceptance.md` — per-scenario `id` · `realizes: story <n>` · `class:` ·
   Given/When/Then prose; frontmatter `status: draft → signed`. Change the shape of a scenario id or the
-  status field → update its consumers (`test-driven-development`, `quality-verification`, `spec-review`, `pull-request`) in the same commit.
+  status field → update its consumers (`architecture-design`, `test-driven-development`, `quality-verification`, `spec-review`, `pull-request`) in the same commit.
 - **STATE.md update:** add `acceptance.md` to the feature's `origin:` line; feature state stays `spec`;
   gate stays `you` (the human signs at the Spec gate). No slice rows yet (slices are born in Plan).
-- **Downstream consumers:** `test-driven-development` (realizes each scenario as a RED test, test-first; refuses an
+- **Downstream consumers:** `architecture-design` (traces every scenario through the structure while this
+  file is still `draft`) · `test-driven-development` (realizes each scenario as a RED test, test-first; refuses an
   unsigned/absent contract) · `quality-verification` (grades the running app per scenario, keeps an exercised/not-reachable
   ledger by id in `qa.md`; refuses an unsigned contract) · `spec-review` (checks every story id → ≥1
   reachable scenario before the human reviews) · `pull-request` (any "not-reachable" classification at run time
   → a required human-ack line in the PR body, never silently absorbed).
 - **Frozen-under-retry invariant:** once signed, `acceptance.md` is **immutable during a slice's
   retry loop**. A retry diff that weakens or deletes a scenario to make a test pass = gate-erosion **HALT**
-  (the reward-hack tripwire). The contract may only change by a fresh human re-sign (e.g. after `prd.md`
-  edits re-invalidate it to `draft`).
+  (the reward-hack tripwire). The contract may only change by a fresh human re-sign.
 - **Boundary with `frontend-design`:** design floors/rubric/prototype-fidelity live in its signed design
-  contract (the 5th signed Spec artifact for UI features) and, for an axis that contract marks inherited,
-  in `docs/design.md`; `acceptance.md` carries zero design content. No two signed artifacts can contradict.
+  contract and, for an axis that contract marks inherited, in `docs/design.md`; `acceptance.md` carries
+  zero design content. No two signed artifacts can contradict. `frontend-design` running *before* this
+  skill makes the boundary matter more, not less: what the exploration surfaces about **behaviour** (the
+  empty state, the failed save) belongs here, and what it decides about **look** never does.
