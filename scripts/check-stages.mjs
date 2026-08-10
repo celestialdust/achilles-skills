@@ -29,8 +29,13 @@
 //     `**Spec (human-led)** — codebase-research · spec-grilling · …`, one row per name.
 //     This was the widest gap until README filed `doubt-driven-development` under Review while six
 //     other registries and `commands/review.md` had already moved it — every check green, because no
-//     check could see that table. Reading these took coverage from 40 rows in 1 file to 167 in 5.
-//     A label of `cross-cutting` constrains nothing, the same way a cross-cutting declaration does.
+//     check could see that table. A label of `cross-cutting` constrains nothing, the same way a
+//     cross-cutting declaration does.
+//   · The third form of the same grouping: a bullet list under the label, `- \`interview-me\` — …`,
+//     which is how copilot-setup states its stages. The name must LEAD the bullet and be backticked or
+//     linked. Accepting any kebab-case word in a bullet would turn prose under a stage heading into
+//     phantom rows, and a check that cries wolf on correct files is one people stop reading.
+//     Reading all three forms took coverage from 40 rows in 1 file to 198 in 6.
 //   · Each named skill's own declaration: the first line matching `Stage:` / `**Stage:**` /
 //     `**Stage tag:**`. Three spellings are in use across the tree and all three are read.
 //
@@ -58,8 +63,8 @@
 //     getting-started's `Stage | Artifact(s) | Produced by`, opencode-setup's `Stage | Command
 //     equivalent | Skills the agent invokes`. These map stages to artifacts or to prose lists of
 //     several skills, not one row per skill, and forcing them into this shape would report noise.
-//   · Skill groupings written as a bullet list under a heading rather than as a table or a `·` list —
-//     copilot-setup states its stages that way. Still swept by hand.
+//   · A skill named in a bullet that does not LEAD with a backticked or linked name — a mention inside
+//     a sentence under a stage label reads as prose here, deliberately. See the note above.
 //   · Which stage a `Stage`-less grouping SHOULD be. The label is taken as the truth and the skills
 //     beneath it are compared to it; a heading that names the wrong stage for its whole table is
 //     internally consistent and passes.
@@ -175,8 +180,20 @@ for (const file of files) {
         groupStages = st.length ? st : null;
       }
 
+      // `- \`interview-me\` — brainstorm + frame an idea`: the same grouping with the members as a
+      // bullet list under the label, which is how copilot-setup states its stages. The name must LEAD
+      // the bullet and be backticked or linked — that is the registry shape. Accepting any kebab-case
+      // word in a bullet would turn ordinary prose under a stage heading into phantom rows, and a check
+      // that cries wolf on correct files is one people stop reading.
+      const bullet = line.match(/^\s*[-*]\s+(?:`([a-z][a-z0-9-]*)`|\[([a-z][a-z0-9-]*)\])/);
+      if (bullet && groupStages && !groupStages.includes('cross-cutting')) {
+        const name = bullet[1] || bullet[2];
+        if (/^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$/.test(name))
+          rows.push({ file, line: i + 1, stage: groupStages.join(' · '), skill: name });
+      }
+
       // `**Spec (human-led)** — codebase-research (first) · spec-grilling · to-prd`: the same grouping
-      // with the members inline instead of in a table. windsurf and copilot state it this way.
+      // with the members inline instead of in a table. windsurf states it this way.
       const inline = line.match(/^\*\*([^*]+)\*\*\s*[—–]\s*(.+)$/);
       if (inline) {
         const st = labelStages(inline[1]);
