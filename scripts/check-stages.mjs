@@ -23,6 +23,14 @@
 //     the column, never by a substring anywhere in the file — the same discipline check-registries
 //     settled on after four legs of substring matching all passed over deleted rows. A name in a
 //     paragraph beside a table is not a row in it.
+//   · The INVERSE shape: a `Skill` column with NO `Stage` column, where the stage is a heading or a
+//     bold label above the table — README and the setup guides are written this way. The label governs
+//     the rows beneath it until the next label. Also the same grouping stated inline,
+//     `**Spec (human-led)** — codebase-research · spec-grilling · …`, one row per name.
+//     This was the widest gap until README filed `doubt-driven-development` under Review while six
+//     other registries and `commands/review.md` had already moved it — every check green, because no
+//     check could see that table. Reading these took coverage from 40 rows in 1 file to 167 in 5.
+//     A label of `cross-cutting` constrains nothing, the same way a cross-cutting declaration does.
 //   · Each named skill's own declaration: the first line matching `Stage:` / `**Stage:**` /
 //     `**Stage tag:**`. Three spellings are in use across the tree and all three are read.
 //
@@ -50,18 +58,24 @@
 //     getting-started's `Stage | Artifact(s) | Produced by`, opencode-setup's `Stage | Command
 //     equivalent | Skills the agent invokes`. These map stages to artifacts or to prose lists of
 //     several skills, not one row per skill, and forcing them into this shape would report noise.
-//   · The INVERSE shape, and this is the widest gap: a `Skill` column with no `Stage` column, where the
-//     stage is a bold label or heading above the table — README and the per-agent setup guides. Those
-//     are exactly the files a reshape has to sweep by hand, and a stale grouping there is invisible here.
+//   · Skill groupings written as a bullet list under a heading rather than as a table or a `·` list —
+//     copilot-setup states its stages that way. Still swept by hand.
+//   · Which stage a `Stage`-less grouping SHOULD be. The label is taken as the truth and the skills
+//     beneath it are compared to it; a heading that names the wrong stage for its whole table is
+//     internally consistent and passes.
 //
 // EXERCISE IT BEFORE YOU TRUST IT, AND PLANT MORE THAN ONE SHAPE. Planting a single wrong stage on a
 // skill with a clean declaration is the ritual that certified this script while two false PASSes sat in
 // the tree: a declaration with no em-dash had its trailing prose harvested as extra stages, and a cell
-// naming one right stage beside one wrong one passed under `some`. Plant all four — a wrong stage, a
-// multi-stage cell with one wrong half, a dash-less declaration, and a row naming no real skill — and
-// watch each exit 1 before you put them back. A check that has only ever been watched passing is not
-// known to work, and this repository has already shipped one that passed over the exact condition it
-// existed to prevent.
+// naming one right stage beside one wrong one passed under `some`. Extending it to the inverse shape
+// added two more of exactly the same kind, both of which passed silently at first: a negative sentinel
+// stored in `stageCol` also satisfied the "header not found yet" guard, so every label-governed table
+// emitted zero rows and the run stayed green with a quarter of the coverage it claimed; and requiring a
+// name to resolve before emitting a row meant a renamed skill in an inline list disappeared instead of
+// being reported. Plant all six — a wrong stage, a multi-stage cell with one wrong half, a dash-less
+// declaration, a row naming no real skill, a stale row in a label-governed table, and a phantom in an
+// inline list — and watch each exit 1 before you put them back. Count the rows too: a check that reads
+// fewer files than you think is one you will trust for guarantees it never made.
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -119,30 +133,86 @@ const cells = (line) =>
     .split('|')
     .map((c) => c.trim());
 
+// A cell names a skill as bare text, in backticks, or as a markdown link — README and the setup guides
+// link every name. Taking the cell verbatim made every linked row a PHANTOM, so read the link text.
+const skillName = (cell) => {
+  const link = cell.match(/\[([^\]]+)\]\([^)]*\)/);
+  return (link ? link[1] : cell).replace(/`/g, '').trim();
+};
+
+// Stage words carried by a grouping label — a heading or a bold lead-in. Cut at the dash for the same
+// reason the declaration parser does: `### Review — agent (parallel fan-out)` declares Review and the
+// commentary after the dash is free to name anything.
+const labelStages = (text) => {
+  const head = text.split(/[—–]/)[0];
+  return STAGES.filter((s) => new RegExp(`(?<![A-Za-z-])${s}(?![A-Za-z-])`, 'i').test(head));
+};
+
 const rows = [];
 for (const file of files) {
   const lines = readFileSync(file, 'utf8').split('\n');
   let stageCol = -1;
   let skillCol = -1;
+  // Whether this table takes its stage from the label above it rather than from a `Stage` column.
+  // Kept as its own flag, not a sentinel in `stageCol`: a negative sentinel also satisfies the
+  // "header not found yet" guard below, so such a table re-entered header detection on every row and
+  // emitted none — passing silently, which is the one way a check must never fail.
+  let useGroup = false;
+  let groupStages = null; // the stage a heading/bold label above the table assigns to its rows
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim().startsWith('|')) {
       stageCol = skillCol = -1;
+      useGroup = false;
+
+      // A heading or a bold lead-in that names stages governs the rows beneath it until the next one.
+      // This is the INVERSE shape: a `Skill` column with no `Stage` column, the stage sitting above the
+      // table. It is how README filed `doubt-driven-development` under Review while six other registries
+      // and `commands/review.md` had already moved it, with every check in the tree green.
+      const label = line.match(/^#{2,4}\s+(.*)$/) || line.match(/^\*\*([^*]+)\*\*/);
+      if (label) {
+        const st = labelStages(label[1]);
+        groupStages = st.length ? st : null;
+      }
+
+      // `**Spec (human-led)** — codebase-research (first) · spec-grilling · to-prd`: the same grouping
+      // with the members inline instead of in a table. windsurf and copilot state it this way.
+      const inline = line.match(/^\*\*([^*]+)\*\*\s*[—–]\s*(.+)$/);
+      if (inline) {
+        const st = labelStages(inline[1]);
+        if (st.length && !st.includes('cross-cutting')) {
+          for (const part of inline[2].split('·')) {
+            const name = skillName(part).replace(/\(.*$/, '').trim();
+            // Emit a row for anything shaped like a skill name, not only for names that resolve.
+            // Requiring the file to exist first made a renamed or mistyped skill vanish from the run
+            // instead of being reported — a silent skip in the check whose whole job is catching the
+            // registry that nobody updated. Unresolvable names fall through to PHANTOM below; prose
+            // words are excluded by the kebab-case shape rather than by whether a file happens to exist.
+            if (/^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$/.test(name))
+              rows.push({ file, line: i + 1, stage: st.join(' · '), skill: name });
+          }
+        }
+      }
       continue;
     }
     const c = cells(line);
-    if (stageCol < 0) {
+    if (skillCol < 0) {
       const s = c.findIndex((h) => /^stage$/i.test(h));
       const k = c.findIndex((h) => /^skill$/i.test(h));
       if (s >= 0 && k >= 0) {
         stageCol = s;
         skillCol = k;
+      } else if (k >= 0 && groupStages && !groupStages.includes('cross-cutting')) {
+        // No Stage column, but a grouping label above it says which stage these rows are filed under.
+        // A `cross-cutting` label constrains nothing, the same way a cross-cutting declaration does.
+        useGroup = true;
+        skillCol = k;
       }
       continue;
     }
     if (/^[-: ]+$/.test(c.join(''))) continue; // separator
-    const stage = c[stageCol];
-    const skill = (c[skillCol] || '').replace(/`/g, '').trim();
+    const stage = useGroup ? groupStages.join(' · ') : c[stageCol];
+    const skill = skillName(c[skillCol] || '');
     if (stage && skill) rows.push({ file, line: i + 1, stage, skill });
   }
 }
