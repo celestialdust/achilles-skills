@@ -7,6 +7,8 @@ description: 'Removes code that no longer earns its keep and migrates users off 
 
 ## Overview
 
+**Stage: Ship — conditional.** It runs only when a sunset, replacement or migration is actually in scope, so nothing in the chain calls it by default and no artifact waits on it.
+
 Code is a liability, not an asset. Every line of code has ongoing maintenance cost — bugs to fix, dependencies to update, security patches to apply, and new engineers to onboard. Deprecation is the discipline of removing code that no longer earns its keep, and migration is the process of moving users safely from the old to the new.
 
 Most engineering organizations are good at building things. Few are good at removing them. This skill addresses that gap.

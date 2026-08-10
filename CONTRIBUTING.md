@@ -187,6 +187,20 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   of reach: artifacts named in prose rather than in a table column, and a stale *destination* in the
   routing tree, which is prose the check reads only in the missing direction. A rename still shows there
   as a phantom in the Quick reference table.
+- `node scripts/check-stages.mjs` is silent. Every table carrying both a `Stage` column and a `Skill`
+  column is read, and the stage each row files a skill under is compared to the stage that skill declares
+  for itself on its own `Stage:` line. Three spellings of that line are in use and all three are read; a
+  declaration is cut at its first em-dash, because the commentary after the dash routinely names other
+  stages and collecting from the whole line would read `cross-cutting — referenced in Spec … in Plan …`
+  as a three-stage skill. A cell may name more than one (`Plan · Implement`), and a skill declaring
+  `cross-cutting` satisfies any stage. Every skill declares a stage today, so `UNCHECKED` reads 0 — but
+  the guard stays, because the hole reopens the moment somebody adds a skill without a `Stage:` line.
+  Such a skill is reported by name as `UNCHECKED`, not failed, because a script that is red on arrival is
+  one people learn to skip. Out of reach: a stage stated in prose (`runs in Spec, after to-prd`); tables
+  with a `Stage` column but no `Skill` column, which map stages to artifacts rather than one row per
+  skill; and — the widest gap — the inverse shape, a `Skill` column whose stage is a bold label above the
+  table rather than a cell. README and the per-agent setup guides are all that shape, so a stale grouping
+  there is invisible to this check and has to be swept by hand.
 - `node scripts/check-write-table.mjs` reports nothing your own diff introduced. It reads the write
   table in `docs/workflow.md`, collects the writes each `SKILL.md` declares in prose, and judges each
   against the zone the table gives that skill. Three verdicts: **permitted**, which is silent;

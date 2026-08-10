@@ -7,6 +7,8 @@ description: Extracts what the user actually wants instead of what they think th
 
 ## Overview
 
+**Stage: Ideate.** It runs before any artifact exists, so it interviews rather than reads — `intent.md` is what it writes, not what it consumes.
+
 What people ask for and what they actually want are different things. They ask for "a dashboard" because that's what one asks for, not because a dashboard solves their problem. They say "make it faster" without a number to hit.
 
 The cheapest moment to find this gap is before any plan, spec, or code exists. Once you've started building, switching costs are real, and the user will rationalize the wrong thing into a "good enough" thing. The misfit gets locked in.

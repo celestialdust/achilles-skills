@@ -1,6 +1,6 @@
 ---
 name: spec-grilling
-description: Use BEFORE writing any PRD or design doc — whenever the user wants to design a feature from an idea or intent.md, stress-test a design, pin down domain terminology, surface design decisions the user hasn't considered, or record an architectural decision. Runs after codebase-research's goal-blind survey and refuses without research.md, so the design is decided against the codebase as it is rather than against recollection. Interview relentlessly, ONE question at a time, with a recommended answer each. Emits ADRs + CONTEXT.md; never a PRD.
+description: Use BEFORE writing any PRD or design doc — whenever the user wants to design a feature from an idea or intent.md, stress-test a design, pin down domain terminology, surface design decisions the user hasn't considered, or record an architectural decision. Runs after codebase-research's goal-blind survey and refuses without research.md, so the design is decided against the codebase as it is rather than against recollection. Interview relentlessly, ONE question at a time, with a recommended answer each. Grills the structural branch too — which parts earn their existence, what has to be swappable, what a consumer's surface may depend on — fanning out codebase-design or api-design variants on a load-bearing one so the person chooses. Emits ADRs + CONTEXT.md; never a PRD.
 ---
 
 ## Purpose
@@ -39,8 +39,13 @@ the head of Spec. **Refuse to run without it**, and name what is missing rather 
 
 The blind-spot pass in step 1 scans territory; a survey is what makes that territory visible. Deciding
 first and surveying afterwards produces ADRs written against whatever the grilling agent happened to open,
-and an ADR is the hardest artifact in the chain to revise. Read its `## Codebase map` and
-`## Open items for Plan` before your first question.
+and an ADR is the hardest artifact in the chain to revise. Read three of its sections before your first
+question:
+
+- `## Codebase map`
+- `## Open items for Plan` — a structural item in it is `spec-grilling`'s, not Plan's.
+- `## Structural facts` — seams and their adapter counts, module boundaries, conventions in use; `_none_`
+  where there are none. This is what a proposed variant stands on.
 
 **REQUIRED — the intent.** Refuse to run only if BOTH are absent:
 - **`intent.md`** (preferred) under `docs/features/<slug>/`, from `interview-me`. Stable sections you rely on:
@@ -59,16 +64,41 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
    choice before its prerequisite is settled.
 
    Then **grow the tree with a blind-spot pass**: the tree so far holds only decisions already on the
-   user's map. Read `research.md`'s `## Codebase map` and `## Open items for Plan` — the blind spots are
-   the decision points the survey surfaced that the intent never mentions: an invariant this feature would
-   break, prior art that already settles a question you were about to ask, an open item somebody has to
-   decide. Read existing `docs/adr/` and the domain alongside it, present a 3–5 item blind-spot brief, and
-   add the real ones to the tree. (Step 3 answers questions already *in* the tree from the code; this
-   finds the questions that aren't — which is why it reads a survey rather than your recollection. You
-   cannot recall a decision point you never knew existed.) Ask up front which parts of the domain the user
-   knows cold and which they know nothing about, and calibrate by that disclosure: skip the pass on
-   familiar ground; run it in full on unfamiliar ground. Technique details:
-   `../../references/finding-unknowns.md`.
+   user's map. Read the three survey sections named above — the blind spots are the decision points the
+   survey surfaced that the intent never mentions: an invariant this feature would break, prior art that
+   already settles a question you were about to ask, an open item somebody has to decide. Read existing
+   `docs/adr/` and the domain alongside it, present a 3–5 item blind-spot brief, and add the real ones to
+   the tree. (Step 3 answers questions already *in* the tree from the code; this finds the questions that
+   aren't — which is why it reads a survey rather than your recollection. You cannot recall a decision
+   point you never knew existed.) Ask up front which parts of the domain the user knows cold and which
+   they know nothing about, and calibrate by that disclosure: skip the pass on familiar ground; run it in
+   full on unfamiliar ground. Technique details: `../../references/finding-unknowns.md`.
+
+   **Carry a structural branch.** An intent says what the product does, not what the code is arranged
+   into, so a tree grown from one is all mechanism and no shape. Three questions fix that, each
+   constraining the next:
+
+   - **Which parts earn their existence?** `codebase-design`'s deletion test, on each part the feature
+     seems to want.
+   - **What has to be swappable, and what are the two things that swap?** If the second cannot be named,
+     that is the answer, and worth having said out loud.
+   - **What may a consumer of this feature's surface depend on?** Resource model, error envelope,
+     pagination, versioning — `api-design`'s ground, and the leg most often skipped, because none of it
+     looks structural until every consumer has already depended on it.
+
+   A structural question is load-bearing when it clears the three-leg test before it is answered — hard to
+   reverse, surprising without context, the result of a real trade-off. On one of those, `spec-grilling`
+   dispatches `codebase-design` or `api-design` as fresh-context subagents that each produce a genuinely
+   different design, then presents the set with a recommendation and its reasoning; the person picks or
+   amends, and a variant set is still one question. Everything else is stated as a batched default, one
+   line each, and the person objects to any of them.
+
+   The record test is the same three legs, reused rather than a fourth gate: no question can be worth three
+   subagents and not worth recording. An amendment — "C, but move the seam up" — is the decision the ADR
+   records, not a note beside one. `codebase-design` and `api-design` are referenced disciplines, not
+   sequential stages: they run in **Spec and Plan** — `spec-grilling` dispatches them in Spec to propose a
+   structural variant, `plan-breakdown` reaches for them in Plan to pin the interface into `plan.md` — and
+   they own no artifact of their own, because what they produce lands in a file another skill owns.
 
 2. **Interview relentlessly, ONE question at a time.** Ask exactly one question, give **your recommended
    answer**, and wait for the response before the next. Asking several at once is bewildering and yields
@@ -137,6 +167,10 @@ narrative; default OFF.
   lives in ADRs/CONTEXT.md; the PRD references it. Co-location is not cohesion.
 - "I'll note the term later." → You'll lose the rationale. Append to CONTEXT.md the moment it resolves.
 - "Let me sketch the file structure / signatures while I'm here." → Wrong altitude. That's the plan's job.
+- "Structure isn't my branch — `architecture-design` covers it." → `architecture-design` reconciles and
+  renders: it traces every `acceptance.md` scenario through the structure, records the invariants, and
+  cites the decisions taken during `spec-grilling` rather than taking them itself. A structural decision
+  not taken here is taken by whichever slice reaches it first.
 - "The user approved every decision as we went, so we're aligned." → Approving one decision at a time is
   not holding the whole design. The closing quiz checks the assembled model, cheaply.
 - "I know this codebase well enough to start grilling; I'll read the code as questions come up." → Reading
@@ -151,9 +185,12 @@ narrative; default OFF.
 - Creating an ADR that fails any one of the three conditions.
 - Answering a codebase-knowable question from assumption instead of reading the code.
 - Opening the decision tree — or writing a single ADR — with no `research.md` in hand.
-- Running the blind-spot pass off memory of the codebase instead of off the survey's `## Codebase map` and
-  `## Open items for Plan`.
+- Running the blind-spot pass off memory of the codebase instead of off the survey's `## Codebase map`,
+  `## Structural facts`, and `## Open items for Plan`.
 - Interviewing only the decisions the intent already lists — no blind-spot pass on unfamiliar ground.
+- A tree with no structural branch on a feature that adds a part, adds a dependency, or exposes a surface.
+- Settling a load-bearing structural question out of your own single answer — or fanning out variants on
+  one that clears none of the three legs.
 - Ending a novel or high-stakes session without the closing quiz.
 - Editing or contradicting an accepted ADR without an explicit supersede link.
 
@@ -162,6 +199,8 @@ narrative; default OFF.
 Done when:
 - `research.md` was read before the first question, and the blind-spot brief drew on it.
 - Every open design decision in the tree is resolved with the user, dependencies first.
+- The structural branch was carried, or the feature adds no part, no dependency and no surface; each
+  load-bearing question in it went to variants, and the rest were stated as defaults.
 - Every fuzzy/conflicting term is now a single canonical entry in `CONTEXT.md` (or consciously left out as a
   general concept).
 - Every decision meeting all three ADR conditions has an ADR in `docs/adr/`; **no** ADR exists that fails the
@@ -179,7 +218,9 @@ Done when:
   `plan-breakdown`.
 
 These are **referenced substrate, not chain links** — they add no resume-spine hop. Downstream consumers
-(`to-prd`, `plan-breakdown`, `spec-review`) reference ADRs by id and use CONTEXT.md terms **verbatim**.
+(`to-prd`, `architecture-design`, `plan-breakdown`, `spec-review`) reference ADRs by id and use CONTEXT.md
+terms **verbatim**. The structural branch's ADRs are what `architecture.md` cites in its `Decision`
+columns; a question settled as a batched default is cited there as `default — not contested`.
 
 **Stable-section rule:** if you rename/supersede an ADR or change a CONTEXT term, update its referrers in
 the **same commit**. ADRs are append-only/immutable once written — supersede via links, never delete.

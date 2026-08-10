@@ -85,12 +85,13 @@ OpenCode does not require slash commands like `/spec` or `/plan`. The same lifec
 | Stage | Command equivalent | Skills the agent invokes |
 |---|---|---|
 | IDEATE | `/ideate` | `interview-me`, then `idea-refine` |
-| SPEC | `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `acceptance-criteria`, `environment-manifest`, `frontend-design`, `architecture-design`, `spec-review`) |
-| PLAN | `/plan` | `plan-breakdown` (reuses Spec's `research.md`; references `codebase-design`, `api-design`) |
+| SPEC | `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `frontend-design`, `acceptance-criteria`, `environment-manifest`, `architecture-design`, `spec-review`); `spec-grilling` dispatches `codebase-design` / `api-design` to propose a structural variant |
+| PLAN | `/plan` | `plan-breakdown` (reuses Spec's `research.md`); `plan-breakdown` reaches for `codebase-design` / `api-design` again to pin the interface into `plan.md`. Those two are referenced disciplines running in **Spec and Plan**, not a stage of their own, and own no artifact |
 | IMPLEMENT | `/implement` | `incremental-implementation` (applies `test-driven-development`; `source-driven-development` for framework calls; `worktree` for isolation) |
 | VERIFY | `/verify` | `quality-verification` (drives `browser-testing-with-devtools`; `debugging-and-error-recovery` on failure) |
-| REVIEW | `/review` | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization` fan-out; `doubt-driven-development` in-flight) |
+| REVIEW | `/review` | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization` fan-out) |
 | SHIP | `/ship` | `pull-request` — the spine of the stage (+ `git-workflow`, `ci-cd`, `observability-and-instrumentation`, `deprecation-and-migration`, `documentation-and-adrs`). `shipping-and-launch` is release-level and runs on the far side of the human's merge. |
+| PLAN · IMPLEMENT | — | `doubt-driven-development`: in-flight adversarial review; not part of the Review gate |
 
 Two cross-cutting commands round out the set:
 

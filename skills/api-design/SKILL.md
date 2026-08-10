@@ -1,11 +1,17 @@
 ---
 name: api-design
-description: 'Designs stable, hard-to-misuse interface contracts BEFORE implementation — the types ARE the spec. Reach for this the moment plan-breakdown needs to pin a module boundary, a REST or GraphQL endpoint, a component prop interface, or a cross-module type contract: define the contract first, validate only at boundaries, prefer addition over modification, and treat every observable behavior as a commitment (Hyrum''s Law) under one version (the One-Version Rule). Land the contract in plan.md; escalate any hard-to-reverse interface decision to an ADR.'
+description: 'Designs stable, hard-to-misuse interface contracts BEFORE implementation — the types ARE the spec. Reach for this the moment spec-grilling needs a structural variant for a load-bearing interface question, or plan-breakdown needs to pin a module boundary, a REST or GraphQL endpoint, a component prop interface, or a cross-module type contract: define the contract first, validate only at boundaries, prefer addition over modification, and treat every observable behavior as a commitment (Hyrum''s Law) under one version (the One-Version Rule). Land the contract in plan.md; escalate any hard-to-reverse interface decision to an ADR.'
 ---
 
 # API and Interface Design
 
 ## Overview
+
+**Stage: Spec · Plan — a referenced discipline, not a sequential stage.** `spec-grilling` dispatches it
+in Spec to propose a variant for a load-bearing structural question; `plan-breakdown` reaches for it in
+Plan to pin the interface contract into `plan.md`; the Review fan-out applies it as a lens when a diff
+changes a surface a file outside the diff calls. It owns no artifact of its own. It is also invokable
+standalone for a pure interface refactor.
 
 Design stable, well-documented interfaces that are hard to misuse. Good interfaces make the right thing easy and the wrong thing hard. This applies to REST APIs, GraphQL schemas, module boundaries, component props, and any surface where one piece of code talks to another.
 
@@ -19,25 +25,23 @@ Design stable, well-documented interfaces that are hard to misuse. Good interfac
 
 ## Inputs
 
-api-design is a **referenced discipline**, not a sequential stage. During the human-led Plan
-stage, `plan-breakdown` reaches for it whenever a slice crosses a public interface; the contract it
-produces lands **inside `plan.md`**, never in a standalone artifact. It is also invokable standalone
-for a pure interface refactor.
-
 **Consumes:**
 - `prd.md` — sections `## Solution` and `## Implementation Decisions`: the product-altitude statement
   of what surfaces/endpoints/boundaries exist (product altitude only — `prd.md` carries no
   file paths or signatures; api-design is where those get pinned).
 - `research.md` — the codebase/DB as-is, so new interfaces match existing conventions instead of
-  forking a second style.
+  forking a second style. What a proposed surface stands on is its `## Structural facts` — seams and
+  their adapter counts, module boundaries, conventions in use; `_none_` where there are none.
 - `CONTEXT.md`'s `## Glossary` (repo-root) — use its ubiquitous-language terms **verbatim** in names so
   the interface speaks the project's vocabulary.
 - Existing `docs/adr/ADR-<NNN>-*.md` — prior interface decisions you MUST NOT contradict (e.g. a
   committed REST-vs-GraphQL or error-envelope choice).
 
-**Refuse-to-run condition:** if there is neither a `prd.md`/`research.md` to design against nor an
-explicit standalone interface-design ask, STOP and ask for the missing input — do not invent a contract
-in a vacuum. For a standalone refactor, the existing code under change is the required input.
+**Refuse-to-run condition:** if there is nothing to design against — no `research.md`, no `prd.md`, no
+explicit standalone ask — STOP and ask for the missing input rather than invent a contract in a vacuum.
+A surface you propose from `research.md` and the intent is not a vacuum: in Spec the PRD does not exist
+yet, so those two are the whole substrate. For a standalone refactor, the existing code under change is
+the required input.
 
 ## Core Principles
 
@@ -333,9 +337,9 @@ single load-bearing dependency on `documentation-and-adrs`.
 - `test-driven-development` realizes the contract's observable behavior as tests (asserting outcomes, not internals).
 - `pull-request` anchors its design summary to the interface decisions (and any ADR ids) when the slice ships.
 
-**STATE.md update:** none directly. api-design runs inside the human-owned Plan stage as a referenced
-discipline; `plan-breakdown` seeds the feature's slice rows + DAG into `STATE.md`. api-design only
-contributes contract content into `plan.md` (and, when warranted, one ADR).
+**STATE.md update:** none directly. api-design runs inside the human-owned Spec and Plan stages as a
+referenced discipline; `plan-breakdown` seeds the feature's slice rows + DAG into `STATE.md`. api-design
+only contributes contract content into `plan.md` (and, when warranted, one ADR).
 
 **Change-the-shape rule:** if a published interface contract later changes shape, update its
 consumers (`incremental-implementation` + `test-driven-development` + the `pull-request` design anchor) in the **same commit**. If the decision was

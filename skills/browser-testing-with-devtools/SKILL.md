@@ -9,6 +9,8 @@ description: Tests in real browsers via whatever browser-automation MCP is confi
 
 ## Overview
 
+**Stage: Verify — the live-runtime engine `quality-verification` drives.** It reports what the running build actually does, which reading the code cannot settle.
+
 Use a browser-automation MCP to give your agent eyes into the browser. This bridges the gap between static code analysis and live browser execution — the agent can see what the user sees, inspect the DOM, read console logs, analyze network requests, and capture performance data. Instead of guessing what's happening at runtime, verify it.
 
 The *logic* of testing below — the debugging workflows, the console/network/a11y patterns, the security boundaries, the clean-console standard — is identical no matter which server drives the browser. Only the tool names differ, and the caller need not care: pick whichever server is configured and map its tools onto the capabilities this skill describes.

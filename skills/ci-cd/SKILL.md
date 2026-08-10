@@ -7,6 +7,8 @@ description: Stands up and hardens the quality-gate CI/CD pipeline so no change 
 
 ## Overview
 
+**Stage: Ship — a referenced discipline, not a chain stage.** It emits no chain artifact; `pull-request`, `git-workflow` and `shipping-and-launch` reach for it to stand up or change the quality-gate pipeline.
+
 Automate quality gates so that no change reaches production without passing tests, lint, type checking, and build. CI/CD is the enforcement mechanism for every other skill — it catches what humans and agents miss, and it does so consistently on every single change.
 
 **Shift Left:** Catch problems as early in the pipeline as possible. A bug caught in linting costs minutes; the same bug caught in production costs hours. Move checks upstream — static analysis before tests, tests before staging, staging before production.

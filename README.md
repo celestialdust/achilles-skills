@@ -54,7 +54,7 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 | `commands/` | The 12 slash commands — thin wrappers over the skills |
 | `references/` | Shared reference material: checklists (security, performance, accessibility, …) and `language-style.md`, the prose style guide for everything this repo ships |
 | `docs/` | Reader-facing documentation: getting started + per-agent setup guides, plus `workflow.md` and `test-contract.md` — this repo's own copies of the process contract and the test contract. `CONTEXT.md` at the root is the same idea: the suite runs its own process, so it carries the artifacts that process produces |
-| `scripts/` | The five checks a change to this repo is measured against — see *How a change here is checked* below |
+| `scripts/` | The six checks a change to this repo is measured against — see *How a change here is checked* below |
 | `.claude-plugin/` | `plugin.json` and `marketplace.json`, the install manifests. `plugin.json` is the only file that states the version, and the only path the plugin loader reads |
 | `CONTRIBUTING.md` | What a change to a skill, command, or persona has to satisfy — the `SKILL.md` envelope, the artifact-chain contract, and the list to run before opening a PR |
 
@@ -75,10 +75,11 @@ node scripts/check-envelope.mjs        # two frontmatter keys, eight body slots 
 node scripts/check-enumerations.mjs    # every stated total, recomputed and diffed against the tree
 node scripts/check-registries.mjs      # membership both ways, judged against each registry's own column
 node scripts/check-references.mjs      # every link, anchor and shipped path resolves
+node scripts/check-stages.mjs          # the stage a registry files a skill under, against the stage the skill claims
 node scripts/check-write-table.mjs     # every write a skill declares, against the zone the table grants it
 ```
 
-The first four are silent when they pass. `check-write-table.mjs` exits non-zero by design — it reports a standing backlog, so compare its output before and after your change rather than reading a clean run as the goal. **Never edit the table to make it green**: widening a row is the gate erosion the table exists to catch, and so is quietly rewording the skill so it stops declaring the write.
+The first five are silent when they pass. `check-write-table.mjs` exits non-zero by design — it reports a standing backlog, so compare its output before and after your change rather than reading a clean run as the goal. **Never edit the table to make it green**: widening a row is the gate erosion the table exists to catch, and so is quietly rewording the skill so it stops declaring the write.
 
 Each check states in its own header what it cannot reach, and that half is the one to read. No walk can see a `SKILL.md`'s Process slot, a total worded outside the recognised frames, or anything under `docs/`. Those are yours to read. [CONTRIBUTING.md](./CONTRIBUTING.md) carries the full pre-PR list.
 
@@ -91,7 +92,7 @@ Twelve slash commands: nine lifecycle commands — one per stage, plus the auton
 | Command | What you're doing | Invokes |
 |---|---|---|
 | `/ideate` | Front-door a fresh idea → `intent.md` | interview-me, then idea-refine |
-| `/spec` | Survey the code as-is, then design the product: ADRs, PRD, acceptance, environment, UI, structure | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, architecture-design, spec-review) |
+| `/spec` | Survey the code as-is, then design the product: ADRs, PRD, UI, acceptance, environment, structure | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) |
 | `/plan` | Concrete plan → vertical slices + dependency DAG | plan-breakdown (reuses Spec's research.md) |
 | `/implement` | One thin vertical slice, skeleton-first, test-driven | incremental-implementation (applies test-driven-development) |
 | `/verify` | Fresh code-cold proof a slice meets acceptance | quality-verification |
@@ -237,10 +238,10 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 | [codebase-research](./skills/codebase-research/SKILL.md) | Head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md`, before any design decision |
 | [spec-grilling](./skills/spec-grilling/SKILL.md) | Design the product from intent + the survey → ADRs + `CONTEXT.md` glossary; refuses without `research.md`; a blind-spot pass surfaces decisions you haven't considered |
 | [to-prd](./skills/to-prd/SKILL.md) | Light dual-audience PRD at product altitude; references the ADRs |
-| [frontend-design](./skills/frontend-design/SKILL.md) | The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
+| [frontend-design](./skills/frontend-design/SKILL.md) | Spec, after `to-prd` and before `acceptance-criteria` and `environment-manifest` run. The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | [acceptance-criteria](./skills/acceptance-criteria/SKILL.md) | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | [environment-manifest](./skills/environment-manifest/SKILL.md) | Typed-kind environment manifest (no values, no commands) |
-| [architecture-design](./skills/architecture-design/SKILL.md) | The structure a person signs before any code is planned: one feature's `architecture.md` + the committed `architecture.html` read at the Spec gate; the repo's first such pass also writes `ARCHITECTURE.md` |
+| [architecture-design](./skills/architecture-design/SKILL.md) | Reconciles and renders — traces every scenario, records the invariants, cites the decisions taken in `spec-grilling`; takes none itself. Writes one feature's `architecture.md` + the committed `architecture.html` read at the Spec gate, and `ARCHITECTURE.md` on the repo's first such pass |
 | [spec-review](./skills/spec-review/SKILL.md) | Fresh code-cold agent fixes the spec before the user reviews it |
 
 ### Plan — human-led
@@ -248,8 +249,13 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 | Skill | Responsibility |
 |---|---|
 | [plan-breakdown](./skills/plan-breakdown/SKILL.md) | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's `research.md` (re-survey only against a named gap) |
-| [codebase-design](./skills/codebase-design/SKILL.md) | Referenced discipline: deep-module interfaces (the deletion test) |
-| [api-design](./skills/api-design/SKILL.md) | Referenced discipline: contract-first interface design |
+
+### Spec · Plan — referenced disciplines, not a stage
+
+| Skill | Responsibility |
+|---|---|
+| [codebase-design](./skills/codebase-design/SKILL.md) | Deep-module interfaces (the deletion test). Proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own |
+| [api-design](./skills/api-design/SKILL.md) | Contract-first interface design. Proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own |
 
 ### Implement — agent
 

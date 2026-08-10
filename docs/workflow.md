@@ -20,7 +20,7 @@ Seven stages, in order. Work does not skip ahead.
 | # | Stage | What happens | What it produces |
 |---|---|---|---|
 | 1 | Ideate | Interview the person with the idea until the intent is clear. Diverge, then converge. Write down what is explicitly *not* being built. | `intent.md` |
-| 2 | Spec | Survey the codebase as it is today, then decide the design against that survey rather than against memory. Record the decisions, the domain vocabulary, the product spec, the behavioral contract, the structure the code will be laid out in, and every external thing the build will need. | `research.md`, the decision records, `CONTEXT.md`, `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` with the `architecture.html` page a person reads at the gate, a design contract for UI work, and `ARCHITECTURE.md` where no feature has written the repository's structure down yet |
+| 2 | Spec | The agent surveys the codebase as it stands, so the design is decided against the code rather than memory. The person decides it in one sitting — a structural question that is hard to reverse comes with real alternatives, the rest as defaults to object to — and the product spec and any interface exploration happen inside that sitting. The agent then drafts the rest, and a reader who did not write it hardens the whole bundle before the gate. | `research.md`, the decision records, `CONTEXT.md`, `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` and the `architecture.html` page, a design contract for UI work, and `ARCHITECTURE.md` where no feature has written the repository's structure down yet |
 | 3 | Plan | Cut the work into thin vertical slices — each one a complete path through the system, not a horizontal layer — and order them into a dependency graph. Each slice declares the files it owns. | `plan.md`, plus slice rows on the board |
 | 4 | Implement | Build one slice. Stub it end to end so it compiles, write the failing test, write the smallest code that passes it, refactor, run the full suite, commit as one revertible unit. | the slice's commit |
 | 5 | Verify | A reader who did not write the code drives the running build through every scenario in the behavioral contract and records, per scenario, whether it passed, failed, or could not be reached. | `qa.md` |
@@ -37,7 +37,7 @@ that decides whether it opens. Ownership is per gate, not per stage.
 | Gate | Opens when | Owner |
 |---|---|---|
 | Ideate sign-off | `intent.md` names the outcome, the user, what success looks like, and what is not being built — and the person with the idea agrees. | person |
-| Spec sign-off | `acceptance.md` is signed rather than draft, and the decision records, `prd.md`, `environment.md`, and glossary are agreed. UI work also needs a signed design contract. A feature that adds a module, adds a dependency between parts that already exist, or introduces a seam also needs a signed `architecture.md`. | person |
+| Spec sign-off | One act. The person reads the hardened bundle and the `architecture.html` page, then signs `acceptance.md`, `environment.md`, `prd.md`, the decision records and the glossary at once — plus a design contract where the feature has UI, and `architecture.md` where it adds a module, adds a dependency between parts that already exist, or introduces a seam. The structure runs against a draft `acceptance.md`; the two are signed together at the Spec gate, so the scenarios cannot move between the trace and the signature. | person |
 | Plan sign-off | `plan.md` holds vertical slices with a dependency graph and per-slice file ownership, and the person has read it. | person |
 | Environment readiness | Every row of `environment.md` is green, or is amber and a person has attested it. The probe is read-only and never reads a secret's value; it reports green, amber, or red. Red is a refusal. Amber means the row cannot be checked without spending paid quota or taking a human-only login — it stays a refusal until a person answers the probe's question. An unanswered amber denies. | the agent probes; a person provisions what is missing and answers the amber questions |
 | Run start | The board holds the feature with its slice graph, the environment verdict is green, and the signed `acceptance.md` and the `plan.md` slices exist. | agent |
@@ -49,6 +49,27 @@ that decides whether it opens. Ownership is per gate, not per stage.
 The shape is deliberate. People own both ends — what gets built, and whether it is taken — and the agent
 owns the middle. The agent never opens a gate a person owns: it does not sign an artifact on the person's
 behalf, and it does not merge.
+
+### What an edit un-signs
+
+A signature is against a version, not against a filename. Editing something upstream of a signed artifact
+returns it to `draft` — it does not stay signed over a foundation that moved.
+
+| Editing this | Returns to `draft` | Because |
+|---|---|---|
+| `prd.md` | `acceptance.md`, `environment.md` (its Spec pass), the design contract | each is derived from the product spec; the behaviour, the external needs, and the look all answer to it |
+| `acceptance.md` | `architecture.md` | it traces every scenario, and the trace is checked by set equality against the scenario ids |
+| a decision record it cites | `architecture.md` | its edges and decisions cite those records; a citation to a decision that changed is not a citation |
+| `docs/design.md` | every design contract carrying an inherited axis it touched | an inherited axis is graded against whatever that file says at Verify time, so moving the decided look re-grades surfaces nobody re-read. Name those contracts in the handoff and flip each one |
+| `intent.md` | `prd.md`, and everything above through it | the whole chain hangs off the intent |
+| `research.md` | nothing | the survey is goal-blind; it records the code as it stands and decides nothing |
+
+Nothing an agent does flips a `draft` back to `signed` — that is the person's act, at the gate. An agent
+that finds a signed artifact resting on a moved upstream says so and stops; it does not re-sign, and it
+does not edit the signed file to make the mismatch go away.
+
+This table is the one statement of the rule. A skill that needs it points here rather than restating it,
+because four copies of one rule are four things that drift.
 
 ## Where a run ends
 

@@ -59,15 +59,21 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 - `codebase-research` — head of Spec: goal-blind parallel map of the codebase/DB as-is → research.md
 - `spec-grilling` — design the product from intent + the survey → ADRs + CONTEXT.md (refuses without research.md)
 - `to-prd` — light dual-audience PRD referencing ADRs
-- `frontend-design` — explore UI variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md`
+- `frontend-design` — explore UI variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md`. Spec, after `to-prd` and before `acceptance-criteria` and `environment-manifest` run
 - `acceptance-criteria` — BDD prose contract (Given/When/Then), signed
 - `environment-manifest` — typed-kind manifest (no values, no commands)
+- `architecture-design` — reconciles and renders the structure: `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md`
 - `spec-review` — fresh code-cold agent fixes the spec before the user reviews
 
 **Plan**
 - `plan-breakdown` — the planner: concrete plan → vertical slices + dependency DAG; reads Spec's research.md
-- `codebase-design` — deep-module interfaces (deletion test)
-- `api-design` — contract-first interface
+
+**Spec · Plan (referenced disciplines, not a stage)**
+- `codebase-design` — deep-module interfaces (deletion test). Proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own
+- `api-design` — contract-first interface. Proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own
+
+**Plan · Implement (in-flight, not a gate)**
+- `doubt-driven-development` — in-flight adversarial review; not part of the Review gate
 
 **Implement**
 - `incremental-implementation` — the implementer: one thin vertical slice; skeleton-first
@@ -85,7 +91,6 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 - `code-simplification` — behavior-preserving reduction; Chesterton's Fence
 - `security-and-hardening` — OWASP Top 10; secrets; dependency audit
 - `performance-optimization` — measure-first; Core Web Vitals; profiling
-- `doubt-driven-development` — in-flight adversarial review (not a merge gate)
 
 **Ship**
 - `pull-request` — per-slice design-anchored draft PR; read-the-code checklist; risk band
@@ -190,7 +195,7 @@ mapping is the same:
 | Command | Invokes (skill) | Copilot equivalent |
 |---|---|---|
 | /ideate | interview-me, then idea-refine | paste the skill into chat for the framing pass |
-| /spec | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, spec-review) | paste skill content for the survey, then the design pass |
+| /spec | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) | paste skill content for the survey, then the design pass |
 | /plan | plan-breakdown (reuses Spec's research.md) | paste skill content for the planning pass |
 | /implement | incremental-implementation (applies test-driven-development) | follow the slice workflow in chat |
 | /verify | quality-verification | `@test-engineer` |

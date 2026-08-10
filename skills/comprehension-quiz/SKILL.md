@@ -5,13 +5,14 @@ description: 'Agent-administered retrieval practice that makes understanding of 
 
 ## Purpose
 
-**Standalone — not a lifecycle stage.** `comprehension-quiz` administers retrieval practice that makes
+**Stage: standalone · cross-cutting** — it belongs to no lifecycle stage and blocks nothing: no merge, no stage and no `/orchestrate` wave waits on a quiz result, because a self-check stops being honest the moment something gates on it.
+
+`comprehension-quiz` administers retrieval practice that makes
 understanding of code you didn't write **honest**: about five medium-difficulty questions, one at a time,
 the learner's answer graded *before* the correct answer is revealed, the session recorded as one line in
 the **learning ledger**.
 
-Its stance is Litt's personal rule — the quiz is an *honest self-check, never a gate*. It **blocks
-nothing**: no merge, no stage, no `/orchestrate` wave waits on a quiz result. It is also the **sole writer
+Its stance is Litt's personal rule — the quiz is an *honest self-check, never a gate*. It is also the **sole writer
 of the learning ledger**;
 the ledger it appends is the fact base every progress measure is later *derived* from — never a scoreboard,
 never a stored mastery flag.

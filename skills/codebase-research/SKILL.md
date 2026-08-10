@@ -37,7 +37,7 @@ feature from Ideate into Spec.
 
 **Also in Plan — but only against a named gap.** Say what you are looking for and why the Spec-stage
 survey did not cover it, and keep that statement with the work. Plan legitimately needs ground Spec had no
-reason to record: existing test seams, module boundaries, the exact prior art a slice will extend — a real
+reason to record: the exact prior art a slice will extend, the line ranges a step will edit — a real
 gap names itself in one sentence. A repeat survey that names no gap is refused; `plan-breakdown` reads the
 `research.md` that already exists. Without that clause "run it again" quietly becomes the default and the
 suite is back to surveying the same repository twice.
@@ -107,6 +107,9 @@ Typical topics for a production feature:
    mechanism, rate limits, error codes, webhook shapes. Raw facts only — not "how we would call it."
 4. **Prior-art agent** — Search the codebase (and, if warranted, widely-used OSS) for existing patterns
    that solve structurally similar problems; record what was found and where. Do not rank or compare.
+5. **Structural-facts agent** — Count the adapters behind each seam (an interface with more than one
+   implementation under it); note the boundaries the module layout already draws; read two or three
+   shipped handlers for the error envelope, pagination and versioning in use.
 
 **Model:** default each sub-agent to `sonnet` — research is searching-and-summarizing, not reasoning-heavy,
 and sonnet keeps the parallel fan-out cheap without degrading fact quality. Escalate a single agent to the
@@ -118,7 +121,7 @@ machine).
 Before synthesizing, scan every sub-agent output for recommendation verbs: `should`, `recommend`,
 `prefer`, `we could`, `the best option`, `ideal`. Rewrite or delete any sentence that contains one. If a
 sub-agent produced a comparison or a pros/cons list, drop it and surface the raw facts underneath.
-Alternatives live in the plan, not here.
+Alternatives are weighed downstream, not here.
 
 ## Output template
 
@@ -141,11 +144,25 @@ Alternatives live in the plan, not here.
 ## Prior art in the codebase
 - <pattern>: used at <file:line>; shape: <one-sentence factual description>
 
+## Structural facts
+- Seams: <name — what it abstracts; <N> adapters today>
+- Module boundaries: <what the code already separates, and where>
+- Conventions in use: <error envelope · pagination · versioning — at <file:line>>
+
 ## Open items for Plan
-- <item Research could not answer — plan-breakdown or the human must resolve>
+- <item Research could not answer — spec-grilling, plan-breakdown or the human resolves it>
 ```
 
 Sections with nothing in them go in as `_none_` — don't delete them; the shape is part of the contract.
+
+`## Structural facts` records conventions **in use**, never what a new surface would match or fork:
+naming a surface that does not exist yet is exactly what would make the survey goal-aware. It is what a
+**proposed** structural variant stands on during `spec-grilling` — without it, `api-design`'s promise that
+a new interface matches the conventions in use rather than forking a second style has nothing to read.
+
+`research.md`'s `## Open items for Plan` keeps its name. A structural item it raises belongs to
+`spec-grilling`'s structural branch, not to Plan — the section is named for the consumer that has always
+read it, and renaming a stable section means updating every consumer in the same commit for no gain.
 
 ## Rationalizations
 
@@ -161,7 +178,7 @@ Sections with nothing in them go in as `_none_` — don't delete them; the shape
   file is a named failure (a real codebase attempt failed precisely because research never followed the
   dependency tree). Chase the slice until it bottoms out.
 - *"I'll just note which library is better while I'm here."* A single recommendation pre-commits the plan
-  to a direction. Record what exists; let `plan-breakdown` decide.
+  to a direction. Record what exists; `spec-grilling` and `plan-breakdown` decide.
 - *"I can start synthesizing while the last agent finishes."* Partial synthesis biases the doc toward
   whichever agent returned first.
 
@@ -182,7 +199,7 @@ Sections with nothing in them go in as `_none_` — don't delete them; the shape
 
 Done when ALL hold:
 
-- `docs/features/<slug>/research.md` exists with all five stable sections present (empty → `_none_`).
+- `docs/features/<slug>/research.md` exists with all six stable sections present (empty → `_none_`).
 - Objectivity self-check passed: zero recommendation verbs, zero comparisons.
 - Every claim is verifiable against the codebase or external docs — no opinion, no design.
 - The announce line was emitted.
@@ -193,11 +210,12 @@ Done when ALL hold:
 - **Consumers, in order:** `spec-grilling` reads it before it opens the decision tree — it refuses to run
   without this file, because the blind-spot pass can only scan territory somebody has surveyed. Then
   `plan-breakdown` (THE planner) grounds its concrete plan (real files, line-steps, exact tests) on the
-  same map, without re-surveying; the `codebase-design` / `api-design` referenced disciplines read it too.
+  same map, without re-surveying. The `codebase-design` / `api-design` referenced disciplines read it in
+  both stages — to propose a structural variant in Spec, to pin the interface into `plan.md` in Plan.
 - **Stable sections the consumers depend on:** `## Codebase map`, `## Dependency facts`, `## External
-  APIs`, `## Prior art in the codebase`, `## Open items for Plan`. Empty sections stay as `_none_` — the
-  shape is the contract. **If you change the output shape, update `spec-grilling` and `plan-breakdown` in
-  the same commit.**
+  APIs`, `## Prior art in the codebase`, `## Structural facts`, `## Open items for Plan`. Empty sections
+  stay as `_none_` — the shape is the contract. **If you change
+  the output shape, update `spec-grilling` and `plan-breakdown` in the same commit.**
 - **STATE.md:** the feature stays in `spec` (Spec is human-led and in progress); record `research.md`
   under the feature's `origin:` / artifacts. **No slice rows yet** — slices are born from `plan-breakdown`.
   A Plan-stage second pass leaves the feature in `plan` and records the named gap next to the file.

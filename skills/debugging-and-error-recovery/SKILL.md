@@ -7,6 +7,8 @@ description: Stop-the-line root-cause debugging. Use the MOMENT a test fails, a 
 
 ## Overview
 
+**Stage: Implement · Verify — a referenced discipline, not a chain stage.** It runs on a failure signal rather than on an artifact: `incremental-implementation` reaches for it when a slice's tests break, `quality-verification` when a scenario fails.
+
 Systematic debugging with structured triage. When something breaks, stop adding features, preserve evidence, and follow a structured process to find and fix the root cause. Guessing wastes time. The triage checklist works for test failures, build errors, runtime bugs, and production incidents.
 
 ## When to Use
@@ -20,7 +22,6 @@ Systematic debugging with structured triage. When something breaks, stop adding 
 
 ## Inputs
 
-A referenced discipline, not a chain stage — it consumes no `*.md` artifact as its trigger.
 What it requires before it may run:
 
 - **A concrete failure signal.** A failing test, a broken build, or an observed behavior that

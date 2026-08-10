@@ -7,6 +7,8 @@ description: 'Grinds a throwaway prototype until it beats a real outside referen
 
 ## Purpose
 
+**Stage: standalone · cross-cutting** — it takes no place in the artifact chain: no gate waits on it, it blocks nothing, `/orchestrate` is untouched, and it reads no `intent.md` and writes no `prd.md`, `acceptance.md`, `plan.md`, or `qa.md`.
+
 The **fast path for a proof of concept** (POC). A gauntlet loop names one real artifact from outside this
 repository that the work has to beat — the **bar** — splits the goal into the smallest pieces that can be
 judged on their own, and on each piece runs a **builder** against a separate **critic** that puts the two
@@ -14,10 +16,6 @@ side by side without being told which is which. The loop ends when the critic pi
 
 **Production work uses the lifecycle skills.** This one is for the throwaway: a spike, a demo, the thing you
 build to find out whether the idea is worth specifying at all.
-
-**Standalone — not a lifecycle stage.** No gate waits on it, it blocks nothing, `/orchestrate` is untouched,
-and it takes no place in the artifact chain — it reads no `intent.md` and writes no `prd.md`,
-`acceptance.md`, `plan.md`, or `qa.md`.
 
 **Everything it produces lands in `.gauntlet/<slug>/`, a directory the repository ignores.** The fetched bar,
 the per-piece work, the progress page, the output. `src/` is not touched and there is nothing to commit.

@@ -1,17 +1,16 @@
 ---
 name: spec-review
-description: Use this LAST in the Spec stage, before the human signs off — a fresh code-cold agent that FIXES the spec instead of listing complaints. You MUST run it after spec-grilling/to-prd/acceptance-criteria/environment-manifest (and frontend-design for UI) land and before the Spec gate. It auto-fixes decidable facts (stray file paths/signatures in prd.md, dangling `see ADR-NNN`, non-verbatim CONTEXT terms, placeholders, embedded secrets/commands in environment.md) and applies-then-inline-flags contestable judgment fixes (coverage gaps, ADR-worthiness, one-feature-or-two), handing back a cleaned spec, not a punch-list.
+description: Use this LAST in the Spec stage, before the human signs off — a fresh code-cold agent that FIXES the spec instead of listing complaints. You MUST run it after spec-grilling/to-prd/acceptance-criteria/environment-manifest (plus frontend-design for UI and architecture-design for a structure pass) land and before the Spec gate, while the whole bundle is still draft. It auto-fixes decidable facts (stray file paths/signatures in prd.md, dangling `see ADR-NNN`, non-verbatim CONTEXT terms, placeholders, embedded secrets/commands in environment.md) and applies-then-inline-flags contestable judgment fixes (coverage gaps, ADR-worthiness, one-feature-or-two), handing back a cleaned spec, not a punch-list.
 ---
 
 ## Purpose
 
-**Stage: Spec — the last skill before the human Spec sign-off.** In the autonomy model the
-downstream run is fully autonomous, and it has exactly **two human-anchored oracles** the agent cannot
-out-vote: `acceptance.md`, which a person signs for this feature's behavior, and the ACTIVE rows of
-`docs/test-contract.md`, which a person activates for the guarantees the whole repo keeps. Spec produces
-the first; the second outlives every feature. A human reviewing a spec littered with stray file
-paths, dangling ADR refs, placeholder TODOs, and coverage gaps burns scarce attention on mechanical
-defects instead of the judgment calls only a human can make. `spec-review` is a **fresh, code-cold agent
+**Stage: Spec — the last skill before the human Spec sign-off.** The run downstream is autonomous, and
+the **two oracles** it cannot out-vote are both a person's act: `acceptance.md`, signed for this feature's
+behavior, and the ACTIVE rows of `docs/test-contract.md`, activated for the guarantees the whole repo
+keeps. A human reviewing a spec littered with stray file paths, dangling ADR refs, placeholder TODOs, and
+coverage gaps burns scarce attention on mechanical defects instead of the judgment calls only a human can
+make. `spec-review` is a **fresh, code-cold agent
 (maker≠checker)** — never the agent that authored the spec — that **fixes the spec before the human sees
 it**: decidable facts are silently corrected; contestable judgment is corrected **and flagged inline**.
 The human then reviews a clean spec and spends attention where it counts. The silent-re-authoring risk is
@@ -20,13 +19,14 @@ resolved by making judgment changes **visible**, not by withholding the fix.
 ## When to use / when to skip
 
 **Use:** runs **last in Spec**, after `spec-grilling` (ADRs/CONTEXT.md), `to-prd` (prd.md), `acceptance-criteria`
-(acceptance.md), `environment-manifest` (environment.md), and — when the feature has UI — `frontend-design` (the
-signed design contract) have all landed; immediately before the human Spec sign-off.
+(acceptance.md), `environment-manifest` (environment.md), `architecture-design` (architecture.md + its page,
+on a structure pass), and — when the feature has UI — `frontend-design` (the design contract) have all
+landed; immediately before the human Spec sign-off. `architecture-design` runs against a draft
+`acceptance.md`; the two are signed together at the Spec gate — so nothing in the bundle is signed when
+you run, every artifact is still editable, and a fix you apply costs nobody a re-signature.
 
 **Skip / boundaries (depth: lite escape hatch):**
 - It is **not a third gate.** It signs nothing and blocks nothing; the human still reviews and signs.
-- Do **not** skip because "the spec looks clean" — the entire value is a fresh code-cold relational read
-  that catches what the author cannot see in their own work.
 - For a one-artifact trivial fix with no cross-artifact relation, a single inline pass without the full
   bundle is acceptable — but the **default is the full relational grade** anchored on `intent.md`.
 
@@ -44,18 +44,14 @@ against what the user actually asked for):
    (e.g. `PWR-A1`) back-referencing a story id.
 5. `environment.md` (environment-manifest) — typed rows, closed kind enum {env-var|mcp|service|runtime-dep|fixture|
    account}; no value column, no command column.
-6. design contract (frontend-design) — **only if the feature has UI**; the 5th signed Spec artifact. Read
-   `docs/design.md` alongside it when the repo has one: the contract records only what differs from that
-   file, so an axis marked `inherits: docs/design.md` is complete as written, and so is one marked
-   `departs: docs/design.md` whose `## Departure` block is present. That file decides four of the seven
-   axes and holds nothing on `Quality floor`, `Restraint`, or `Copy-as-design-material` — an `inherits:`
-   or `departs:` on one of those three points at nothing, and this is the last stop before the contract
-   is signed and Verify grades the axis against a file with no decision in it.
+6. design contract (frontend-design) — **only if the feature has UI**. Read `docs/design.md` alongside it
+   when the repo has one: the contract records only what differs from that file, so an axis marked
+   `inherits:` or `departs:` is complete as written. The three axes that file decides nothing on are the
+   exception, and the split table below says what to do about them.
 7. `architecture.md` + `architecture.html` (architecture-design) — **only if the feature ran a structure
    pass**; read `ARCHITECTURE.md` alongside them when the repo has one. The page carries the markdown's
-   source block verbatim, so the two are one artifact in two forms and the comparison below is what keeps
-   them so. `status:` reads `unsigned` here and stays that way — a person flips it at the gate after
-   reading the page, and nothing an agent does flips it.
+   source block verbatim, so the two are one artifact in two forms. `status:` reads `unsigned` here and
+   stays that way — a person flips it at the gate after reading the page, and nothing an agent does flips it.
 8. `docs/test-contract.md` (repo-wide, when the repo has one) — the permanent cross-feature scenarios.
    Read its `ACTIVE` rows: the bundle has to agree with them. No such file, or no ACTIVE rows → nothing
    to reconcile; proceed.
@@ -80,8 +76,9 @@ this stage exists").
    `<!-- spec-review: changed X → Y because Z — revert if you disagree -->`. **No loop** — one pass; the
    human is the convergence point.
 6. **Hand back the cleaned spec** + write `spec-review.md` (auto-fixes, flagged judgment changes, coverage
-   ledger, "open the referenced ADRs" list). Tell the human: review the fixed spec, judgment changes are
-   flagged inline, you keep final authority — revert any.
+   ledger, "open the referenced ADRs" list). That handback and `architecture.html` are what the person
+   opens at the gate, so anything they have to see before signing has to be in one of the two. Tell the
+   human: review the fixed spec, judgment changes are flagged inline, you keep final authority — revert any.
 
 ## The fact / opinion split
 
@@ -94,7 +91,7 @@ this stage exists").
 | Value or command embedded in `environment.md` (no value column, no command column — structurally illegal) | **Decidable** | Remove. If it is a real secret → also a security STOP (see Red flags). |
 | `acceptance.md` scenario contains a file path / signature / table (behavioral-only) | **Decidable** | Rewrite as an observable outcome. |
 | `architecture.html`'s embedded source block differs from `architecture.md` | **Decidable** | Re-splice the block from the markdown — never retype it. Compare the two byte for byte; a copy that was typed rather than spliced is already drifting while looking exactly like one that is not. This is the last stop before a person signs the page, and they read the page rather than the markdown. |
-| A signed `acceptance.md` scenario traces through no module or seam in `architecture.md` | **Contestable** (spotting it is mechanical; which structure absorbs it is not) | Draft the trace from what the structure already names; **flag it inline**, naming the scenario id. Never edit `acceptance.md` — it is signed. |
+| An `acceptance.md` scenario traces through no module or seam in `architecture.md` | **Contestable** (spotting it is mechanical; which structure absorbs it is not) | A backstop: `architecture-design` traces the draft first, so a scenario reaching here got past that. Say which of the two you believe is wrong. Where the **structure** is missing a part, draft the trace into `architecture.md` and **flag it inline** with the scenario id. Where you believe the **scenario** is the thing that does not belong, **flag it for the person and change nothing** — that judgement is contestable, and your grant on `acceptance.md` covers a decidable fact, not a call about which side is right. Deleting a scenario is the one correction that cannot be flagged inline, because a removed scenario leaves no line to carry the flag; it would leave no RED test, nothing for `quality-verification` to grade, and the story-coverage checks pass either way. Name it by id in `spec-review.md` instead. Calling it a structural gap when it is a scenario gap is how a structure gets bent around a scenario nobody wanted — and quietly cutting the scenario is how a behaviour ships unguarded. |
 | Acceptance **coverage gap**: a `prd.md` user story or `intent.md` success-criterion with no scenario (every story must map to ≥1 reachable scenario) | **Contestable** | Draft the missing scenario; **flag it inline**. |
 | **ADR-worthiness**: a hard-to-reverse ∧ surprising decision buried in prd prose instead of an ADR | **Contestable** | Propose extracting an ADR; **flag**. |
 | **One feature or two**: `intent.md` describes two independent subsystems crammed into one spec | **Contestable** | Propose the split; **flag**. |
@@ -132,8 +129,8 @@ the gate. ADR cross-refs are immutable once written — rename/supersede → upd
 - `intent.md` is absent → **refuse to run**; there is no oracle to grade against.
 - You are about to edit `docs/test-contract.md` — reword a row, narrow one, or change a `state:` → **STOP**.
   The agent never edits that file in either direction; rows are added and activated by a person, and an
-  ACTIVE row an agent can adjust is not a guarantee. Fix the feature scenario instead. If the ACTIVE row
-  itself looks wrong, flag it for the human and leave the row alone — they change it outside any run.
+  ACTIVE row an agent can adjust is not a guarantee. If the ACTIVE row itself looks wrong, flag it for the
+  human and leave the row alone — they change it outside any run.
 - You are letting a collision with an ACTIVE row through because "the run will catch it" → **STOP**. It
   will, as a halted slice hours later. Spec is the only place a person is present to settle it.
 - An embedded value in `environment.md` looks like a real, committed secret → remove it from the manifest

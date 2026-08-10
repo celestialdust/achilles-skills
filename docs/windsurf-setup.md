@@ -94,7 +94,7 @@ Cascade which underlying skill(s) to apply:
 | Workflow (`/name`) | achilles-skills command | Underlying skills to reference |
 |---|---|---|
 | `/ideate` | /ideate | interview-me, then idea-refine |
-| `/spec` | /spec | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, architecture-design, spec-review) |
+| `/spec` | /spec | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) |
 | `/plan` | /plan | plan-breakdown (reuses Spec's research.md) |
 | `/implement` | /implement | incremental-implementation (applies test-driven-development) |
 | `/verify` | /verify | quality-verification |
@@ -155,13 +155,17 @@ Pick the skills that match your current phase rather than loading all 40 at once
 
 **Spec (human-led)** — codebase-research (first) · spec-grilling · to-prd · frontend-design · acceptance-criteria · environment-manifest · architecture-design · spec-review
 
-**Plan (human-led)** — plan-breakdown · codebase-design · api-design (reuses Spec's research.md)
+**Plan (human-led)** — plan-breakdown (reuses Spec's research.md)
+
+**Spec · Plan (referenced disciplines, not a stage)** — codebase-design · api-design (each proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own)
+
+**Plan · Implement (in-flight, not a gate)** — doubt-driven-development (not part of the Review gate)
 
 **Implement (agent)** — incremental-implementation · test-driven-development · source-driven-development · worktree
 
 **Verify (agent)** — quality-verification · browser-testing-with-devtools · debugging-and-error-recovery
 
-**Review (agent — parallel fan-out)** — code-review · code-simplification · security-and-hardening · performance-optimization · doubt-driven-development
+**Review (agent — parallel fan-out)** — code-review · code-simplification · security-and-hardening · performance-optimization
 
 **Ship (agent)** — pull-request · shipping-and-launch · git-workflow · ci-cd · observability-and-instrumentation · deprecation-and-migration · documentation-and-adrs
 

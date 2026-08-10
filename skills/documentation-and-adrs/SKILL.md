@@ -30,7 +30,9 @@ artifact gate. Invoke it whenever a decision, API, or shipped feature needs a du
   document** — a vague "write some docs" is not an input; ask *which* decision or surface needs recording.
 - **`docs/adr/`** (repo-wide design substrate) — the existing ADR set, used to (a) pick the next
   sequential `ADR-<NNN>` number and (b) find any ADR this decision supersedes. Created by `project-setup`;
-  written by `spec-grilling`, `codebase-design`, and `api-design` using *this* skill's standard.
+  written by `spec-grilling` in Spec and `plan-breakdown` in Plan, using *this* skill's standard.
+  `codebase-design` and `api-design` **supply** decisions to whichever of those two is running; they own
+  no artifact and write no file, which is why neither appears as a writer in `docs/workflow.md`.
 - **`CONTEXT.md`** (repo-root glossary — terms live under its canonical `## Glossary` heading) — to reuse ubiquitous-language terms verbatim in the record.
 
 When another skill (spec-grilling, codebase-design, api-design, the Ship skills) references this skill,
@@ -329,5 +331,6 @@ ways. Renaming/superseding → update every referrer in the **same commit**.
 **STATE.md:** this skill moves no slice/feature state; an ADR id MAY appear in a slice's `Artifacts`
 column when that slice's decision was ADR-worthy.
 
-**Stage tag:** cross-cutting — referenced in Spec by `spec-grilling`, in Plan by `codebase-design` /
-`api-design`, in Ship for API / inline / release docs. Lands EARLY: a hard dependency of `spec-grilling`.
+**Stage tag:** cross-cutting — referenced in Spec by `spec-grilling`, in Spec and Plan by
+`codebase-design` / `api-design`, in Ship for API / inline / release docs. Lands EARLY: a hard dependency
+of `spec-grilling`.

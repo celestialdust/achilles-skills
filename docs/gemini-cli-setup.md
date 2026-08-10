@@ -141,7 +141,7 @@ required.
 | Command | Invokes | What it does |
 |---------|---------|--------------|
 | `/ideate` | interview-me, then idea-refine | Front door for a fresh idea → `intent.md` |
-| `/spec` | codebase-research first, then spec-grilling (+ to-prd, acceptance-criteria, environment-manifest, frontend-design, architecture-design, spec-review) | Survey the code as-is → `research.md`, then design the product → ADRs + `CONTEXT.md` |
+| `/spec` | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) | Survey the code as-is → `research.md`, then design the product → ADRs + `CONTEXT.md` |
 | `/plan` | plan-breakdown (reuses Spec's research.md) | Concrete plan → vertical slices + dependency DAG |
 | `/implement` | incremental-implementation (applies test-driven-development) | Build one thin vertical slice |
 | `/verify` | quality-verification | Fresh code-cold proof a slice works |
@@ -189,5 +189,3 @@ Act as the @agents/security-auditor.md persona and audit the current diff.
    the relevant one when you need detail beyond the workflow, rather than the whole skill.
 5. **Let `using-agent-skills` route you** — When unsure which skill fits, load the `using-agent-skills`
    meta-dispatcher; it maps a task to the right skill and lifecycle stage.
-</content>
-</invoke>
