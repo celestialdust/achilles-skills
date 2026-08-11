@@ -65,6 +65,24 @@ artifact. A reader cannot derive an omission from a list.
 
 The dependency edges this feature adds between parts that already exist.
 
+**Draw the graph before you tabulate it.** This section is a graph written as rows, and nobody can see a
+graph in a table — they have to hold every row in their head and assemble it. Open the section with a
+Mermaid `flowchart` whose nodes are §2's modules and whose arrows are exactly the rows below it: one arrow
+per row, and no arrow that has no row.
+
+```mermaid
+flowchart TD
+  api[api/routes] --> svc[core/reset]
+  svc --> store[(store/tokens)]
+  svc --> mail[adapters/mail]
+```
+
+Mermaid, specifically, because it is text. It splices into the page's source block without breaking the
+byte comparison, it renders in GitHub and most editors with nothing installed, and it carries no asset the
+repository would have to keep. Where the repository has decided a layer order, put each layer in its own
+`subgraph` in that order, so an edge crossing them the wrong way shows up as an arrow pointing back up
+rather than as a row somebody has to notice.
+
 | From | To | Why this edge exists | Decision |
 |---|---|---|---|
 
@@ -211,6 +229,13 @@ repository controls.
 **Theme-aware.** Define the light palette on bare `:root`, redefine the same tokens under
 `@media (prefers-color-scheme: dark)` guarded as `:root:not([data-theme="light"])`, and again under
 `:root[data-theme="dark"]`. Give `body` an explicit background token.
+
+**It draws §3's graph, not just the table.** The embedded source block carries the Mermaid text along with
+everything else, but text is not a picture and the page exists so a person can see the structure at the
+gate. Draw the same graph as **inline SVG** — the same nodes and the same arrows §3's block has, laid out
+so the layer order reads top to bottom. Inline SVG because the page takes no external requests and a
+Mermaid runtime would be one. `architecture.md` is the source of truth: where the drawing and the block
+disagree, the drawing is what changes.
 
 **It embeds `architecture.md` verbatim**, in a collapsed source block:
 

@@ -100,8 +100,9 @@ than in Verify — cheaper in both directions now that the contract is still a d
 the structure *or* the scenario. Hand it back to `acceptance-criteria` once, and whatever survives that
 single round trip is a section 8 row the person answers at the gate.
 
-**5 · Author `architecture.html`,** self-contained and theme-aware, and **splice** the source block from
-`architecture.md` — read the file and place its bytes between the tags. **Never retype it.** A copy that
+**5 · Author `architecture.html`,** self-contained and theme-aware, draw section 3's graph on it as inline
+SVG so the person at the gate sees the structure rather than reassembling it from rows, and **splice** the
+source block from `architecture.md` — read the file and place its bytes between the tags. **Never retype it.** A copy that
 was typed rather than spliced is already drifting while looking exactly like one that is not.
 
 **6 · Run the comparison** in `references/section-contract.md`. It is a byte comparison, not a reading —
@@ -164,6 +165,10 @@ The pass is finished when all of these hold, each checked rather than assumed:
   `default — not contested`; or section 3 states `layer order: not decided` and its rows are the edges
   `research.md` recorded.
 - Every section 7 invariant names what checks it today — including `nothing`, where nothing does.
+- **Section 3's Mermaid block and its table say the same thing**, and the page's SVG says it a third time:
+  one arrow per row, one row per arrow, same node names. Compare the three as sets rather than reading
+  them — a diagram that quietly disagrees with the table is worse than no diagram, because a reader
+  believes the picture.
 - **The comparison returns `0`, and you have watched it fail.** Drift one byte in `architecture.md`
   without re-splicing, confirm `1`; delete the block, confirm `2`. A check you have only ever seen pass is
   not known to work, and the two failures have to be distinguishable because they have different fixes.
