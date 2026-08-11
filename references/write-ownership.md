@@ -94,7 +94,8 @@ keeps the table from being shrunk until it stops catching anything.
 | `docs/features/<slug>/` | the committed prototype under `prototype/` | — | `frontend-design` | create |
 | `intent.md` | the file | — | `interview-me` | create |
 | `intent.md` | its sections, sharpened in place | — | `idea-refine` | create |
-| `research.md` | the file | — | `codebase-research` | create |
+| `research.md` | the six stable sections, written by the Spec pass | — | `codebase-research` | create |
+| `research.md` | the section the Plan pass appends for its own aspect | `## Plan pass` | `codebase-research` | append only |
 | `prd.md` | the file | — | `to-prd` | create |
 | `prd.md` | a decidable fact corrected before the Spec gate | — | `spec-review` | create |
 | `acceptance.md` | the file, while it is draft | — | `acceptance-criteria` | create |
@@ -129,14 +130,10 @@ orchestrator append an entry a slice handed back, because an append made from in
 lands on a branch that may never merge. Keyed by file alone, that arrangement would read as a violation
 and the rule would have to carve an exception for it — which is why the key is the zone, not the file.
 
-`ARCHITECTURE.md` and `docs/design.md` are the two repository-wide files here that nothing scaffolds.
-The first feature to run `architecture-design` writes the one, the first user interface built here writes
-the other; a repository whose layering nobody has decided has none, and that is
-correct rather than missing. Never **scaffolded** is not never **written by a skill** — the row names its
-writer, and only the create-it-empty step is absent.
+Never **scaffolded** is not never **written by a skill** — the row names its writer, and only the
+create-it-empty step is absent. That is what the `ARCHITECTURE.md` and `docs/design.md` rows above mean.
 
 **A change that adds a writer adds that writer's row, in the same commit.** A file with no row permits
-nothing, so a new writer arrives as a decision somebody wrote down rather than as drift. This has been got
-wrong four times, and the same way each time: a row reading `never` outlived the wave that gave the file a
-writer, and the table went on reading as current while describing a repository that no longer existed. The
-rule is not what failed; skipping it is.
+nothing, so a new writer arrives as a decision somebody wrote down rather than as drift. A row reading
+`never` outliving the wave that gave the file a writer is how this goes wrong: the table reads as current
+while describing a repository that no longer exists. The rule is not what failed; skipping it is.
