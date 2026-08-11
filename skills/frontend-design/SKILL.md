@@ -1,6 +1,6 @@
 ---
 name: frontend-design
-description: Use whenever a feature decides what something looks like — it authors the markup, layout, styling, or interaction structure of an output a person reads (a page, screen, component, flow, email, or message layout), however the brief is worded. Explore throwaway variants, commit ONE high-fidelity prototype as the reference-spec build target, and write the signed design contract that Verify grades against. Skip only where the feature decides nothing about presentation and merely hands data to a surface somebody else designed — a pure API, a CLI, a data pipeline. Invoke BEFORE any production UI; don't reach for a cream-serif-terracotta default.
+description: Use whenever a feature decides what something looks like — it authors the markup, layout, styling, or interaction structure of an output a person reads (a page, screen, component, flow, email, or message layout), however the brief is worded. Explore throwaway variants, commit ONE high-fidelity prototype as the reference-spec build target, and write the signed design contract that Verify grades against. Skip only where the feature decides nothing about presentation and merely hands data to a surface somebody else designed — the body states that test with its cases, and a borderline one is decided there. Invoke BEFORE any production UI; don't reach for a cream-serif-terracotta default.
 ---
 
 # Frontend Design

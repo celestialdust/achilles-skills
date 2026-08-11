@@ -96,9 +96,9 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
    The record test is the same three legs, reused rather than a fourth gate: no question can be worth three
    subagents and not worth recording. An amendment — "C, but move the seam up" — is the decision the ADR
    records, not a note beside one. `codebase-design` and `api-design` are referenced disciplines, not
-   sequential stages: they run in **Spec and Plan** — `spec-grilling` dispatches them in Spec to propose a
-   structural variant, `plan-breakdown` reaches for them in Plan to pin the interface into `plan.md` — and
-   they own no artifact of their own, because what they produce lands in a file another skill owns.
+   sequential stages, and own no artifact of their own — what they produce lands in a file another skill
+   owns. Each states where it runs and who dispatches it; there are more dispatch sites than this line
+   could keep true.
 
 2. **Interview relentlessly, ONE question at a time.** Ask exactly one question, give **your recommended
    answer**, and wait for the response before the next. Asking several at once is bewildering and yields
@@ -167,10 +167,12 @@ narrative; default OFF.
   lives in ADRs/CONTEXT.md; the PRD references it. Co-location is not cohesion.
 - "I'll note the term later." → You'll lose the rationale. Append to CONTEXT.md the moment it resolves.
 - "Let me sketch the file structure / signatures while I'm here." → Wrong altitude. That's the plan's job.
-- "Structure isn't my branch — `architecture-design` covers it." → `architecture-design` reconciles and
-  renders: it traces every `acceptance.md` scenario through the structure, records the invariants, and
-  cites the decisions taken during `spec-grilling` rather than taking them itself. A structural decision
-  not taken here is taken by whichever slice reaches it first.
+- "Structure isn't my branch — `architecture-design` covers it." → `architecture-design` reconciles,
+  grades, and renders: it traces every `acceptance.md` scenario through the structure, records the
+  invariants, and cites the decisions taken during `spec-grilling` rather than taking them itself. Its
+  code-cold sweeps do catch a structural question nobody asked — and put it to the person at the gate, one
+  row among several, answered cold. Here they can amend: "C, but move the seam up" is an answer a row at
+  the gate leaves no room for.
 - "The user approved every decision as we went, so we're aligned." → Approving one decision at a time is
   not holding the whole design. The closing quiz checks the assembled model, cheaply.
 - "I know this codebase well enough to start grilling; I'll read the code as questions come up." → Reading

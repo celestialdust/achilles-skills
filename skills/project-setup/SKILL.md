@@ -917,8 +917,8 @@ Done when **all** hold:
   file this skill scaffolds — as it stands six: `STATE.md`, `CONTEXT.md`, `docs/adr/`,
   `docs/session-state.md`, `docs/progress.md`, and
   `docs/lessons.md`. **Take the list off item 5 of *Write* above, not off this line.** A hand-written list
-  falls behind the substrate it describes without anything failing: this one named seven against a substrate of eight for as
-  long as it took `docs/lessons.md` to reach that substrate, and in that state it passed over a block with no route to
+  falls behind the substrate it describes without anything failing: this one went stale for as long as it
+  took `docs/lessons.md` to reach that substrate, and in that state it passed over a block with no route to
   the record a slice is supposed to read before it builds. `grep -o` for the paths in both places answers
   it in one comparison. The other file holds no copy of that block.
 - The other filename exists and is a pointer naming the file that holds the block — unless it already

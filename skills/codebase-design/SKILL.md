@@ -6,8 +6,10 @@ description: Shared vocabulary and method for designing deep modules — a lot o
 ## Purpose
 
 **Stage: Spec · Plan — a referenced discipline, not a sequential stage.** `spec-grilling` dispatches it
-in Spec to propose a variant for a load-bearing structural question; `plan-breakdown` reaches for it in
-Plan to shape a module's interface into `plan.md`. It owns no artifact of its own.
+in Spec to propose a variant for a load-bearing structural question; `architecture-design` dispatches it in
+Spec as a code-cold lens over a structure already written, where it grades rather than proposes and returns
+findings it may not apply; `plan-breakdown` reaches for it in Plan to shape a module's interface into
+`plan.md`. It owns no artifact of its own.
 
 Design **deep modules**: a lot of behaviour behind a small interface, placed at a clean seam, testable
 through that interface. Depth buys three things — **leverage** for callers (more capability per unit of
@@ -18,10 +20,10 @@ quietly go wrong.
 
 ## When to use / when to skip
 
-Use in Spec when `spec-grilling` asks for a structural variant, in Plan when `plan-breakdown` is deciding
-a module's interface or where a seam goes, or standalone for a pure refactor (deepening a cluster of
-shallow modules). Use it whenever another skill needs the deep-module vocabulary so everyone names things
-the same way.
+Use in Spec when `spec-grilling` asks for a structural variant or when `architecture-design` dispatches the
+depth sweep over a structure it has written, in Plan when `plan-breakdown` is deciding a module's interface
+or where a seam goes, or standalone for a pure refactor (deepening a cluster of shallow modules). Use it
+whenever another skill needs the deep-module vocabulary so everyone names things the same way.
 
 Skip when there's no real module to shape — a one-line config change, a pure data migration, trivial
 glue. Escape hatch: do **not** introduce a seam for a single adapter ("one adapter = hypothetical seam;

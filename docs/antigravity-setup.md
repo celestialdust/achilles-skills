@@ -106,7 +106,7 @@ The suite ships 40 skills, organized by lifecycle stage. Names are descriptive a
 | `frontend-design` | **UI only.** The one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md`. Spec, after `to-prd` and before `acceptance-criteria` and `environment-manifest` run |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | `environment-manifest` | typed-kind manifest (no values, no commands) |
-| `architecture-design` | reconciles and renders — traces every scenario, records the invariants, cites the decisions taken in `spec-grilling`; takes none itself. Runs against a draft `acceptance.md`; the two are signed together at the Spec gate. Writes `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md` |
+| `architecture-design` | reconciles, grades, and renders — traces every scenario, records the invariants, has the result graded code-cold, cites the decisions taken in `spec-grilling`; takes none itself. Runs against a draft `acceptance.md`; the two are signed together at the Spec gate. Writes `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md` |
 | `spec-review` | fresh code-cold agent fixes the spec before the user reviews |
 
 **Plan (human-led)**

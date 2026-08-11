@@ -50,9 +50,10 @@ required input cannot be resolved — a plan invented without the PRD or the cod
 3. `architecture.md` — this feature's signed structural delta, and `ARCHITECTURE.md` where the repository
    has one. A slice's files sit inside the modules and behind the seams these name, and the dependency
    edges they permit are the ones a slice may add. It tells you *where* the structure sits, not why:
-   `architecture-design` reconciles and renders — traces every scenario, records the invariants, cites the
-   decisions taken in `spec-grilling`; takes none itself. Its decisions section is a citation index, so
-   read the reasoning behind a boundary from the record it cites in `docs/adr/`, by id. Where a feature
+   `architecture-design` reconciles, grades, and renders — traces every scenario, records the invariants,
+   has the result graded code-cold, cites the decisions taken in `spec-grilling`; takes none itself. Its
+   decisions section is a citation index, so read the reasoning behind a boundary from the record it
+   cites in `docs/adr/`, by id. Where a feature
    ran no structure pass, say so in the plan and plan against `research.md` alone.
 
 **Referenced disciplines (invoked, not file inputs):** `codebase-design` and `api-design` — see
@@ -198,10 +199,9 @@ Artifacts = `—`. Slices are **born here** — a feature still in spec/plan has
 
 ## Referenced disciplines & the ADR trigger
 
-`codebase-design` and `api-design` are referenced disciplines, not sequential stages: they run in **Spec
-and Plan** — `spec-grilling` dispatches them in Spec to propose a structural variant, `plan-breakdown`
-reaches for them in Plan to pin the interface into `plan.md` — and they own no artifact of their own,
-because what they produce lands in a file another skill owns.
+`codebase-design` and `api-design` are referenced disciplines, not sequential stages, and own no artifact
+of their own — what they produce lands in a file another skill owns. Each states where it runs and who
+dispatches it; there are more dispatch sites than this line could keep true.
 
 So what reaches this stage is **depth, not direction**. The structural questions were settled with the
 person during `spec-grilling` — as records in `docs/adr/`, or as rows in `architecture.md`'s decisions
