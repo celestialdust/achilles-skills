@@ -50,19 +50,16 @@ Refuse to run unless ALL of these resolve:
   converges on the house style instead of imposing a foreign one (Principle 2).
 
 **Frozen under this skill (silent-false-green invariant):** `acceptance.md`, the RED/passing tests,
-and the declared `Regression surface` are IMMUTABLE here. So is any **ACTIVE** row under the `## Rows`
-heading of `docs/test-contract.md` when the repo has one — and that one is frozen on stronger terms: the
-first three thaw between runs by a signed Spec change, an ACTIVE row is frozen in every run, forever,
-because activation is one-way and only a person performs it. A simplification you cannot recommend without
-a test being edited, an assertion weakened, the surface widened or narrowed, or an ACTIVE row losing its
-coverage is **gate-erosion → HALT**: stop, return `block`, and surface it — naming the row id (`TC-1`) when
-it was a contract row, since "gate erosion" alone does not tell the reader which guarantee was nearly
-traded away. The orchestrator owns the board: it flips the slice's gate column to `you`, and a person
-decides. Never set a row's state yourself in either direction; you read that file and do not edit it. An
-absent file, or one with no ACTIVE rows, changes nothing here.
+and the declared `Regression surface` are IMMUTABLE here; they thaw between runs by a signed Spec change
+and never inside one. A simplification you cannot recommend without a test being edited, an assertion
+weakened, or the surface widened or narrowed is **gate-erosion → HALT**: stop, return `block`, and
+surface it — naming the artifact, since "gate erosion" alone does not tell the reader which guarantee
+was nearly traded away. The orchestrator owns the board: it flips the slice's gate column to `you`, and
+a person decides.
+
 `docs/design.md` is **read-only** here rather than frozen — a different constraint for a different
 reason: Verify grades every contract axis marked `inherits: docs/design.md` against it, and only
-`frontend-design` moves it. It is not a fifth frozen artifact, and this skill never writes it. Reading
+`frontend-design` moves it. It is not a fourth frozen artifact, and this skill never writes it. Reading
 rather than writing removes the authority to move that file, not the duty to report a collision with
 it — so a simplification that cannot be had unless the decided look moves is **gate-erosion → HALT**
 on the same terms: return `block`, and a person decides.

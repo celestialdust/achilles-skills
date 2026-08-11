@@ -85,30 +85,16 @@ language. Every term this repository defines lives in this one section.
   is configured, a design step may draw candidate choices from it, and the brief still decides — a
   suggestion that contradicts the brief is not taken. It is never required: where there is none, the work
   runs exactly as it did before such a source existed, and nothing checks for it or reports it missing.
-- **Test contract** — `docs/test-contract.md`: the repository's list of scenarios it must never lose.
-  Not one feature's behavior, but the behavior that outlives every feature that touches it. Each entry
-  is a row, `PENDING` or `ACTIVE`. The file starts empty, and an empty one binds nothing. Distinct from
-  `acceptance.md`, which holds one feature's behavior and is re-signed whenever that feature's `prd.md`
-  moves.
-- **PENDING row** — a test-contract row written down so it is not forgotten. Nothing enforces it. Work
-  may fail against a PENDING row and nothing stops. Every row starts here.
-- **ACTIVE row** — a test-contract row a person has made permanent. It may never be skipped, weakened,
-  or narrowed — not by a slice, not by a retry, not by any run. Activation is a person's act and it is
-  one-way: a person moves a row PENDING → ACTIVE, and nothing moves it back. The agent never moves a row
-  in either direction; it may propose a new PENDING row freely, but it reads this file and does not edit
-  it.
-- **Frozen** — cannot be edited to make a failing check pass. Four things are frozen, on two different
-  terms. Three are frozen **for a slice's retry loop**: the signed `acceptance.md`, any test written to
-  fail before the code that makes it pass, and the behavior a slice declared it must not break. Those
-  three can change between runs, as a Spec change a person signs outside the run. The fourth is frozen
-  **permanently**: an ACTIVE row in the test contract, in every run, forever — there is no loop it thaws
-  after and no Spec change unfreezes it. All four are frozen because they are the only evidence that did
-  not come from whoever wrote the code.
-- **Gate erosion** (written `gate-erosion` inside skills) — editing one of the four frozen things,
+- **Frozen** — cannot be edited to make a failing check pass. Three things are frozen, for a slice's
+  retry loop: the signed `acceptance.md`, any test written to fail before the code that makes it pass,
+  and the behavior a slice declared it must not break. They can change between runs, as a Spec change a
+  person signs outside the run. All three are frozen because they are the only evidence that did not
+  come from whoever wrote the code.
+- **Gate erosion** (written `gate-erosion` inside skills) — editing one of the three frozen things,
   deleting a guard, or weakening a check so that a failing gate goes green. It is a stop condition, not a
   shortcut, and it ends the **slice**, not the run: the slice halts, its `gate` flips from the agent to
-  you, and the halt names what changed — the artifact, or for the test contract the row id. The rest of
-  the graph keeps draining. Code that passes a test it rewrote proves nothing.
+  you, and the halt names the artifact that changed. The rest of the graph keeps draining. Code that
+  passes a test it rewrote proves nothing.
 - **Halted** — a slice state: this slice's own gate failed and nothing further will be attempted on it.
   Its `gate` flips from the agent to you. The next move is yours, on this slice.
 - **Blocked** — a slice state: this slice never ran, because a slice it depends on halted. Nothing is
@@ -138,9 +124,9 @@ language. Every term this repository defines lives in this one section.
   be wrong is corrected by a new entry naming it, and the wrong one stays — that the call was once made
   that way is the fact worth keeping.
 - **Substrate** — the durable files a stage reads and writes instead of remembering: the board, this
-  glossary, the decision records, the per-feature documents, the test contract, the process contract at
-  `docs/workflow.md`, the run record at `docs/progress.md`, the lessons record at `docs/lessons.md`, the
-  decided look at `docs/design.md`, the structure map at `ARCHITECTURE.md`, and the session state — plus
+  glossary, the decision records, the per-feature documents, the run record at `docs/progress.md`, the
+  lessons record at `docs/lessons.md`, the decided look at `docs/design.md`, the structure map at
+  `ARCHITECTURE.md`, and the session state — plus
   the `## Agent skills` block written into the repo's `CLAUDE.md` or `AGENTS.md`, which is what points a
   cold agent at the rest. `project-setup` creates them once so every later skill reads them cold — all but
   `docs/design.md` and `ARCHITECTURE.md`, which it names so nobody invents a path for either, and which

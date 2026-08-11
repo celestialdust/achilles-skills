@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // check-write-table.mjs — does any skill claim a write the rules file does not permit?
 //
-// Reads the "Who writes what" table out of docs/workflow.md, collects the writes a
+// Reads the "Who writes what" table out of references/write-ownership.md, collects the writes a
 // skills/*/SKILL.md declares in prose, and compares the two zone by zone. It does not claim to find
 // every one — CONTRIBUTING.md, "Validating before a PR", says what it does and does not reach at
 // more length than belongs here.
@@ -158,7 +158,7 @@ function glossKey(zone) {
 function parseTable(markdown) {
   const lines = markdown.split('\n');
   const start = lines.findIndex(l => /^##\s+Who writes what\s*$/.test(l));
-  if (start === -1) die('docs/workflow.md has no "## Who writes what" section');
+  if (start === -1) die('references/write-ownership.md has no "## Who writes what" section');
 
   let end = lines.length;
   for (let i = start + 1; i < lines.length; i++) {
@@ -487,10 +487,10 @@ function judge(claim, rowsByFile) {
 
 // ---------------------------------------------------------------- run
 
-const workflow = join(ROOT, 'docs', 'workflow.md');
-if (!existsSync(workflow)) die(`${workflow} does not exist`);
+const ownership = join(ROOT, 'references', 'write-ownership.md');
+if (!existsSync(ownership)) die(`${ownership} does not exist`);
 
-const { rows, clashes } = parseTable(readFileSync(workflow, 'utf8'));
+const { rows, clashes } = parseTable(readFileSync(ownership, 'utf8'));
 
 const rowsByFile = new Map();
 const fileTokens = new Map();
@@ -520,14 +520,14 @@ if (listOnly) {
 
 for (const [a, b] of clashes) {
   console.log(`TABLE       ${a.file} · ${a.zone}`);
-  console.log(`            two writers on one zone: ${a.writer} (docs/workflow.md:${a.line}) and ${b.writer} (docs/workflow.md:${b.line})`);
+  console.log(`            two writers on one zone: ${a.writer} (references/write-ownership.md:${a.line}) and ${b.writer} (references/write-ownership.md:${b.line})`);
   console.log('');
 }
 
 for (const u of unrowed) {
   console.log(`CONFLICT    ${u.missing} — ${u.skill} (${u.path}:${u.line}) declares a write to it`);
   console.log(`            The table has no row for ${u.missing}, and a file with no row permits nothing.`);
-  console.log(`            Add a row to "Who writes what" in docs/workflow.md, or stop declaring the write.`);
+  console.log(`            Add a row to "Who writes what" in references/write-ownership.md, or stop declaring the write.`);
   console.log('');
 }
 
@@ -536,11 +536,11 @@ for (const c of conflicts) {
   console.log(`CONFLICT    ${c.file} — ${c.skill} (${c.path}:${c.line}) ${acted(c)}`);
   if (c.verdict.why === 'zone') {
     for (const r of c.verdict.rows) {
-      console.log(`            zone "${r.zone}" belongs to ${r.writer} (docs/workflow.md:${r.line}, ${r.may})`);
+      console.log(`            zone "${r.zone}" belongs to ${r.writer} (references/write-ownership.md:${r.line}, ${r.may})`);
     }
   } else if (c.verdict.why === 'permission') {
     for (const r of c.verdict.rows) {
-      console.log(`            zone "${r.zone}" is ${r.may} (docs/workflow.md:${r.line}), which does not cover ${acted(c)}`);
+      console.log(`            zone "${r.zone}" is ${r.may} (references/write-ownership.md:${r.line}), which does not cover ${acted(c)}`);
     }
   } else {
     console.log(`            it holds no row of ${c.file}, so whichever zone this is, it belongs to somebody else:`);
@@ -558,7 +558,7 @@ for (const c of unresolved) {
     console.log(`            no cue in "Named by" matches it, so it could be any of these zones:`);
   }
   for (const r of c.verdict.rows) console.log(`              ${r.zone} → ${r.writer} (${r.may})`);
-  console.log(`            Settle it by naming the zone's cue in the sentence, or give the zone a cue in docs/workflow.md.`);
+  console.log(`            Settle it by naming the zone's cue in the sentence, or give the zone a cue in references/write-ownership.md.`);
   console.log('');
 }
 

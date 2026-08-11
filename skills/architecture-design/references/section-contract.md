@@ -3,10 +3,10 @@
 The shape of what `architecture-design` writes. Read this before writing one; `SKILL.md` carries the
 method, this file carries the format.
 
-`architecture-design` reconciles and renders: it traces every
-`acceptance.md` scenario through the structure, records the invariants, and cites the decisions taken
-during `spec-grilling` rather than taking them itself. That is why §2, §3 and §4 are inventories and §6
-is an index of citations.
+`architecture-design` reconciles, grades, and renders: it traces every
+`acceptance.md` scenario through the structure, records the invariants, has what it wrote graded code-cold,
+and cites the decisions taken during `spec-grilling` rather than taking them itself. That is why §2, §3 and
+§4 are inventories, §6 is an index of citations, and §8 is where the grading lands.
 
 **The eight headings and their order are fixed.** A person signing reads them in this order, and
 `spec-review` finds a section by name. Number them as below.
@@ -65,6 +65,24 @@ artifact. A reader cannot derive an omission from a list.
 
 The dependency edges this feature adds between parts that already exist.
 
+**Draw the graph before you tabulate it.** This section is a graph written as rows, and nobody can see a
+graph in a table — they have to hold every row in their head and assemble it. Open the section with a
+Mermaid `flowchart` whose nodes are §2's modules and whose arrows are exactly the rows below it: one arrow
+per row, and no arrow that has no row.
+
+```mermaid
+flowchart TD
+  api[api/routes] --> svc[core/reset]
+  svc --> store[(store/tokens)]
+  svc --> mail[adapters/mail]
+```
+
+Mermaid, specifically, because it is text. It splices into the page's source block without breaking the
+byte comparison, it renders in GitHub and most editors with nothing installed, and it carries no asset the
+repository would have to keep. Where the repository has decided a layer order, put each layer in its own
+`subgraph` in that order, so an edge crossing them the wrong way shows up as an arrow pointing back up
+rather than as a row somebody has to notice.
+
 | From | To | Why this edge exists | Decision |
 |---|---|---|---|
 
@@ -77,6 +95,13 @@ surface.
 Then **`Edges a reader might expect and that do not exist:`** — a short list, each with its reason. An
 absent edge is invisible in a table of present ones, and "the rules never read the memory" is exactly the
 kind of constraint a later diff breaks by accident.
+
+Then **`Consumers of this feature's surface:`** — who reaches in, one per line, `_none_` where nothing
+does. Name a consumer **inside** the repository with the row above that carries its edge, and a consumer
+**outside** it — a web client, another service, anyone holding a token — with no row, because no edge row
+can carry one. The outside ones are why this list exists: a consumer in the repository is already visible
+in the table, and a consumer outside it is visible nowhere else in the artifact. That is also where Hyrum's
+Law does its damage, since the surface commits to whatever they can observe whether or not §6 says so.
 
 Where the repository has decided a layer order, state it above the table and say which edges the order
 permits. Where it has not, see [Where no layer order is decided](#where-no-layer-order-is-decided) below.
@@ -158,14 +183,35 @@ most needs, and deleting it to make the column look complete removes the only wa
 
 ### `## 8. Open questions for the human`
 
-Numbered. Each states the question, then a **recommended** answer with one sentence of reasoning, and has
-to be answerable at the gate without opening a skill.
+Numbered, under two headings:
 
-**Only what `spec-grilling` could not settle belongs here** — a question the dialogue left open, a
-scenario that came back unresolved from §5, a surface whose boundary contract no record answers. A
+```
+### Left open by spec-grilling
+### Raised by the depth and interface passes
+```
+
+Each states the question, then a **recommended** answer with one sentence of reasoning, and has to be
+answerable at the gate without opening a skill. The groups stay separate because their provenance differs —
+the first is what the dialogue could not settle, the second is what a code-cold sweep found afterwards in
+what got written — and a person weighing a question needs to know which one they are reading.
+
+**Open the section with the line naming who answers**, in these words:
+
+> These are unanswered by design. The person answers them at the gate; no agent resolves one.
+
+Every row carries a recommended answer, which makes it read exactly like something a later pass should
+apply — `spec-review` runs after this one and its standing instruction on a contestable item is to apply
+its best correction and flag it inline. That line is what stops it, and a question answered silently is the
+failure this artifact exists to stop, one indirection removed.
+
+**Only what `spec-grilling` could not settle belongs in the first group** — a question the dialogue left
+open, a scenario that came back unresolved from §5, a surface whose boundary contract no record answers. A
 question you could have cited a record for is not open, and one you never put to the person is not open
-either. An empty §8 is ordinary now that the dialogue settles these — never because the questions were
-answered silently, which is the failure this artifact exists to stop, one indirection removed.
+either. An empty first group is ordinary now that the dialogue settles these.
+
+**The second heading is written even when nothing came back**, with `_none_` under it. Two sweeps that
+found nothing and two sweeps that never ran leave the same blank section otherwise, and those have
+different fixes.
 
 ## Where no layer order is decided
 
@@ -211,6 +257,13 @@ repository controls.
 **Theme-aware.** Define the light palette on bare `:root`, redefine the same tokens under
 `@media (prefers-color-scheme: dark)` guarded as `:root:not([data-theme="light"])`, and again under
 `:root[data-theme="dark"]`. Give `body` an explicit background token.
+
+**It draws §3's graph, not just the table.** The embedded source block carries the Mermaid text along with
+everything else, but text is not a picture and the page exists so a person can see the structure at the
+gate. Draw the same graph as **inline SVG** — the same nodes and the same arrows §3's block has, laid out
+so the layer order reads top to bottom. Inline SVG because the page takes no external requests and a
+Mermaid runtime would be one. `architecture.md` is the source of truth: where the drawing and the block
+disagree, the drawing is what changes.
 
 **It embeds `architecture.md` verbatim**, in a collapsed source block:
 

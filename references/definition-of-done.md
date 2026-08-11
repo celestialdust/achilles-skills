@@ -50,7 +50,7 @@ The depth behind these items lives in `code-review` (the five-axis review) and `
 - [ ] Anything risky is reflected in the draft pull request's **risk band** (see `pull-request`)
 - [ ] The human has reviewed and approved before merge or deploy
 
-The rollback plan is not on this list, and its absence is deliberate. `shipping-and-launch` writes it, and that skill starts after a person merges — one slice's pull request is not a release. The compensating control before the merge is the risk band above; `docs/workflow.md` states what it tells the person at the merge gate. Putting the plan itself on this bar would gate every change on a document nothing writes before the merge, and the only way to tick that box would be to invent one.
+The rollback plan is not on this list, and its absence is deliberate. `shipping-and-launch` writes it, and that skill starts after a person merges — one slice's pull request is not a release. The compensating control before the merge is the risk band above; `pull-request` states what it tells the person at the merge gate. Putting the plan itself on this bar would gate every change on a document nothing writes before the merge, and the only way to tick that box would be to invent one.
 
 ## How to Apply
 

@@ -5,7 +5,7 @@ description: Turn a diff (daily) or a whole unfamiliar target repo (onboarding) 
 Invoke the `literate-explainer` skill. Standalone comprehension suite — no lifecycle gates, nothing blocks, `/orchestrate` untouched.
 
 - **Mode detection.** A diff in view (uncommitted changes, a named branch, or a PR reference) runs **diff mode**; pointed at a target repo with no diff it runs **codebase mode**. An explicit argument overrides detection either way.
-- **Boundary.** `explain` makes the *human* understand — not `code-review` (which judges a diff for merge) and not `codebase-research` (the goal-blind survey run at the head of Spec, which Plan then reuses). See the skill's when-to-use table.
+- **Boundary.** `explain` makes the *human* understand — not `code-review` (which judges a diff for merge) and not `codebase-research` (the goal-blind survey run at the head of Spec, and again at the head of Plan). See the skill's when-to-use table.
 
 ## Notes
 

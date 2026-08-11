@@ -9,7 +9,7 @@ IDEATE   →   SPEC   →   PLAN   →   IMPLEMENT   →   VERIFY   →   REVIEW
 (human-led: Ideate · Spec · Plan)        (agent-led, autonomous: Implement → Ship)
 ```
 
-The **human owns Ideate + Spec + Plan** (the thinking). The agent then runs **Implement → Verify → Review → Ship** fully autonomously — it never blocks waiting for your input, and where a stop condition fires it terminates and reports instead of waiting ([workflow.md](workflow.md) lists them) — and terminates at **risk-banded open draft PRs** for async human merge. It never auto-merges to main.
+The **human owns Ideate + Spec + Plan** (the thinking). The agent then runs **Implement → Verify → Review → Ship** fully autonomously — it never blocks waiting for your input, and where a stop condition fires it terminates and reports instead of waiting (the `orchestrator` skill, *What stops a run*, lists them) — and terminates at **risk-banded open draft PRs** for async human merge. It never auto-merges to main.
 
 ## How Skills Work
 
@@ -83,8 +83,7 @@ Load skills by stage:
 ```
 Ideate:     interview-me → idea-refine
 Spec:       codebase-research → spec-grilling → to-prd → frontend-design (UI only) → acceptance-criteria → environment-manifest → architecture-design → spec-review
-Plan:       plan-breakdown
-            (reuses Spec's research.md)
+Plan:       codebase-research (2nd pass) → plan-breakdown
 Spec·Plan:  codebase-design, api-design — referenced disciplines, not a stage: each proposes a
             structural variant in Spec, pins the interface into plan.md in Plan; owns no artifact
 Implement:  incremental-implementation + test-driven-development
@@ -101,7 +100,7 @@ Plan · Implement:  doubt-driven-development — in-flight adversarial review; n
 
 ### Autonomous run
 
-To hand the agent the whole agent-led tail (Implement → Verify → Review → Ship) in one autonomous pass, use the **orchestrator** skill (via `/orchestrate`). It's the wave-parallel DAG runner: it sequences slices, runs the review fan-out once over each wave's combined diff (one fresh code-cold subagent per axis — the skill itself, not a role), and terminates at risk-banded open draft PRs — on one of the conditions `docs/workflow.md` lists it stops and reports rather than pausing for an answer, and it never auto-merges. Risky work is not one of those conditions: it raises the PR's risk band for the human at the merge gate.
+To hand the agent the whole agent-led tail (Implement → Verify → Review → Ship) in one autonomous pass, use the **orchestrator** skill (via `/orchestrate`). It's the wave-parallel DAG runner: it sequences slices, runs the review fan-out once over each wave's combined diff (one fresh code-cold subagent per axis — the skill itself, not a role), and terminates at risk-banded open draft PRs — on one of the conditions the `orchestrator` skill's *What stops a run* lists it stops and reports rather than pausing for an answer, and it never auto-merges. Risky work is not one of those conditions: it raises the PR's risk band for the human at the merge gate.
 
 ### Context-aware loading
 
@@ -140,7 +139,7 @@ The `commands/` directory contains twelve Markdown slash commands for Claude Cod
 |---------|----------------|
 | `/ideate` | interview-me, then idea-refine |
 | `/spec` | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) |
-| `/plan` | plan-breakdown (reuses Spec's research.md) |
+| `/plan` | codebase-research (second pass, scoped to the aspect the decisions point at), then plan-breakdown |
 | `/implement` | incremental-implementation (applies test-driven-development) |
 | `/verify` | quality-verification |
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization as fan-out) |
@@ -178,10 +177,10 @@ The lifecycle commands create working artifacts as the agent moves through the s
 
 | Stage | Artifact(s) | Produced by |
 |-------|-------------|-------------|
-| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other | project-setup |
+| Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other | project-setup |
 | Ideate | `intent.md` | interview-me, idea-refine |
 | Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html` (+ ADRs; plus root `ARCHITECTURE.md` on the repo's first structural pass) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest, architecture-design |
-| Plan | `plan.md` | plan-breakdown (reads Spec's `research.md`) |
+| Plan | `plan.md` | codebase-research (second pass), then plan-breakdown |
 | Verify | `qa.md` | quality-verification |
 
 - Keep them in version control during development so the human and the agent share one source of truth.

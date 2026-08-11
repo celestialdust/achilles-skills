@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 // check-stages.mjs — does the stage a registry assigns a skill match the stage the skill claims?
 //
-// WHY IT EXISTS. Which stage a skill runs in is stated in at least eight places — the routing tree and
-// the stage registry in `using-agent-skills`, the skill's own `Stage:` line, the workflow description
-// and its template twin, the per-agent setup guides. Nothing checks that they agree, and THIS SCRIPT
-// CLOSES ONE OF THOSE EIGHT, not all of them: it compares a skill's declaration against every table
-// carrying both a `Stage` and a `Skill` column, and exactly one file in the tree has such a table
-// (`using-agent-skills`). The run prints the file count for that reason — read `across 1 file(s)` as
-// the width of the guarantee, not as a tally of what was searched. The other five
+// WHY IT EXISTS. Which stage a skill runs in is stated in every registry that lists skills — the routing
+// tree and the stage registry in `using-agent-skills`, and each per-agent setup guide — and once more in
+// the skill's own `Stage:` line. Nothing checks that they agree, and THIS SCRIPT CLOSES SOME OF THOSE, not
+// all of them: it compares each skill's declaration against every stage grouping it can read in the three
+// forms below. The run prints how many files that reached — read `across N file(s)` as the width of the
+// guarantee, not as a tally of what was searched. No count of the statement sites appears here on purpose:
+// nothing checks a number in this comment, and the last one went stale when two of the files it counted
+// were deleted. The other five
 // scripts each catch a different shape of drift and every one of them is blind to this: a stale stage
 // label is not a missing row (check-registries), not a wrong count (check-enumerations), and not a
 // dangling link (check-references). The name is right, the row is present, the link resolves, and the
@@ -16,7 +17,7 @@
 // That is exactly the failure a reader cannot see. A registry row reading `| Plan | api-design |` is
 // indistinguishable from a correct one, and an agent consulting the dispatcher will route by it. This
 // repository is currently moving two disciplines from Plan into Spec; without this check that move
-// would land as prose with no guarantee at all that the eight statements ended up saying the same thing.
+// would land as prose with no guarantee at all that those statements ended up saying the same thing.
 //
 // WHAT IT READS.
 //   · Every markdown table carrying BOTH a `Stage` column and a `Skill` column. Membership is judged by

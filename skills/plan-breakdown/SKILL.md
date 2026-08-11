@@ -38,7 +38,10 @@ required input cannot be resolved — a plan invented without the PRD or the cod
    signatures** — plan-breakdown is exactly where that product intent gets pinned to concrete files,
    line ranges, and snippets. Every slice back-references a `## User Stories` id.
 2. `research.md` — `## Codebase map` · `## Dependency facts` · `## External APIs` · `## Prior art in the
-   codebase` · `## Structural facts` · `## Open items for Plan`. This is the goal-blind as-is map; every
+   codebase` · `## Structural facts` · `## Open items for Plan`, plus `## Plan pass — <aspect>` from the
+   second `codebase-research` pass. That pass runs at the head of Plan and is expected, not exceptional —
+   if the file carries no Plan-pass section, run `codebase-research` before you slice rather than planning
+   against a survey taken before the decisions existed. This is the goal-blind as-is map; every
    `file`/`lines` your steps name must be real per this map, and your steps must follow the existing
    patterns it records. `## Structural facts` is the one to read before pinning an interface: it records
    the seams and their adapter counts, the module boundaries, and the conventions in use, so a signature
@@ -47,9 +50,10 @@ required input cannot be resolved — a plan invented without the PRD or the cod
 3. `architecture.md` — this feature's signed structural delta, and `ARCHITECTURE.md` where the repository
    has one. A slice's files sit inside the modules and behind the seams these name, and the dependency
    edges they permit are the ones a slice may add. It tells you *where* the structure sits, not why:
-   `architecture-design` reconciles and renders — traces every scenario, records the invariants, cites the
-   decisions taken in `spec-grilling`; takes none itself. Its decisions section is a citation index, so
-   read the reasoning behind a boundary from the record it cites in `docs/adr/`, by id. Where a feature
+   `architecture-design` reconciles, grades, and renders — traces every scenario, records the invariants,
+   has the result graded code-cold, cites the decisions taken in `spec-grilling`; takes none itself. Its
+   decisions section is a citation index, so read the reasoning behind a boundary from the record it
+   cites in `docs/adr/`, by id. Where a feature
    ran no structure pass, say so in the plan and plan against `research.md` alone.
 
 **Referenced disciplines (invoked, not file inputs):** `codebase-design` and `api-design` — see
@@ -152,8 +156,9 @@ apart here, because they are easy to collapse into one: a run never *waits* for 
 conditions do *end* work early. Most of them end only the affected **slice** — an unsigned contract, an
 attempted edit to a frozen artifact, a check about to be weakened, a security Critical or High, exhausted
 retries — and the rest of the graph keeps draining. A few end the whole **run**: a precondition missing at
-run start, a cycle in the slice graph, gates failing at a rising rate across the run. `docs/workflow.md`
-lists every condition with an `Ends` column saying which; read it there rather than restating it here.
+run start, a cycle in the slice graph, gates failing at a rising rate across the run. `orchestrator`'s
+*What stops a run* lists every condition with an `Ends` column saying which; read it there rather than
+restating it here.
 Stopping is something the run does on its own and reports; waiting is the thing it cannot do. So a "check
 with the human first" line is either dead text or
 an instruction to deadlock. Whatever you wanted a human to look at, write it as a fact in the checkpoint
@@ -194,10 +199,9 @@ Artifacts = `—`. Slices are **born here** — a feature still in spec/plan has
 
 ## Referenced disciplines & the ADR trigger
 
-`codebase-design` and `api-design` are referenced disciplines, not sequential stages: they run in **Spec
-and Plan** — `spec-grilling` dispatches them in Spec to propose a structural variant, `plan-breakdown`
-reaches for them in Plan to pin the interface into `plan.md` — and they own no artifact of their own,
-because what they produce lands in a file another skill owns.
+`codebase-design` and `api-design` are referenced disciplines, not sequential stages, and own no artifact
+of their own — what they produce lands in a file another skill owns. Each states where it runs and who
+dispatches it; there are more dispatch sites than this line could keep true.
 
 So what reaches this stage is **depth, not direction**. The structural questions were settled with the
 person during `spec-grilling` — as records in `docs/adr/`, or as rows in `architecture.md`'s decisions

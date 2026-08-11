@@ -143,7 +143,7 @@ Stages don't share memory — they hand off through **artifact files** with fixe
 | Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html`, `design-contract.md` (UI only) (+ ADRs, `CONTEXT.md`) |
 | Plan | `plan.md` |
 | Verify | `qa.md` |
-| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/workflow.md` (the process contract), `docs/test-contract.md` (the repo's permanent cross-feature scenarios), `docs/session-state.md` (where the work stands + an append-only decision log), `docs/progress.md` (the run record — what each slice actually executed), `docs/lessons.md` (root-caused defects and the guard for each), `docs/design.md` (the repository's decided look, written by the first UI surface), `ARCHITECTURE.md` (the repository's structure, written by the first feature to run `architecture-design`) |
+| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/session-state.md` (where the work stands + an append-only decision log), `docs/progress.md` (the run record — what each slice actually executed), `docs/lessons.md` (root-caused defects and the guard for each), `docs/design.md` (the repository's decided look, written by the first UI surface), `ARCHITECTURE.md` (the repository's structure, written by the first feature to run `architecture-design`) |
 
 Each stage reads the upstream artifact and writes the next, so a fresh agent can resume from the files alone. When you add or edit a skill/command, declare what it reads and writes in `## Outputs & handoff contract` using these exact filenames — never introduce a new artifact name for an existing contract file.
 
@@ -209,7 +209,7 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   the *right* stage — the label is taken as the truth, so a heading that is wrong for its whole table is
   internally consistent and passes.
 - `node scripts/check-write-table.mjs` reports nothing your own diff introduced. It reads the write
-  table in `docs/workflow.md`, collects the writes each `SKILL.md` declares in prose, and judges each
+  table in `references/write-ownership.md`, collects the writes each `SKILL.md` declares in prose, and judges each
   against the zone the table gives that skill. Three verdicts: **permitted**, which is silent;
   **conflict**, where the zone belongs to somebody else or its permission does not cover what the
   sentence does or the file has no row at all; and **unresolved**, where no cue matched and the file's
@@ -277,11 +277,7 @@ Each stage reads the upstream artifact and writes the next, so a fresh agent can
   | `plan-breakdown` | feature blocks, slice rows, and their tokens in one paragraph | trespass on the tokens only — the rows are its own, the `impl → verify → …` tokens are the `orchestrator`'s |
   | `preflight-readiness` | `environment.md`, `docs/features/<slug>/`, and a `gate` flip | over-report on the first two — it reads them and writes `preflight.md`; trespass on the flip, which is the `orchestrator`'s |
   | `orchestrator`, `project-setup` | `docs/progress.md`, `docs/lessons.md` | over-report — a create verb in a sentence whose zone is `append only`, and a scaffold sentence that names both records' entry zones while creating only their headings |
-  | any skill | a file whose row still reads `nobody` / `never` | trespass, and the row is the thing to fix — `docs/workflow.md` says the skill that starts writing such a file names itself in that row **in the same commit**, so the row moves with the skill, never after it |
-- This repo's own `docs/workflow.md` still matches the copy `project-setup` ships. Run
-  `diff docs/workflow.md skills/project-setup/assets/workflow.template.md`; it must print nothing. The
-  two are the same document with two audiences, and `project-setup` — which is the only thing that ever
-  compares them, and is never run against this repository — cannot be the keeper here.
+  | any skill | a file whose row still reads `nobody` / `never` | trespass, and the row is the thing to fix — `references/write-ownership.md` says the skill that starts writing such a file names itself in that row **in the same commit**, so the row moves with the skill, never after it |
 
 ## License
 

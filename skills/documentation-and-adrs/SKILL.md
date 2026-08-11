@@ -32,7 +32,7 @@ artifact gate. Invoke it whenever a decision, API, or shipped feature needs a du
   sequential `ADR-<NNN>` number and (b) find any ADR this decision supersedes. Created by `project-setup`;
   written by `spec-grilling` in Spec and `plan-breakdown` in Plan, using *this* skill's standard.
   `codebase-design` and `api-design` **supply** decisions to whichever of those two is running; they own
-  no artifact and write no file, which is why neither appears as a writer in `docs/workflow.md`.
+  no artifact and write no file, which is why neither appears as a writer in `references/write-ownership.md`.
 - **`CONTEXT.md`** (repo-root glossary — terms live under its canonical `## Glossary` heading) — to reuse ubiquitous-language terms verbatim in the record.
 
 When another skill (spec-grilling, codebase-design, api-design, the Ship skills) references this skill,

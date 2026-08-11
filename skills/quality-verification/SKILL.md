@@ -1,6 +1,6 @@
 ---
 name: quality-verification
-description: Proves a finished slice actually works before it ships — a fresh, code-cold, maker≠checker Verify pass. Reach for this the moment a slice reaches `verify` — it exercises every signed acceptance.md scenario against the running app, runs the design gate against frontend-design's signed contract (UI only), drives the browser-testing-with-devtools engine, and writes qa.md with an exercised/not-reachable ledger BY ID. REFUSES to run on an unsigned or absent acceptance.md (or, for UI, an unsigned design contract). It NEVER weakens the contract, a RED test, the regression surface, or an ACTIVE row of the repo's docs/test-contract.md to make a slice go green — that is gate-erosion and it HALTS. If you are tempted to "just check it looks right", trust the maker's own tests, or mark a slice done without grading it cold, use this instead.
+description: Proves a finished slice actually works before it ships — a fresh, code-cold, maker≠checker Verify pass. Reach for this the moment a slice reaches `verify` — it exercises every signed acceptance.md scenario against the running app, runs the design gate against frontend-design's signed contract (UI only), drives the browser-testing-with-devtools engine, and writes qa.md with an exercised/not-reachable ledger BY ID. REFUSES to run on an unsigned or absent acceptance.md (or, for UI, an unsigned design contract). It NEVER weakens the contract, a RED test, or the regression surface to make a slice go green — that is gate-erosion and it HALTS. If you are tempted to "just check it looks right", trust the maker's own tests, or mark a slice done without grading it cold, use this instead.
 ---
 
 ## Purpose
@@ -71,23 +71,6 @@ Refuse-to-run (fail-safe deny) unless these resolve:
   was before this file existed. You read it and never edit it.
 - **REQUIRED — a running build of the slice** in its worktree (the orchestrator provides it). If it will not
   start, that is a `verify` failure, not a qa skip — route to `debugging-and-error-recovery`.
-- **Read when the repo has one — `docs/test-contract.md`.** The repo-level list of permanent scenarios
-  under its `## Rows` heading, each `PENDING` or `ACTIVE`. Rows live under that heading and nowhere else —
-  an `ACTIVE` in an example block above it is not a row.
-  **ACTIVE** rows hold across every feature and are frozen permanently (see *Silent false-green
-  defenses*); grade the ones this slice can reach alongside the `acceptance.md` scenarios, and report by
-  row id (`TC-1`) the ones it cannot. `PENDING` rows enforce nothing — read them
-  for context, act on none of them. There is **no refuse-to-run** here: an absent file, or one with no
-  ACTIVE rows, is the normal case and changes nothing.
-- **Check the activation stamp — you are the skill that enforces it.** An activated row carries
-  `activated: <date> by <person>` on its heading line. That field *is* the record of the human act, so a
-  row marked `ACTIVE` without it was activated by nobody. Treat such a row as `PENDING`: do not grade it,
-  never fail a slice on it, and **name it in `qa.md` under `## Behavioral ledger` with
-  `status: not-reachable` and `evidence: ACTIVE without an activation stamp — a person must add their
-  name`**. Reporting it is the point. Silently skipping it leaves a row that reads like a permanent
-  guarantee and binds nothing, and the required PR ack line is what puts it in front of a person. The
-  check is textual — the field is there or it is not — and it is never a route around a real ACTIVE row:
-  removing or editing a stamp is editing the row's state, which is the gate-erosion HALT below.
 
 `acceptance.md` is **behavioral-only**: it holds no design, and the contract holds no behavioral
 assertions. Grade behavior against `acceptance.md` and design against the contract, and never cross them.
@@ -99,10 +82,10 @@ inherited, `docs/design.md` decides it. That is one source read across two files
 Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa.md` and transition STATE.
 
 1. **Go code-cold.** Read the brief's `Design ref` to learn which case you are in (`—` = no UI, a path = UI).
-   Then read the closed set the brief hands you, and nothing outside it: `acceptance.md`, the repo's
-   `docs/test-contract.md` when it has one, (UI) the `design-contract.md` that ref names plus
+   Then read the closed set the brief hands you, and nothing outside it: `acceptance.md`, (UI) the
+   `design-contract.md` that ref names plus
    `docs/design.md` when the repo has one, and the running app. What closes the set is where each item came
-   from — every one is a document a person signed or activated, or the build itself. `docs/design.md`
+   from — every one is a document a person signed, or the build itself. `docs/design.md`
    qualifies on the same footing: `frontend-design` writes it in the same act that produces the contract a
    person signs, so its content is what that person agreed to — which is why it carries no status field of
    its own. The implementer's notes, rationale, and commit messages sit outside it,
@@ -113,8 +96,7 @@ Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa
 
 2. **Behavioral grading — exercise every scenario by id** (see *Behavioral grading*). For each scenario the
    slice realizes, drive the running app to its Given/When and observe the Then. Record
-   `exercised-pass | exercised-fail | not-reachable` per id with evidence. Do the same for every ACTIVE
-   `docs/test-contract.md` row this slice can reach — same ledger, same verdicts, keyed by row id. Run the
+   `exercised-pass | exercised-fail | not-reachable` per id with evidence. Run the
    realized tests `test-driven-development` wrote
    AND independently probe the observable behavior (don't just re-run the maker's suite — confirm the *outcome*).
 
@@ -124,8 +106,7 @@ Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa
    responsive/visible-focus/reduced-motion floor is the objective subset you check mechanically).
 
 4. **On any `exercised-fail`** → this is a real defect. **Do NOT touch `acceptance.md`, the RED tests, or
-   `Regression surface`** (frozen-under-retry), and **do NOT touch an ACTIVE `docs/test-contract.md` row**
-   (frozen permanently, in every run). Route the failure to `debugging-and-error-recovery`
+   `Regression surface`** (frozen-under-retry). Route the failure to `debugging-and-error-recovery`
    (reproduce · localize · reduce · fix · guard) which sends the fix back through `incremental-implementation`. Re-verify.
 
 5. **Bounded loop.** Up to the per-slice round budget (3 implement→verify cycles). If the slice still
@@ -137,8 +118,7 @@ Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa
    `not-reachable` id is listed for the required human-ack in the PR.
 
 7. **Transition STATE.** `pass` → slice `verify → review` (gate stays `agent`). `halted` → slice `halted`,
-   `gate: you`. Pass is a conjunction: every realized scenario and every reachable ACTIVE test-contract row
-   `exercised-pass` (none `exercised-fail`) AND
+   `gate: you`. Pass is a conjunction: every realized scenario `exercised-pass` (none `exercised-fail`) AND
    the design gate passes (or N/A for non-UI). A `not-reachable` does not fail the slice but **must** be
    human-acked downstream.
 
@@ -147,15 +127,7 @@ Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa
 - **By id, against the human-signed oracle.** For each scenario the slice realizes (`realizes: story <n>`),
   exercise the running app: set up the Given, perform the When, assert the observable Then. The oracle for
   these is `acceptance.md` — never the implementer's tests (those are the maker's view; you are the
-  checker). The bullet below covers the other one.
-- **ACTIVE test-contract rows grade the same way.** A row in `docs/test-contract.md` marked `ACTIVE` is a
-  scenario the whole repo owes, not one feature — grade the ones this slice can reach and record them in
-  the same ledger under their row id, with `source: contract` and `realizes: —` (a contract row realizes
-  no product story). `class` keeps the meaning it has everywhere else — happy, error/edge, or
-  security-observable, or `—` when the row states none. `contract` says where a scenario came from, not
-  what kind it is; keeping those in separate columns is what stops a row's class from becoming
-  unreadable. `PENDING` rows are not graded and never fail a slice. Nothing here refuses to run: no file,
-  or no ACTIVE rows, means nothing to add.
+  checker).
 - **Cover the three classes `acceptance.md` carries:** happy, error/edge, security-observable. A slice that only
   proves the happy path has not been verified — the autonomous run ships silent defects exactly on the
   error/security paths.
@@ -232,31 +204,24 @@ the code** (weaken a test, reinterpret a scenario). qa defends mechanically, not
 - **Frozen artifacts under retry.** `acceptance.md`, the RED tests realized from it, and the declared
   `Regression surface` are **immutable during a slice's retry loop**. A retry diff that weakens/deletes an
   assertion or narrows the surface = **gate-erosion HALT** (not a pass).
-- **ACTIVE test-contract rows, frozen permanently.** The three above are frozen *for this retry loop*;
-  between runs they can still change, by a Spec change a person signs. An **ACTIVE** row in
-  `docs/test-contract.md` is frozen **in every run, forever** — activation is one-way and only a person
-  performs it, so there is no loop it thaws after. Skipping, deleting, weakening, or narrowing one to make
-  a gate pass is the same **gate-erosion HALT**.
-- **The decided look, read-only rather than frozen.** `docs/design.md` is not a fifth frozen artifact —
+- **The decided look, read-only rather than frozen.** `docs/design.md` is not a fourth frozen artifact —
   it is a file this skill reads and never writes. Every contract axis marked `inherits: docs/design.md`
   is graded against it, and it carries no `status:` of its own, so nothing else catches an edit to it:
   moving the decided look so the built surface matches is the same **gate-erosion HALT**, with no retry
   qualifier and no reward-hack test. Only `frontend-design` moves that file.
-- **The halt names what changed.** Every gate-erosion halt records the artifact — and, for the test
-  contract, **the row id** (`TC-1`) — in the halt reason and in `qa.md`. "Gate erosion" alone tells the
-  person reading it nothing about which guarantee was about to be traded away, so it cannot be checked.
+- **The halt names what changed.** Every gate-erosion halt records the artifact in the halt reason and
+  in `qa.md`. "Gate erosion" alone tells the person reading it nothing about which guarantee was about to
+  be traded away, so it cannot be checked.
 - **Reward-hack tripwire.** If the failure signature moved only because a test or `acceptance.md` was edited
   while the implementation is materially unchanged → **HALT**. The contract is the oracle; you do not get to
   edit the oracle to pass.
 - **Not-reachable is never silent — and never a weakening.** Every `not-reachable` id is surfaced as a
   required human-ack line in the PR body; a **person** decides whether an unexercised scenario is
-  acceptable. Both oracles are anchored to a person — one signs `acceptance.md`, one activates a
-  contract row — so no agent can settle this in their place. This holds for an ACTIVE
-  `docs/test-contract.md` row exactly as it
-  holds for an `acceptance.md` scenario: the row stays ACTIVE, unproven, with a person named to settle it,
+  acceptable. The oracle is anchored to a person — they signed `acceptance.md` — so no agent can settle
+  this in their place. The scenario stays in the contract, unproven, with a person named to settle it,
   so nothing stopped being checked and **nothing halts**. The test is whether the scenario survives the
-  act — still in the contract with a person named → honest reporting; gone from the contract, flipped back
-  to `PENDING`, or rewritten to assert less → the gate-erosion HALT above.
+  act — still in the contract with a person named → honest reporting; gone from the contract, or
+  rewritten to assert less → the gate-erosion HALT above.
 - **Security circuit-breaker.** A localized CRITICAL/HIGH finding or a secret in the diff during verification
   = **hard halt of the slice, no retry, never a PR**; an exposed/committed secret fires a `PushNotification`.
   (Defer to the `security-and-hardening` review skill for classification; qa's job is to stop the line.)
@@ -270,14 +235,11 @@ the code** (weaken a test, reinterpret a scenario). qa defends mechanically, not
   the oracle.
 - "The expired-link test is flaky — I'll loosen the assertion to go green." → That is **gate-erosion HALT**.
   `acceptance.md` and the RED tests are frozen under retry. Fix the code via debugging, never the test.
-- "This repo-wide contract row predates the feature and no longer fits — I'll narrow it." → **Gate-erosion
-  HALT**, and this freeze never thaws: an ACTIVE row binds every run. A row that is genuinely wrong is
-  fixed by a person outside the run, not by the slice it is failing.
-- "I'll halt for gate erosion and write `frozen-artifact check: eroded`." → Not enough. Name the artifact,
-  and for the test contract the **row id** — otherwise nobody can tell which guarantee was at stake.
-- "I couldn't reach this ACTIVE row, so the contract was weakened and I should halt." → No. The row is
-  still ACTIVE and a person has been handed it via the ack line. Report `not-reachable` by row id and
-  carry on; halting here would stall almost every early slice in a DAG.
+- "I'll halt for gate erosion and write `frozen-artifact check: eroded`." → Not enough. Name the artifact
+  — otherwise nobody can tell which guarantee was at stake.
+- "I couldn't reach this scenario, so the contract was weakened and I should halt." → No. The scenario is
+  still in `acceptance.md` and a person has been handed it via the ack line. Report `not-reachable` by id
+  and carry on; halting here would stall almost every early slice in a DAG.
 - "It looks right, the design gate can be a quick glance." → No. Two **non-overlapping** sources
   (prototype-fidelity + the seven-axis rubric) and the objective subset checked mechanically. "Looks good" is
   not a verdict.
@@ -305,11 +267,7 @@ Stop if you are about to:
 
 - run against an **`acceptance.md` with `status: draft`** or absent → refuse-to-run; it is not a signed oracle.
 - **edit `acceptance.md`, a RED test, or `Regression surface`** to make a slice pass → gate-erosion HALT.
-- **skip, delete, weaken, or narrow an ACTIVE `docs/test-contract.md` row** — at any moment, retry or not
-  → gate-erosion HALT; that freeze is permanent, not scoped to the loop.
-- **set a `docs/test-contract.md` row's state yourself**, in either direction → activation is one-way and
-  a person's act; you read this file, you do not edit it.
-- **record a gate-erosion halt without naming** the artifact, or the contract row id, that changed.
+- **record a gate-erosion halt without naming** the artifact that changed.
 - grade **design against `acceptance.md`** (it has no design content) or against criteria you invented instead
   of `design-contract.md`.
 - **refuse a contract, or record an axis as unstated, because it does not restate what `docs/design.md`
@@ -356,32 +314,21 @@ Done when ALL hold:
   none of the three; an `inherits:` or `departs:` on one of them is a failed axis with the finding
   written down. Every `## Departure` block is graded, and a departure with no reason, a built surface
   departing with nothing recorded, or an axis and a block that disagree, is written down as a finding.
-- **Every ACTIVE `docs/test-contract.md` row the slice can reach** has a verdict by row id, and every row it
-  cannot reach is listed `not-reachable` for human-ack. (No rows, or no such file → this criterion is
-  vacuously met; record `test contract: none active`.)
 - The **frozen-artifact check passes**: `acceptance.md`, the RED tests, and `Regression surface` are unchanged
-  across the retry loop, **and no ACTIVE `docs/test-contract.md` row was skipped, deleted, weakened, or
-  narrowed at any point** (no gate erosion). If any changed to pass → verdict is `halted`, not `pass`, and
-  the halt names the artifact or the row id.
+  across the retry loop (no gate erosion). If any changed to pass → verdict is `halted`, not `pass`, and
+  the halt names the artifact.
 - The overall **verdict** is `pass` (every realized scenario exercised-pass AND design gate pass/N-A) or
   `halted`; `not-reachable` ids are listed for human-ack.
 
 **BDD bind:** the gate predicate is *"the slice may advance to review ⟺ every realized `acceptance.md`
-scenario is exercised-pass ∧ every reachable ACTIVE test-contract row is exercised-pass ∧ (no UI ∨ design
-gate pass) ∧ no frozen artifact and no ACTIVE test-contract row was weakened."* This is where the signed BDD
+scenario is exercised-pass ∧ (no UI ∨ design gate pass) ∧ no frozen artifact was weakened."* This is where the signed BDD
 contract binds to the running app.
 
 ## Outputs & handoff contract
 
 - **Emits `qa.md`** (registry) at `docs/features/<slug>/qa.md`. Stable sections consumers depend on:
   - `## Behavioral ledger` — table keyed by scenario id:
-    `id · source{acceptance|contract} · realizes(story) · class · status{exercised-pass|exercised-fail|not-reachable} · evidence`.
-    ACTIVE `docs/test-contract.md` rows sit in the same table under their row id (`TC-1`), with
-    `source: contract` and `realizes: —` — so a `not-reachable` contract row picks up the required PR
-    human-ack line by the same rule as any other id, with no second channel to keep in sync. `source`
-    is its own column rather than a `class` value: `class` names the three scenario classes
-    (happy · error/edge · security-observable) throughout the suite, and a row's origin is a different
-    question from its kind.
+    `id · realizes(story) · class · status{exercised-pass|exercised-fail|not-reachable} · evidence`.
   - `## Design gate` — opens with `design ref: <path|—>` as delivered in the dispatch brief. On `—`:
     `N/A (Design ref: —)` and nothing further (the slice builds no UI; this is the recorded fact, not a
     verdict you formed). On a path: `prototype-fidelity: pass|fail` (graded against the committed
@@ -390,8 +337,7 @@ contract binds to the running app.
     objective subset `responsive · visible-focus · reduced-motion` each `pass|fail`.
   - `## Verdict` — `overall: pass|halted`; `rounds: <n>/3`; `frozen-artifact check: ok|eroded`;
     `not-reachable ids requiring human-ack: <ids|none>`. The `frozen-artifact check` covers `acceptance.md`,
-    the RED tests, `Regression surface`, **and every ACTIVE `docs/test-contract.md` row**; on `eroded`, name
-    the artifact or the row id that changed.
+    the RED tests and `Regression surface`; on `eroded`, name the artifact that changed.
   - Frontmatter: `slice · feature · status · rounds`. Change the shape of these sections → update the
     consumers (`pull-request`, the `orchestrator`) in the same commit.
 - **Writes no `docs/lessons.md` entry, and carries none.** An `exercised-fail` is routed to
@@ -425,14 +371,6 @@ contract binds to the running app.
   reader has no way to tell which of them is stale.
 - **Frozen-under-retry guarantee:** qa is the mechanical enforcement point for the no-engine, no-erosion
   invariants — it grades against frozen oracles and halts on any attempt to move the gate by editing them.
-- **Permanent-freeze guarantee:** the same enforcement point covers ACTIVE `docs/test-contract.md` rows,
-  which are frozen in every run rather than for one retry loop. Two things follow: a halt over one names
-  the row id, and classifying a row `not-reachable` is honest reporting rather than erosion — it never
-  halts a slice.
-- **Boundary with `acceptance-criteria`:** `acceptance.md` holds one feature's behavior and is re-signed
-  whenever its `prd.md` moves; `docs/test-contract.md` holds cross-feature scenarios that outlive every
-  feature. A scenario lives in exactly one of them, so the two can never contradict — the same one-home-each
-  discipline `acceptance.md` keeps against the design contract.
 - **Boundary with `frontend-design`:** the same design thesis authored the prototype in Spec and supplies the
   grading rubric here in Verify — qa re-reads the signed contract cold; it does not re-derive
   or relax design floors.

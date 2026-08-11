@@ -6,9 +6,8 @@ description: Use this LAST in the Spec stage, before the human signs off — a f
 ## Purpose
 
 **Stage: Spec — the last skill before the human Spec sign-off.** The run downstream is autonomous, and
-the **two oracles** it cannot out-vote are both a person's act: `acceptance.md`, signed for this feature's
-behavior, and the ACTIVE rows of `docs/test-contract.md`, activated for the guarantees the whole repo
-keeps. A human reviewing a spec littered with stray file paths, dangling ADR refs, placeholder TODOs, and
+the **one oracle** it cannot out-vote is a person's act: `acceptance.md`, signed for this feature's
+behavior. A human reviewing a spec littered with stray file paths, dangling ADR refs, placeholder TODOs, and
 coverage gaps burns scarce attention on mechanical defects instead of the judgment calls only a human can
 make. `spec-review` is a **fresh, code-cold agent
 (maker≠checker)** — never the agent that authored the spec — that **fixes the spec before the human sees
@@ -52,9 +51,6 @@ against what the user actually asked for):
    pass**; read `ARCHITECTURE.md` alongside them when the repo has one. The page carries the markdown's
    source block verbatim, so the two are one artifact in two forms. `status:` reads `unsigned` here and
    stays that way — a person flips it at the gate after reading the page, and nothing an agent does flips it.
-8. `docs/test-contract.md` (repo-wide, when the repo has one) — the permanent cross-feature scenarios.
-   Read its `ACTIVE` rows: the bundle has to agree with them. No such file, or no ACTIVE rows → nothing
-   to reconcile; proceed.
 
 **Refuse to run** if the minimum bundle (`intent.md` + `prd.md` + `acceptance.md`) cannot be resolved —
 without `intent.md` there is no oracle to grade against. Missing optional items (ADRs, or the design
@@ -69,7 +65,10 @@ this stage exists").
 2. **Grade relationally.** For each downstream artifact ask: does it deliver what `intent.md` asked for?
    Walk the four classic axes (placeholders · internal consistency · scope · ambiguity) PLUS the
    artifact-boundary rules and the coverage ledger.
-3. **Classify every issue** as **Decidable (fact)** or **Contestable (judgment)** — see the split table.
+3. **Classify every issue** as **Decidable (fact)** or **Contestable (judgment)** — see the split table. A
+   few rows there are marked **outside your grant**, and those you leave exactly as written; the row says
+   why. Two buckets would otherwise force a third kind of item into one of them, and both of those end in an
+   edit.
 4. **Decidable facts → auto-fix in place**, then re-run the **deterministic re-check** (grep) until it
    converges. Greppable, so it converges cheaply. No inline flag — it was simply wrong.
 5. **Contestable judgment → apply your best correction in place too**, but **mark each change inline**:
@@ -87,16 +86,16 @@ this stage exists").
 | File path / signature / driver-or-library internal appears in `prd.md` (prd MUST NOT contain these) | **Decidable** | Strip it; re-home to an ADR reference. Re-check: grep `prd.md` for paths/extensions/signatures. |
 | Dangling `see ADR-NNN` — referenced ADR file does not exist | **Decidable** | Fix the ref or create the missing ADR pointer. Re-check: cross every `ADR-\d+` in prd.md against `docs/adr/`. |
 | `CONTEXT.md` `## Glossary` term used non-verbatim in `prd.md` | **Decidable** | Normalize to the exact `## Glossary` term (prd uses CONTEXT terms verbatim). |
-| Placeholder / `TODO` / `TBD` / incomplete section | **Decidable** | Fill from context or remove. A design-contract axis reading `inherits: docs/design.md` or `departs: docs/design.md` is **not** incomplete — never fill either in. The first points at the decided look, the second at that axis's own `## Departure` block; restating what either already says is the second copy the format exists to prevent. |
+| Placeholder / `TODO` / `TBD` / incomplete section | **Decidable** | Fill from context or remove. A design-contract axis reading `inherits: docs/design.md` or `departs: docs/design.md` is **not** incomplete — never fill either in. The first points at the decided look, the second at that axis's own `## Departure` block; restating what either already says is the second copy the format exists to prevent. Nor is `architecture.md`'s §8 — see its own row below. |
 | Value or command embedded in `environment.md` (no value column, no command column — structurally illegal) | **Decidable** | Remove. If it is a real secret → also a security STOP (see Red flags). |
 | `acceptance.md` scenario contains a file path / signature / table (behavioral-only) | **Decidable** | Rewrite as an observable outcome. |
 | `architecture.html`'s embedded source block differs from `architecture.md` | **Decidable** | Re-splice the block from the markdown — never retype it. Compare the two byte for byte; a copy that was typed rather than spliced is already drifting while looking exactly like one that is not. This is the last stop before a person signs the page, and they read the page rather than the markdown. |
 | An `acceptance.md` scenario traces through no module or seam in `architecture.md` | **Contestable** (spotting it is mechanical; which structure absorbs it is not) | A backstop: `architecture-design` traces the draft first, so a scenario reaching here got past that. Say which of the two you believe is wrong. Where the **structure** is missing a part, draft the trace into `architecture.md` and **flag it inline** with the scenario id. Where you believe the **scenario** is the thing that does not belong, **flag it for the person and change nothing** — that judgement is contestable, and your grant on `acceptance.md` covers a decidable fact, not a call about which side is right. Deleting a scenario is the one correction that cannot be flagged inline, because a removed scenario leaves no line to carry the flag; it would leave no RED test, nothing for `quality-verification` to grade, and the story-coverage checks pass either way. Name it by id in `spec-review.md` instead. Calling it a structural gap when it is a scenario gap is how a structure gets bent around a scenario nobody wanted — and quietly cutting the scenario is how a behaviour ships unguarded. |
+| `architecture.md`'s §8 reads like unfinished work — every row states a question **and a recommended answer** | **Neither — outside your grant** | Leave every row exactly as written, recommended answer included. That section opens with a line saying its rows are unanswered by design and that the person answers them at the gate; the recommended answer is what its format requires of each row, not an invitation to apply it. This overrides both standing rules: §8 is not a placeholder to fill, and not a contestable item to correct-and-flag. Resolve one and you hand the person a section that looks settled, which removes the only question they were being asked — and the rows raised by the code-cold sweeps are precisely the ones nobody has put to them yet. |
 | Acceptance **coverage gap**: a `prd.md` user story or `intent.md` success-criterion with no scenario (every story must map to ≥1 reachable scenario) | **Contestable** | Draft the missing scenario; **flag it inline**. |
 | **ADR-worthiness**: a hard-to-reverse ∧ surprising decision buried in prd prose instead of an ADR | **Contestable** | Propose extracting an ADR; **flag**. |
 | **One feature or two**: `intent.md` describes two independent subsystems crammed into one spec | **Contestable** | Propose the split; **flag**. |
 | Internal contradiction between `prd.md` and an ADR or `acceptance.md` | **Contestable** | Reconcile to one side; **flag the chosen side**. |
-| An `acceptance.md` scenario contradicts an **ACTIVE** row in `docs/test-contract.md` | **Contestable** (spotting it is judgment; which side wins is not) | The ACTIVE row wins — rewrite the feature scenario to agree with it; **flag it inline**, naming the row id. Never edit `docs/test-contract.md`. |
 | A design-contract `Quality floor`, `Restraint`, or `Copy-as-design-material` axis reads `inherits: docs/design.md` or `departs: docs/design.md` | **Contestable** (spotting it is mechanical; what the `delta:` says is not) | `docs/design.md` decides the other four axes and holds nothing on these three, so the line points at nothing and Verify would grade the axis against a file with no decision in it. Draft the `delta:` from what this surface decided; **flag it inline**. |
 
 ## ADR-open check (risk mitigation / handoff)
@@ -127,12 +126,6 @@ the gate. ADR cross-refs are immutable once written — rename/supersede → upd
 - You silently re-authored a contestable section with no inline flag → **STOP**; every judgment change
   must be visible.
 - `intent.md` is absent → **refuse to run**; there is no oracle to grade against.
-- You are about to edit `docs/test-contract.md` — reword a row, narrow one, or change a `state:` → **STOP**.
-  The agent never edits that file in either direction; rows are added and activated by a person, and an
-  ACTIVE row an agent can adjust is not a guarantee. If the ACTIVE row itself looks wrong, flag it for the
-  human and leave the row alone — they change it outside any run.
-- You are letting a collision with an ACTIVE row through because "the run will catch it" → **STOP**. It
-  will, as a halted slice hours later. Spec is the only place a person is present to settle it.
 - An embedded value in `environment.md` looks like a real, committed secret → remove it from the manifest
   AND treat the exposure as a security STOP per `security.md` (hard halt + surface to the human).
 
@@ -145,8 +138,6 @@ Done when ALL hold:
 - Every **contestable** change is applied **and** carries an inline `<!-- spec-review: … -->` flag.
 - Every `acceptance.md` scenario id back-references a story id, and every story / `intent.md`
   success-criterion maps to ≥1 scenario (coverage ledger has no orphan story).
-- No `acceptance.md` scenario contradicts an ACTIVE row in `docs/test-contract.md`, and that file is
-  byte-identical to how you found it. (No such file, or no ACTIVE rows → satisfied.)
 - `spec-review.md` written with the four stable sections, including `## Open the referenced ADRs`.
 - The bundle is handed back **cleaned** (not a punch-list); the human is told judgment changes are flagged
   and they keep final authority.
@@ -155,7 +146,6 @@ Done when ALL hold:
 
 - **Emits — fixed spec:** the bundle artifacts (`prd.md`, `acceptance.md`, `environment.md`, `CONTEXT.md`,
   ADRs) edited in place; decidable facts silently corrected, contestable judgments corrected + inline-flagged.
-  `docs/test-contract.md` is read, never among them.
 - **Emits — `spec-review.md`:** ephemeral, **OUT of the resume-spine** (not a chain link). Stable
   sections: `## Auto-fixed (facts)` · `## Flagged (judgment — revert if you disagree)` · `## Coverage
   ledger` (scenario↔story map + any not-reachable classification) · `## Open the referenced ADRs`.

@@ -8,10 +8,11 @@ description: 'Designs stable, hard-to-misuse interface contracts BEFORE implemen
 ## Overview
 
 **Stage: Spec · Plan — a referenced discipline, not a sequential stage.** `spec-grilling` dispatches it
-in Spec to propose a variant for a load-bearing structural question; `plan-breakdown` reaches for it in
-Plan to pin the interface contract into `plan.md`; the Review fan-out applies it as a lens when a diff
-changes a surface a file outside the diff calls. It owns no artifact of its own. It is also invokable
-standalone for a pure interface refactor.
+in Spec to propose a variant for a load-bearing structural question; `architecture-design` dispatches it in
+Spec as a code-cold lens over a structure already written, grading the consumer surface that structure
+records; `plan-breakdown` reaches for it in Plan to pin the interface contract into `plan.md`; the Review
+fan-out applies it as a lens when a diff changes a surface a file outside the diff calls. It owns no
+artifact of its own. It is also invokable standalone for a pure interface refactor.
 
 Design stable, well-documented interfaces that are hard to misuse. Good interfaces make the right thing easy and the wrong thing hard. This applies to REST APIs, GraphQL schemas, module boundaries, component props, and any surface where one piece of code talks to another.
 
