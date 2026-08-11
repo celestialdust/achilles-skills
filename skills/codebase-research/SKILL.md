@@ -97,7 +97,8 @@ because the decision is now signed.
 4. Run the **objectivity self-check** (`## Objectivity self-check`) over every sub-agent output.
 5. Synthesize into `docs/features/<slug>/research.md` using the template in `## Output template`. **The
    Plan pass appends `## Plan pass — <aspect>` and writes its findings there; it never rewrites the six
-   stable sections above.** Pass 1's map is what `spec-grilling` decided against and what the Spec gate
+   stable sections above.** A re-plan appends a section for its own aspect, so a feature planned twice
+   carries two; surveying an aspect that already has a section replaces that one section and nothing else. Pass 1's map is what `spec-grilling` decided against and what the Spec gate
    signed over. Regenerating it from one narrow aspect destroys it silently — the six sections would still
    all be present, so the Verification criterion below would pass on the file that just erased its own
    input, and `plan-breakdown` would plan against a survey of one adapter.
