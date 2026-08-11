@@ -426,16 +426,7 @@ Per-increment verification is the local check. Before declaring a task done, app
   materially unchanged). The way to green is to fix the impl (via `debugging-and-error-recovery`), never to
   move the goalposts. No `--no-verify`, no hook edits, no `SKIP_HOOKS` (security.md / CLAUDE.md).
   Those three thaw between runs — a person can change them by a signed Spec change, outside the run.
-- **Frozen permanently — ACTIVE `docs/test-contract.md` rows:** a row marked **ACTIVE** under that file's
-  `## Rows` heading is a scenario the whole repo owes, and it is frozen in **every** run, forever. There is
-  no retry loop it thaws after and no Spec change unfreezes it, because activation is one-way and only a
-  person performs it. Skipping, deleting, weakening, or narrowing one to make a gate pass is the same
-  gate-erosion **HALT** — at any moment, retry or not — and the halt **names the row id** (`TC-1`), because
-  "gate erosion" alone tells the person reading it nothing about which guarantee was about to be traded away.
-  Never set a row's state yourself in either direction: you read that file and do not edit it. Proposing a
-  new `PENDING` row costs nothing and needs no measurement. An absent file, or one with no ACTIVE rows, is
-  the normal case and changes nothing here.
-- **Read-only rather than frozen — `docs/design.md`, the repository's decided look.** It is not a fifth
+- **Read-only rather than frozen — `docs/design.md`, the repository's decided look.** It is not a fourth
   frozen artifact; it is a file a slice reads and never writes. Verify grades every contract axis marked
   `inherits: docs/design.md` against it, and it carries no `status:` of its own, so nothing else catches
   an edit. Moving the decided look so the built surface matches the code is weakening a check to clear a

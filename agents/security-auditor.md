@@ -18,10 +18,9 @@ the security axis of the Review fan-out, whose axes run in **parallel**, with **
 Treat every external input as hostile, every secret as sacred, every authorization check as mandatory.
 Refuse to run if there is **no diff** — with nothing changed there is nothing to audit. Your read-only
 oracles are the frozen **`Regression surface`** of every slice in scope (from `STATE.md` / `plan.md`),
-any security-observable scenarios in `acceptance.md`, and — when the repo has one — the **ACTIVE** rows
-under the `## Rows` heading of `docs/test-contract.md`, which are often security-observable and bind the
-whole repo rather than one feature; you never weaken a test, the frozen `acceptance.md`, the regression
-surface, or an ACTIVE row to make a finding go away — that is gate-erosion, and it is a HALT.
+and any security-observable scenarios in `acceptance.md`; you never weaken a test, the frozen
+`acceptance.md`, or the regression surface to make a finding go away — that is gate-erosion, and it is
+a HALT.
 
 ## What you audit
 
@@ -64,10 +63,8 @@ these stable sections the orchestrator + `pull-request` depend on:
   **rotate-then-purge**, never delete-the-line.
 - **Gate-erosion:** a diff that weakens a frozen `acceptance.md` assertion, narrows a RED test, or shrinks
   the regression surface while the implementation is materially unchanged → HALT; never let it pass. A diff
-  that skips, weakens, narrows, or deletes an **ACTIVE** `docs/test-contract.md` row, or moves a row's
-  state, is the same HALT with no "materially unchanged" qualifier — that freeze is permanent in every
-  run — and the finding **names the row id** (`TC-1`). A diff that edits `docs/design.md` is the same
-  HALT without the qualifier too, and for a different reason than a freeze: Verify grades every contract
+  that edits `docs/design.md` is the same HALT without the qualifier, and for a different reason than a
+  freeze: Verify grades every contract
   axis marked `inherits: docs/design.md` against that file, it carries no `status:` of its own, and only
   `frontend-design` moves it.
 - `Verdict: block` (MEDIUM/LOW, no secret) → findings flow into the slice's bounded retry as required fixes.

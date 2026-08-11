@@ -86,7 +86,7 @@ OpenCode does not require slash commands like `/spec` or `/plan`. The same lifec
 |---|---|---|
 | IDEATE | `/ideate` | `interview-me`, then `idea-refine` |
 | SPEC | `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `frontend-design`, `acceptance-criteria`, `environment-manifest`, `architecture-design`, `spec-review`); `spec-grilling` dispatches `codebase-design` / `api-design` to propose a structural variant |
-| PLAN | `/plan` | `plan-breakdown` (reuses Spec's `research.md`); `plan-breakdown` reaches for `codebase-design` / `api-design` again to pin the interface into `plan.md`. Those two are referenced disciplines running in **Spec and Plan**, not a stage of their own, and own no artifact |
+| PLAN | `/plan` | `codebase-research` again (second pass, scoped to the aspect the signed decisions point at), then `plan-breakdown`; `plan-breakdown` reaches for `codebase-design` / `api-design` again to pin the interface into `plan.md`. Those two are referenced disciplines running in **Spec and Plan**, not a stage of their own, and own no artifact |
 | IMPLEMENT | `/implement` | `incremental-implementation` (applies `test-driven-development`; `source-driven-development` for framework calls; `worktree` for isolation) |
 | VERIFY | `/verify` | `quality-verification` (drives `browser-testing-with-devtools`; `debugging-and-error-recovery` on failure) |
 | REVIEW | `/review` | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization` fan-out) |
@@ -96,7 +96,7 @@ OpenCode does not require slash commands like `/spec` or `/plan`. The same lifec
 Two cross-cutting commands round out the set:
 
 - `/orchestrate` → `orchestrator` — the autonomous wave-parallel DAG runner that drives every slice Implement → Ship to open draft PRs. Its readiness gate is `preflight-readiness`; per-session compaction is `handoff`.
-- `/setup` → `project-setup` — one-time repo ecosystem bootstrap (`STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/test-contract.md`, `docs/workflow.md`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other).
+- `/setup` → `project-setup` — one-time repo ecosystem bootstrap (`STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other).
 
 Three further commands are **standalone** — they belong to no stage and can run at any time without advancing one:
 

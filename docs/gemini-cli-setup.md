@@ -83,7 +83,7 @@ Add these as persistent context for every session:
 Install these as skills so they activate only when relevant:
 
 - `test-driven-development` — Activates when implementing logic or fixing bugs
-- `codebase-research` — Activates at the head of Spec, before any design decision → research.md
+- `codebase-research` — Activates at the head of Spec, before any design decision, and again at the head of Plan → research.md
 - `spec-grilling` — Activates when designing a new product or feature, after the survey (it refuses without research.md)
 - `frontend-design` — Activates when building UI
 - `security-and-hardening` — Activates during security reviews
@@ -142,13 +142,13 @@ required.
 |---------|---------|--------------|
 | `/ideate` | interview-me, then idea-refine | Front door for a fresh idea → `intent.md` |
 | `/spec` | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) | Survey the code as-is → `research.md`, then design the product → ADRs + `CONTEXT.md` |
-| `/plan` | plan-breakdown (reuses Spec's research.md) | Concrete plan → vertical slices + dependency DAG |
+| `/plan` | codebase-research again (second pass), then plan-breakdown | Survey the aspect the signed decisions point at → research.md, then the concrete plan → vertical slices + dependency DAG |
 | `/implement` | incremental-implementation (applies test-driven-development) | Build one thin vertical slice |
 | `/verify` | quality-verification | Fresh code-cold proof a slice works |
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization as fan-out) | Quality gate before merge |
 | `/ship` | pull-request — the spine of the stage | Open one slice's risk-banded draft PR; the stage ends there. shipping-and-launch is release-level and follows the human's merge. |
 | `/orchestrate` | orchestrator | Autonomous wave-parallel DAG runner to open draft PRs |
-| `/setup` | project-setup | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · `docs/progress.md` · `docs/lessons.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other |
+| `/setup` | project-setup | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/session-state.md` · `docs/progress.md` · `docs/lessons.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other |
 | `/explain` | literate-explainer | **Standalone** — explain code or a system in prose |
 | `/quiz` | comprehension-quiz | **Standalone** — check comprehension of a change or codebase area |
 | `/gauntlet-loop` | gauntlet-loop | **Standalone** — a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch; offered, never auto-selected |

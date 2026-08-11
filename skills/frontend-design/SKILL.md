@@ -1,6 +1,6 @@
 ---
 name: frontend-design
-description: Use whenever you build or reshape ANY UI surface — a page, screen, component, or flow. Explore throwaway variants, commit ONE high-fidelity prototype as the reference-spec build target, and write the signed design contract that Verify grades against. Invoke BEFORE any production UI; don't reach for a cream-serif-terracotta default.
+description: Use whenever a feature decides what something looks like — it authors the markup, layout, styling, or interaction structure of an output a person reads (a page, screen, component, flow, email, or message layout), however the brief is worded. Explore throwaway variants, commit ONE high-fidelity prototype as the reference-spec build target, and write the signed design contract that Verify grades against. Skip only where the feature decides nothing about presentation and merely hands data to a surface somebody else designed — a pure API, a CLI, a data pipeline. Invoke BEFORE any production UI; don't reach for a cream-serif-terracotta default.
 ---
 
 # Frontend Design
@@ -16,19 +16,22 @@ else's — make deliberate, opinionated choices about palette, typography, and l
 and take one real aesthetic risk you can justify.
 
 ## When to use / when to skip
-- **Use** when the feature **changes what a person sees or does** — a page, screen, component, or flow —
-  and the look is not already fully pinned. This runs in Spec, after `to-prd`, and **before
-  `acceptance-criteria` and `environment-manifest` run** — not merely before they are signed. Exploring an
+- **Use** when this feature **decides what something looks like** — it authors the markup, layout,
+  styling, or interaction structure of an output a person reads, rather than producing data some other
+  feature presents. This runs in Spec, after `to-prd`, and **before `acceptance-criteria` and
+  `environment-manifest` run** — not merely before they are signed. Exploring an
   interface surfaces behaviour a `prd.md` omits (the empty state, the failed save), and that has to reach
   `acceptance.md` while it is being written rather than after it exists.
-- Ask that of the **behaviour, not of the brief's vocabulary.** A `prd.md` written entirely in storage or
-  protocol terms — "edits are kept locally and retried" — still reaches a screen the moment it has a
-  restored state to show, a failure to report, or a control to press. Reading such a brief as "no UI" is
-  the common miss, and it costs the whole point of running here: nobody explores, so the states the brief
-  left out never reach `acceptance.md`, and Verify grades a contract that never mentioned them. If you can
-  name one screen this feature changes, it is a UI surface however the brief is worded.
-- **Skip** when nothing this feature does reaches a person: a pure API, a CLI with no interactive surface,
-  a data pipeline. Then there is no design contract and `quality-verification` runs no design gate. Skip the *exploration* phase (go straight to commit) when the brief
+- Ask that of **what this feature decides — not of the brief's vocabulary, and not of who displays the
+  result.** A `prd.md` written entirely in storage or protocol terms — "edits are kept locally and
+  retried" — is a Use when the editor it describes is this feature's to build: if you can name one screen
+  this feature changes, it is a UI surface however the brief is worded. The opposite miss is as live: every
+  feature has a failure to report and a state to restore, so "a person sees it eventually" is a test that
+  never skips anything. A pure API handing JSON to a screen somebody else designed decides nothing about
+  how it looks, and skips. The medium does not: a Slack message's blocks, a transactional email's layout,
+  and a report template are presentation this feature decides and nobody else will.
+- **Skip** when this feature decides nothing about presentation: a pure API, a batch job, a data
+  pipeline, a CLI whose output is machine-read rather than laid out for a person. Then there is no design contract and `quality-verification` runs no design gate. Skip the *exploration* phase (go straight to commit) when the brief
   already pins the visual direction exactly — the brief's own words always win, including when it asks for a
   look you'd otherwise call a default.
 - **depth: lite** — a tiny, low-stakes surface (one isolated component, an internal tool) may collapse to a
@@ -44,7 +47,8 @@ and take one real aesthetic risk you can justify.
   first UI surface built here. Present, it is this surface's starting point and the contract records only
   what differs from it; absent, this is the first surface and it writes the file (Phase 0.5). Never a
   refuse-to-run: a repo with no user interface has none.
-- If `prd.md` describes **no UI surface**, emit nothing and hand back "no UI — skip frontend-design."
+- If *When to use / when to skip* above puts this feature on the skip side, emit nothing and hand back
+  "no UI — skip frontend-design" to whoever dispatched you.
 
 ## Process: explore throwaway variants → commit ONE prototype + write the contract
 
@@ -325,11 +329,11 @@ Done when ALL hold:
   reading an axis marked `inherits:` from `docs/design.md`, and grading each `## Departure` block), and
   gating `quality-verification` (refuses to run against an unsigned/absent contract).
 - **Re-invalidation rule:** what a later edit un-signs — including an edit to `docs/design.md`, which
-  reaches every contract carrying an inherited axis it touched — is stated once, in `docs/workflow.md`'s
+  reaches every contract carrying an inherited axis it touched — is stated once, in `using-agent-skills`'s
   *What an edit un-signs*. Name the affected contracts in this surface's handoff and flip each one.
 - **STATE.md:** the feature stays in `spec`; set `gate: you` so the human signs prd + acceptance +
   environment + (this) design contract together at the single Spec sign-off — plus architecture where the
   feature added a module, added a dependency between parts that already exist, or introduced a seam, which
-  is not every feature. `docs/workflow.md` states which artifacts the gate covers; read the bundle from
+  is not every feature. `using-agent-skills` states which artifacts the gate covers; read the bundle from
   there rather than from this list, which names only what this surface contributes to it. Intent was signed
   earlier, at the Ideate gate. No slice rows yet (slices are born in Plan).

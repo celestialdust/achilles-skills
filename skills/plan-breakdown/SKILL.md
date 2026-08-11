@@ -38,7 +38,10 @@ required input cannot be resolved — a plan invented without the PRD or the cod
    signatures** — plan-breakdown is exactly where that product intent gets pinned to concrete files,
    line ranges, and snippets. Every slice back-references a `## User Stories` id.
 2. `research.md` — `## Codebase map` · `## Dependency facts` · `## External APIs` · `## Prior art in the
-   codebase` · `## Structural facts` · `## Open items for Plan`. This is the goal-blind as-is map; every
+   codebase` · `## Structural facts` · `## Open items for Plan`, plus `## Plan pass — <aspect>` from the
+   second `codebase-research` pass. That pass runs at the head of Plan and is expected, not exceptional —
+   if the file carries no Plan-pass section, run `codebase-research` before you slice rather than planning
+   against a survey taken before the decisions existed. This is the goal-blind as-is map; every
    `file`/`lines` your steps name must be real per this map, and your steps must follow the existing
    patterns it records. `## Structural facts` is the one to read before pinning an interface: it records
    the seams and their adapter counts, the module boundaries, and the conventions in use, so a signature
@@ -152,8 +155,9 @@ apart here, because they are easy to collapse into one: a run never *waits* for 
 conditions do *end* work early. Most of them end only the affected **slice** — an unsigned contract, an
 attempted edit to a frozen artifact, a check about to be weakened, a security Critical or High, exhausted
 retries — and the rest of the graph keeps draining. A few end the whole **run**: a precondition missing at
-run start, a cycle in the slice graph, gates failing at a rising rate across the run. `docs/workflow.md`
-lists every condition with an `Ends` column saying which; read it there rather than restating it here.
+run start, a cycle in the slice graph, gates failing at a rising rate across the run. `orchestrator`'s
+*What stops a run* lists every condition with an `Ends` column saying which; read it there rather than
+restating it here.
 Stopping is something the run does on its own and reports; waiting is the thing it cannot do. So a "check
 with the human first" line is either dead text or
 an instruction to deadlock. Whatever you wanted a human to look at, write it as a fact in the checkpoint

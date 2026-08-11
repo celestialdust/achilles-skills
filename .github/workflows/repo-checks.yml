@@ -85,7 +85,7 @@ jobs:
           compare() {
             if [ "$2" -gt "$3" ]; then
               echo "::error::$1 rose from $3 to $2 — this change adds an unsettled write claim." \
-                   "Settle it in docs/workflow.md's write table, or say in the PR why it cannot be."
+                   "Settle it in references/write-ownership.md's write table, or say in the PR why it cannot be."
               rc=1
             elif [ "$2" -lt "$3" ]; then
               echo "::notice::$1 fell from $3 to $2 — update scripts/write-table-baseline.txt."

@@ -95,7 +95,7 @@ Cascade which underlying skill(s) to apply:
 |---|---|---|
 | `/ideate` | /ideate | interview-me, then idea-refine |
 | `/spec` | /spec | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) |
-| `/plan` | /plan | plan-breakdown (reuses Spec's research.md) |
+| `/plan` | /plan | codebase-research again (second pass, scoped to the aspect the signed decisions point at), then plan-breakdown |
 | `/implement` | /implement | incremental-implementation (applies test-driven-development) |
 | `/verify` | /verify | quality-verification |
 | `/review` | /review | code-review (+ code-simplification, security-and-hardening, performance-optimization as a fan-out) |
@@ -155,7 +155,7 @@ Pick the skills that match your current phase rather than loading all 40 at once
 
 **Spec (human-led)** — codebase-research (first) · spec-grilling · to-prd · frontend-design · acceptance-criteria · environment-manifest · architecture-design · spec-review
 
-**Plan (human-led)** — plan-breakdown (reuses Spec's research.md)
+**Plan (human-led)** — codebase-research (second pass, scoped to the aspect the signed decisions point at) · plan-breakdown
 
 **Spec · Plan (referenced disciplines, not a stage)** — codebase-design · api-design (each proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own)
 
@@ -174,8 +174,10 @@ Pick the skills that match your current phase rather than loading all 40 at once
 Windsurf's context is limited, so start narrow:
 
 1. **Always-on (1–2 skills):** `using-agent-skills` (the task → skill dispatcher) and `git-workflow`.
-2. **Glob-activated:** `test-driven-development` on `**/*.test.*`, `frontend-design` on `**/*.tsx`.
-3. **Manual:** the 5 personas, plus heavyweight Review/Ship skills you only need at gates.
+2. **Glob-activated:** `test-driven-development` on `**/*.test.*`.
+3. **Manual:** the 5 personas, `frontend-design` — it runs in Spec, before the UI files a glob could match
+   exist, so no glob can activate it at the right moment — plus heavyweight Review/Ship skills you only
+   need at gates.
 4. Recreate the 12 commands as `/workflows` so the lifecycle is one keystroke away in Cascade.
 
 ## Usage tips

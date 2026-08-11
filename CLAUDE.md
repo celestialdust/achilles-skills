@@ -19,9 +19,10 @@ the wrong skill runs and a stage gets skipped.
 skills/          → 40 skills, one discipline each (skills/<name>/SKILL.md)
 agents/          → 5 review personas (code-cold subagents)
 commands/        → 12 slash commands (*.md) — 9 lifecycle + 3 standalone
-references/      → shared reference material: checklists (security, performance, accessibility, …) and
-                   language-style.md, the prose style guide for everything this repo ships
-docs/            → per-agent setup guides + workflow.md and test-contract.md (this repo's own copies)
+references/      → shared reference material: checklists (security, performance, accessibility, …),
+                   language-style.md, the prose style guide for everything this repo ships, and
+                   write-ownership.md, the write table check-write-table.mjs reads
+docs/            → per-agent setup guides
 scripts/         → the six consistency checks CI runs over the whole tree — see *How a change here is
                    checked*
 .claude-plugin/  → plugin.json + marketplace.json (install manifests)
@@ -44,8 +45,6 @@ lives.
 |---|---|---|
 | `STATE.md` | the work board — one block per feature, one row per slice, and a `gate` column naming who owns the next action | `plan-breakdown` adds the rows; the orchestrator drives them |
 | `CONTEXT.md` | the glossary — one plain-language definition per domain term, no implementation detail | `project-setup` seeds it; `spec-grilling` appends terms |
-| `docs/workflow.md` | how work ships: the stages, who owns each gate, where a run ends, what stops one | `project-setup`, copied verbatim; never hand-edited |
-| `docs/test-contract.md` | scenarios the repo must never lose, each `PENDING` or `ACTIVE` | a person; agents read it and never edit it |
 | `docs/session-state.md` | where the work stands (five fields, rewritten each time) plus an append-only log of decisions | `handoff` |
 | `docs/design.md` | the repository's decided look — what every interface shares, as against what one screen decides for itself | the **first** UI surface built in the repo, via `frontend-design`; nothing scaffolds it |
 | `docs/adr/` | one file per architectural decision, with the reasoning and what was ruled out | `spec-grilling`, `plan-breakdown`, `documentation-and-adrs` |
@@ -54,6 +53,7 @@ lives.
 | `docs/lessons.md` | root-caused defects, seven fields each, naming the guard that would catch a recurrence | `project-setup` seeds it; `debugging-and-error-recovery` and `code-review` append |
 | `docs/features/<slug>/` | one feature's `intent.md`, `research.md`, `prd.md`, `acceptance.md`, `environment.md`, `architecture.md`, `architecture.html`, `plan.md`, `qa.md` | the stage that produces each one |
 | `references/language-style.md` | how this suite writes | a person; it ships with the plugin and is never scaffolded into a consumer's repo |
+| `references/write-ownership.md` | the write table — every file a skill may write, cut into zones, one writer named per zone; `scripts/check-write-table.mjs` parses it | a person; it ships with the plugin and is never scaffolded into a consumer's repo |
 | `CONTRIBUTING.md` | what a change to a skill, command, or persona must satisfy — naming, the `SKILL.md` envelope, structure rules, the artifact-chain contract, and the pre-PR list | a person; contributor-facing, never scaffolded into a consumer's repo |
 
 This repository is the suite, not a repo the suite runs in, so several of these rows have no file here.
@@ -74,7 +74,7 @@ last three are standalone and belong to no stage.
 |---|---|---|
 | `/ideate` | interview-me, then idea-refine | human |
 | `/spec` | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) | human |
-| `/plan` | plan-breakdown — reuses /spec's research.md; re-surveys only against a named gap | human |
+| `/plan` | codebase-research again (second pass, scoped to the aspect the signed decisions point at), then plan-breakdown | human |
 | `/implement` | incremental-implementation (applies test-driven-development) | agent |
 | `/verify` | quality-verification | agent |
 | `/review` | code-review (+ code-simplification, security-and-hardening, performance-optimization fan-out) | agent |
@@ -122,7 +122,7 @@ a platform with no skill tool — not to build the `/review` fan-out.
 
 - **Risk-banded draft PRs only.** Autonomous runs terminate at an **open draft PR** with a risk band and
   never block waiting for input. Named conditions do stop a run early, but a stopped run terminates and
-  reports rather than waiting — [docs/workflow.md](./docs/workflow.md) lists them.
+  reports rather than waiting — [orchestrator](./skills/orchestrator/SKILL.md), *What stops a run*, lists them.
 - **Never auto-merge to main.** A human merges. The agent opens the PR; the human decides.
 - **maker≠checker.** Verify and Review run as fresh, code-cold subagents that do not share the
   implementer's context — each one dispatched as the skill itself, not as a role played on top of it.
@@ -164,11 +164,11 @@ node scripts/check-enumerations.mjs    # every hand-written count matches what i
 node scripts/check-stages.mjs          # the stage a registry assigns matches the stage the skill declares
 ```
 
-The sixth, `node scripts/check-write-table.mjs`, **exits 1 by design**: 68 write claims in `skills/` are
-not yet settled against the table in `docs/workflow.md`. That is pre-existing debt, so CI enforces a
-ratchet rather than exit 0 — the counts may fall, never rise. The pass condition is the summary line
-reading `0 in the table, 37 conflicts, 31 unresolved`, matching `scripts/write-table-baseline.txt`. Never
-edit those numbers to make a build green.
+The sixth, `node scripts/check-write-table.mjs`, **exits 1 by design**: 66 write claims in `skills/` are
+not yet settled against the table in `references/write-ownership.md`. That is pre-existing debt, so CI
+enforces a ratchet rather than exit 0 — the counts may fall, never rise. The pass condition is the summary
+line reading `0 in the table, 37 conflicts, 29 unresolved`, matching `scripts/write-table-baseline.txt`.
+Never edit those numbers to make a build green.
 
 The second workflow, `.github/workflows/companion-tests.yml`, covers the vendored companion engine under
 `skills/frontend-design/scripts/` — Node and Bash code with real tests, run on Linux and macOS. That one

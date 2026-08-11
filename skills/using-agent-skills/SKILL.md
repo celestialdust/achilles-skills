@@ -67,14 +67,15 @@ Task arrives
     ├── Don't know what you want yet? ─────────→ interview-me     (Ideate · optional front door → intent.md)
     ├── Have a rough idea, need variants? ─────→ idea-refine      (Ideate → intent.md)
     ├── New feature, need the design? ─────────→ codebase-research, then spec-grilling     (Spec · in that order)
-    │   ├── Survey the code as it is today? ───→ codebase-research         (Spec · head → research.md · goal-blind)
+    │   ├── Survey the code as it is today? ───→ codebase-research         (Spec · head → research.md · goal-blind
+    │   │                                        · runs again at the head of Plan)
     │   ├── Survey done, decide the design? ───→ spec-grilling    (Spec → ADRs + CONTEXT.md · refuses without research.md)
     │   ├── Deep-module interfaces? ───────────→ codebase-design  (Spec · Plan · referenced discipline)
     │   ├── Contract-first API? ───────────────→ api-design       (Spec · Plan · referenced discipline)
     │   ├── Need the product PRD? ─────────────→ to-prd           (Spec → prd.md)
-    │   ├── Changes what a person sees? ───────→ frontend-design  (Spec, after to-prd and before
-    │   │      (ask it of the behaviour, not      acceptance-criteria and environment-manifest run)
-    │   │       of the brief's wording)
+    │   ├── Decides how something looks? ──────→ frontend-design  (Spec, after to-prd and before
+    │   │      (the skill's own When-to-use       acceptance-criteria and environment-manifest run)
+    │   │       states the test)
     │   ├── Need the behavioral contract? ─────→ acceptance-criteria       (Spec → acceptance.md, behavioral-only)
     │   ├── Capture env needs? ────────────────→ environment-manifest      (Spec/Plan → environment.md)
     │   ├── Structure nobody wrote down? ──────→ architecture-design       (Spec · once acceptance.md exists
@@ -82,8 +83,9 @@ Task arrives
     │   │                                        ARCHITECTURE.md · never scaffolded)
     │   └── Spec done, fix before review? ─────→ spec-review      (Spec → fixed spec + spec-review.md)
     ├── Signed spec, need a plan? ─────────────→ plan-breakdown   (Plan · THE planner → plan.md + slices + DAG)
-    │   └── Need codebase facts? ──────────────→ reuse Spec's research.md; re-run codebase-research only
-    │                                            against a gap you can name in one sentence
+    │   └── Need codebase facts? ──────────────→ codebase-research (Plan · head → second pass, scoped to the
+    │                                            aspect the signed decisions now point at; Spec's
+    │                                            research.md still stands for ground it already maps)
     ├── Implementing a slice? ─────────────────→ incremental-implementation        (Implement · THE implementer → diff)
     │   ├── Writing the test first? ───────────→ test-driven-development              (RED-GREEN-REFACTOR · hook-enforced)
     │   ├── Framework/library decision? ───────→ source-driven-development    (verify against fetched official docs)
@@ -169,9 +171,8 @@ When you encounter inconsistencies, conflicting requirements, or unclear specifi
 1. **STOP.** Do not proceed with a guess.
 2. Name the specific confusion. Where two documents disagree, name both files and the claim.
 3. Check whether it is already settled. Two documents disagreeing is often not a real conflict:
-   `docs/workflow.md`'s **Source-of-truth order** ranks them, and if it names which one governs, you
-   have your answer and you continue. A confusion that order does not cover, or does not settle,
-   reaches step 4.
+   **Source-of-truth order** below ranks them, and if it names which one governs, you have your answer
+   and you continue. A confusion that order does not cover, or does not settle, reaches step 4.
 4. Hand it to whoever can settle it — and **who that is depends on whether anybody is there to ask.**
 
 **Which situation you are in.** The question is not which stage you are in, it is whether a person is
@@ -187,15 +188,15 @@ present to answer:
   is over, the run keeps going, and the human settles it when they next look.
 
 Ending a slice is not a quieter way of waiting — it is what keeps the rest of the graph moving, and it
-is one of the named stop conditions rather than an exception to autonomy. `docs/workflow.md`'s *What
-stops a run* carries the full list; read it there rather than counting from memory.
+is one of the named stop conditions rather than an exception to autonomy. `orchestrator`'s *What stops a
+run* carries the full list; read it there rather than counting from memory.
 
 **Bad:** Silently picking one interpretation and hoping it's right.
 **Bad:** Asking a clarifying question inside a run, then waiting. Nobody is at the keyboard, so the
 answer never comes and the run never finishes.
 **Good, with a person present:** "I see X in the spec but Y in the existing code. Which takes precedence?"
 **Good, inside a run:** end the slice reporting "ADR-004 expires sessions at 24h, ADR-011 at 1h; both
-are rank 4, so the source-of-truth order does not settle it" — the `gate` flips `agent → you`, and the
+are rank 3, so the source-of-truth order does not settle it" — the `gate` flips `agent → you`, and the
 next ready slice starts.
 
 ### 3. Push Back When Warranted
@@ -243,8 +244,10 @@ Per-skill verification is the local check. The project-wide bar that applies to 
 
 The loop is **Ideate → Spec → Plan → Implement → Verify → Review → Ship**. Ownership splits hard:
 
-- **Human owns Ideate + Spec + Plan** (all the thinking). One upstream gate: the **Spec sign-off** —
-  `docs/workflow.md` lists what it signs.
+- **Human owns Ideate + Spec + Plan** (all the thinking). One upstream gate: the **Spec sign-off**, one
+  act covering `acceptance.md`, `environment.md`, `prd.md`, the decision records and the glossary at once
+  — plus a design contract where the feature has UI, and `architecture.md` where it adds a module, adds a
+  dependency between parts that already exist, or introduces a seam.
 - **Agent runs Implement → Verify → Review → Ship autonomously — it never blocks waiting for input.** No
   "should I continue?" checkpoint sits between slices; nobody has to watch it. It terminates at
   **risk-banded OPEN draft PRs** on the cluster branch; the **async human merge is the surviving final gate**
@@ -257,7 +260,8 @@ The loop is **Ideate → Spec → Plan → Implement → Verify → Review → S
   nobody is there to give, so auth, payments, migrations, deletions, deploys, and secrets surface at the
   end instead — as the PR's **risk band**, which the human reads at the merge gate. A stopped slice flips
   its `gate` column `agent → you`, and the run reports what stopped it and where rather than sitting idle.
-  `docs/workflow.md` in the repo carries the full list — read it there rather than counting from memory.
+  `orchestrator`'s *What stops a run* carries the full list — read it there rather than counting from
+  memory.
 
 Artifact chain (each stage emits what the next consumes cold):
 ```
@@ -269,26 +273,73 @@ intent.md → research.md → prd.md (+ ADRs/CONTEXT.md) → acceptance.md + env
 `docs/features/<slug>/`. Read it first to find where you are. Not every task needs every skill — a bug fix
 might only need `debugging-and-error-recovery` → `test-driven-development` → `code-review`.
 
+### What an edit un-signs
+
+A signature is against a version, not against a filename. Editing something upstream of a signed artifact
+returns it to `draft` — it does not stay signed over a foundation that moved.
+
+| Editing this | Returns to `draft` | Because |
+|---|---|---|
+| `prd.md` | `acceptance.md`, `environment.md` (its Spec pass), the design contract | each is derived from the product spec; the behaviour, the external needs, and the look all answer to it |
+| `acceptance.md` | `architecture.md` | it traces every scenario, and the trace is checked by set equality against the scenario ids |
+| a decision record it cites | `architecture.md` | its edges and decisions cite those records; a citation to a decision that changed is not a citation |
+| `docs/design.md` | every design contract carrying an inherited axis it touched | an inherited axis is graded against whatever that file says at Verify time, so moving the decided look re-grades surfaces nobody re-read. Name those contracts in the handoff and flip each one |
+| `intent.md` | `prd.md`, and everything above through it | the whole chain hangs off the intent |
+| `research.md` | nothing | the survey records the code as it stands and decides nothing |
+
+Nothing an agent does flips a `draft` back to `signed` — that is the person's act, at the gate. An agent
+that finds a signed artifact resting on a moved upstream says so and stops; it does not re-sign, and it
+does not edit the signed file to make the mismatch go away.
+
+This table is the one statement of the rule. A skill that needs it points here rather than restating it,
+because four copies of one rule are four things that drift.
+
+### Source-of-truth order
+
+Two documents can state the same thing differently. This order says which one governs, most authoritative
+first. A repository that does not have one of these simply skips its rank.
+
+1. `CLAUDE.md` / `AGENTS.md` — the rules for this repository
+2. `ARCHITECTURE.md` — the repository's structure
+3. `docs/adr/` — the decisions taken, and what each one ruled out
+4. `prd.md` — one feature's product spec
+5. `acceptance.md` — that feature's signed behavioral contract
+6. `plan.md` — that feature's slices
+7. `docs/lessons.md` — what a past defect taught, and the guard that would catch it again
+8. `docs/progress.md` — what each slice actually executed
+
+Not every document has a rank. `STATE.md`, `CONTEXT.md` and the `CONTEXT-MAP.md` index a multi-context
+repository keeps beside it, and the per-feature `intent.md`, `research.md`, `environment.md`, and `qa.md`
+have none. Three more settle themselves instead of needing one: `docs/session-state.md` says in its own
+text that it is the weakest source here and never overrides a decision record or a signed `acceptance.md`;
+a feature's design contract and `docs/design.md` divide one subject rather than compete for it — the
+contract decides that surface, and `docs/design.md` decides every axis the contract marks inherited; and a
+feature's `architecture.md` divides one subject with `ARCHITECTURE.md` the same way — the feature's delta
+decides that feature's structure, and `ARCHITECTURE.md` decides the layering every feature inherits. Where
+two documents with no rank between them disagree, nothing here settles it, and the stop condition in
+`orchestrator` is what happens: the slice ends, both files and the claim are named, and the next move is
+yours.
+
 ## Quick reference
 
 | Stage | Skill | One-line summary |
 |-------|-------|------------------|
 | Cross-cut | using-agent-skills | this meta-dispatcher: task → skill + lifecycle map |
-| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/test-contract.md, docs/workflow.md, docs/session-state.md, docs/progress.md, docs/lessons.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other) |
+| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/session-state.md, docs/progress.md, docs/lessons.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other) |
 | Cross-cut | orchestrator | wave-parallel DAG executor; platform-adaptive; runs to open draft PRs, never waits |
 | Cross-cut | preflight-readiness | env-readiness gate; refuses the wave until provisioned |
 | Cross-cut | handoff | per-session compaction to a fresh-agent doc |
 | Ideate | interview-me | optional front door: surface what the user actually wants → intent.md |
 | Ideate | idea-refine | divergent/convergent refinement + "Not Doing"; shares intent.md |
-| Spec | codebase-research | goal-blind map of the codebase/DB as-is → research.md; runs at the head of Spec, and Plan reuses it |
+| Spec · Plan | codebase-research | goal-blind map of the codebase/DB as-is → research.md; runs at the head of Spec, and again at the head of Plan against the aspect the signed decisions now point at |
 | Spec | spec-grilling | how to design the product; ADRs + CONTEXT.md (no prd.md) · fans out `codebase-design` / `api-design` variants on a load-bearing structural question; batches the rest as one-line defaults |
 | Spec | to-prd | light dual-audience PRD; references ADRs by id → prd.md |
-| Spec | frontend-design | the one UI skill: throwaway variants → committed prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
+| Spec | frontend-design | **UI only** — the skill's own *When to use / when to skip* states the test: throwaway variants → committed prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | Spec | acceptance-criteria | behavioral-only Given/When/Then contract → acceptance.md |
 | Spec | environment-manifest | typed-kind manifest (no values, no commands) → environment.md |
 | Spec | architecture-design | reconciles and renders — traces every scenario, records the invariants, cites the decisions taken in `spec-grilling`; takes none itself · runs against a draft `acceptance.md`; the two are signed together at the Spec gate · emits architecture.md + the committed architecture.html |
 | Spec | spec-review | fresh code-cold agent fixes the spec before the human reviews |
-| Plan | plan-breakdown | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's research.md |
+| Plan | plan-breakdown | THE planner: concrete plan → vertical slices + dependency DAG; reads the Plan-stage research.md that the second codebase-research pass writes |
 | Spec · Plan | codebase-design | Referenced discipline, Spec and Plan — proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own. Deep modules, deletion test |
 | Spec · Plan | api-design | Referenced discipline, Spec and Plan — proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own. Contract-first interface |
 | Implement | incremental-implementation | THE implementer: one thin vertical slice, skeleton-first |

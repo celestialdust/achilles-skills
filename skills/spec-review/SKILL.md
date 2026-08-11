@@ -6,9 +6,8 @@ description: Use this LAST in the Spec stage, before the human signs off — a f
 ## Purpose
 
 **Stage: Spec — the last skill before the human Spec sign-off.** The run downstream is autonomous, and
-the **two oracles** it cannot out-vote are both a person's act: `acceptance.md`, signed for this feature's
-behavior, and the ACTIVE rows of `docs/test-contract.md`, activated for the guarantees the whole repo
-keeps. A human reviewing a spec littered with stray file paths, dangling ADR refs, placeholder TODOs, and
+the **one oracle** it cannot out-vote is a person's act: `acceptance.md`, signed for this feature's
+behavior. A human reviewing a spec littered with stray file paths, dangling ADR refs, placeholder TODOs, and
 coverage gaps burns scarce attention on mechanical defects instead of the judgment calls only a human can
 make. `spec-review` is a **fresh, code-cold agent
 (maker≠checker)** — never the agent that authored the spec — that **fixes the spec before the human sees
@@ -52,9 +51,6 @@ against what the user actually asked for):
    pass**; read `ARCHITECTURE.md` alongside them when the repo has one. The page carries the markdown's
    source block verbatim, so the two are one artifact in two forms. `status:` reads `unsigned` here and
    stays that way — a person flips it at the gate after reading the page, and nothing an agent does flips it.
-8. `docs/test-contract.md` (repo-wide, when the repo has one) — the permanent cross-feature scenarios.
-   Read its `ACTIVE` rows: the bundle has to agree with them. No such file, or no ACTIVE rows → nothing
-   to reconcile; proceed.
 
 **Refuse to run** if the minimum bundle (`intent.md` + `prd.md` + `acceptance.md`) cannot be resolved —
 without `intent.md` there is no oracle to grade against. Missing optional items (ADRs, or the design
@@ -96,7 +92,6 @@ this stage exists").
 | **ADR-worthiness**: a hard-to-reverse ∧ surprising decision buried in prd prose instead of an ADR | **Contestable** | Propose extracting an ADR; **flag**. |
 | **One feature or two**: `intent.md` describes two independent subsystems crammed into one spec | **Contestable** | Propose the split; **flag**. |
 | Internal contradiction between `prd.md` and an ADR or `acceptance.md` | **Contestable** | Reconcile to one side; **flag the chosen side**. |
-| An `acceptance.md` scenario contradicts an **ACTIVE** row in `docs/test-contract.md` | **Contestable** (spotting it is judgment; which side wins is not) | The ACTIVE row wins — rewrite the feature scenario to agree with it; **flag it inline**, naming the row id. Never edit `docs/test-contract.md`. |
 | A design-contract `Quality floor`, `Restraint`, or `Copy-as-design-material` axis reads `inherits: docs/design.md` or `departs: docs/design.md` | **Contestable** (spotting it is mechanical; what the `delta:` says is not) | `docs/design.md` decides the other four axes and holds nothing on these three, so the line points at nothing and Verify would grade the axis against a file with no decision in it. Draft the `delta:` from what this surface decided; **flag it inline**. |
 
 ## ADR-open check (risk mitigation / handoff)
@@ -127,12 +122,6 @@ the gate. ADR cross-refs are immutable once written — rename/supersede → upd
 - You silently re-authored a contestable section with no inline flag → **STOP**; every judgment change
   must be visible.
 - `intent.md` is absent → **refuse to run**; there is no oracle to grade against.
-- You are about to edit `docs/test-contract.md` — reword a row, narrow one, or change a `state:` → **STOP**.
-  The agent never edits that file in either direction; rows are added and activated by a person, and an
-  ACTIVE row an agent can adjust is not a guarantee. If the ACTIVE row itself looks wrong, flag it for the
-  human and leave the row alone — they change it outside any run.
-- You are letting a collision with an ACTIVE row through because "the run will catch it" → **STOP**. It
-  will, as a halted slice hours later. Spec is the only place a person is present to settle it.
 - An embedded value in `environment.md` looks like a real, committed secret → remove it from the manifest
   AND treat the exposure as a security STOP per `security.md` (hard halt + surface to the human).
 
@@ -145,8 +134,6 @@ Done when ALL hold:
 - Every **contestable** change is applied **and** carries an inline `<!-- spec-review: … -->` flag.
 - Every `acceptance.md` scenario id back-references a story id, and every story / `intent.md`
   success-criterion maps to ≥1 scenario (coverage ledger has no orphan story).
-- No `acceptance.md` scenario contradicts an ACTIVE row in `docs/test-contract.md`, and that file is
-  byte-identical to how you found it. (No such file, or no ACTIVE rows → satisfied.)
 - `spec-review.md` written with the four stable sections, including `## Open the referenced ADRs`.
 - The bundle is handed back **cleaned** (not a punch-list); the human is told judgment changes are flagged
   and they keep final authority.
@@ -155,7 +142,6 @@ Done when ALL hold:
 
 - **Emits — fixed spec:** the bundle artifacts (`prd.md`, `acceptance.md`, `environment.md`, `CONTEXT.md`,
   ADRs) edited in place; decidable facts silently corrected, contestable judgments corrected + inline-flagged.
-  `docs/test-contract.md` is read, never among them.
 - **Emits — `spec-review.md`:** ephemeral, **OUT of the resume-spine** (not a chain link). Stable
   sections: `## Auto-fixed (facts)` · `## Flagged (judgment — revert if you disagree)` · `## Coverage
   ledger` (scenario↔story map + any not-reachable classification) · `## Open the referenced ADRs`.

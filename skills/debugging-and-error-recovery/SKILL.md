@@ -38,15 +38,7 @@ What it requires before it may run:
   **gate-erosion → HALT**: stop, flip the slice's gate column to `you`, and surface it. The whole
   point of this skill is to change the code until the frozen tests pass, never to change the tests
   until the code passes.
-- **The fourth frozen thing, and it is not scoped to a loop.** An **ACTIVE** row under the `## Rows`
-  heading of `docs/test-contract.md` — the repo's permanent cross-feature scenarios — is frozen in every
-  run, forever, because activation is one-way and only a person performs it. The three above thaw between
-  runs by a signed Spec change; this one never does. A "fix" that skips, deletes, weakens, or narrows an
-  ACTIVE row is the same **gate-erosion → HALT** whether or not you are inside a retry, and the halt
-  **names the row id** (`TC-1`) so the reader can tell which guarantee was nearly traded away. Never set a
-  row's state yourself in either direction. No file, or no ACTIVE rows, is the normal case and changes
-  nothing here.
-- **The decided look, read-only and not one of the four.** Where the repo has a `docs/design.md`, Verify
+- **The decided look, read-only and not one of the three.** Where the repo has a `docs/design.md`, Verify
   grades every contract axis marked `inherits: docs/design.md` against that file, and it carries no
   `status:` of its own, so nothing else catches an edit to it. A "fix" that moves the decided look so the
   built surface matches is weakening a check to clear a gate — the same **gate-erosion → HALT**, inside a
@@ -217,7 +209,7 @@ handed a worktree?** Working in the repository itself → append it yourself. Ha
 finished entry back with the fix and the guard, for the **TERMINAL barrier**: that is the point where the
 orchestrator already completes each slice's `docs/progress.md` entry in the checkout it holds, so it is
 the one place a handed-back entry can reach the main line. Say in the handoff that the entry is still
-owed. `docs/workflow.md` gives the orchestrator that append and its own skill names it, so the courier
+owed. `references/write-ownership.md` gives the orchestrator that append and its own skill names it, so the courier
 exists — but a courier carries what it is handed, and infers nothing from a handoff that stays quiet. An
 entry handed back without being named reads as done, and is gone.
 The entry is written either way; the worktree decides only who writes it down.

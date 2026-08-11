@@ -72,7 +72,7 @@ the name in these tables.
 | Skill | Responsibility |
 |---|---|
 | `using-agent-skills` | meta-dispatcher: task → skill + lifecycle map |
-| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/test-contract.md · docs/workflow.md · docs/session-state.md · docs/progress.md · docs/lessons.md · the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other |
+| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/session-state.md · docs/progress.md · docs/lessons.md · the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other |
 | `orchestrator` | default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | `preflight-readiness` | env-readiness gate; blocks the wave until provisioned |
 | `handoff` | per-session compaction to a fresh-agent doc |
@@ -91,10 +91,10 @@ the name in these tables.
 
 | Skill | Responsibility |
 |---|---|
-| `codebase-research` | head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md` |
+| `codebase-research` | head of Spec, and again at the head of Plan: goal-blind parallel map of the codebase/DB as-is → `research.md` |
 | `spec-grilling` | design the product from intent + the survey → ADRs + CONTEXT.md (refuses without `research.md`) |
 | `to-prd` | light dual-audience PRD (product-altitude; references ADRs) |
-| `frontend-design` | the one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md`. Spec, after `to-prd` and before `acceptance-criteria` and `environment-manifest` run |
+| `frontend-design` | **UI only.** The one UI skill: explore variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md`. Spec, after `to-prd` and before `acceptance-criteria` and `environment-manifest` run |
 | `acceptance-criteria` | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | `environment-manifest` | typed-kind manifest (no values, no commands) |
 | `architecture-design` | reconciles and renders — traces every scenario, records the invariants, cites the decisions taken in `spec-grilling`; takes none itself. Runs against a draft `acceptance.md`; the two are signed together at the Spec gate. Writes `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md` |
@@ -104,7 +104,8 @@ the name in these tables.
 
 | Skill | Responsibility |
 |---|---|
-| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's `research.md` |
+| `codebase-research` | second pass, scoped to the aspect the signed decisions point at → appends to `research.md` |
+| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG; reads the Plan-stage `research.md` that the second `codebase-research` pass writes |
 
 **Spec · Plan (referenced disciplines, not a stage)**
 
@@ -173,7 +174,7 @@ Add a rule file when you enter its stage, then remove it when done to manage con
 
 - **Ideate** → `interview-me.md`, `idea-refine.md`
 - **Spec** → `codebase-research.md` (first), `spec-grilling.md` (which dispatches `codebase-design.md` / `api-design.md`), `to-prd.md`, `frontend-design.md`, `acceptance-criteria.md`, `environment-manifest.md`, `architecture-design.md`, `spec-review.md`
-- **Plan** → `plan-breakdown.md`, `codebase-design.md`, `api-design.md`, `doubt-driven-development.md` (re-add `codebase-research.md` only to survey a named gap)
+- **Plan** → `codebase-research.md` again (second pass, scoped to the aspect the signed decisions point at), then `plan-breakdown.md`, `codebase-design.md`, `api-design.md`, `doubt-driven-development.md`
 - **Implement** → `source-driven-development.md`, `worktree.md`, `doubt-driven-development.md` (plus the essentials above)
 - **Verify** → `quality-verification.md`, `browser-testing-with-devtools.md`, `debugging-and-error-recovery.md`
 - **Review** → `code-simplification.md`, `security-and-hardening.md`, `performance-optimization.md`
@@ -193,7 +194,7 @@ command by loading the rule files it bundles and asking Cursor to run that stage
 |---|---|---|
 | `/ideate` | `interview-me`, `idea-refine` | brainstorm and frame the idea → `intent.md` |
 | `/spec` | `codebase-research` first, then `spec-grilling` (+ `to-prd`, `frontend-design`, `acceptance-criteria`, `environment-manifest`, `architecture-design`, `spec-review`) | survey the code as-is, then design the product against it |
-| `/plan` | `plan-breakdown` (reuses Spec's `research.md`) | produce a concrete plan → vertical slices + DAG |
+| `/plan` | `codebase-research` again (second pass), then `plan-breakdown` | survey the aspect the signed decisions point at, then produce a concrete plan → vertical slices + DAG |
 | `/implement` | `incremental-implementation` (applies `test-driven-development`) | build one thin slice (default single-slice) |
 | `/verify` | `quality-verification` | prove a finished slice meets `acceptance.md`, code-cold |
 | `/review` | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization` as fan-out) | run the quality gate before merge |

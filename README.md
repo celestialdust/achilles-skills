@@ -12,11 +12,11 @@
                             (one autonomous wave-parallel DAG run → open draft PRs)
 
    /setup — one-time repo ecosystem (STATE.md · CONTEXT.md · docs/adr/ · docs/features/ ·
-            docs/test-contract.md · docs/workflow.md · docs/session-state.md · docs/progress.md · docs/lessons.md · the
+            docs/session-state.md · docs/progress.md · docs/lessons.md · the
             "## Agent skills" block in one of CLAUDE.md / AGENTS.md + a pointer in the other)
 ```
 
-The human owns **Ideate + Spec + Plan** — the decisions only a person can make. The agent then runs **Implement → Verify → Review → Ship** fully autonomously — it never blocks waiting for input, and where a stop condition fires it terminates and reports instead of waiting ([docs/workflow.md](./docs/workflow.md) lists them) — and stops at **open, risk-banded draft PRs** for an async human merge. It never auto-merges to `main`.
+The human owns **Ideate + Spec + Plan** — the decisions only a person can make. The agent then runs **Implement → Verify → Review → Ship** fully autonomously — it never blocks waiting for input, and where a stop condition fires it terminates and reports instead of waiting ([orchestrator](./skills/orchestrator/SKILL.md), *What stops a run*, lists them) — and stops at **open, risk-banded draft PRs** for an async human merge. It never auto-merges to `main`.
 
 ---
 
@@ -52,17 +52,17 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 | `skills/` | The 40 skills — one discipline per `SKILL.md` |
 | `agents/` | The 5 fresh-context personas |
 | `commands/` | The 12 slash commands — thin wrappers over the skills |
-| `references/` | Shared reference material: checklists (security, performance, accessibility, …) and `language-style.md`, the prose style guide for everything this repo ships |
-| `docs/` | Reader-facing documentation: getting started + per-agent setup guides, plus `workflow.md` and `test-contract.md` — this repo's own copies of the process contract and the test contract. `CONTEXT.md` at the root is the same idea: the suite runs its own process, so it carries the artifacts that process produces |
+| `references/` | Shared reference material: checklists (security, performance, accessibility, …), `language-style.md` (the prose style guide for everything this repo ships), and `write-ownership.md` (the write table `scripts/check-write-table.mjs` reads) |
+| `docs/` | Reader-facing documentation: getting started + per-agent setup guides. `CONTEXT.md` at the root is a different case: the suite runs its own process, so it carries the glossary that process produces |
 | `scripts/` | The six checks a change to this repo is measured against — see *How a change here is checked* below |
 | `.claude-plugin/` | `plugin.json` and `marketplace.json`, the install manifests. `plugin.json` is the only file that states the version, and the only path the plugin loader reads |
 | `CONTRIBUTING.md` | What a change to a skill, command, or persona has to satisfy — the `SKILL.md` envelope, the artifact-chain contract, and the list to run before opening a PR |
 
-`docs/` is for readers of this repo. The pipeline artifacts the suite produces (`STATE.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`) live in **your** project once `/setup` scaffolds them there — not in this one. Three are exceptions, and they are here for the same reason: this repo runs the same loop, so it carries them. `/setup` scaffolds a copy of `docs/workflow.md`, `docs/test-contract.md`, and `CONTEXT.md` into your project; this repo keeps its own of each.
+`docs/` is for readers of this repo. The pipeline artifacts the suite produces (`STATE.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`) live in **your** project once `/setup` scaffolds them there — not in this one. One is an exception, and it is here for the same reason: this repo runs the same loop, so it carries it. `/setup` scaffolds a copy of `CONTEXT.md` into your project; this repo keeps its own.
 
 `docs/design.md` — the decided look — and `ARCHITECTURE.md` — the structure map — are in neither list. Nothing scaffolds either: the first user interface built in a repo writes the one, and the first feature to run `architecture-design` writes the other. This repo builds no interface and has run no such pass, so it has neither. Their absence is a look and a layering nobody has decided yet, which is the correct state here rather than a gap.
 
-`docs/workflow.md` is the process contract, and it decides two things nothing else can. **Source-of-truth order** ranks the documents, so when two of them disagree a reader knows which one governs instead of picking. **Who writes what** is a write table keyed by zone, and it is **deny-by-default**: a write with no row permitting it is a write nobody may make. Between them they are why a skill can be read on its own without also reading the nine files around it.
+Two contracts sit outside `docs/` because they belong to the suite rather than to a repo it runs in. `using-agent-skills` carries **Source-of-truth order**, which ranks the documents so a reader whose files disagree knows which one governs instead of picking. `references/write-ownership.md` carries **Who writes what**, a write table keyed by zone and **deny-by-default**: a write with no row permitting it is a write nobody may make. Between them they are why a skill can be read on its own, rather than only alongside every other file in the repo.
 
 ---
 
@@ -93,7 +93,7 @@ Twelve slash commands: nine lifecycle commands — one per stage, plus the auton
 |---|---|---|
 | `/ideate` | Front-door a fresh idea → `intent.md` | interview-me, then idea-refine |
 | `/spec` | Survey the code as-is, then design the product: ADRs, PRD, UI, acceptance, environment, structure | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) |
-| `/plan` | Concrete plan → vertical slices + dependency DAG | plan-breakdown (reuses Spec's research.md) |
+| `/plan` | Survey the aspect the decisions now point at, then the concrete plan → vertical slices + dependency DAG | codebase-research (second pass), then plan-breakdown |
 | `/implement` | One thin vertical slice, skeleton-first, test-driven | incremental-implementation (applies test-driven-development) |
 | `/verify` | Fresh code-cold proof a slice meets acceptance | quality-verification |
 | `/review` | Quality gate before merge (parallel fan-out) | code-review (+ code-simplification, security-and-hardening, performance-optimization) |
@@ -219,7 +219,7 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 | Skill | Responsibility |
 |---|---|
 | [using-agent-skills](./skills/using-agent-skills/SKILL.md) | Meta-dispatcher: maps a task → the right skill + its place in the lifecycle |
-| [project-setup](./skills/project-setup/SKILL.md) | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/test-contract.md` · `docs/workflow.md` · `docs/session-state.md` · `docs/progress.md` · `docs/lessons.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other |
+| [project-setup](./skills/project-setup/SKILL.md) | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/session-state.md` · `docs/progress.md` · `docs/lessons.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other |
 | [orchestrator](./skills/orchestrator/SKILL.md) | Default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | [preflight-readiness](./skills/preflight-readiness/SKILL.md) | Environment-readiness gate; blocks the wave until everything is provisioned |
 | [handoff](./skills/handoff/SKILL.md) | Per-session compaction into a fresh-agent handoff doc |
@@ -235,10 +235,10 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 
 | Skill | Responsibility |
 |---|---|
-| [codebase-research](./skills/codebase-research/SKILL.md) | Head of Spec: goal-blind parallel map of the codebase/DB as-is → `research.md`, before any design decision |
+| [codebase-research](./skills/codebase-research/SKILL.md) | Head of Spec and again at the head of Plan: goal-blind parallel map of the codebase/DB as-is → `research.md`. Pass 1 runs before any design decision; pass 2 surveys the aspect those decisions point at |
 | [spec-grilling](./skills/spec-grilling/SKILL.md) | Design the product from intent + the survey → ADRs + `CONTEXT.md` glossary; refuses without `research.md`; a blind-spot pass surfaces decisions you haven't considered |
 | [to-prd](./skills/to-prd/SKILL.md) | Light dual-audience PRD at product altitude; references the ADRs |
-| [frontend-design](./skills/frontend-design/SKILL.md) | Spec, after `to-prd` and before `acceptance-criteria` and `environment-manifest` run. The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
+| [frontend-design](./skills/frontend-design/SKILL.md) | Spec, **UI only** — after `to-prd` and before `acceptance-criteria` and `environment-manifest` run. The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | [acceptance-criteria](./skills/acceptance-criteria/SKILL.md) | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | [environment-manifest](./skills/environment-manifest/SKILL.md) | Typed-kind environment manifest (no values, no commands) |
 | [architecture-design](./skills/architecture-design/SKILL.md) | Reconciles and renders — traces every scenario, records the invariants, cites the decisions taken in `spec-grilling`; takes none itself. Writes one feature's `architecture.md` + the committed `architecture.html` read at the Spec gate, and `ARCHITECTURE.md` on the repo's first such pass |
@@ -248,7 +248,7 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 
 | Skill | Responsibility |
 |---|---|
-| [plan-breakdown](./skills/plan-breakdown/SKILL.md) | THE planner: concrete plan → vertical slices + dependency DAG; reads Spec's `research.md` (re-survey only against a named gap) |
+| [plan-breakdown](./skills/plan-breakdown/SKILL.md) | THE planner: concrete plan → vertical slices + dependency DAG; reads the Plan-stage `research.md` the second `codebase-research` pass writes |
 
 ### Spec · Plan — referenced disciplines, not a stage
 

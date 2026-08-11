@@ -105,10 +105,10 @@ gains nothing; two words for one thing eventually become two things.
 
 ### Two audiences, two registers, one vocabulary
 
-A file an agent loads may compress. `orchestrator/SKILL.md` says *"The run terminates on **exactly
-one** predicate"*, and that is right for its reader. A file a person reads states the same fact as
-*"A run is one pass over the slice graph, Implement through Ship. It has exactly two endings."*
-(`docs/workflow.md`).
+A file an agent loads may compress. On where a run ends, `orchestrator/SKILL.md` says *"The run terminates
+on **exactly one** predicate"* and then names the three — right for a reader whose job is to evaluate them.
+A file a person reads states the same fact as *"terminates at **risk-banded open draft PRs** for async
+human merge"* (`docs/getting-started.md`) — what they will find waiting, not what the agent tested.
 
 Both are correct. The split is by reader, not by taste: anything a person reads cold — `docs/`,
 `README.md`, and every template scaffolded into a consumer's repo — takes the second register. The
@@ -130,7 +130,7 @@ its red flags. The rule is not different when we are the ones writing.
 
 Every halt, refusal, red flag, and stop condition names the party that acts next. The board makes
 this structural — `STATE.md` has a `gate` column whose only values are `you`, `agent`, and `done`.
-Prose has no column, so prose has to say it. `docs/workflow.md` does, for a slice that ran out of
+Prose has no column, so prose has to say it. `orchestrator/SKILL.md` does, for a slice that ran out of
 retries:
 
 > The slice stays at the stage that failed, its `gate` flips from the agent to you, and the failure
@@ -154,9 +154,11 @@ number, still wrong, in files the first pass never opened. The defect is not car
 having written the number down more than once. And that instance is not fixed — the counts are still
 written in more than one file. It is a cost the repo carries, not a shape to copy.
 
-The fix to copy is next door. The conditions that stop a run are listed in `docs/workflow.md` and
-nowhere else; `README.md` and `CLAUDE.md` each say a run can stop, then point at that list. Add a
-condition and there is exactly one file to edit, and no second copy that can quietly disagree with it.
+The fix to copy is next door. The conditions that stop a run are listed **in full** in
+`orchestrator/SKILL.md`, and every other site defers to it: `README.md` and `CLAUDE.md` say a run can stop
+and point at that list, while `using-agent-skills` and `plan-breakdown` name the few their own reader needs
+and then send them there rather than counting from memory. Add a condition and exactly one file must
+change, and no second site claims to be the complete one.
 Resolving the counts means the same shape — one file states the number, every other site points at it.
 
 So: prefer pointing at the one statement over restating it. When you do change a claim, grep the

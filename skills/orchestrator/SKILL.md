@@ -58,13 +58,6 @@ Refuse to run (CRISPY refuse-to-run) unless ALL are present:
   slice's retry loop; it never edits them. Editing any of the three is a **loosening**: one rule,
   *Changing what judges the work*, governs this and every other prohibition below.
 
-Not a refuse-to-run input, but frozen harder than any of them: **`docs/test-contract.md`**, when the
-repo has one. Every **ACTIVE** row under its `## Rows` heading binds every feature and every run
-**permanently** — activation is one-way and only a person performs it, so there is no retry loop and no
-between-runs Spec change that thaws it. The orchestrator hands the file's path to implementers and
-verifiers, reads it, and never edits it in either direction. An absent file, or one with no ACTIVE rows,
-is the normal case and changes nothing.
-
 One more input is required per slice rather than per run, so it gates a slice instead of the run:
 **the design contract each slice's `Design ref` names, at `status: signed`**, for every slice whose
 `Design ref` is not `—`. It is read at dispatch, before that slice's implementer runs; absent or
@@ -88,8 +81,8 @@ contract paths, not the session history.
    **waves** (each wave = one topological level). Verify no cycles — a cycle blocks the run;
    surface it and stop (the human must reorder dependencies).
 3. **Open the run — flip the feature to `building`.** The board still reads `feature: plan`: that is
-   where `plan-breakdown` leaves it, and this flip is yours and nobody else's (docs/workflow.md, *Who
-   writes what*: `a feature block's feature: state`, `orchestrator`, flip status). Do it once the three
+   where `plan-breakdown` leaves it, and this flip is yours and nobody else's (`references/write-ownership.md`,
+   *Who writes what*: `a feature block's feature: state`, `orchestrator`, flip status). Do it once the three
    things that warrant it are true and not before — the feature carries slice rows whose `Blocked by`
    DAG steps 1–2 just read and found acyclic, the `preflight-readiness` verdict is green, and the signed
    `acceptance.md` plus the `plan.md` slices exist. Those three *are* the Run-start gate, which is the
@@ -412,14 +405,7 @@ mechanical invariants, not a human halt:
    the work*: a loosening, so it needs a measurement and a human — and mid-retry it has neither.)
    These three thaw *between* runs, by a Spec change a person signs.
 
-   **ACTIVE test-contract rows, frozen permanently** — an **ACTIVE** row in `docs/test-contract.md`
-   never thaws: it binds every run, forever, because activation is one-way and only a person performs
-   it. Skipping, deleting, weakening, or narrowing one is the same HALT at any moment, retry or not,
-   and the halt **names the row id** (`TC-1`) — "gate erosion" alone leaves the person reading it
-   unable to tell which guarantee was about to be traded away. Setting a row's state, in either
-   direction, is the same stop.
-
-   **The decided look, read-only rather than frozen** — `docs/design.md` is not a fifth frozen artifact;
+   **The decided look, read-only rather than frozen** — `docs/design.md` is not a fourth frozen artifact;
    it is a file every run reads and only `frontend-design` writes. Verify grades each contract axis
    marked `inherits: docs/design.md` against it, and it carries no `status:` of its own, so nothing else
    catches an edit. Moving the decided look so a built surface matches it is the same **HALT**, retry or
@@ -430,9 +416,8 @@ mechanical invariants, not a human halt:
 3. **Fail-closed ship + code-cold promotion** — a passing slice's terminal state is a
    **DRAFT PR**. Promotion to ready-to-merge is by a **fresh code-cold verifier with NO
    test-write access** (maker≠checker); a NEW checker each round sees only what the brief hands it —
-   the human-anchored oracles (`acceptance.md`, and the ACTIVE rows of `docs/test-contract.md` when the
-   repo has one) plus the running build — and never the implementer's reasoning, so the oracles never
-   drift.
+   the human-anchored oracle (the signed `acceptance.md`) plus the running build — and never the
+   implementer's reasoning, so the oracle never drifts.
 4. **Integration gate** — the merged-union suite on a connected DAG component (above).
 5. **Inverted risk report** — every SHIPPED slice carries the risk band `pull-request` computed for
    it, reproduced here **alongside the halts and highest band first**, to draw the human's scarce
@@ -445,7 +430,7 @@ mechanical invariants, not a human halt:
    Carry the bands over; never recompute or assign one yourself. Two parties computing one number is
    how the number stops meaning anything, and this is the number a person triages the merge queue by.
    A HIGH band is **not** a stop condition and never halts a slice — nothing in a run pauses for
-   high-risk work (docs/workflow.md, *High-risk work is not one of these*), which is precisely why the
+   high-risk work (*High-risk work is not one of these*, below), which is precisely why the
    band has to reach the human unchanged.
 
 ## Changing what judges the work
@@ -454,35 +439,21 @@ Changes to the checking apparatus are governed by their **direction**, not their
 
 | Direction | What it looks like | Rule |
 |---|---|---|
-| **Tightening** | add a reviewer, add a guard, **propose** activating a test-contract scenario, add a halt category | Proceeds. No measurement needed first. A few tightenings still need a *person* to perform them — see directly below. |
-| **Loosening** | drop a reviewer, delete a guard, deactivate a scenario (remove it from the contract, or flip an ACTIVE row back to `PENDING`), weaken a check | **Refused** until a measurement supporting it exists *and* a human approves it. |
+| **Tightening** | add a reviewer, add a guard, add a halt category | Proceeds. No measurement needed first. |
+| **Loosening** | drop a reviewer, delete a guard, deactivate a scenario (remove it from the contract), weaken a check | **Refused** until a measurement supporting it exists *and* a human approves it. |
 
-**"No measurement needed" is not "no person needed" — those are two different gates.** Tightening
-lifts the evidence requirement. It does not lift the human one, and the table would be misread as
-licence if you collapsed them. Activation is the case where they come apart:
-
-- **Proposing** that a scenario become permanent is the tightening. Write the row into
-  `docs/test-contract.md` as `PENDING`, say why it should hold forever, and move on. No measurement,
-  no approval, no halt — proposals are free and you should make them freely.
-- **Performing** the activation — moving a row to `ACTIVE` — is a person's act, and it is one-way.
-  The agent never does it. An ACTIVE row binds every run after it, permanently, and an agent that
-  could flip one would be deciding alone what every future run owes.
-
-So: propose freely, never set the state yourself. Neither half licenses the other — "it's a
-tightening" does not make it yours to perform, and "only a person activates" does not make proposing
-one something to hold back on. Deactivation is the mirror image and is already covered by the
-Loosening row above: it needs both the measurement and the human, and mid-run it has neither.
+Propose a tightening freely — it costs nothing and you should make the case whenever you see one.
+Deactivation is the mirror image, already covered by the Loosening row above: it needs both the
+measurement and the human, and mid-run it has neither.
 
 **Deactivating a scenario is not the same act as reporting one `not-reachable`, and only the first is
 a loosening.** Deactivating removes the scenario from the contract: nothing has to prove it, now or
-ever, and no one is told. Reporting `not-reachable` at Verify leaves the scenario where it was —
-in `acceptance.md`, or as an ACTIVE row in `docs/test-contract.md` — unproven, and escalates it to a
-human through the required PR ack line; the scenario still has to be settled, just not by this slice.
-The test is whether the scenario survives the act. Still in its contract with a human named → honest
-reporting; gone from its contract, or an ACTIVE row flipped back to `PENDING` → a loosening, gated as
-above. Verify's `not-reachable` path is the suite's mandated reporting channel and is never refused,
-never a halt, and never needs a measurement — and that holds for a contract row exactly as it holds
-for an `acceptance.md` scenario.
+ever, and no one is told. Reporting `not-reachable` at Verify leaves the scenario where it was — in
+`acceptance.md` — unproven, and escalates it to a human through the required PR ack line; the scenario
+still has to be settled, just not by this slice. The test is whether the scenario survives the act.
+Still in its contract with a human named → honest reporting; gone from its contract → a loosening,
+gated as above. Verify's `not-reachable` path is the suite's mandated reporting channel and is never
+refused, never a halt, and never needs a measurement.
 
 **Evidence means a measurement, not an argument.** "This reviewer never finds anything" is an
 argument. "Across the last 20 waves this axis produced zero findings that changed a diff" is a
@@ -521,6 +492,50 @@ the router reading the diff, not a skip. A **gate** is never skipped: the four f
 every wave even when the diff looks trivial, because "provably nothing to review" is a claim about a
 diff nobody has reviewed yet.
 
+## What stops a run
+
+A run is one pass over the slice graph, Implement through Ship, and it has exactly two endings. **It
+finishes** — every slice reached Ship, and the result is one or more open, draft pull requests, each
+carrying a risk band, which stay open until a person merges them. Or **it stops** — one of the conditions
+below fired. Both endings are terminal: in neither case does a run sit idle waiting for an answer.
+
+That distinction is worth keeping apart, because two claims collapse into one easily. **A run never blocks
+waiting for input** — there is no "should I continue?" checkpoint between slices, and nobody has to watch
+it. **A run can still stop** — the conditions below end one early. A run that hits one does not wait for
+you; it terminates and reports, and you pick it up when you next look.
+
+These conditions end work rather than pausing it. Some end the whole run, some end only the affected slice
+and let the rest of the graph keep draining. The middle column says which.
+
+| Condition | Ends | What you see when it fires |
+|---|---|---|
+| **The run's preconditions are not met.** Checked once, at run start. The board has no feature with a slice graph, or the environment verdict is not green, or a signed `acceptance.md` or the `plan.md` slices are missing. | the run | The run refuses to start and nothing is built. Finish Spec and Plan, provision the environment, then start again. |
+| **The slice graph has a cycle.** Two slices each wait on the other, directly or through a chain. | the run | No wave can be ordered, so nothing is dispatched. The cycle is reported and a person reorders the dependencies. |
+| **The behavioral contract is missing or unsigned.** The same fact, checked one layer down. Verify will not grade a slice against an `acceptance.md` that is absent or still marked draft. Inside a run the row above has already refused, so this row governs Verify run on its own — and backstops any slice that reached Verify some other way. | the slice | The slice never enters Verify. The feature goes back to the Spec sign-off gate. No scenarios are invented to fill the gap. |
+| **A UI slice's design contract is missing or unsigned.** A slice that names a design contract is checked before anything is built for it. | the slice | The slice halts before any code is written for it, and the halt names the unsigned contract by path. Nothing gets built against a contract nobody signed. |
+| **A frozen artifact was about to be edited to make a gate pass.** The signed `acceptance.md`, a failing test written before the code that passes it, or a slice's declared regression surface — see *Silent-false-green defenses*. | the slice | A stop, not a pass. The slice halts and the attempted edit is reported. |
+| **A check was about to be weakened.** Dropping a review pass, deleting a guard, switching off a scenario, or merging two checks into one — at any point, including in the plan. | the slice | Refused on the spot rather than parked for approval. The slice halts, and the refusal names the specific measurement that would settle the case — the number that does not exist yet. |
+| **A security finding is Critical or High, or a secret appears in the diff.** | the slice | A hard stop: no retry, no pull request for that slice. The finding is reported as it stands. |
+| **A secret is already committed.** A live credential is in the repository's history, not only in a diff waiting to be committed, so its blast radius is the whole repository rather than one slice. | the run | You are told as soon as it is found. The run freezes at the next barrier — it lets the slices already in flight end, then dispatches nothing more and opens no further pull requests. It does not wait for you. Rotating the credential is yours, and the report names where the secret was found. |
+| **Two sources of truth disagree.** Two documents state the same thing differently and `using-agent-skills`'s *Source-of-truth order* does not settle which one governs. | the slice | The slice ends. What ended it names both files and the claim they disagree on, and its `gate` flips from the agent to you. Nothing is picked on your behalf, and nothing waits for your answer — the rest of the graph keeps draining and you settle it when you next look. |
+| **The retries ran out.** A real failure first routes into root-cause debugging and is retried a bounded number of times; exhausting those retries is what stops the slice. | the slice | The slice stays at the stage that failed, its `gate` flips from the agent to you, and the failure surfaces with a record of what was tried. |
+| **Gates are failing at a rising rate across the run.** Not one slice going wrong, but the run as a whole drifting. | the run | The run terminates instead of grinding on. What already passed still stands; the rest is reported unfinished. |
+
+### High-risk work is not one of these
+
+Authentication and permissions, destructive migrations, payments, deletions, deploys, secrets. This work
+carries more blast radius than the rest, and where it gets caught depends on how the slice is built.
+
+- **One slice at a time, with a person present.** The single-slice Implement path stops before the risky
+  step and asks for explicit sign-off. Somebody is there to answer.
+- **Inside a run.** Nothing stops. There is nobody to sign off mid-run, and a run does not wait for one.
+  The risk surfaces at the end instead: the slice's draft pull request carries a **risk band**, and auth,
+  payments, data, secrets, and irreversible operations raise it. A person triages the merge queue by that
+  band.
+
+So inside a run, high-risk work is caught by a person at the merge gate, not by the agent mid-flight. To
+have it caught before the code is written, build that slice on the single-slice path instead.
+
 ## Autonomy boundaries
 
 - **No mid-run human halt.** The human owns Spec+Plan upstream; do not check in or summarize
@@ -536,16 +551,14 @@ diff nobody has reviewed yet.
 - **Security** — localized CRITICAL/HIGH or secret-in-diff = hard halt of that slice, no
   retry, never a PR, tops the report; an exposed/committed secret (repo-wide blast radius)
   fires an immediate `PushNotification`, freezes the next barrier, opens no further PRs.
-- **The human-anchored oracles are `acceptance.md` and the repo's ACTIVE `docs/test-contract.md`
-  rows — nothing else.** A person signed the first and a person activated the second; the run
-  invents neither and edits neither. Any `not-reachable` classification during the run, against
-  either of them → a **required human-ack line in the PR body**, never silently absorbed. This
-  classification is **not** a loosening and never halts a slice: the scenario stays where it was,
-  unproven, with a human named to settle it. A slice that depends on an unbuilt sibling, or that
-  cannot reach a given state, is *expected* to report one — that is the honest path, and refusing it
-  would stall most early slices in any DAG. Removing a scenario from its contract, or flipping an
-  ACTIVE row back to `PENDING`, is the loosening, and that stays gated (*Changing what judges the
-  work*).
+- **The human-anchored oracle is `acceptance.md` — nothing else.** A person signed it; the run
+  invents it and edits it never. Any `not-reachable` classification during the run → a **required
+  human-ack line in the PR body**, never silently absorbed. This classification is **not** a loosening
+  and never halts a slice: the scenario stays where it was, unproven, with a human named to settle it.
+  A slice that depends on an unbuilt sibling, or that cannot reach a given state, is *expected* to
+  report one — that is the honest path, and refusing it would stall most early slices in any DAG.
+  Removing a scenario from its contract is the loosening, and that stays gated (*Changing what judges
+  the work*).
 
 ## Rationalizations
 
@@ -565,9 +578,7 @@ diff nobody has reviewed yet.
 | "The design contract is still `draft` — dispatch now, it'll be signed by the time Verify runs." | Verify grades a **built** interface. Dispatching means an unsigned contract gets built against, and a partially built UI reaches review. Halt the slice at dispatch; name the contract. |
 | "The contract is missing, but Verify refuses on that anyway — let it catch it." | That refusal fires *after* the UI exists. The dispatch gate is what prevents the build; Verify's refusal is the backstop for a slice that got past it. |
 | "qa failed twice; `acceptance.md` must be wrong — I'll reinterpret it." | `acceptance.md` is a human-anchored oracle, and reinterpreting it is a loosening. Never edit mid-run. Not-reachable → human-ack line + escalate. |
-| "Verify reported a scenario `not-reachable` — deactivating a scenario is a loosening, so I have to halt this slice." | No. The scenario is still in its contract — `acceptance.md`, or an ACTIVE `docs/test-contract.md` row — and a human has been handed it via the PR ack line, so nothing stopped being checked and there is nothing to refuse. Deactivation (removing it, or flipping an ACTIVE row back to `PENDING`) is the loosening. Record the id, add the ack line, carry on. Halting here would stall nearly every early slice in a DAG, since depending on an unbuilt sibling is the normal case. |
-| "This scenario obviously has to hold forever — I'll set the row to `ACTIVE` in `docs/test-contract.md`." | Proposing it is a tightening and costs nothing: write the row as `PENDING` with your reasoning. Performing the activation is a person's act and one-way — an agent that can flip a row decides alone what binds every run after it. Propose, never flip. |
-| "This ACTIVE contract row predates the feature and no longer fits — I'll narrow it to this slice." | Gate-erosion HALT, and this freeze never thaws: an ACTIVE row binds every run. A row that is genuinely wrong is fixed by a person outside the run. Halt with the row id named. |
+| "Verify reported a scenario `not-reachable` — deactivating a scenario is a loosening, so I have to halt this slice." | No. The scenario is still in `acceptance.md` and a human has been handed it via the PR ack line, so nothing stopped being checked and there is nothing to refuse. Deactivation — removing it from the contract — is the loosening. Record the id, add the ack line, carry on. Halting here would stall nearly every early slice in a DAG, since depending on an unbuilt sibling is the normal case. |
 | "Two sub-waves are ready — I'll start whichever brief finished assembling first." | Dispatch order is deepest downstream chain first, then dependent count, then `plan.md` order. An arbitrary pick can park the critical path behind a leaf slice. |
 | "This slice unblocks five others and that one unblocks four — five wins." | Only if the chains are the same depth. Count is the *second* key. Five leaf dependents is a one-step chain; four dependents in a row is a four-step chain, and the four-step chain is what the wall clock is waiting on. |
 | "This axis has never found anything on this repo — I'll cut it from the fan-out." | Dropping a reviewer is a loosening: measurement plus a human. Name the number you don't have (that axis's finding rate over the last N waves) and go get it. |
@@ -589,10 +600,8 @@ diff nobody has reviewed yet.
 
 - About to weaken/edit `acceptance.md`, a RED test, or `Regression surface` during a retry → HALT (gate-erosion; a loosening, and a retry loop has neither the measurement nor the human). Those three are frozen for the retry loop; between runs a person can change them by a signed Spec change.
 - About to edit `docs/design.md` so a built surface matches it → HALT (same gate-erosion). Verify grades every contract axis marked `inherits: docs/design.md` against that file, and it carries no `status:` of its own, so moving it is the one way to clear a design gate that nothing else catches.
-- About to skip, delete, weaken, or narrow an **ACTIVE `docs/test-contract.md` row** — at any moment, retry or not → HALT, naming the row id (`TC-1`). That freeze is permanent and in every run, not scoped to a loop.
-- About to set a `docs/test-contract.md` row's state yourself, in either direction → STOP. Activation is a person's act and one-way; you read that file and do not edit it. Proposing a new `PENDING` row is free and encouraged — that is the tightening, and it needs no measurement and no approval.
-- About to drop a reviewer, delete a guard, deactivate a scenario (remove it from its contract, or flip an ACTIVE row back to `PENDING`), or weaken any check — at any time, including at plan time or by editing these skill files → STOP. Refuse, and name the measurement that is missing.
-  - **Not this:** Verify classifying a scenario `not-reachable`. That leaves the scenario where it was — in `acceptance.md`, or as an ACTIVE `docs/test-contract.md` row — and escalates it to a human via the required PR ack line, so nothing stopped being checked. It is the reporting path this suite mandates — record it, add the ack line, keep going. Never a halt, never a refusal, no measurement needed.
+- About to drop a reviewer, delete a guard, deactivate a scenario (remove it from its contract), or weaken any check — at any time, including at plan time or by editing these skill files → STOP. Refuse, and name the measurement that is missing.
+  - **Not this:** Verify classifying a scenario `not-reachable`. That leaves the scenario where it was, in `acceptance.md`, and escalates it to a human via the required PR ack line, so nothing stopped being checked. It is the reporting path this suite mandates — record it, add the ack line, keep going. Never a halt, never a refusal, no measurement needed.
 - Treating a merge of several checks into one as a simplification → STOP (ambiguous direction defaults to loosening).
 - Picking which sub-wave dispatches first by feel → STOP (deepest downstream chain, then dependent count, then `plan.md` order).
 - Ordering sub-waves by how many slices a slice unblocks, without checking how deep the chain is → STOP (that is the second key standing in for the first; a fan of leaves outranks a long chain under it, which is backwards).
@@ -648,10 +657,9 @@ AND the slice sits as an OPEN risk-banded PR (a DRAFT promoted by a code-cold ve
 
 Also true of every terminated run: **nothing that judges the work got looser during it.** Every wave
 ran all four floor axes plus every reviewer its trigger rows fired; no reviewer, guard, scenario, or
-check was dropped or weakened; **no ACTIVE `docs/test-contract.md` row was skipped, weakened, narrowed,
-or moved in either direction**; any loosening that was proposed was refused with the missing
-measurement named. A scenario Verify reported `not-reachable` was **not** dropped — it is still in its
-contract (`acceptance.md`, or the ACTIVE row it came from) and its ack line is in the PR, which is what
+check was dropped or weakened; any loosening that was proposed was refused with the missing
+measurement named. A scenario Verify reported `not-reachable` was **not** dropped — it is still in
+`acceptance.md` and its ack line is in the PR, which is what
 "not dropped" means here. And **the dispatch order is reproducible**: replaying the run against the same
 plan and the same `git` state would start the same slice first.
 
@@ -695,10 +703,9 @@ carries no diff, no worktree changes, and no PR.
   reach the board through you — in the checkout you hold, at the moment you complete that slice's
   run-record entry, which is the same courier run and needs no second pass. Append only: never reword or
   remove an entry already in a cell, and never author one no slice handed you.
-- **Dispatch briefs** — each slice's brief carries the slice id; its frozen contract paths, including
-  `docs/test-contract.md` when the repo has one, since a code-cold verifier cannot grade an ACTIVE row
-  it was never handed; `docs/design.md` when the repo has one and the slice builds UI, for the same
-  reason rather than because it is frozen — an axis the contract marks `inherits: docs/design.md` is
+- **Dispatch briefs** — each slice's brief carries the slice id; its frozen contract paths;
+  `docs/design.md` when the repo has one and the slice builds UI, for a reason of reach rather than
+  because it is frozen — an axis the contract marks `inherits: docs/design.md` is
   graded against that file, and a verifier that may not read outside its brief cannot grade what it was
   never handed; on a **re-review round**, the `Critical:` findings from the round that routed this slice
   back — a code-cold reviewer reading a diff whose Critical was fixed sees no sign one ever existed, so

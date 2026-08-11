@@ -20,7 +20,7 @@
 //     `docs/lessons.md`, `docs/progress.md`, `docs/design.md`, `docs/session-state.md` — are artifacts
 //     the suite scaffolds into *your* project and correctly do not exist here. Checking them would
 //     report a false hit on nearly every mention, and a check that only ever cries wolf is one people
-//     learn to skip. A dangling `docs/workflow.md` therefore goes unreported. Read those by hand.
+//     learn to skip. A dangling `docs/progress.md` therefore goes unreported. Read those by hand.
 //   · Any path holding `<` or `>`: `docs/features/<slug>/plan.md` is a shape, not a file.
 //   · External URLs. Whether a URL is alive is a question for the network, not for this.
 //   · The first backticked path on a `**Source:**` line inside a `VENDORED.md`, which names the
