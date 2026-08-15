@@ -214,7 +214,16 @@ Single-context: `CONTEXT.md` + `docs/adr/` at the root. (Multi-context: `CONTEXT
 
 ### Per-feature artifacts
 Each feature's intent.md / prd.md / acceptance.md / environment.md / architecture.md /
-architecture.html / plan.md live under `docs/features/<slug>/`.
+architecture.html / plan.md live under `docs/features/<slug>/`, with each slice's concrete
+steps in `docs/features/<slug>/plan/<slice-id>.md`.
+
+### Code comments and docstrings
+Explain the code to the developer reading it. A docstring that points at a spec instead of
+explaining — `Implements US-3`, `see prd.md`, `per plan.md step 2` — leaves the next reader
+no better off, and those files move as the feature moves while the code stays. Say what it
+does, why it is built this way where that is not obvious, and which invariants it assumes. A
+`docs/adr/` record may be cited **after** the explanation as provenance, never in place of it;
+ADRs are immutable once written, which is why a citation to one keeps being true.
 
 ### Decided look
 `docs/design.md` holds this repo's look once it is decided: the palette, the type, the layout language,
@@ -597,8 +606,9 @@ the run record carries its two invariant lines.
 When the repo has **neither** `CLAUDE.md` nor `AGENTS.md` and the user chose to create `CLAUDE.md`, seed it
 from the bundled template `assets/CLAUDE.template.md` **before** adding the `## Agent skills` block. The
 template is a project-agnostic set of behavioral guidelines — *Think Before Coding · Simplicity First ·
-Surgical Changes · Goal-Driven Execution* — adapted from Andrej Karpathy's notes on LLM coding pitfalls (via
-`multica-ai/andrej-karpathy-skills`). Write the template verbatim, then append the achilles wiring beneath it.
+Surgical Changes · Goal-Driven Execution · Docstrings Explain the Code* — the first four adapted from Andrej
+Karpathy's notes on LLM coding pitfalls (via `multica-ai/andrej-karpathy-skills`), the last one this suite's
+own. Write the template verbatim, then append the achilles wiring beneath it.
 Do **not** write the template into an `AGENTS.md`, and never seed over a `CLAUDE.md` that already exists — in
 that case you edit the existing file and add only the `## Agent skills` block.
 
