@@ -139,7 +139,7 @@ Stages don't share memory — they hand off through **artifact files** with fixe
 |---|---|
 | Ideate | `intent.md` |
 | Spec | `research.md` (first) + `research/<axis>.md` (the evidence behind each synthesized line), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html`, `design-contract.md` (UI only) (+ ADRs, `CONTEXT.md`) |
-| Plan | `plan.md` |
+| Plan | `plan.md` (the map) + `plan/<slice-id>.md` (one per slice, its concrete steps) |
 | Verify | `qa.md` |
 | (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/session-state.md` (where the work stands), `docs/session-log.md` (the append-only decision record), `docs/progress.md` (the run record — what each slice actually executed), `docs/lessons.md` (root-caused defects and the guard for each), `docs/design.md` (the repository's decided look, written by the first UI surface) |
 

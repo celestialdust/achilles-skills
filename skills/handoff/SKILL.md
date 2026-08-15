@@ -210,11 +210,9 @@ So none of these are entries:
 - a step taken because the plan said to take it. Following a plan decides nothing;
 - a choice with no alternative behind it. If the `Ruled out:` line would be empty, that is the tell.
 
-**Four lines, one sentence each, and no fifth line.** A fifth is where narration starts, and narration is
-what the log cannot survive: this file is only load-bearing while it stays short enough that a resuming
-agent actually reads it cold. Past that point it gets skimmed, then skipped — and a log nobody opens
-protects no decision at all. Every sentence you add to an entry is spent from the attention of every
-session that comes after.
+That bar decides *whether* to write an entry; the four-line shape above decides how long it may be. They
+fail in the same direction — an entry that should not exist and an entry three times its size both spend
+the attention of every session that comes after.
 
 The check is a ratio, not a line count, because a healthy log grows for as long as the project does. Most
 sessions append **zero or one** entry. If yours is appending several, or if `docs/session-log.md` has an
@@ -300,11 +298,8 @@ is precisely the *elapsed-time* growth this rule excludes, wearing the shape of 
 is never to compact the file; it is to stop writing those entries, which is what
 `## What does not earn an entry` is for.
 
-Its own file is what makes that affordable. When the record sat under the snapshot, every session paid
-for the whole history in order to read twelve lines of status, and the only ways out were to trim the
-record or to stop reading the file — the first destroys evidence, the second is what actually happened.
-Separated, the log may grow for the life of the project without ever standing between a session and the
-state it came for.
+Keeping everything is affordable precisely because the log is its own file — under the snapshot, the only
+ways out were to trim the record or to stop reading it, and the second is what actually happened.
 
 Keep both files **committed, not gitignored.** Their whole purpose is to survive the session that wrote
 them. Gitignored, they die on the next fresh clone — which is exactly the case they exist for.
