@@ -11,9 +11,10 @@ and cites the decisions taken during `spec-grilling` rather than taking them its
 **The eight headings and their order are fixed.** A person signing reads them in this order, and
 `spec-review` finds a section by name. Number them as below.
 
-Two files share the shape. `ARCHITECTURE.md` states the repository — every module, every edge, the layer
-order if one was decided. A feature's `docs/features/<slug>/architecture.md` states only its **delta**:
-what this feature changes about the structure, against the repository map that already exists.
+One file carries the shape: a feature's `docs/features/<slug>/architecture.md`. It states what this
+feature changes about the structure, self-contained against its own `research.md` — there is no
+repository-level map to inherit from. A layer order, where one was decided, lives in `docs/adr/` and is
+cited by §3.
 
 ## The header block
 
@@ -21,16 +22,12 @@ Open the file with a fenced block, before §1:
 
 ```
 feature:  <slug>
-inherits: ARCHITECTURE.md
 status:   unsigned
 reads:    acceptance.md · research.md · prd.md · docs/adr/
 ```
 
-`inherits:` reads `ARCHITECTURE.md — not yet written; this feature writes it` when this is the first
-structure pass in the repository. `status:` is `unsigned` until a person flips it, and nothing an agent
-does flips it — the signature is the whole point of the artifact.
-
-`ARCHITECTURE.md` carries the same block without `feature:` and without `inherits:`.
+`status:` is `unsigned` until a person flips it, and nothing an agent does flips it — the signature is
+the whole point of the artifact.
 
 ## The eight sections
 
@@ -234,7 +231,7 @@ inherits an order nobody chose and nobody can point at who chose it.
 
 ### What a later feature does with those rows
 
-When `ARCHITECTURE.md` says `layer order: not decided`, its §3 rows are **observations, not permission.**
+When an `architecture.md` says `layer order: not decided`, its §3 rows are **observations, not permission.**
 
 - A later feature's `architecture.md` records its own edges the same way, from its own `research.md`.
 - It does not read the recorded set as the set it may add to, and it does not read an absent edge as

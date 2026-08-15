@@ -179,7 +179,7 @@ The lifecycle commands create working artifacts as the agent moves through the s
 |-------|-------------|-------------|
 | Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other | project-setup |
 | Ideate | `intent.md` | interview-me, idea-refine |
-| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html` (+ ADRs; plus root `ARCHITECTURE.md` on the repo's first structural pass) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest, architecture-design |
+| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html` (+ ADRs) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest, architecture-design |
 | Plan | `plan.md` | codebase-research (second pass), then plan-breakdown |
 | Verify | `qa.md` | quality-verification |
 

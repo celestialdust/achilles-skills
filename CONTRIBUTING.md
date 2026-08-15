@@ -143,7 +143,7 @@ Stages don't share memory — they hand off through **artifact files** with fixe
 | Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html`, `design-contract.md` (UI only) (+ ADRs, `CONTEXT.md`) |
 | Plan | `plan.md` |
 | Verify | `qa.md` |
-| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/session-state.md` (where the work stands + an append-only decision log), `docs/progress.md` (the run record — what each slice actually executed), `docs/lessons.md` (root-caused defects and the guard for each), `docs/design.md` (the repository's decided look, written by the first UI surface), `ARCHITECTURE.md` (the repository's structure, written by the first feature to run `architecture-design`) |
+| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/session-state.md` (where the work stands + an append-only decision log), `docs/progress.md` (the run record — what each slice actually executed), `docs/lessons.md` (root-caused defects and the guard for each), `docs/design.md` (the repository's decided look, written by the first UI surface) |
 
 Each stage reads the upstream artifact and writes the next, so a fresh agent can resume from the files alone. When you add or edit a skill/command, declare what it reads and writes in `## Outputs & handoff contract` using these exact filenames — never introduce a new artifact name for an existing contract file.
 

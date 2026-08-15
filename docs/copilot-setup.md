@@ -62,7 +62,7 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 - `frontend-design` (UI only) — explore UI variants → commit prototype + design contract; the repo's first UI surface also writes `docs/design.md`. Spec, after `to-prd` and before `acceptance-criteria` and `environment-manifest` run
 - `acceptance-criteria` — BDD prose contract (Given/When/Then), signed
 - `environment-manifest` — typed-kind manifest (no values, no commands)
-- `architecture-design` — reconciles, grades, and renders the structure: `architecture.md` + the committed `architecture.html`; the repo's first such pass also writes `ARCHITECTURE.md`
+- `architecture-design` — reconciles, grades, and renders the structure: `architecture.md` + the committed `architecture.html`
 - `spec-review` — fresh code-cold agent fixes the spec before the user reviews
 
 **Plan**

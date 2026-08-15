@@ -5,7 +5,7 @@ carries the method and `section-contract.md` the format; this file carries the g
 
 ## What both sweeps are given, and what neither may do
 
-Each is given `architecture.md` (or `ARCHITECTURE.md`, when that is what was written) and `research.md`.
+Each is given `architecture.md` and `research.md`.
 Nothing else — not the conversation that produced the structure, not the author's reasoning.
 
 Neither may:
