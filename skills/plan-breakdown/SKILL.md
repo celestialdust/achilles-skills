@@ -43,11 +43,13 @@ required input cannot be resolved — a plan invented without the PRD or the cod
    if the file carries no Plan-pass section, run `codebase-research` before you slice rather than planning
    against a survey taken before the decisions existed. This is the goal-blind as-is map; every
    `file`/`lines` your steps name must be real per this map, and your steps must follow the existing
-   patterns it records. `## Structural facts` is the one to read before pinning an interface: it records
+   patterns it records. Where a step needs a line range the synthesis does not carry, open the axis file
+   behind it under `docs/features/<slug>/research/` — each sub-agent's findings are there in full, cited
+   to `path:line`, which is cheaper and more reliable than re-reading the source to re-derive them. `## Structural facts` is the one to read before pinning an interface: it records
    the seams and their adapter counts, the module boundaries, and the conventions in use, so a signature
    you write matches the style already there instead of forking a second one.
 
-3. `architecture.md` — this feature's signed structural delta, and `ARCHITECTURE.md` where the repository
+3. `architecture.md` — this feature's signed structure, and the ADRs it cites where the repository
    has one. A slice's files sit inside the modules and behind the seams these name, and the dependency
    edges they permit are the ones a slice may add. It tells you *where* the structure sits, not why:
    `architecture-design` reconciles, grades, and renders — traces every scenario, records the invariants,
@@ -366,7 +368,7 @@ Before starting implementation, confirm:
 
 ## See Also
 
-Acceptance criteria are per-task and answer "did we build the right thing?". They sit on top of the project-wide Definition of Done, the standing bar every task clears before it counts as done. See `../../references/definition-of-done.md`.
+Acceptance criteria are per-task and answer "did we build the right thing?". They sit on top of the project-wide Definition of Done, the standing bar every task clears before it counts as done. See `references/definition-of-done.md`.
 
 ## Outputs & handoff contract
 

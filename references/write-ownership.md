@@ -59,8 +59,6 @@ keeps the table from being shrunk until it stops catching anything.
 | `CLAUDE.md` / `AGENTS.md` | the pointer line, in whichever of the two does not hold that block | — | `project-setup` | create |
 | `CLAUDE.md` / `AGENTS.md` | the bundled behavioral template at the top of `CLAUDE.md`, where the repository had neither file and `CLAUDE.md` is the one you chose | — | `project-setup` | create |
 | `CLAUDE.md` / `AGENTS.md` | everything else in the file | — | you | create |
-| `ARCHITECTURE.md` | the whole file — written from the first feature to run `architecture-design` here, and again where a later feature deliberately moves the repository's structure | — | `architecture-design` | create |
-| `ARCHITECTURE.md` | any part of it, for a feature that records a delta rather than moving the structure | — | nobody | never |
 | `docs/adr/` | the directory | — | `project-setup` | create |
 | `docs/adr/` | a record for a decision taken during Spec | — | `spec-grilling` | create |
 | `docs/adr/` | a record for a decision taken during Plan | — | `plan-breakdown` | create |
@@ -96,6 +94,8 @@ keeps the table from being shrunk until it stops catching anything.
 | `intent.md` | its sections, sharpened in place | — | `idea-refine` | create |
 | `research.md` | the six stable sections, written by the Spec pass | — | `codebase-research` | create |
 | `research.md` | the section the Plan pass appends for its own aspect | `## Plan pass` | `codebase-research` | append only |
+| `research/<axis>.md` | the whole file, written by the one sub-agent that owns that axis | — | `codebase-research` | create |
+| `research/<axis>.md` | a file an earlier pass wrote — a later pass adds its own axis instead | — | nobody | never |
 | `prd.md` | the file | — | `to-prd` | create |
 | `prd.md` | a decidable fact corrected before the Spec gate | — | `spec-review` | create |
 | `acceptance.md` | the file, while it is draft | — | `acceptance-criteria` | create |
@@ -131,7 +131,7 @@ lands on a branch that may never merge. Keyed by file alone, that arrangement wo
 and the rule would have to carve an exception for it — which is why the key is the zone, not the file.
 
 Never **scaffolded** is not never **written by a skill** — the row names its writer, and only the
-create-it-empty step is absent. That is what the `ARCHITECTURE.md` and `docs/design.md` rows above mean.
+create-it-empty step is absent. That is what the `docs/design.md` rows above mean.
 
 **A change that adds a writer adds that writer's row, in the same commit.** A file with no row permits
 nothing, so a new writer arrives as a decision somebody wrote down rather than as drift. A row reading
