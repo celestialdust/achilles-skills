@@ -51,7 +51,7 @@ lives.
 | `docs/adr/` | one file per architectural decision, with the reasoning and what was ruled out | `spec-grilling`, `plan-breakdown`, `documentation-and-adrs` |
 | `docs/progress.md` | the run record — what each slice actually executed: the commands, their real output, and what was not run and why | `project-setup` seeds it; whichever skill runs a slice appends one entry per slice |
 | `docs/lessons.md` | root-caused defects, seven fields each, naming the guard that would catch a recurrence | `project-setup` seeds it; `debugging-and-error-recovery` and `code-review` append |
-| `docs/features/<slug>/` | one feature's `intent.md`, `research.md`, `prd.md`, `acceptance.md`, `environment.md`, `architecture.md`, `architecture.html`, `plan.md`, `qa.md` | the stage that produces each one |
+| `docs/features/<slug>/` | one feature's `intent.md`, `research.md` (synthesis) and `research/<axis>.md` (the per-axis evidence behind it), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md`, `architecture.html`, `plan.md`, `qa.md` | the stage that produces each one |
 | `references/language-style.md` | how this suite writes | a person; it ships with the plugin and is never scaffolded into a consumer's repo |
 | `references/write-ownership.md` | the write table — every file a skill may write, cut into zones, one writer named per zone; `scripts/check-write-table.mjs` parses it | a person; it ships with the plugin and is never scaffolded into a consumer's repo |
 | `CONTRIBUTING.md` | what a change to a skill, command, or persona must satisfy — naming, the `SKILL.md` envelope, structure rules, the artifact-chain contract, and the pre-PR list | a person; contributor-facing, never scaffolded into a consumer's repo |
@@ -164,10 +164,10 @@ node scripts/check-enumerations.mjs    # every hand-written count matches what i
 node scripts/check-stages.mjs          # the stage a registry assigns matches the stage the skill declares
 ```
 
-The sixth, `node scripts/check-write-table.mjs`, **exits 1 by design**: 66 write claims in `skills/` are
+The sixth, `node scripts/check-write-table.mjs`, **exits 1 by design**: 65 write claims in `skills/` are
 not yet settled against the table in `references/write-ownership.md`. That is pre-existing debt, so CI
 enforces a ratchet rather than exit 0 — the counts may fall, never rise. The pass condition is the summary
-line reading `0 in the table, 37 conflicts, 29 unresolved`, matching `scripts/write-table-baseline.txt`.
+line reading `0 in the table, 37 conflicts, 28 unresolved`, matching `scripts/write-table-baseline.txt`.
 Never edit those numbers to make a build green.
 
 The second workflow, `.github/workflows/companion-tests.yml`, covers the vendored companion engine under

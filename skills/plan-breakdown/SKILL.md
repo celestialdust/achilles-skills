@@ -49,8 +49,8 @@ required input cannot be resolved — a plan invented without the PRD or the cod
    the seams and their adapter counts, the module boundaries, and the conventions in use, so a signature
    you write matches the style already there instead of forking a second one.
 
-3. `architecture.md` — this feature's signed structure, and the ADRs it cites where the repository
-   has one. A slice's files sit inside the modules and behind the seams these name, and the dependency
+3. `architecture.md` — this feature's signed structure, and any ADRs it cites.
+   A slice's files sit inside the modules and behind the seams these name, and the dependency
    edges they permit are the ones a slice may add. It tells you *where* the structure sits, not why:
    `architecture-design` reconciles, grades, and renders — traces every scenario, records the invariants,
    has the result graded code-cold, cites the decisions taken in `spec-grilling`; takes none itself. Its

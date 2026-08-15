@@ -195,7 +195,7 @@ run* carries the full list; read it there rather than counting from memory.
 answer never comes and the run never finishes.
 **Good, with a person present:** "I see X in the spec but Y in the existing code. Which takes precedence?"
 **Good, inside a run:** end the slice reporting "ADR-004 expires sessions at 24h, ADR-011 at 1h; both
-are rank 3, so the source-of-truth order does not settle it" — the `gate` flips `agent → you`, and the
+are rank 2, so the source-of-truth order does not settle it" — the `gate` flips `agent → you`, and the
 next ready slice starts.
 
 ### 3. Push Back When Warranted

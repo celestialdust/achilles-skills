@@ -167,6 +167,8 @@ The `references/` directory contains supplementary checklists that skills pull i
 | [`design-system-format.md`](../references/design-system-format.md) | frontend-design, quality-verification |
 | [`teaching-artifact-format.md`](../references/teaching-artifact-format.md) | literate-explainer |
 | [`comprehension-workspace-format.md`](../references/comprehension-workspace-format.md) | comprehension-quiz, literate-explainer |
+| [`safety-rails.md`](../references/safety-rails.md) | the six things an agent does not decide for itself — cited by every skill that touches a gate |
+| [`write-ownership.md`](../references/write-ownership.md) | the write table: every file a skill may write, one writer per zone — contributor-facing |
 | [`language-style.md`](../references/language-style.md) | every word the plugin ships — contributor-facing, never loaded at runtime |
 
 Load a reference when you need detailed patterns beyond what the skill covers.

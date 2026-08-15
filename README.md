@@ -53,7 +53,7 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 | `commands/` | The 12 slash commands — thin wrappers over the skills |
 | `references/` | Shared reference material: checklists (security, performance, accessibility, …), `safety-rails.md` (the six things an agent does not decide for itself — every skill cites it rather than restating a rail), `language-style.md` (the prose style guide for everything this repo ships), and `write-ownership.md` (the write table `scripts/check-write-table.mjs` reads) |
 | `docs/` | Reader-facing documentation: getting started + per-agent setup guides. `CONTEXT.md` at the root is a different case: the suite runs its own process, so it carries the glossary that process produces |
-| `scripts/` | The six checks a change to this repo is measured against — see *How a change here is checked* below |
+| `scripts/` | The six checks a change to this repo is measured against — see *How a change here is checked* in [CLAUDE.md](./CLAUDE.md) |
 | `.claude-plugin/` | `plugin.json` and `marketplace.json`, the install manifests. `plugin.json` is the only file that states the version, and the only path the plugin loader reads |
 | `CONTRIBUTING.md` | What a change to a skill, command, or persona has to satisfy — the `SKILL.md` envelope, the artifact-chain contract, and the list to run before opening a PR |
 
