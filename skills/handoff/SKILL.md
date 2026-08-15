@@ -148,6 +148,31 @@ The snapshot above may name changed files; an entry may not. The difference is l
 is overwritten on the next write, so it cannot stay wrong for long. An entry is permanent, and a
 permanent copy of a fact that keeps moving is guaranteed to go stale.
 
+### What does not earn an entry
+
+An entry is not a record that work happened. The test is whether a later session, not knowing this,
+would **re-open the question**. Where nothing would be re-opened, nothing was decided, and there is no
+entry to write.
+
+So none of these are entries:
+
+- what got implemented, refactored, renamed, or fixed — `docs/progress.md` is the run record and already
+  holds what each slice executed, with the commands as they ran and their real output;
+- that a test went green, a build passed, a review came back clean, a slice reached `done`;
+- a step taken because the plan said to take it. Following a plan decides nothing;
+- a choice with no alternative behind it. If the `Ruled out:` line would be empty, that is the tell.
+
+**Four lines, one sentence each, and no fifth line.** A fifth is where narration starts, and narration is
+what the log cannot survive: this file is only load-bearing while it stays short enough that a resuming
+agent actually reads it cold. Past that point it gets skimmed, then skipped — and a log nobody opens
+protects no decision at all. Every sentence you add to an entry is spent from the attention of every
+session that comes after.
+
+The check is a ratio, not a line count, because a healthy log grows for as long as the project does. Most
+sessions append **zero or one** entry. If yours is appending several, or if `## Log` has an entry for
+nearly every session on the board, the bar above is not being applied — and the fix is the bar, never a
+bigger file or a second one.
+
 ### Append-only — and the report when it is broken
 
 A new entry goes **after** the existing ones. Every earlier entry stays byte-for-byte as it was written:
@@ -210,6 +235,12 @@ decisions are work: a long log is a project that decided a lot, not a file that 
 compaction is for is the stuff that grows with *elapsed time* — transcripts, chatter, turn counts.
 What grows with *work* is kept.
 
+That defence covers entries that earned their place, and only those. It is not a reason to write a long
+entry, and not a licence to log an action because the file is allowed to grow — a log fat with narration
+is precisely the *elapsed-time* growth this rule excludes, wearing the shape of work. The remedy there
+is never to compact the file; it is to stop writing those entries, which is what
+`## What does not earn an entry` is for.
+
 Keep the file **committed, not gitignored.** Its whole purpose is to survive the session that wrote it.
 Gitignored, it dies on the next fresh clone — which is exactly the case it exists for.
 
@@ -262,6 +293,13 @@ Gitignored, it dies on the next fresh clone — which is exactly the case it exi
 - An earlier `## Log` entry reads differently than it did — edited, re-dated, re-ordered, or gone →
   STOP, restore it, and report the violation naming the entry.
 - A log entry that says which files changed or what was added → cut that line; git owns it.
+- A log entry running past four lines, or reading as a narrative of the session rather than one decision
+  → cut it back to decision · reason · ruled out · still open.
+- An entry for work that merely happened — a slice landed, tests went green, the plan's next step was
+  taken → it is not a decision; nothing would be re-opened without it. Delete it before appending, and
+  put what the run executed in `docs/progress.md`, which owns that.
+- Several entries appended from one session, or an entry from nearly every session on the board → the
+  bar is being missed; most sessions decide nothing worth logging.
 - Work started in a resuming session before `docs/session-state.md` was read → stop and read it; a
   question the log already answers is about to be re-opened.
 - Old log entries summarized, rolled up, or trimmed "for readability" → restore them.
@@ -282,6 +320,10 @@ Done when ALL hold:
 For the committed `docs/session-state.md`, also:
 - Every decision made this session has an entry under `## Log` carrying all four parts: decision,
   reason, ruled out, still open.
+- Every entry appended this session passes the re-open test — a later session not knowing it would
+  re-open the question. One that fails it is deleted before the file is written, not left in because it
+  was already typed.
+- No appended entry runs past four lines, and none names a file, a diff, a command, or a test result.
 - No entry restates which files changed, what was added, or what the diff did.
 - **Earlier entries are byte-for-byte unchanged.** Append-only has an exact mechanical form: the
   committed `## Log` must still be present, byte for byte, in the same order, at the **start** of the

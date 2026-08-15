@@ -67,7 +67,7 @@ The suite is organized by lifecycle stage. Each name below is a directory under 
 
 **Plan**
 - `codebase-research` — second pass, scoped to the aspect the signed decisions point at → appends to research.md
-- `plan-breakdown` — the planner: concrete plan → vertical slices + dependency DAG; reads the Plan-stage research.md that the second codebase-research pass writes
+- `plan-breakdown` — the planner: concrete plan → vertical slices + dependency DAG. Writes plan.md as the map and one plan/<slice-id>.md per slice for its steps; reads the Plan-stage research.md that the second codebase-research pass writes
 
 **Spec · Plan (referenced disciplines, not a stage)**
 - `codebase-design` — deep-module interfaces (deletion test). Proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own

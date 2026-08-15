@@ -114,7 +114,7 @@ The suite ships 40 skills, organized by lifecycle stage. Names are descriptive a
 | Skill | Responsibility |
 |---|---|
 | `codebase-research` | second pass, scoped to the aspect the signed decisions point at → appends to `research.md` |
-| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG; reads the Plan-stage `research.md` that the second `codebase-research` pass writes |
+| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG. Writes `plan.md` as the map and one `plan/<slice-id>.md` per slice for its steps; reads the Plan-stage `research.md` that the second `codebase-research` pass writes |
 
 **Spec · Plan (referenced disciplines, not a stage)**
 
