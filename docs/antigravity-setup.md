@@ -57,7 +57,7 @@ The plugin registers 12 slash commands. Nine are lifecycle commands — one per 
 | `/review` | Quality gate before merge: five-axis review with a parallel fan-out | `code-review` (+ `code-simplification`, `security-and-hardening`, `performance-optimization`) |
 | `/ship` | Open one slice's risk-banded draft PR; the stage ends there. `shipping-and-launch` is release-level and follows the human's merge. | `pull-request` — the spine of the stage |
 | `/orchestrate` | Run the whole lifecycle autonomously as a wave-parallel DAG, to open PRs | `orchestrator` |
-| `/setup` | One-time repo ecosystem bootstrap: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/session-state.md` · `docs/progress.md` · `docs/lessons.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other | `project-setup` |
+| `/setup` | One-time repo ecosystem bootstrap: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/session-state.md` · `docs/session-log.md` · `docs/progress.md` · `docs/lessons.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other | `project-setup` |
 | `/explain` | Explain a piece of code or a system in prose — **standalone**, not a lifecycle stage | `literate-explainer` |
 | `/quiz` | Check comprehension of a change or codebase area — **standalone**, not a lifecycle stage | `comprehension-quiz` |
 | `/gauntlet-loop` | Build a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch — **standalone**, not a lifecycle stage; offered, never auto-selected | `gauntlet-loop` |
@@ -81,7 +81,7 @@ The suite ships 40 skills, organized by lifecycle stage. Names are descriptive a
 | Skill | Responsibility |
 |---|---|
 | `using-agent-skills` | meta-dispatcher: task → skill + lifecycle map |
-| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/session-state.md · docs/progress.md · docs/lessons.md · the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other |
+| `project-setup` | one-time repo ecosystem: STATE.md · CONTEXT.md · docs/adr/ · docs/features/ · docs/session-state.md · docs/session-log.md · docs/progress.md · docs/lessons.md · the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other |
 | `orchestrator` | default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
 | `preflight-readiness` | env-readiness gate; blocks the wave until provisioned |
 | `handoff` | per-session compaction to a fresh-agent doc |
@@ -114,7 +114,7 @@ The suite ships 40 skills, organized by lifecycle stage. Names are descriptive a
 | Skill | Responsibility |
 |---|---|
 | `codebase-research` | second pass, scoped to the aspect the signed decisions point at → appends to `research.md` |
-| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG; reads the Plan-stage `research.md` that the second `codebase-research` pass writes |
+| `plan-breakdown` | THE planner: concrete plan → vertical slices + dependency DAG. Writes `plan.md` as the map and one `plan/<slice-id>.md` per slice for its steps; reads the Plan-stage `research.md` that the second `codebase-research` pass writes |
 
 **Spec · Plan (referenced disciplines, not a stage)**
 
@@ -205,7 +205,7 @@ You can invoke these personas directly within your session or when delegating ta
 ## Configuration & Customization
 
 ### Project lifecycle state (`/setup`)
-`achilles-skills` carries its lifecycle discipline in the skills themselves; it does not ship a separate enforcement file. To bootstrap a consuming repo, run `/setup` (the `project-setup` skill) once. It seeds `STATE.md` and `CONTEXT.md` into your workspace root, creates `docs/adr/` and `docs/features/`, writes `docs/session-state.md` (where the work stands, plus an append-only log of decisions a resuming session reads first), `docs/progress.md` (the run record — what each slice actually executed), and `docs/lessons.md` (root-caused defects and the guard that would catch each one coming back), and adds an `## Agent skills` block to your `CLAUDE.md` or `AGENTS.md` — the shared artifacts the later stages read and append to. Whichever of the two carries that block is your repo's rules file; the other is created as a short pointer to it, so an agent that reads only that filename still lands in the right place. If you want Antigravity to hard-enforce a gate such as "no code before a spec," write that rule in the rules file — never in the pointer, which holds no rules of its own. Antigravity follows the pointer and reads the rules there to align the agent's behavior and planning phase with your team's conventions.
+`achilles-skills` carries its lifecycle discipline in the skills themselves; it does not ship a separate enforcement file. To bootstrap a consuming repo, run `/setup` (the `project-setup` skill) once. It seeds `STATE.md` and `CONTEXT.md` into your workspace root, creates `docs/adr/` and `docs/features/`, writes `docs/session-state.md` (the five-field snapshot of where the work stands) and `docs/session-log.md` (the separate append-only record of decisions a resuming session reads before re-opening a question), `docs/progress.md` (the run record — what each slice actually executed), and `docs/lessons.md` (root-caused defects and the guard that would catch each one coming back), and adds an `## Agent skills` block to your `CLAUDE.md` or `AGENTS.md` — the shared artifacts the later stages read and append to. Whichever of the two carries that block is your repo's rules file; the other is created as a short pointer to it, so an agent that reads only that filename still lands in the right place. If you want Antigravity to hard-enforce a gate such as "no code before a spec," write that rule in the rules file — never in the pointer, which holds no rules of its own. Antigravity follows the pointer and reads the rules there to align the agent's behavior and planning phase with your team's conventions.
 
 ### Sandbox Mode
 If you want to run skills or scripts with limited terminal permissions (for safety when running third-party validation tests), launch the CLI with:

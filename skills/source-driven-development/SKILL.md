@@ -32,7 +32,7 @@ It still refuses to *guess*. In order of authority it needs:
 
 - **The dependency manifest** (`package.json` · `pyproject.toml`/`requirements.txt` · `composer.json` · `go.mod` · `Cargo.toml` · `Gemfile`) — the source of truth for *which version* of each framework/library is installed. This is what Step 1 (DETECT) reads.
 - **`environment.md` → `runtime-dep` rows** (typed-kind manifest, closed kind enum incl. `runtime-dep`; **no value column**) — names the frameworks/runtimes the project depends on, to cross-check the manifest. Use it to confirm the stack, never as the version source (it carries no values).
-- **The current slice's `plan.md` step** — the framework-specific code about to be written; tells you *which* feature's docs to fetch (the relevant page, not the homepage).
+- **The current slice's step**, in `plan/<slice-id>.md` — the framework-specific code about to be written; tells you *which* feature's docs to fetch (the relevant page, not the homepage).
 
 **Refuse-to-run / ask-don't-guess:** if no dependency manifest is present and the version cannot be pinned from `environment.md`, STOP and ask the user for the version — never implement framework-specific code from memory against an unknown version (Step 1).
 

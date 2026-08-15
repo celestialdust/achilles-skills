@@ -1,6 +1,6 @@
 ---
 name: project-setup
-description: Scaffolds the repo ecosystem every achilles skill assumes — a one-time bootstrap that creates the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, docs/session-state.md (where the work stands, plus an append-only log of decisions a resuming session reads before it starts), docs/progress.md (the run record — what each slice actually executed, appended to and never rewritten, scaffolded with the entry shape and no entries), and docs/lessons.md (the lessons record — what a root-caused defect turned out to be and the guard that would catch it coming back, appended to and never rewritten, scaffolded with the field template and no entries), and the `## Agent skills` block in one of CLAUDE.md / AGENTS.md plus a short pointer to it in the other — and, when the repo has neither and you opt to create CLAUDE.md, seeds it from a bundled behavioral template. Run this ONCE before the first feature, before interview-me or spec-grilling. The pipeline skills read these files cold and will have nowhere to write without it, so do this first.
+description: Scaffolds the repo ecosystem every achilles skill assumes — a one-time bootstrap that creates the STATE.md board, the CONTEXT.md glossary, docs/adr/, docs/features/, docs/session-state.md (the five-field snapshot of where the work stands), docs/session-log.md (the separate append-only record of decisions a resuming session reads before re-opening a question), docs/progress.md (the run record — what each slice actually executed, appended to and never rewritten, scaffolded with the entry shape and no entries), and docs/lessons.md (the lessons record — what a root-caused defect turned out to be and the guard that would catch it coming back, appended to and never rewritten, scaffolded with the field template and no entries), and the `## Agent skills` block in one of CLAUDE.md / AGENTS.md plus a short pointer to it in the other — and, when the repo has neither and you opt to create CLAUDE.md, seeds it from a bundled behavioral template. Run this ONCE before the first feature, before interview-me or spec-grilling. The pipeline skills read these files cold and will have nowhere to write without it, so do this first.
 ---
 
 ## Purpose
@@ -8,7 +8,7 @@ description: Scaffolds the repo ecosystem every achilles skill assumes — a one
 Stage: **cross-cutting / setup** (one-time). Every downstream skill reads and writes a *shared substrate*:
 the `STATE.md` board (what's in flight + who owns the next action), the per-feature artifact directories,
 the repo-wide design substrate (`CONTEXT.md` glossary + `docs/adr/`), the session state
-(`docs/session-state.md` — where the work stands, plus the append-only log of decisions a resuming
+(`docs/session-state.md` — the snapshot of where the work stands; `docs/session-log.md` — the append-only log of decisions a resuming
 session reads first), the run record
 (`docs/progress.md` — what each slice actually executed, one entry per slice), the lessons record
 (`docs/lessons.md` — what each root-caused defect turned out to be, and the guard that would catch it
@@ -30,10 +30,10 @@ re-fires every wave; `project-setup` is the one-time repo bootstrap that runs be
   `CLAUDE.md` / `AGENTS.md` pointer naming a file that is no longer there. Nothing watches for that
   between runs, so the pointer check under "Verification" is what catches it, and it only runs here.
 - **Escape hatch — adopt, don't overwrite:** if the repo already has a `CONTEXT.md`,
-  `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, `docs/adr/`, or a
+  `docs/session-state.md`, `docs/session-log.md`, `docs/progress.md`, `docs/lessons.md`, `docs/adr/`, or a
   `CLAUDE.md`/`AGENTS.md` with prior content, adopt them in place. Re-running `project-setup` repairs missing pieces;
-  it never clobbers existing user content. The three append-only files matter most here: `docs/session-state.md`'s
-  `## Log`, every entry in `docs/progress.md`, and every entry in `docs/lessons.md` exist nowhere else, so
+  it never clobbers existing user content. The three append-only files matter most here: every entry in
+  `docs/session-log.md`, in `docs/progress.md`, and in `docs/lessons.md` exists nowhere else, so
   re-scaffolding over any of them deletes reasoning and evidence nobody can recover.
 
 ## Inputs
@@ -44,9 +44,9 @@ reads the repo as-is to decide what already exists:
 - `git remote -v` / `.git/config` — is there a remote? (informational only; the tracker is local regardless.)
 - root `CLAUDE.md` and `AGENTS.md` — does either exist? Is there already an `## Agent skills` section?
 - root `CONTEXT.md` / `CONTEXT-MAP.md` — single- or multi-context already?
-- `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`,
+- `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/session-log.md`, `docs/progress.md`, `docs/lessons.md`,
   `STATE.md` — does prior output already exist?
-- `.gitignore` — does any pattern in it match `docs/session-state.md`, `docs/progress.md`, or
+- `.gitignore` — does any pattern in it match `docs/session-state.md`, `docs/session-log.md`, `docs/progress.md`, or
   `docs/lessons.md`? All three have to be committed.
 
 ## Process
@@ -59,9 +59,9 @@ Look at the current repo to understand its starting state. Read whatever exists;
 - `CLAUDE.md` and `AGENTS.md` at the repo root — does either exist? Is there already an `## Agent skills` section?
 - `CONTEXT.md` and `CONTEXT-MAP.md` at the repo root — is a single- or multi-context layout already implied?
 - `docs/adr/` and any `src/*/docs/adr/` directories.
-- `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, and `STATE.md`
+- `docs/features/`, `docs/session-state.md`, `docs/session-log.md`, `docs/progress.md`, `docs/lessons.md`, and `STATE.md`
   — does this skill's prior output already exist?
-- `.gitignore` — is `docs/session-state.md`, `docs/progress.md`, or `docs/lessons.md` matched by anything
+- `.gitignore` — is `docs/session-state.md`, `docs/session-log.md`, `docs/progress.md`, or `docs/lessons.md` matched by anything
   in it? All three exist to survive the session that wrote them, so an ignored copy dies on the next fresh
   clone.
 
@@ -102,10 +102,13 @@ Show the user a draft of everything before writing, and let them edit:
 
 - The `STATE.md` skeleton (the empty board with the legend; see "STATE.md seed" below).
 - The `CONTEXT.md` stub (glossary-only).
-- The `docs/session-state.md` stub (empty fields, empty log; see "session-state.md seed" below). Say what
-  the two zones are for: the five fields are a snapshot of where the work stands, rewritten each time;
-  `## Log` is an append-only record of decisions — the reason, what was ruled out, what is still open —
-  that a resuming session reads before it starts. It is committed, so it survives the session that wrote it.
+- The `docs/session-state.md` stub (empty fields; see "session-state.md seed" below) and the
+  `docs/session-log.md` stub (the preamble and entry shape, no entries; see "session-log.md seed" below).
+  Say what each is for and why they are two files: the five fields are a snapshot of where the work
+  stands, rewritten each time and therefore always short; the log is an append-only record of decisions —
+  the reason, what was ruled out, what is still open — that only ever grows. Kept together, the half that
+  grows without limit sits under the half every session must read. Both are committed, so they survive the
+  session that wrote them.
 - The `docs/progress.md` stub (the entry shape, no entries; see "progress.md seed" below). Say what it is
   for while you show it: one entry per slice recording what that slice actually executed — the commands,
   their real output, the files that changed, and what was not run. A run's own summary is otherwise the
@@ -155,18 +158,20 @@ Then create the substrate (skip anything that already exists; never clobber).
 4. **`docs/features/`** — per-feature artifact root (`docs/features/<slug>/` holds intent.md, prd.md,
    acceptance.md, environment.md, plan.md per feature; seed a `.gitkeep`).
 5. The **`## Agent skills`** block in the chosen file (see below), pointing at `STATE.md`, `CONTEXT.md`,
-   `docs/adr/`, `docs/session-state.md`, `docs/progress.md`,
+   `docs/adr/`, `docs/session-state.md`, `docs/session-log.md`, `docs/progress.md`,
    and `docs/lessons.md`, and **naming** `docs/design.md` — which setup does not create; the first UI
    surface writes it. The domain-doc consumer rules carry over from `references/domain-docs.md`. Then the **pointer** in the other filename
    (see "pointer seed" below), naming the file that holds the block.
-6. **`docs/session-state.md`** — where the work stands and why, seeded with **empty fields and an empty
-   log** (see "session-state.md seed" below). Skip it if it already exists — and here skipping is not a
-   courtesy, it is the only safe move: `## Log` is append-only, so overwriting one destroys decisions
-   that exist nowhere else. Seed no entries; entries are written by `handoff` as decisions get made.
+6. **`docs/session-state.md`** — where the work stands, seeded with **five empty fields** (see
+   "session-state.md seed" below), and **`docs/session-log.md`** — why it stands there, seeded with its
+   **preamble and no entries** (see "session-log.md seed" below). Skip either if it already exists — and
+   for the log skipping is not a courtesy, it is the only safe move: it is append-only, so overwriting one
+   destroys decisions that exist nowhere else. Seed no entries; entries are written by `handoff` as
+   decisions get made.
 
-   **Check `.gitignore` and make sure nothing matches it.** This file is committed on purpose. Its whole
-   job is to outlive the session that wrote it, and an ignored copy dies on the next fresh clone — which
-   is precisely the case it exists for. If a pattern does match it, say so and ask before changing
+   **Check `.gitignore` and make sure nothing matches either.** Both are committed on purpose. Their whole
+   job is to outlive the session that wrote them, and an ignored copy dies on the next fresh clone — which
+   is precisely the case they exist for. If a pattern does match one, say so and ask before changing
    `.gitignore`; that file is the user's.
 
 7. **`docs/progress.md`** — the run record, seeded with the **entry shape and no entries** (see
@@ -214,7 +219,16 @@ Single-context: `CONTEXT.md` + `docs/adr/` at the root. (Multi-context: `CONTEXT
 
 ### Per-feature artifacts
 Each feature's intent.md / prd.md / acceptance.md / environment.md / architecture.md /
-architecture.html / plan.md live under `docs/features/<slug>/`.
+architecture.html / plan.md live under `docs/features/<slug>/`, with each slice's concrete
+steps in `docs/features/<slug>/plan/<slice-id>.md`.
+
+### Code comments and docstrings
+Explain the code to the developer reading it. A docstring that points at a spec instead of
+explaining — `Implements US-3`, `see prd.md`, `per plan.md step 2` — leaves the next reader
+no better off, and those files move as the feature moves while the code stays. Say what it
+does, why it is built this way where that is not obvious, and which invariants it assumes. A
+`docs/adr/` record may be cited **after** the explanation as provenance, never in place of it;
+ADRs are immutable once written, which is why a citation to one keeps being true.
 
 ### Decided look
 `docs/design.md` holds this repo's look once it is decided: the palette, the type, the layout language,
@@ -223,16 +237,19 @@ built in this repo writes it; every later one starts from it and records only wh
 scaffolds it — a repo with no user interface has none, and that is correct rather than missing.
 
 ### Session state and decision log
-`docs/session-state.md` has two zones. The five fields at the top are a snapshot of where the work
-stands, rewritten each time. `## Log` beneath them is an append-only record of decisions — the reason,
-what was ruled out, what is still open.
+Two files, because they grow differently. `docs/session-state.md` is the snapshot — five fields saying
+where the work stands, rewritten each time, so it stays short no matter how long the project runs.
+`docs/session-log.md` is the record — an append-only account of decisions, the reason, what was ruled out,
+what is still open — and it only ever grows. Kept in one file, the record buries the snapshot every
+session must read; kept apart, the log can grow for the life of the project without taxing anyone.
 
-**Read both before starting work**, at the top of every session, so a question the log already answers
-is not re-opened. `## Log` is append-only: earlier entries are never edited, re-ordered, or deleted, a
-wrong entry is corrected by a new entry naming it, and an attempt to change one is reported as a
-violation rather than quietly refused. Entries hold only what the git history cannot show — never which
-files changed. It is the weakest source here: a decision record under `docs/adr/` or a signed
-`acceptance.md` outranks it, and a decision that must bind future work is promoted to `docs/adr/`.
+**Read the snapshot before starting work**, at the top of every session, and **read the log before
+re-opening any question**, so one it already answers is not argued twice. The log is append-only: earlier
+entries are never edited, re-ordered, or deleted, a wrong entry is corrected by a new entry naming it, and
+an attempt to change one is reported as a violation rather than quietly refused. Entries hold only what
+the git history cannot show — never which files changed. It is the weakest source here: a decision record
+under `docs/adr/` or a signed `acceptance.md` outranks it, and a decision that must bind future work is
+promoted to `docs/adr/`.
 
 ### Run record
 `docs/progress.md` records what each slice actually executed: one entry per slice, carrying the commands
@@ -242,7 +259,7 @@ in the form they were run, their real output, the files that changed, and what w
 where things stand, the log says why, and this says what was actually done — a claim that a check passed
 either has the command's output under it or says the check was not run, and there is no third state.
 
-It is append-only on the same terms as `## Log`, and it is evidence rather than a status page: no entry
+It is append-only on the same terms as `docs/session-log.md`, and it is evidence rather than a status page: no entry
 carries a stage, a state, or an owner. `STATE.md` answers who owns the next action, and a second answer
 here would eventually disagree with it.
 
@@ -251,7 +268,7 @@ here would eventually disagree with it.
 each, naming the guard that would catch it coming back.
 
 **Read it before building a slice**, so a pit somebody has already fallen into is not fallen into twice.
-It is append-only on the same terms as `## Log`. The same defect recurring is a second entry, never an
+It is append-only on the same terms as `docs/session-log.md`. The same defect recurring is a second entry, never an
 edit to the first — the count is the signal that the first guard did not hold, and folding two entries
 together destroys it.
 
@@ -271,9 +288,9 @@ for having read this?* If not, it does not go in. What that means file by file:
 - **`docs/session-state.md`, the five fields** — where the work stands **now**, in the fewest words that
   let a person resume without asking a question. They are overwritten every time, so nothing in them is
   history: last session's state is not context, it is noise with a timestamp.
-- **`docs/session-state.md`, `## Log`** — one entry per **decision**, in the four lines the entry shape
-  gives it. Not one per session, not one per turn, not one per file touched. A session that decided
-  nothing appends nothing, and that is a correct outcome rather than a missing entry.
+- **`docs/session-log.md`** — one entry per **decision**, in the four lines the entry shape
+  gives it, one sentence per line. Not one per session, not one per turn, not one per file touched. A
+  session that decided nothing appends nothing, and that is a correct outcome rather than a missing entry.
 - **`docs/progress.md`** — the commands as they ran, and the output that settles whether each passed.
   Quote what a reader needs in order to believe the claim, not the whole scroll, and say what was not run.
 - **`docs/lessons.md`** — one entry per **root-caused** defect, seven fields, and a named guard. An
@@ -293,7 +310,7 @@ fix is the next line you are about to add, not the hundred already there.
 Tell the user setup is complete and which skills now read from these files (`spec-grilling` appends
 `CONTEXT.md` and writes `docs/adr/`; `interview-me`/`idea-refine` write `docs/features/<slug>/intent.md`;
 `plan-breakdown` adds feature blocks + slice rows to `STATE.md`; the orchestrator drives `STATE.md`;
-`handoff` writes `docs/session-state.md` and appends to its log; whichever skill runs a slice —
+`handoff` writes `docs/session-state.md` and appends to `docs/session-log.md`; whichever skill runs a slice —
 `incremental-implementation` on its own, or the `orchestrator` when a run drives it — appends that slice's
 entry to `docs/progress.md`; `debugging-and-error-recovery` appends a `docs/lessons.md` entry whenever a
 defect is root-caused, `code-review` appends one for a Critical finding and for nothing lesser, and the
@@ -301,10 +318,11 @@ defect is root-caused, `code-review` appends one for a Critical finding and for 
 Say which of `CLAUDE.md` / `AGENTS.md` holds the rules and that the other is a pointer to it, so a
 contributor on the other tool lands in the right place. A rule change goes in the rules file; the pointer
 never gets a copy of it.
-Say what `docs/session-state.md` is for too: the fields are a snapshot, the log is a record, and the log
-is append-only — nothing in it is ever edited or deleted, so it can be trusted as evidence rather than
-read as a status page. It is committed so it survives a fresh clone; leaving it out of version control
-defeats the file.
+Say what the two session files are for too: `docs/session-state.md` is a snapshot and
+`docs/session-log.md` is a record, and the log is append-only — nothing in it is ever edited or deleted,
+so it can be trusted as evidence rather than read as a status page. They are separate files so the record
+never buries the snapshot. Both are committed so they survive a fresh clone; leaving either out of version
+control defeats it.
 Say the same about `docs/progress.md`, and say what it is not: it records what each slice ran and what
 came back, and it never says which stage a slice is at or who owns the next action — that is the board's
 question, and one question with two answers is one answer too many. It is append-only and committed for
@@ -314,7 +332,7 @@ would catch it coming back, read before a slice is built rather than after. It i
 on the same terms, and the same defect recurring is a second entry — the count is the signal that the first
 guard did not hold, and folding the two together destroys it.
 Mention that `STATE.md`, `CONTEXT.md`, the five fields of `docs/session-state.md`, and the per-feature
-docs are theirs to hand-edit later — `## Log`, `docs/progress.md`, and `docs/lessons.md` being the
+docs are theirs to hand-edit later — `docs/session-log.md`, `docs/progress.md`, and `docs/lessons.md` being the
 exceptions, since correcting an entry in any of them means appending a new one rather than changing the
 old one. Re-running `project-setup` is only needed to repair or re-scaffold a substrate file that has
 gone missing.
@@ -332,7 +350,7 @@ blocks yet (those are born from an already-sliced plan, added by `plan-breakdown
 >
 > Cells hold tokens and short phrases, never sentences — this is a board, and it is read across rather
 > than down. Why a slice is where it is goes in `docs/progress.md`; what got decided goes in
-> `docs/session-state.md`'s log. A row whose cell has grown into a paragraph has taken on another
+> `docs/session-log.md`. A row whose cell has grown into a paragraph has taken on another
 > file's job, and the board stops being skimmable at exactly the moment there is enough work to need it.
 
 feature state:  spec · plan · building · done          ← the PRD's stage
@@ -378,22 +396,22 @@ own `## Glossary` heading.
 
 ## session-state.md seed
 
-Write this stub at `docs/session-state.md` — five empty fields and an empty log. The five field headings
-and `## Log` are the stable sections consumers depend on (canonical headings; do not rename). The
-explanation is part of the seed: an append-only file is only append-only if the next person to open it
-can tell that from the file:
+Write this stub at `docs/session-state.md` — five empty fields and the pointer to the log. The five field
+headings are the stable sections consumers depend on (canonical headings; do not rename). The file holds
+**no log entries and no `## Log` heading**; the record is `docs/session-log.md`, seeded separately below.
 
 ```markdown
 # Session state
 
-Where the work stands, and why. Two zones, and they are not the same kind of thing.
+Where the work stands, right now. Every field below is a **snapshot** — overwritten each time this file
+is written, so only the latest version is true and nothing here is history.
 
-The five fields below are a **snapshot** — overwritten every time this file is written, so only the
-latest version is true. `## Log` is a **record** — appended to, never edited, never deleted, so every
-entry stays true about the moment it was written.
+Why the work stands here, and which questions are already settled, is the record:
+**`docs/session-log.md`** (append-only). Read this file before starting work, and read the log before
+re-opening any question — one it already answers does not get argued from zero.
 
-**Read both before starting work.** The fields say where things stand; the log says why, and which
-questions are already settled. A question the log answers does not get re-opened from zero.
+The two are separate files because they grow differently. This one is rewritten, so it stays short. The
+log only ever grows, and underneath a snapshot it would bury the twelve lines every session came for.
 
 ## Current objective
 
@@ -404,8 +422,26 @@ questions are already settled. A question the log answers does not get re-opened
 ## Boundaries
 
 ## Next phase
+```
 
-## Log
+Fill in none of the five fields — they are written by `handoff` when there is actually a session to
+record.
+
+`handoff` also adds `## Suggested skills` and `## Referenced artifacts` after `## Next phase` the first
+time it writes the file. The seed leaves them out because there is nothing to point at yet.
+
+## session-log.md seed
+
+Write this stub at `docs/session-log.md` — the preamble and the entry shape, no entries. The explanation
+is part of the seed: an append-only file is only append-only if the next person to open it can tell that
+from the file.
+
+```markdown
+# Session log
+
+Why the work stands where it does. One entry per **decision**, appended and never edited, so every entry
+stays true about the moment it was written. Where the work stands *now* is the snapshot:
+`docs/session-state.md`.
 
 Append-only. A new entry goes after the last one. Earlier entries are never edited, re-worded, re-dated,
 re-ordered, or removed. An entry that turned out to be wrong is corrected by a **new** entry naming the
@@ -414,9 +450,14 @@ an earlier entry is **reported as a violation**, naming the entry and what would
 quietly is not enough, because a silent refusal reads as a silent success.
 
 An entry holds only what the git history cannot show: the decision, the reason, what was ruled out, and
-what is still open. Never which files changed or what was added — git holds that exactly, and a second
-copy of a derivable fact can disagree with its source, leaving a reader no way to tell which one is
-lying.
+what is still open — **one sentence each, four lines, no fifth.** Never which files changed or what was
+added; git holds that exactly, and a second copy of a derivable fact can disagree with its source,
+leaving a reader no way to tell which one is lying.
+
+An entry records a **decision**, not that work happened. The test is whether a later session, not knowing
+it, would re-open the question. A slice landing, a test going green, a plan step taken — none of those
+are decisions, and what a run executed belongs in `docs/progress.md`. Most sessions append zero or one
+entry, and a session that decided nothing appends nothing.
 
 This is the weakest source in the repo. It never overrides a decision record under `docs/adr/` or a
 signed `acceptance.md`; where they disagree, the committed contract is right and the entry is stale. A
@@ -437,12 +478,8 @@ Still open: <what this did not settle, or "nothing">
 -->
 ```
 
-Seed no entries and fill in none of the five fields — both are written by `handoff` when there is
-actually a session to record. A seeded entry is a decision nobody made.
-
-`handoff` also adds `## Suggested skills` and `## Referenced artifacts` between `## Next phase` and
-`## Log` the first time it writes the file. The seed leaves them out because there is nothing to point
-at yet; `## Log` stays last either way, so appending never has to step over anything.
+Seed no entries — they are written by `handoff` as decisions get made. A seeded entry is a decision
+nobody made.
 
 ## progress.md seed
 
@@ -450,7 +487,7 @@ Write this stub at `docs/progress.md` — the entry shape and no entries. `## En
 heading the seed ships (canonical heading; do not rename); every other `##` heading in the file is an
 entry, and entries are appended after it, oldest first. The shape itself sits inside a fenced block,
 which is what keeps it from reading as the first entry. The explanation is part of the seed, for the
-same reason it is part of `docs/session-state.md`: an append-only file is only append-only if the next
+same reason it is part of `docs/session-log.md`: an append-only file is only append-only if the next
 person to open it can tell that from the file.
 
 `````markdown
@@ -509,7 +546,7 @@ do not add a claim that something does. A "Not run" line that is present and hon
 check that passed from a check nobody performed; without it, the two read identically.
 
 Seed no entries. An entry is a record of work somebody did, so a seeded one is fiction of exactly the
-kind this file exists to prevent — the same reason `docs/session-state.md` ships with an empty `## Log`.
+kind this file exists to prevent — the same reason `docs/session-log.md` ships with no entries.
 
 ## lessons.md seed
 
@@ -597,8 +634,9 @@ the run record carries its two invariant lines.
 When the repo has **neither** `CLAUDE.md` nor `AGENTS.md` and the user chose to create `CLAUDE.md`, seed it
 from the bundled template `assets/CLAUDE.template.md` **before** adding the `## Agent skills` block. The
 template is a project-agnostic set of behavioral guidelines — *Think Before Coding · Simplicity First ·
-Surgical Changes · Goal-Driven Execution* — adapted from Andrej Karpathy's notes on LLM coding pitfalls (via
-`multica-ai/andrej-karpathy-skills`). Write the template verbatim, then append the achilles wiring beneath it.
+Surgical Changes · Goal-Driven Execution · Docstrings Explain the Code* — the first four adapted from Andrej
+Karpathy's notes on LLM coding pitfalls (via `multica-ai/andrej-karpathy-skills`), the last one this suite's
+own. Write the template verbatim, then append the achilles wiring beneath it.
 Do **not** write the template into an `AGENTS.md`, and never seed over a `CLAUDE.md` that already exists — in
 that case you edit the existing file and add only the `## Agent skills` block.
 
@@ -641,10 +679,10 @@ copy that this arrangement exists to prevent.
   cannot tell which side is stale.
 - "I'll dump all the choices in one message to save turns." → No. One decision at a time; assume the user
   doesn't know the terms.
-- "`docs/session-state.md` already exists but looks messy — I'll re-scaffold it clean." → No. Its `## Log`
+- "`docs/session-log.md` already exists but looks messy — I'll re-scaffold it clean." → No. It
   is append-only, and those entries exist nowhere else. Overwriting it deletes reasoning no commit can
   reconstruct. Skip it, exactly like `CONTEXT.md`.
-- "`docs/session-state.md` is per-session scratch — I'll add it to `.gitignore`." → No. It is committed on
+- "`docs/session-state.md` and `docs/session-log.md` are per-session scratch — I'll add them to `.gitignore`." → No. They are committed on
   purpose. Ignored, it dies on the next fresh clone, which is the one situation it was written for.
 - "The session log duplicates `git log` — one of them should go." → No. They hold different things. Git
   holds what changed; the log holds why, and what was ruled out. Neither can produce the other.
@@ -654,7 +692,7 @@ copy that this arrangement exists to prevent.
   board holds the state; neither holds the commands a slice ran or what came back from them. That is the
   one question — what did the last run actually do — that today only the run's own summary answers.
 - "`docs/progress.md` already exists but the entries look stale — I'll re-scaffold it clean." → No. It is
-  append-only, exactly like `## Log`. Those entries are the only evidence of what earlier runs did;
+  append-only, exactly like `docs/session-log.md`. Those entries are the only evidence of what earlier runs did;
   overwriting them leaves a file that looks tidy and proves nothing. Skip it.
 - "I'll seed one entry so the shape is obvious." → No. The shape is in the fenced block, where the file
   says plainly that nothing in a fence is an entry. A seeded entry is a claim that work happened.
@@ -689,13 +727,13 @@ copy that this arrangement exists to prevent.
 - Creating `docs/design.md`, or seeding it empty — the first UI surface writes it, and an empty file says
   exactly what no file already says while reading like a decision somebody made.
 - Writing the behavioral `CLAUDE.md` template into an `AGENTS.md`, or over a `CLAUDE.md` that already exists.
-- Overwriting or re-scaffolding an existing `docs/session-state.md` — its `## Log` is append-only and the
+- Overwriting or re-scaffolding an existing `docs/session-log.md` — it is append-only and the
   entries in it exist nowhere else.
-- Seeding `docs/session-state.md` with a log entry, or filling in any of the five fields.
-- Leaving `docs/session-state.md` matched by `.gitignore`, or adding it there — an ignored log dies on the
+- Seeding `docs/session-log.md` with an entry, or filling in any of `docs/session-state.md`'s five fields.
+- Leaving `docs/session-state.md` or `docs/session-log.md` matched by `.gitignore`, or adding either there — an ignored log dies on the
   next fresh clone.
 - Writing the `## Agent skills` block without the session-log section, so nothing tells a fresh agent to
-  read `docs/session-state.md` before it starts. A log nobody reads is a maintained file with no consumer.
+  read `docs/session-state.md` before it starts, and `docs/session-log.md` before re-opening a question. A log nobody reads is a maintained file with no consumer.
 - Overwriting or re-scaffolding an existing `docs/progress.md` — it is append-only and its entries are the
   only account of what earlier runs actually did.
 - Seeding `docs/progress.md` with an entry, or writing the entry shape anywhere but inside the fenced
@@ -773,18 +811,12 @@ Done when **all** hold:
   skipped, and the only one that reaches the empty-file case.
 - `docs/adr/` and `docs/features/` directories exist.
 - `docs/session-state.md` exists, carrying the five field headings — `## Current objective`,
-  `## Current state`, `## Remaining issues`, `## Boundaries`, `## Next phase` — and a `## Log` heading.
-  **On a copy this run created, no log entry under `## Log` and no field filled in**; on a re-run over one
-  that already existed and was skipped, every entry and every field is theirs and stays exactly as it is.
-  This is the criterion with the most to lose. `## Log` holds reasoning no commit can reconstruct, so a
-  run that cleared an unscoped emptiness check by emptying the log would have destroyed the file to pass a
-  check on it. The five headings and `## Log` are required either way — on an adopted copy a missing one
-  is reported to the user, who adds it; nothing here rewrites their file to make a criterion read true.
-
-  Its text states the append-only rule, that an attempt to change an earlier entry is reported as a
-  violation, what an entry holds and what it never holds, that it is the weakest source, and the promotion
-  route to `docs/adr/` — a reader who has never seen this project can add an entry, and correct a wrong
-  one, from the file alone.
+  `## Current state`, `## Remaining issues`, `## Boundaries`, `## Next phase` — and **no `## Log`
+  heading**, because the record is its own file now. **On a copy this run created, no field is filled
+  in**; on a re-run over one that already existed and was skipped, every field is theirs and stays exactly
+  as it is. A `## Log` heading found here on an adopted copy is not a failure to repair silently: it is a
+  repo from before the split, and its entries move to `docs/session-log.md` verbatim — report it and let
+  `handoff`'s migration step do the move.
 
   ```bash
   fresh=1   # 0 on a re-run over a copy that already existed and was skipped
@@ -796,13 +828,12 @@ Done when **all** hold:
     fence  { next }
     /^## / { h[$0] = 1
              field = ($0 ~ /^## (Current objective|Current state|Remaining issues|Boundaries|Next phase)$/)
-             inlog = ($0 == "## Log")
+             if ($0 == "## Log") { print FILENAME":"FNR": a ## Log heading here is pre-split — migrate its entries to docs/session-log.md"; b=1 }
              next }
-    /^[[:space:]]*$/          { next }
-    fresh && field            { print FILENAME":"FNR": a field is filled in on a copy this run created"; b=1 }
-    fresh && inlog && /^### / { print FILENAME":"FNR": a log entry on a copy this run created"; b=1 }
-    END { split("## Current objective|## Current state|## Remaining issues|## Boundaries|## Next phase|## Log", want, "|")
-          for (i = 1; i <= 6; i++) if (!(want[i] in h)) { print FILENAME": heading missing: "want[i]; b=1 }
+    /^[[:space:]]*$/ { next }
+    fresh && field   { print FILENAME":"FNR": a field is filled in on a copy this run created"; b=1 }
+    END { split("## Current objective|## Current state|## Remaining issues|## Boundaries|## Next phase", want, "|")
+          for (i = 1; i <= 5; i++) if (!(want[i] in h)) { print FILENAME": heading missing: "want[i]; b=1 }
           if (fence) { print FILENAME": a fenced block is left open — every line after it goes unread"; b=1 }
           if (c)     { print FILENAME": an HTML comment is left open — every line after it goes unread"; b=1 }
           exit b }' docs/session-state.md
@@ -810,26 +841,46 @@ Done when **all** hold:
 
   **`fresh` is the whole check, and it is set rather than detected.** Nothing in the file records which run
   wrote it, so the knob carries the scope: leave it at `1` for a copy this run created, set it to `0` for
-  one that already existed and was skipped. At `0` the two emptiness rules drop and the headings stay,
-  which is the right shape — on an adopted copy the entries *are* the file. What is never right is
-  clearing a report by editing the file. The two records below draw the same line with a separate `fresh()`
-  call because there are two of them; here there is one file, so the scope is a knob rather than a second
-  snippet.
+  one that already existed and was skipped. At `0` the filled-field rule drops and the headings stay, which
+  is the right shape — on an adopted copy the fields *are* the file. What is never right is clearing a
+  report by editing the file.
 
-  **`log` is an `awk` built-in**, which is why the variable is `inlog`. That is not a style preference:
-  `awk` refuses the assignment outright with `syntax error` and `illegal statement`, on a line that reads
-  fine to a person. The HTML-comment skip is the other half — the entry template lives inside a comment,
-  so a bare `^### ` scan hits it and reports an entry in a log that is empty.
+  **Exercise it in four directions**, on a scratch copy: the seed as written with `fresh=1` → `0`; the seed
+  with the fields filled in, still `fresh=1` → non-zero, naming every line; that same populated file with
+  `fresh=0` → `0`, because those fields are what the file is for; a `## Log` heading pasted back in →
+  non-zero under either value of `fresh`, naming the migration. The third is the one that gets skipped, and
+  it is the one the repair re-run depends on.
+- `docs/session-log.md` exists, carrying its preamble and the entry shape inside an HTML comment. **On a
+  copy this run created, no entry** — no `^### ` line outside that comment; on a re-run over one that
+  already existed and was skipped, every entry is theirs and stays exactly as it is. This is the criterion
+  with the most to lose: the log holds reasoning no commit can reconstruct, so a run that cleared an
+  unscoped emptiness check by emptying it would have destroyed the file to pass a check on it.
 
-  **Exercise it in five directions**, on a scratch copy: the seed as written with `fresh=1` → `0`; the seed
-  with the fields filled in and entries appended, still `fresh=1` → non-zero, naming every line; that same
-  populated file with `fresh=0` → `0`, because those entries are what the file is for; `## Log` deleted →
-  non-zero naming that heading, under either value of `fresh`; and the file truncated to zero length →
-  non-zero. The third is the one that gets skipped, and it is the one the repair re-run depends on.
-- `docs/session-state.md` is not matched by any `.gitignore` pattern; if one matched it, that was surfaced
-  to the user rather than silently changed.
-- A pre-existing `docs/session-state.md` was left untouched — no entry under its `## Log` was reworded,
-  re-ordered, or removed.
+  Its text states the append-only rule, that an attempt to change an earlier entry is reported as a
+  violation, what an entry holds and what it never holds, that it is the weakest source, and the promotion
+  route to `docs/adr/` — a reader who has never seen this project can add an entry, and correct a wrong
+  one, from the file alone.
+
+  ```bash
+  fresh=1   # 0 on a re-run over a copy that already existed and was skipped
+  [ -s docs/session-log.md ] || { echo "docs/session-log.md: missing or empty"; exit 1; }
+  awk -v fresh="$fresh" '
+    /<!--/ { c = 1 }
+    c      { if (/-->/) c = 0; next }
+    /^```/ { fence = !fence; next }
+    fence  { next }
+    fresh && /^### / { print FILENAME":"FNR": a log entry on a copy this run created"; b=1 }
+    END { if (fence) { print FILENAME": a fenced block is left open — every line after it goes unread"; b=1 }
+          if (c)     { print FILENAME": an HTML comment is left open — every line after it goes unread"; b=1 }
+          exit b }' docs/session-log.md
+  ```
+
+  **The HTML-comment skip is load-bearing** — the entry template lives inside a comment, so a bare `^### `
+  scan hits it and reports an entry in a log that is empty.
+- Neither `docs/session-state.md` nor `docs/session-log.md` is matched by any `.gitignore` pattern; if one
+  matched either, that was surfaced to the user rather than silently changed.
+- A pre-existing `docs/session-log.md` was left untouched — no entry in it was reworded, re-ordered, or
+  removed.
 - `docs/progress.md` exists, carrying a `## Entry shape` heading with the entry shape in a fenced block
   beneath it — including the "Not run" line and the credential line. **On a copy this run created,
   `## Entry shape` is the only `##` heading**; on a re-run over one that already existed and was skipped,
@@ -946,7 +997,7 @@ Done when **all** hold:
   non-zero, naming the count.
 - Exactly one of `CLAUDE.md` / `AGENTS.md` contains an `## Agent skills` block referencing every substrate
   file this skill scaffolds — as it stands six: `STATE.md`, `CONTEXT.md`, `docs/adr/`,
-  `docs/session-state.md`, `docs/progress.md`, and
+  `docs/session-state.md`, `docs/session-log.md`, `docs/progress.md`, and
   `docs/lessons.md`. **Take the list off item 5 of *Write* above, not off this line.** A hand-written list
   falls behind the substrate it describes without anything failing: this one went stale for as long as it
   took `docs/lessons.md` to reach that substrate, and in that state it passed over a block with no route to
@@ -979,8 +1030,9 @@ Done when **all** hold:
   an answer — and a filename that is simply absent is worse still, because a contributor whose tool reads
   only that name opens nothing at all and never learns the rules exist. The check finds the named file by
   reading the seed's first sentence, which is why that sentence is fixed wording.
-- That `## Agent skills` block tells a fresh agent to read `docs/session-state.md` — both zones — **before
-  starting work**, and states that `## Log` is append-only. Without that line the log has no reader.
+- That `## Agent skills` block tells a fresh agent to read `docs/session-state.md` **before starting
+  work** and `docs/session-log.md` before re-opening any question, and states that the log is append-only.
+  Without those lines the log has no reader.
 - It also tells an agent resuming work it was not present for to read `docs/progress.md`, and says what
   that file does not answer. A record with no declared reader is a maintained file nobody opens.
 - And it tells a slice to read `docs/lessons.md` **before it writes its skeleton** — the moment the
@@ -1008,7 +1060,8 @@ Emits the repo substrate the whole suite consumes:
 | `CONTEXT.md` | repo root | `## Glossary` (terms only, no implementation detail) |
 | `docs/adr/` | repo-wide | the ADR home (`ADR-<NNN>-<slug>.md`) |
 | `docs/features/` | repo-wide | per-feature artifact root (`docs/features/<slug>/`) |
-| `docs/session-state.md` | repo-wide | the five snapshot fields (`## Current objective` · `## Current state` · `## Remaining issues` · `## Boundaries` · `## Next phase`) plus `## Log`, append-only and scaffolded empty. Entries hold the decision, the reason, what was ruled out, and what is still open — never what git already shows. Earlier entries never change, and an attempt to change one is reported as a violation. Weakest source in the repo: outranked by `docs/adr/` and a signed `acceptance.md`, with promotion to `docs/adr/` as the way out. Committed, never ignored |
+| `docs/session-state.md` | repo-wide | the five snapshot fields (`## Current objective` · `## Current state` · `## Remaining issues` · `## Boundaries` · `## Next phase`) plus the pointer to `docs/session-log.md`. Rewritten in place each time, so only the latest version is true and it holds no history. No `## Log` heading — the record is its own file. Committed, never ignored |
+| `docs/session-log.md` | repo-wide | the decision record, append-only and scaffolded with no entries. Entries hold the decision, the reason, what was ruled out, and what is still open — one sentence each, never what git already shows. Earlier entries never change, and an attempt to change one is reported as a violation. Weakest source in the repo: outranked by `docs/adr/` and a signed `acceptance.md`, with promotion to `docs/adr/` as the way out. Committed, never ignored |
 | `docs/progress.md` | repo-wide | `## Entry shape` plus the fenced entry shape beneath it, field for field as the *progress.md seed* section above writes it — scaffolded with no entries. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one stops the work and is reported. Every other `##` heading is an entry. Holds no stage, state, gate, or owner — that is the board's question. Committed, never ignored |
 | `docs/lessons.md` | repo-wide | `## Entry shape` plus the fenced template beneath it, field for field as the *lessons.md seed* section above writes it — scaffolded with no entries. An entry naming no `Automated guard` is refused. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one stops the work and is reported. The same lesson twice is two entries, never a merge. Every other `##` heading is an entry. Committed, never ignored |
 | `CLAUDE.md` / `AGENTS.md` | repo root | one carries the `## Agent skills` block, the other a pointer naming it — never two copies of the block, and never a missing file; a fresh `CLAUDE.md` also leads with the bundled behavioral template |
@@ -1022,12 +1075,12 @@ nobody has.
 
 Downstream consumers: `interview-me`/`idea-refine` → `docs/features/<slug>/intent.md`; `spec-grilling` →
 appends `CONTEXT.md` + writes `docs/adr/`; `to-prd`/`acceptance-criteria`/`environment-manifest` → `docs/features/<slug>/`;
-`plan-breakdown` → adds feature blocks + PRD-namespaced slice rows to `STATE.md`; `handoff` → writes the five fields of `docs/session-state.md` and appends to its `## Log`;
+`plan-breakdown` → adds feature blocks + PRD-namespaced slice rows to `STATE.md`; `handoff` → writes the five fields of `docs/session-state.md` and appends to `docs/session-log.md`;
 `incremental-implementation` and the `orchestrator` → append one entry per slice to `docs/progress.md`;
 `debugging-and-error-recovery` → appends a `docs/lessons.md` entry per root-caused defect, `code-review` →
 appends one for a Critical finding and nothing lesser, and the `orchestrator` → appends the entries slices
 hand back; `incremental-implementation` reads `docs/lessons.md` before it writes a slice's skeleton;
-`using-agent-skills` → reads `docs/session-state.md` and `docs/progress.md` at the start of every session,
+`using-agent-skills` → reads `docs/session-state.md`, `docs/session-log.md` and `docs/progress.md` at the start of every session,
 before any work begins;
 the orchestrator drives
 the slice/gate columns. tracker = local. `STATE.md` update by `project-setup`: create the empty board only.

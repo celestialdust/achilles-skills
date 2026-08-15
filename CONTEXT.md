@@ -111,7 +111,7 @@ language. Every term this repository defines lives in this one section.
   the risk has to surface at the merge instead. Not the same vocabulary as the environment probe, which
   reports `green`, `amber`, or `red` about whether a manifest row is provisioned — that grades the
   environment before a run starts, this grades a diff after one ends.
-- **Session log** — the `## Log` zone of `docs/session-state.md`: the record of decisions, one entry each,
+- **Session log** — `docs/session-log.md`, the file beside `docs/session-state.md`: the record of decisions, one entry each,
   in the order they were made. The five fields above it are a snapshot of where the work stands, rewritten
   every time; the log is why it stands there, and it is never rewritten. A session picking the work up cold
   reads both before it acts, so a question the log already answers does not get re-opened from zero.

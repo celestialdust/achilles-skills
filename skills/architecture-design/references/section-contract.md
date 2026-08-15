@@ -11,6 +11,10 @@ and cites the decisions taken during `spec-grilling` rather than taking them its
 **The eight headings and their order are fixed.** A person signing reads them in this order, and
 `spec-review` finds a section by name. Number them as below.
 
+The file also has a length budget, and it binds every section here: `SKILL.md` step 2 sets it at 2000 lines
+and says what to cut when you are over. Read it before you write, not after — the sections below are all
+tables and citations precisely so the budget is spent on rows rather than on prose.
+
 One file carries the shape: a feature's `docs/features/<slug>/architecture.md`. It states what this
 feature changes about the structure, self-contained against its own `research.md` — there is no
 repository-level map to inherit from. A layer order, where one was decided, lives in `docs/adr/` and is

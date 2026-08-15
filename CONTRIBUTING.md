@@ -4,8 +4,6 @@ This is a collection of engineering skills, lifecycle commands, and reviewer per
 
 There are three kinds of contribution: a **skill** (`skills/<name>/SKILL.md`), a **command** (`commands/<name>.md`), and a **persona** (`agents/<name>.md`). Pick the one that matches what you're adding, then follow the matching section.
 
-Prose in this repo follows one style guide — [`references/language-style.md`](references/language-style.md). Read it before your first writing edit.
-
 ## Naming convention
 
 Names are **descriptive and function-implying** — they should tell a cold reader what the unit does, not abbreviate it. The suite was deliberately renamed from terse stems to full descriptors; preserve that direction in anything new:
@@ -141,9 +139,9 @@ Stages don't share memory — they hand off through **artifact files** with fixe
 |---|---|
 | Ideate | `intent.md` |
 | Spec | `research.md` (first) + `research/<axis>.md` (the evidence behind each synthesized line), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html`, `design-contract.md` (UI only) (+ ADRs, `CONTEXT.md`) |
-| Plan | `plan.md` |
+| Plan | `plan.md` (the map) + `plan/<slice-id>.md` (one per slice, its concrete steps) |
 | Verify | `qa.md` |
-| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/session-state.md` (where the work stands + an append-only decision log), `docs/progress.md` (the run record — what each slice actually executed), `docs/lessons.md` (root-caused defects and the guard for each), `docs/design.md` (the repository's decided look, written by the first UI surface) |
+| (cross-cutting) | `STATE.md` (session/handoff), `CONTEXT.md` (glossary), `docs/session-state.md` (where the work stands), `docs/session-log.md` (the append-only decision record), `docs/progress.md` (the run record — what each slice actually executed), `docs/lessons.md` (root-caused defects and the guard for each), `docs/design.md` (the repository's decided look, written by the first UI surface) |
 
 Each stage reads the upstream artifact and writes the next, so a fresh agent can resume from the files alone. When you add or edit a skill/command, declare what it reads and writes in `## Outputs & handoff contract` using these exact filenames — never introduce a new artifact name for an existing contract file.
 

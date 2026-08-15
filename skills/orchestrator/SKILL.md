@@ -50,8 +50,9 @@ Refuse to run (CRISPY refuse-to-run) unless ALL are present:
   the board to already say `building`, because nothing else writes that token.
 - **`preflight-readiness` verdict = GREEN** — every `environment.md` row provisioned. Red or
   un-attested amber → refuse to start the wave.
-- **`plan.md` + slices** (`docs/features/<slug>/`) — each slice's concrete steps, exact
-  tests, declared `Regression surface`, `Design ref`, and `Files (owned)` ownership. Missing
+- **`plan.md` + `plan/`** (`docs/features/<slug>/`) — the slice table with each slice's declared
+  `Regression surface`, `Design ref`, `Steps`, and `Files (owned)` ownership, plus one
+  `plan/<slice-id>.md` per slice holding its concrete steps and exact tests. Missing
   file-ownership on a slice that shares a wave → refuse (the disjoint-file guard cannot run blind).
 - **`acceptance.md` (status: signed)** — the frozen behavioral oracle. The orchestrator
   FREEZES `acceptance.md` + the RED tests + each slice's `Regression surface` for that

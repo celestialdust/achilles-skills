@@ -201,7 +201,8 @@ Good interfaces make testing natural:
 
 ## Outputs & handoff contract
 
-- **Emits:** deep-module **interfaces in `plan.md`** (under the slice/step that owns the module) — the
+- **Emits:** deep-module **interfaces in `plan.md`** (under `## File Structure`, or beside the steps of
+  the slice that owns the module) — the
   registry artifact for this discipline. There is **no standalone artifact** and **no `STATE.md` row
   transition**: this is a referenced discipline, not a slice.
 - **Stable surface `plan-breakdown` consumes:** for each module, the interface description (signature +
