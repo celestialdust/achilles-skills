@@ -20,8 +20,7 @@ skills/          → 40 skills, one discipline each (skills/<name>/SKILL.md)
 agents/          → 5 review personas (code-cold subagents)
 commands/        → 12 slash commands (*.md) — 9 lifecycle + 3 standalone
 references/      → shared reference material: checklists (security, performance, accessibility, …),
-                   safety-rails.md, the six things an agent does not decide for itself,
-                   language-style.md, the prose style guide for everything this repo ships, and
+                   safety-rails.md, the six things an agent does not decide for itself, and
                    write-ownership.md, the write table check-write-table.mjs reads
 docs/            → per-agent setup guides
 scripts/         → the six consistency checks CI runs over the whole tree — see *How a change here is
@@ -51,8 +50,7 @@ lives.
 | `docs/adr/` | one file per architectural decision, with the reasoning and what was ruled out | `spec-grilling`, `plan-breakdown`, `documentation-and-adrs` |
 | `docs/progress.md` | the run record — what each slice actually executed: the commands, their real output, and what was not run and why | `project-setup` seeds it; whichever skill runs a slice appends one entry per slice |
 | `docs/lessons.md` | root-caused defects, seven fields each, naming the guard that would catch a recurrence | `project-setup` seeds it; `debugging-and-error-recovery` and `code-review` append |
-| `docs/features/<slug>/` | one feature's `intent.md`, `research.md` (synthesis) and `research/<axis>.md` (the per-axis evidence behind it), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md`, `architecture.html`, `plan.md`, `qa.md` | the stage that produces each one |
-| `references/language-style.md` | how this suite writes | a person; it ships with the plugin and is never scaffolded into a consumer's repo |
+| `docs/features/<slug>/` | one feature's `intent.md`, `research.md` (synthesis) and `research/<axis>.md` (the per-axis evidence behind it), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md`, `architecture.html`, `plan.md` (the map) and `plan/<slice-id>.md` (one slice's concrete steps), `qa.md` | the stage that produces each one |
 | `references/write-ownership.md` | the write table — every file a skill may write, cut into zones, one writer named per zone; `scripts/check-write-table.mjs` parses it | a person; it ships with the plugin and is never scaffolded into a consumer's repo |
 | `CONTRIBUTING.md` | what a change to a skill, command, or persona must satisfy — naming, the `SKILL.md` envelope, structure rules, the artifact-chain contract, and the pre-PR list | a person; contributor-facing, never scaffolded into a consumer's repo |
 
@@ -144,7 +142,6 @@ a platform with no skill tool — not to build the `/review` fan-out.
 - Use the **new** skill names everywhere (e.g. `performance-optimization`, not `perf`; `quality-verification`,
   not `qa`). Artifact filenames (`qa.md`, `acceptance.md`, `environment.md`, …) and the `git` VCS tool keep
   their names — they are not skill pointers.
-- Write prose to [references/language-style.md](./references/language-style.md). It states its own scope.
 
 ## How a change here is checked
 
@@ -184,8 +181,7 @@ bash tests/stop-server.test.sh
 
 There is no root `package.json`, `Makefile`, or `pyproject.toml` — the six checks are plain Node scripts
 you run directly. What they cannot check is whether the prose is any good: for that the checker is still
-you, via the pre-PR list in [CONTRIBUTING.md](./CONTRIBUTING.md), read against
-[references/language-style.md](./references/language-style.md).
+you, via the pre-PR list in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Boundaries
 

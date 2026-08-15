@@ -1,6 +1,6 @@
 ---
 name: plan-breakdown
-description: THE planner — turns a signed prd.md + research.md + architecture.md into a concrete, agent-executable plan.md. Reach for it the moment Plan starts and someone says "plan this", "break it into tasks", "write the implementation plan", or is tempted to hand the build agent a prose sketch. It ELABORATES the structural decisions already recorded during Spec instead of reopening them, and supplies the depth they left: typed signatures, field lists, vertical tracer-bullet slices (each demoable, cross-layer, with an observable checkpoint) where every non-trivial step names its file, line range, code snippet, and test, plus a Blocked-by dependency DAG written into STATE.md. Refuses horizontal layer-by-layer plans and placeholder steps; references codebase-design + api-design.
+description: THE planner — turns a signed prd.md + research.md + architecture.md into a concrete, agent-executable plan. Reach for it the moment Plan starts and someone says "plan this", "break it into tasks", "write the implementation plan", or is tempted to hand the build agent a prose sketch. It ELABORATES the structural decisions already recorded during Spec instead of reopening them, and supplies the depth they left: typed signatures, field lists, vertical tracer-bullet slices (each demoable, cross-layer, with an observable checkpoint) whose concrete steps live one file per slice under `plan/`, mapped from the slice table in plan.md, where every non-trivial step names its file, line range, code snippet, and test, plus a Blocked-by dependency DAG written into STATE.md. Refuses horizontal layer-by-layer plans and placeholder steps; references codebase-design + api-design.
 ---
 
 # plan-breakdown — THE planner (Plan stage)
@@ -11,7 +11,8 @@ Decompose work into small, verifiable tasks with explicit acceptance criteria. G
 
 **Stage: Plan** — the last human-owned stage; the human signs the plan before the orchestrator runs.
 plan-breakdown is **THE planner**: the single skill that turns `prd.md` + `research.md` +
-`architecture.md` into a concrete, vertically-sliced, agent-executable `plan.md`. It **elaborates**
+`architecture.md` into a concrete, vertically-sliced, agent-executable plan — `plan.md` as the map, and
+one `plan/<slice-id>.md` beside it per slice carrying that slice's steps. It **elaborates**
 decisions rather than taking them — the structural ones arrive already made and recorded during
 `spec-grilling` — and what it decides is depth: typed signatures, field lists, slices, the DAG. Build
 order — stub→mock→wire→fill — is `incremental-implementation`'s. The plan IS the slices + the DAG.
@@ -57,6 +58,14 @@ required input cannot be resolved — a plan invented without the PRD or the cod
    decisions section is a citation index, so read the reasoning behind a boundary from the record it
    cites in `docs/adr/`, by id. Where a feature
    ran no structure pass, say so in the plan and plan against `research.md` alone.
+
+   **Carry an overview of it into plan.md's `## Architecture`** — the modules this feature touches, the
+   seams it goes through, the layer order where one was decided — and point at `architecture.md` for the
+   rest. A bare "see `architecture.md`" is not enough, and the reason is who reads which file:
+   `architecture.md` is a Spec artifact a person signed at the gate, while `plan.md` is what the implementer
+   and the reviewer open, code-cold, weeks later. An agent that has to leave the plan to learn what shape it
+   is building inside will usually just not, and then it builds to the steps alone. Enough structure to
+   orient, a path for the depth — not a second copy of the file, which would be one more thing to drift.
 
 **Referenced disciplines (invoked, not file inputs):** `codebase-design` and `api-design` — see
 `## Referenced disciplines & the ADR trigger`. **Optional context:** `acceptance.md` if present — align each
@@ -121,7 +130,15 @@ Each vertical slice delivers working, testable functionality.
 
 ### Step 4: Write Concrete Steps (file · lines · snippet · test)
 
-Group steps under the vertical slice they belong to (Step 3). Within a slice, write ordered steps; every
+**Each slice's steps go in their own file at `docs/features/<slug>/plan/<slice-id>.md`.** `plan.md` keeps
+the header, the slice table, the risks and the open questions, and stays the map. It is the steps that grow
+without bound — every non-trivial one carries a real code snippet, so a ten-slice feature puts thousands of
+lines of other slices' code between an implementer and the twenty lines it was dispatched to write. An agent
+reads a bounded window, and what falls outside it is the framing: the goal, the DAG, the checkpoint the slice
+is answering. Splitting the steps out is what keeps the part every reader needs small enough to survive
+the read.
+
+The slice file carries **steps only** — see `## Plan Document Template` for its shape. Within a slice, write ordered steps; every
 **non-trivial** step names four fields so `incremental-implementation` can land it without inventing code that bypasses the
 PRD or the design disciplines:
 
@@ -178,8 +195,8 @@ say nothing about whether *this* slice did the thing it existed to do.
 
 ## No placeholders (plan failures — never write them)
 
-These force the implementer to invent code, and invented code bypasses the spec. Grep your own plan and fix
-every hit before handoff: `TBD`, `TODO`, `implement later`, `fill in details`, `Add appropriate error
+These force the implementer to invent code, and invented code bypasses the spec. Grep `plan.md` **and every
+file in `plan/`** — the steps are where these hide — and fix every hit before handoff: `TBD`, `TODO`, `implement later`, `fill in details`, `Add appropriate error
 handling`, `add validation`, `handle edge cases`, `Write tests for the above` (without the test code),
 `Similar to Step N` (repeat the code — steps may be read out of order), any reference to a type/function not
 defined in some step, and any code step missing its `snippet`.
@@ -192,7 +209,9 @@ The plan IS a list of **vertical tracer-bullet slices**. Each slice is a thin en
 - has a **PRD-namespaced id** (e.g. `PWR-1`, `PWR-2`) back-referencing a `prd.md` user-story id;
 - ends at an **observable Checkpoint** — a fact a human or test can verify ("submit a bad email → inline
   error shows"), NOT "compiles" / "builds" / "no type errors";
-- names a **`Blocked-by`** list of the sibling slice ids it depends on.
+- names a **`Blocked-by`** list of the sibling slice ids it depends on;
+- carries its steps in **`plan/<slice-id>.md`**, named by the row's `Steps` cell (Step 4). The id is the
+  filename, so the path is the same fact as the id and no slice can end up with steps nobody can find.
 
 The `Blocked-by` edges form the **dependency DAG** the orchestrator wave-schedules from. **Verify the DAG is
 acyclic** before handing off. Write one row per slice into `STATE.md` under the feature's block:
@@ -263,6 +282,8 @@ If a task is L or larger, it should be broken into smaller tasks. An agent perfo
 [One paragraph: the product outcome, traced to prd.md `## User Stories`]
 
 ## Architecture
+[Overview — the structure these slices build inside, in a handful of lines: the modules this feature
+touches, the seams it goes through, the layer order if one was decided. Details: `architecture.md`.]
 - [Key decision 1 and rationale — reference a hard-to-reverse decision by ADR id, never restate it]
 - [Key decision 2 and rationale]
 
@@ -275,11 +296,11 @@ If a task is L or larger, it should be broken into smaller tasks. An agent perfo
 
 ## Vertical slices
 
-| Slice id | Story-ref | Design ref | Files (owned, disjoint) | Regression surface | Checkpoint (observable) | Blocked-by |
-|---|---|---|---|---|---|---|
-| PWR-1 | US-1 | `docs/features/password-reset/design-contract.md` · `prototype/index.html` | `schema/user.ts`, `api/reset.ts`, `ui/ResetForm.tsx` | `auth/session.ts` | Submit a bad email → inline error shows | — |
-| PWR-2 | US-2 | `docs/features/password-reset/design-contract.md` · `prototype/index.html` | `api/verify.ts`, `ui/VerifyPage.tsx` | `auth/token.ts` | Valid token → password updates, user redirected to login | PWR-1 |
-| PWR-3 | US-3 | — | `jobs/expireTokens.ts`, `api/health.ts` | `auth/token.ts` | Expired token → sweep removes it, health endpoint reports the count | PWR-1 |
+| Slice id | Story-ref | Design ref | Steps | Files (owned, disjoint) | Regression surface | Checkpoint (observable) | Blocked-by |
+|---|---|---|---|---|---|---|---|
+| PWR-1 | US-1 | `docs/features/password-reset/design-contract.md` · `prototype/index.html` | `plan/PWR-1.md` | `schema/user.ts`, `api/reset.ts`, `ui/ResetForm.tsx` | `auth/session.ts` | Submit a bad email → inline error shows | — |
+| PWR-2 | US-2 | `docs/features/password-reset/design-contract.md` · `prototype/index.html` | `plan/PWR-2.md` | `api/verify.ts`, `ui/VerifyPage.tsx` | `auth/token.ts` | Valid token → password updates, user redirected to login | PWR-1 |
+| PWR-3 | US-3 | — | `plan/PWR-3.md` | `jobs/expireTokens.ts`, `api/health.ts` | `auth/token.ts` | Expired token → sweep removes it, health endpoint reports the count | PWR-1 |
 
 **`Design ref` — the pointer to the signed design contract and the prototype this slice builds against**
 (`frontend-design`'s `design-contract.md` plus the committed prototype it names). Fill it once, here, while
@@ -289,19 +310,11 @@ A `—` means **this slice builds no UI**. That `—` is a *recorded fact*, not 
 about work it did not do — the builder is handed the artifact it will be graded against, and the verifier is
 told which case it got instead of guessing from the diff.
 
-### Slice PWR-1 — [user-facing capability]
-**Step 1 — [what this step does]**
-- **file:** `schema/user.ts`
-- **lines:** `new file`
-- **snippet:**
-  ```ts
-  // the actual code that will appear in the diff, in the codebase's style
-  export const resetTokenTable = pgTable("reset_token", { /* ... */ });
-  ```
-- **test:** `tactics: tests/reset.test.ts — rejects expired token, accepts fresh token` (realizes acceptance `PWR-A1`)
-
-(Repeat one block per non-trivial step. Trivial edits — rename, import add, single-line change — may use a
-one-line prose body. No `TBD`/`TODO`/`add validation`/`handle edge cases` placeholders.)
+**`Steps` — the path to this slice's step file**, always `plan/<slice-id>.md`, relative to the feature
+directory. Unlike `Design ref` it has no `—` case: every slice has steps, so an empty cell means the file was
+never written. Write the path out rather than leaving it to be derived: the implementer reads this row and
+follows the cell to its steps, and a written path is checkable against the directory while a convention
+somebody has to remember is not.
 
 ## Risks and Mitigations
 | Risk | Impact | Mitigation |
@@ -311,6 +324,35 @@ one-line prose body. No `TBD`/`TODO`/`add validation`/`handle edge cases` placeh
 ## Open Questions
 - [Question needing human input]
 ```
+
+### The slice step file — `plan/<slice-id>.md`
+
+One per slice, named for the slice id and nothing else, so the path is derivable from the id and an agent
+handed only `PWR-2` can find its steps.
+
+```markdown
+# PWR-1 — [user-facing capability]
+
+Row: `docs/features/password-reset/plan.md` → `## Vertical slices`
+
+**Step 1 — [what this step does]**
+- **file:** `schema/user.ts`
+- **lines:** `new file`
+- **snippet:**
+  ```ts
+  // the actual code that will appear in the diff, in the codebase's style
+  export const resetTokenTable = pgTable("reset_token", { /* ... */ });
+  ```
+- **test:** `tactics: tests/reset.test.ts — rejects expired token, accepts fresh token` (realizes acceptance `PWR-A1`)
+```
+
+(Repeat one block per non-trivial step. Trivial edits — rename, import add, single-line change — may use a
+one-line prose body. No `TBD`/`TODO`/`add validation`/`handle edge cases` placeholders.)
+
+The `Row:` line is a pointer, not a summary. Do not copy the row's cells underneath it — Checkpoint, Files
+(owned), Regression surface and Blocked-by are canonical in the table, and a second copy goes stale the first
+time the table is corrected. The reason to split the steps out was that one fact should have one home; a
+slice file that restates its row has just built the second one.
 
 `## Open Questions` is a **pre-signature** section: every entry is answered before the human signs, and the
 section is empty at handoff. It is not a queue the run will drain. Once the run starts there is no channel
@@ -358,6 +400,13 @@ Before starting implementation, confirm:
 - [ ] The human has reviewed and approved the plan — this signature is the pre-run gate, and the open PR is
       the post-run one; the plan must not invent a third gate in between
 - [ ] Every **non-trivial** step names all four fields: `file` · `lines` · `snippet` · `test`.
+- [ ] `## Architecture` carries the structural overview, not just a link — a reader who never opens
+      `architecture.md` still knows which modules and seams these slices build inside.
+- [ ] Every slice has a `plan/<slice-id>.md` that exists, and every file in `plan/` names a slice in the
+      table. Compare the two as sets rather than reading down the column — the row that lost its file is
+      never the first one.
+- [ ] No slice file restates its row's Checkpoint, Files (owned), Regression surface or Blocked-by. Those
+      live in the table; a second copy is the one that goes stale.
 - [ ] No-placeholder grep is clean (`## No placeholders` patterns return zero hits).
 - [ ] Every slice spans ≥2 layers and ends at an **observable** Checkpoint (not "compiles").
 - [ ] Slice ids are PRD-namespaced, the `Blocked-by` DAG is **acyclic**, and one row per slice is written to `STATE.md`.
@@ -372,23 +421,28 @@ Acceptance criteria are per-task and answer "did we build the right thing?". The
 
 ## Outputs & handoff contract
 
-**Emits:** `docs/features/<slug>/plan.md` — the concrete plan — plus the vertical-slice list and the
-dependency DAG materialized as slice rows in `STATE.md`. A hard-to-reverse decision this stage is the
-first to face also emits an ADR at `docs/adr/ADR-<NNN>-<slug>.md`, referenced by id from plan.md.
+**Emits:** `docs/features/<slug>/plan.md` — the map: header, slice table, risks, open questions — plus
+**`plan/<slice-id>.md` beside it, one per slice**, carrying that slice's concrete steps, plus the
+vertical-slice list and the dependency DAG materialized as slice rows in `STATE.md`. A
+hard-to-reverse decision this stage is the first to face also emits an ADR at
+`docs/adr/ADR-<NNN>-<slug>.md`, referenced by id from plan.md.
 
 **Stable sections the consumer (`incremental-implementation`, driven by the orchestrator) reads cold — change the shape,
 update the consumer in the same commit:**
 - **Plan header** — Goal · Architecture · Tech Stack · File Structure (one-line responsibility per file).
-  Sets `incremental-implementation`'s working context.
+  Sets `incremental-implementation`'s working context. `Architecture` is an overview plus a pointer to
+  `architecture.md`, because the implementer and the reviewer read this file and not that one.
 - **`## Vertical slices`** table — columns (canonical, per registry): Slice id (PRD-namespaced) · Story-ref ·
   **Design ref** (the signed design contract + prototype this slice builds against; `—` = builds no UI) ·
+  **Steps** (`plan/<slice-id>.md`, the file holding this slice's steps; no `—` case) ·
   **Files (owned, disjoint)** (cross-layer; the disjoint-file guard the orchestrator parallelizes on) ·
   **Regression surface** (blast-radius set, frozen under retry) · Checkpoint (observable) · Blocked-by.
   The orchestrator reads `Blocked-by` as the wave DAG, `Files (owned)` for the disjoint-file guard,
   `Design ref` to carry into **both** the implement and verify dispatch briefs (the verifier is code-cold
   and may not open `plan.md`, so dispatch is the only channel that reaches it), and
   `Regression surface` as the immutable-under-retry contract `incremental-implementation`/`test-driven-development`/`quality-verification`/`git-workflow` consume.
-- **Per-step `file` · `lines` · `snippet` · `test`** on every non-trivial step. `incremental-implementation` pulls these
+- **Per-step `file` · `lines` · `snippet` · `test`** on every non-trivial step, in that slice's
+  `plan/<slice-id>.md`. `incremental-implementation` pulls these
   step-by-step and treats a missing field as **refuse-to-run**.
 - **Referenced interfaces** — `codebase-design` deep-module interfaces + `api-design` contracts, inline in
   plan.md (no standalone file).

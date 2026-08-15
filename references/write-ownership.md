@@ -108,6 +108,7 @@ keeps the table from being shrunk until it stops catching anything.
 | `design-contract.md` | the file | — | `frontend-design` | create |
 | `plan.md` | the file | — | `plan-breakdown` | create |
 | `plan.md` | the interface contracts written into it | — | `api-design` | create |
+| `plan/<slice-id>.md` | the file — one slice's concrete steps | `plan/` | `plan-breakdown` | create |
 | `qa.md` | the file | — | `quality-verification` | create |
 | `security-findings.md` | the file, one per owning slice | — | `security-and-hardening` | create |
 | `release.md` | the file, one per release | — | `shipping-and-launch` | create |

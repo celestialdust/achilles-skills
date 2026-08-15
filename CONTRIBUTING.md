@@ -4,8 +4,6 @@ This is a collection of engineering skills, lifecycle commands, and reviewer per
 
 There are three kinds of contribution: a **skill** (`skills/<name>/SKILL.md`), a **command** (`commands/<name>.md`), and a **persona** (`agents/<name>.md`). Pick the one that matches what you're adding, then follow the matching section.
 
-Prose in this repo follows one style guide — [`references/language-style.md`](references/language-style.md). Read it before your first writing edit.
-
 ## Naming convention
 
 Names are **descriptive and function-implying** — they should tell a cold reader what the unit does, not abbreviate it. The suite was deliberately renamed from terse stems to full descriptors; preserve that direction in anything new:

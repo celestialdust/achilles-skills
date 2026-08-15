@@ -1,6 +1,6 @@
 ---
 name: architecture-design
-description: Reconciles a feature's structure into an artifact a person signs before any code is planned — one feature's `architecture.md` plus the committed `architecture.html` read at the Spec gate. ALWAYS run this in Spec, once `acceptance.md` exists in draft and before `spec-review`, whenever a feature adds a module, adds a dependency between parts that already exist, or introduces a seam — and before anyone plans, breaks down, or implements against a structure nobody wrote down. It traces every scenario through the structure, records the invariants, grades what it wrote with two code-cold sweeps whose findings become questions for the person rather than edits, and cites the decisions taken during `spec-grilling` rather than taking them itself. Never invent a layer order nobody decided, and never pin a signature or field list — those are Plan's.
+description: Reconciles a feature's structure into an artifact a person signs before any code is planned — one feature's `architecture.md` plus the committed `architecture.html` read at the Spec gate. ALWAYS run this in Spec, once `acceptance.md` exists in draft and before `spec-review`, whenever a feature adds a module, adds a dependency between parts that already exist, or introduces a seam — and before anyone plans, breaks down, or implements against a structure nobody wrote down. It traces every scenario through the structure, records the invariants, grades what it wrote with two code-cold sweeps whose findings become questions for the person rather than edits, and cites the decisions taken during `spec-grilling` rather than taking them itself. Never invent a layer order nobody decided, never pin a signature or field list — those are Plan's — and keep `architecture.md` inside its 2000-line budget, cutting prose rather than rows.
 ---
 
 ## Purpose
@@ -97,6 +97,24 @@ That second case is the one that goes wrong. Its rules — what section 3 may co
 first two questions — which parts are new, and which dependencies this feature adds — so write them so a
 reader answers both without prose archaeology.
 
+**The file has a budget: 2000 lines.** Check it with `wc -l` before you hand off; it is not a target to
+grow into. The budget exists because this artifact has two readers who both fail quietly when it is long —
+a person at the gate who skims instead of reading, and an agent downstream whose window holds only part of
+it and cannot tell which part it is missing. A structure document nobody finished reading grants approval
+it never earned.
+
+Over budget, **the thing you cut is prose, never structure.** All eight sections survive; every section 5
+scenario row survives; every section 3 edge row survives. What goes is wording — reasoning already recorded
+in the ADR the row cites, a rationale restated in three places, an example carrying a point the table
+already makes. Those cuts cost nothing, because the reasoning behind a decision lives in `docs/adr/` and
+section 6 is a citation index into it; repeating it here was never this file's job.
+
+If the **tables alone** breach 2000 lines, concision cannot save it and you should not try. That is a fact
+about the feature, not the writing: something with that many scenarios and edges is likely two features
+wearing one slug. Write it as a section 8 row for the person — they can split the feature, or accept the
+size knowing why — and leave the file over budget rather than dropping rows to fit. A trimmed table looks
+exactly like a complete one, which is the failure this whole pass exists to prevent.
+
 **3 · Trace every scenario** into section 5, one row per scenario, keyed by its `acceptance.md` id. A
 scenario with no path is a behaviour nothing was designed to handle, and it is far cheaper to find here
 than in Verify — cheaper in both directions now that the contract is still a draft, since the fix may be
@@ -141,6 +159,8 @@ reads the page and signs this file and `acceptance.md` together. Nothing an agen
 | "I will write section 5 from the PRD's stories." | Stories are not the oracle. Verify grades scenarios by id, and section 5 is what makes each one's path through the structure checkable. |
 | "I wrote section 2 carefully, so grading it myself is the same thing." | It is the one thing it cannot be. You chose those modules, so you cannot find what you were already not seeing — the reason Verify and Review run code-cold is the reason these sweeps do. |
 | "This depth finding is obviously right, so I will just fix section 2." | Then a structural decision was taken here, by an agent, with nobody watching. A section 8 row already carries the recommended answer; let the person spend the ten seconds agreeing to it. |
+| "This feature is genuinely complex, so it earns more than 2000 lines." | Complexity earns more *rows*, not more *prose*, and rows are compact. Measure which one you are over on before arguing for the exemption — nearly always it is restated rationale that `docs/adr/` already holds. |
+| "I am 300 lines over, so I will trim section 5 to the scenarios that matter." | Every scenario matters; that is what signing `acceptance.md` means. A section 5 missing rows reads exactly like one that is complete, so this trade buys a shorter file by breaking the one property the file is checked on. Go over budget and say so in section 8. |
 
 ## Red flags
 
@@ -161,12 +181,17 @@ Each of these means the pass is being violated, not merely that a file is untidy
 - A sweep run by the context that wrote the structure rather than dispatched as a fresh, code-cold subagent.
 - Section 8 with no heading for the sweeps after they ran — nothing then distinguishes two sweeps that
   found nothing from two that were skipped.
+- `architecture.md` over 2000 lines with no section 8 row accounting for it — or under 2000 because rows
+  were dropped to get there.
 
 ## Verification (ending criteria)
 
 The pass is finished when all of these hold, each checked rather than assumed:
 
 - The eight headings are present and in order, in every file written.
+- **`wc -l docs/features/<slug>/architecture.md` is at most 2000** — or it is over, and section 8 carries
+  the row saying the tables alone breach it. Run the command; a file's length is the one property nobody
+  estimates correctly by looking at it.
 - **Set equality on section 5.** Every `acceptance.md` scenario id appears exactly once, and no row names
   an id that is not there. Extract both lists and compare them; a read-through is what misses the one in
   the middle.
