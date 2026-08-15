@@ -167,6 +167,8 @@ The `references/` directory contains supplementary checklists that skills pull i
 | [`design-system-format.md`](../references/design-system-format.md) | frontend-design, quality-verification |
 | [`teaching-artifact-format.md`](../references/teaching-artifact-format.md) | literate-explainer |
 | [`comprehension-workspace-format.md`](../references/comprehension-workspace-format.md) | comprehension-quiz, literate-explainer |
+| [`safety-rails.md`](../references/safety-rails.md) | the six things an agent does not decide for itself — cited by every skill that touches a gate |
+| [`write-ownership.md`](../references/write-ownership.md) | the write table: every file a skill may write, one writer per zone — contributor-facing |
 | [`language-style.md`](../references/language-style.md) | every word the plugin ships — contributor-facing, never loaded at runtime |
 
 Load a reference when you need detailed patterns beyond what the skill covers.
@@ -179,7 +181,7 @@ The lifecycle commands create working artifacts as the agent moves through the s
 |-------|-------------|-------------|
 | Setup | `STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other | project-setup |
 | Ideate | `intent.md` | interview-me, idea-refine |
-| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html` (+ ADRs; plus root `ARCHITECTURE.md` on the repo's first structural pass) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest, architecture-design |
+| Spec | `research.md` (first), `prd.md`, `acceptance.md`, `environment.md`, `architecture.md` + `architecture.html` (+ ADRs) | codebase-research, spec-grilling, to-prd, acceptance-criteria, environment-manifest, architecture-design |
 | Plan | `plan.md` | codebase-research (second pass), then plan-breakdown |
 | Verify | `qa.md` | quality-verification |
 

@@ -61,23 +61,17 @@ of the seven and holds nothing on `Quality floor`, `Restraint`, or `Copy-as-desi
 
 ## Hard stops
 
-- **Gate-erosion HALT (frozen-under-retry):** `acceptance.md`, the RED tests, and the declared
-  `Regression surface` are immutable while a slice retries. A diff that weakens/deletes/skips a RED
-  test, narrows the surface, or edits a scenario to go green → **HALT** the slice (flip
-  `gate: agent → you`). Fix the code, never the oracle. Those three are frozen *for the retry loop*;
-  between runs a person can change them by a signed Spec change.
+- **Gate-erosion HALT** — safety rail 4 (`references/safety-rails.md`) covers `acceptance.md`, the
+  RED tests, the declared `Regression surface`, and the read-only `docs/design.md`. Any of them moved
+  to go green → **HALT** the slice (flip `gate: agent → you`). Fix the code, never the oracle.
   **Not this:** reporting a scenario `not-reachable`. It stays in the contract, unproven, with a person
   named via the PR ack line, so nothing stopped being checked and nothing halts.
-- **Gate-erosion HALT (`docs/design.md`, read-only rather than frozen):** the repository's decided look
-  is not a fourth frozen artifact — it is a file you read and never write. Every contract axis marked
-  `inherits: docs/design.md` is graded against it, and it carries no `status:` of its own, so nothing
-  else catches an edit. A diff that moves the decided look so the built surface matches it is the same
-  **HALT**, with no retry qualifier and no reward-hack test. Only `frontend-design` moves that file,
-  under the sign-off of a surface that means to.
-- **Reward-hack tripwire:** if the failure signature moved only because a test or `acceptance.md` was
-  edited while the implementation is materially unchanged → **HALT**.
-- **Security circuit-breaker:** a CRITICAL/HIGH finding or a secret in the diff during verification is
-  a **hard halt, no retry, no PR** (an exposed secret fires a notification). Defer classification to
+- **Reward-hack tripwire** (same rail): the failure signature moved only because a test or
+  `acceptance.md` was edited while the implementation is materially unchanged → **HALT**. It does not
+  apply to `docs/design.md`, which is read-only rather than frozen — an edit there is a halt whatever
+  else the diff did.
+- **Security circuit-breaker** — safety rails 2 and 3: a CRITICAL/HIGH finding or a secret in the diff
+  during verification is a **hard halt, no retry, no PR**. Defer classification to
   `security-and-hardening`; your job is to stop the line.
 
 ## Where you sit in the run

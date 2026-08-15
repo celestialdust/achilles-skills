@@ -35,7 +35,7 @@ Refuse to run if there is **no diff** to review — with nothing changed there i
 - `acceptance.md` (the signed behavioral contract) — a human-anchored oracle, frozen under the slice's retry loop. You are dispatched **code-cold**: you see `acceptance.md`, not the conversation that wrote the code, so the oracle never drifts.
 - `STATE.md` slice row — the PRD-namespaced id of the slice you are reviewing.
 
-**Dispatch contract:** the orchestrator runs you as a **fresh, code-cold subagent on the review axis, in parallel with `code-simplification` / `security-and-hardening` / `performance-optimization`** (maker≠checker; parallelism.md mech f). No persona role-play.
+**Dispatch contract:** the orchestrator runs you as a **fresh, code-cold subagent on the review axis, in parallel with `code-simplification` / `security-and-hardening` / `performance-optimization`** (maker≠checker — safety rail 4, `references/safety-rails.md`). No persona role-play.
 
 ## The Five-Axis Review
 
@@ -415,8 +415,8 @@ Part of code review is dependency review:
 ```
 ## See Also
 
-- For detailed security review guidance, see `../../references/security-checklist.md` (owned by the `security-and-hardening` skill)
-- For performance review checks, see `../../references/performance-checklist.md` (owned by the `performance-optimization` skill)
+- For detailed security review guidance, see `references/security-checklist.md` (owned by the `security-and-hardening` skill)
+- For performance review checks, see `references/performance-checklist.md` (owned by the `performance-optimization` skill)
 
 ## Common Rationalizations
 
@@ -484,7 +484,7 @@ collision here. Step 4 says when the entry is filled in and who appends it.
 
 **Gate role:** this skill is the **Review-fan-out leg** — ONE of three AND-combined agent-internal gates (quality-verification + Review fan-out + evaluator floors). It does NOT flip `STATE.md` and does NOT open or promote a PR. The orchestrator aggregates all legs; a passing slice stops at a **DRAFT PR** that a separate fresh code-cold verifier later promotes. A `Request changes` verdict routes the slice back to `incremental-implementation` (bounded rounds), not forward.
 
-**Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion, deletes/narrows a RED test, or shrinks the declared `Regression surface` while the implementation is materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**. A diff that edits `docs/design.md` is the same call with no reward-hack qualifier: Verify grades inherited design axes against that file, a slice reads it and never writes it, and only `frontend-design` moves it — under the sign-off of a surface that means to. Those three are frozen for the slice's retry loop; between runs a person can change them by a signed Spec change, so the reward-hack qualifier is what distinguishes erosion from a legitimate edit.
+**Gate-erosion circuit breaker (safety rail 4, `references/safety-rails.md`):** a diff that erodes a frozen artifact → raise `Critical:` and signal a **gate-erosion HALT**. What is specific to review is the *reward-hack qualifier* — the frozen three thaw between runs by a signed Spec change, so a diff touching one is only erosion where the implementation is materially unchanged. That test is how a reviewer tells erosion from a legitimate edit, and it is the reviewer's to apply. `docs/design.md` is the same call **without** the qualifier: nothing legitimately edits it here, whatever else the diff does.
 
 Never `Approve` a diff that moved the goalposts instead of the code (testing-strategy AP1–AP2).
 

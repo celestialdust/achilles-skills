@@ -156,9 +156,8 @@ Then create the substrate (skip anything that already exists; never clobber).
    acceptance.md, environment.md, plan.md per feature; seed a `.gitkeep`).
 5. The **`## Agent skills`** block in the chosen file (see below), pointing at `STATE.md`, `CONTEXT.md`,
    `docs/adr/`, `docs/session-state.md`, `docs/progress.md`,
-   and `docs/lessons.md`, and **naming** `docs/design.md` and `ARCHITECTURE.md` — which setup does not
-   create; the first UI surface writes the one, and the first feature to run `architecture-design` writes
-   the other. The domain-doc consumer rules carry over from `references/domain-docs.md`. Then the **pointer** in the other filename
+   and `docs/lessons.md`, and **naming** `docs/design.md` — which setup does not create; the first UI
+   surface writes it. The domain-doc consumer rules carry over from `references/domain-docs.md`. Then the **pointer** in the other filename
    (see "pointer seed" below), naming the file that holds the block.
 6. **`docs/session-state.md`** — where the work stands and why, seeded with **empty fields and an empty
    log** (see "session-state.md seed" below). Skip it if it already exists — and here skipping is not a
@@ -217,12 +216,6 @@ Single-context: `CONTEXT.md` + `docs/adr/` at the root. (Multi-context: `CONTEXT
 Each feature's intent.md / prd.md / acceptance.md / environment.md / architecture.md /
 architecture.html / plan.md live under `docs/features/<slug>/`.
 
-### Structure map
-`ARCHITECTURE.md` holds this repo's structure once it is decided: the domains, the layer order, and the
-dependency edges a diff may add. The **first** feature to run `architecture-design` here writes it; every
-later one starts from it and records only what differs. Nothing scaffolds it — a repo whose layering
-nobody has decided has none, and that is correct rather than missing.
-
 ### Decided look
 `docs/design.md` holds this repo's look once it is decided: the palette, the type, the layout language,
 the motion posture, and the signature vocabulary every interface here shares. The **first** user interface
@@ -261,6 +254,38 @@ each, naming the guard that would catch it coming back.
 It is append-only on the same terms as `## Log`. The same defect recurring is a second entry, never an
 edit to the first — the count is the signal that the first guard did not hold, and folding two entries
 together destroys it.
+
+### Keeping these files worth reading
+Every file above is read by somebody who has none of your context, at the moment they decide what to do
+next. That is what they are for, and it is also the whole constraint on them: **a line earns its place by
+changing what a cold reader would do.** A line that records merely that work happened changes nothing —
+git holds that already, exactly — and a second copy of a derivable fact is free to disagree with its
+source, leaving a reader no way to tell which one is lying.
+
+So the test, before writing any line into any of them: *would somebody who just arrived act differently
+for having read this?* If not, it does not go in. What that means file by file:
+
+- **`STATE.md`** — tokens and short phrases in cells, never sentences. It is a board: where each slice
+  is, and who owns the next move. *Why* a slice is where it is belongs in `docs/progress.md`; what got
+  decided belongs in the log. A cell holding a paragraph is a board nobody can read across.
+- **`docs/session-state.md`, the five fields** — where the work stands **now**, in the fewest words that
+  let a person resume without asking a question. They are overwritten every time, so nothing in them is
+  history: last session's state is not context, it is noise with a timestamp.
+- **`docs/session-state.md`, `## Log`** — one entry per **decision**, in the four lines the entry shape
+  gives it. Not one per session, not one per turn, not one per file touched. A session that decided
+  nothing appends nothing, and that is a correct outcome rather than a missing entry.
+- **`docs/progress.md`** — the commands as they ran, and the output that settles whether each passed.
+  Quote what a reader needs in order to believe the claim, not the whole scroll, and say what was not run.
+- **`docs/lessons.md`** — one entry per **root-caused** defect, seven fields, and a named guard. An
+  observation with no guard behind it is a preference, and preferences are what fill a file like this
+  until nobody reads it.
+- **`CONTEXT.md`** — one definition per domain term, in the language of the domain, with no
+  implementation detail. A term already defined is sharpened in place, never defined a second time.
+
+**The cure is at the point of writing, never at the point of reading.** These records are append-only for
+a reason: what grows with decisions grows with work, and trimming it deletes the evidence somebody will
+need. A file that has become too long to skim was not written too much — it was *admitted* too much. The
+fix is the next line you are about to add, not the hundred already there.
 ```
 
 ### 5. Done
@@ -304,6 +329,11 @@ blocks yet (those are born from an already-sliced plan, added by `plan-breakdown
 
 > Single source of truth for what's in flight. The orchestrator drives slice rows; the human reads the
 > `gate` column to know what needs them. No emojis; text tokens only.
+>
+> Cells hold tokens and short phrases, never sentences — this is a board, and it is read across rather
+> than down. Why a slice is where it is goes in `docs/progress.md`; what got decided goes in
+> `docs/session-state.md`'s log. A row whose cell has grown into a paragraph has taken on another
+> file's job, and the board stops being skimmable at exactly the moment there is enough work to need it.
 
 feature state:  spec · plan · building · done          ← the PRD's stage
 slice state:    impl · verify · review · ship · done · blocked · halted
@@ -459,7 +489,9 @@ Append below, oldest first:
 ## <date> — <SLICE-ID> — <title>
 - Summary:
 - Commands run:            (verbatim, one per line)
-- Results:                 (verbatim output or the failure signature)
+- Results:                 (the output lines that settle whether it passed — the counts, the failure
+                            signature, the exit status — quoted exactly. Not the whole scroll: an
+                            entry a reader scrolls past is evidence nobody checked)
 - Files changed:
 - Not run:                 (what was skipped, and why — never omit this line)
 - Follow-ups:
@@ -654,8 +686,7 @@ copy that this arrangement exists to prevent.
 - Asking "where should issues live / GitHub or local?" — that decision is gone (tracker = local `STATE.md`).
 - Writing any value, secret, or shell command into a scaffolded file (these files are structure, not config).
 - Seeding `STATE.md` with feature/slice rows — `project-setup` leaves the board empty.
-- Creating `docs/design.md` or `ARCHITECTURE.md`, or seeding either empty — the first UI surface writes
-  the one and the first feature to run `architecture-design` writes the other, and an empty file says
+- Creating `docs/design.md`, or seeding it empty — the first UI surface writes it, and an empty file says
   exactly what no file already says while reading like a decision somebody made.
 - Writing the behavioral `CLAUDE.md` template into an `AGENTS.md`, or over a `CLAUDE.md` that already exists.
 - Overwriting or re-scaffolding an existing `docs/session-state.md` — its `## Log` is append-only and the
@@ -819,7 +850,7 @@ Done when **all** hold:
   writes its skeleton, that an entry naming no `Automated guard` is refused, that it is append-only and an
   attempt to change an earlier entry stops the work and is reported, that the same lesson twice is two
   entries, and every party that writes an entry, and on what terms. **Take that roster off
-  `references/write-ownership.md`'s write table, not off this line.** As it stands, three parties append entries:
+  `../../references/write-ownership.md`'s write table, not off this line.** As it stands, three parties append entries:
   whoever root-causes a defect, a review with a `Critical:` finding, and the run that carries back an
   entry a slice handed it. A count written here goes stale the moment the table grows a writer, and this
   one already did — the courier row was added while both this criterion and the seed it grades still said
@@ -956,11 +987,10 @@ Done when **all** hold:
   knowledge is worth anything, since read afterwards a lesson is a post-mortem of work already done. Three
   append-only records, three declared readers: a record nobody is told to open is a maintained file with
   no consumer, and this is the third.
-- That block also names `docs/design.md` and `ARCHITECTURE.md` — the first user interface built here writes
-  the one, the first feature to run `architecture-design` writes the other — and **this run created
-  neither**. Both halves are load-bearing, and they pull opposite ways: a cold agent that has to invent a
-  path invents a different one, which is why both are named; and a file scaffolded empty reads like a
-  decision somebody made, which is why neither is created. These two are also why the criterion above
+- That block also names `docs/design.md` — the first user interface built here writes it — and **this run
+  created it not at all**. Both halves are load-bearing, and they pull opposite ways: a cold agent that has
+  to invent a path invents a different one, which is why it is named; and a file scaffolded empty reads
+  like a decision somebody made, which is why it is not created. This is also why the criterion above
   counts the *scaffolded* substrate rather than every path the block mentions — a completeness check that
   swept them in would be demanding the very files this one forbids.
 - If a fresh `CLAUDE.md` was created (neither file existed and the user chose it), it leads with the bundled
@@ -983,12 +1013,11 @@ Emits the repo substrate the whole suite consumes:
 | `docs/lessons.md` | repo-wide | `## Entry shape` plus the fenced template beneath it, field for field as the *lessons.md seed* section above writes it — scaffolded with no entries. An entry naming no `Automated guard` is refused. Append-only: entries are never edited, re-ordered, or removed, and an attempt to change one stops the work and is reported. The same lesson twice is two entries, never a merge. Every other `##` heading is an entry. Committed, never ignored |
 | `CLAUDE.md` / `AGENTS.md` | repo root | one carries the `## Agent skills` block, the other a pointer naming it — never two copies of the block, and never a missing file; a fresh `CLAUDE.md` also leads with the bundled behavioral template |
 
-**Named in the substrate, created by nobody here: `docs/design.md` and `ARCHITECTURE.md`** — the repo's
-decided look, which every later interface inherits and records only its differences from, and the repo's
-structure, which every later feature inherits the same way. The **first** UI surface writes the one, via
-`frontend-design`; the **first** feature to run `architecture-design` writes the other. This skill names
-both paths so a cold agent reads one instead of inventing one, and scaffolds neither. Seeding either one
-empty is the move to avoid: an empty look or an empty layering reads as a decision somebody made, when
+**Named in the substrate, created by nobody here: `docs/design.md`** — the repo's decided look, which
+every later interface inherits and records only its differences from. The **first** UI surface writes it,
+via `frontend-design`. This skill names the path so a cold agent reads it instead of inventing one, and
+scaffolds nothing. Seeding it
+empty is the move to avoid: an empty look reads as a decision somebody made, when
 nobody has.
 
 Downstream consumers: `interview-me`/`idea-refine` → `docs/features/<slug>/intent.md`; `spec-grilling` →

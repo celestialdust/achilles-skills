@@ -33,7 +33,7 @@ Agent-run quality gate before merge. It reports findings; it does not edit, merg
 **Two circuit-breakers stop it.** Either one is a hard halt — no retry, no PR. In an orchestrated run the halt lands on the owning slice; standalone, it stops the review of that diff:
 
 - **Security.** A CRITICAL/HIGH finding, or a secret in the diff. A *committed* secret has repo-wide blast radius, so it also freezes the run.
-- **Gate-erosion** (defined in `code-review`). The diff weakens a frozen `acceptance.md` assertion, deletes or narrows a RED test, or shrinks the declared `Regression surface` while the implementation is materially unchanged. That is the reward-hack signature: the goalposts moved instead of the code. It raises `Critical:` and signals a gate-erosion HALT — never an approval. Catching this is the whole reason a code-cold reviewer reads the diff, so a gate-erosion signal is a stop, not a finding to route back. Those three are frozen for the slice's retry loop; an edit to `docs/design.md` raises the same `Critical:` with no "materially unchanged" qualifier, because Verify grades every contract axis marked `inherits: docs/design.md` against that file and only `frontend-design` moves it. Gate-erosion ends the **slice**, not the run; the other slices keep going.
+- **Gate-erosion** — safety rail 4, `references/safety-rails.md`; `code-review` applies it. A diff that moved the goalposts instead of the code raises `Critical:` and signals a HALT, never an approval. Catching that is the whole reason a code-cold reviewer reads the diff, so the signal is a stop rather than a finding to route back — and it ends the **slice**, not the run; the other slices keep going.
 
 Short of those two, it runs to completion.
 

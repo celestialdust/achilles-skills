@@ -61,12 +61,9 @@ these stable sections the orchestrator + `pull-request` depend on:
 - An **exposed secret with repo-wide blast radius** → `Circuit-breaker: repo-wide-secret-STOP`: fire a
   **PushNotification**, **freeze the next wave barrier**, open no further PRs. Remediation is
   **rotate-then-purge**, never delete-the-line.
-- **Gate-erosion:** a diff that weakens a frozen `acceptance.md` assertion, narrows a RED test, or shrinks
-  the regression surface while the implementation is materially unchanged → HALT; never let it pass. A diff
-  that edits `docs/design.md` is the same HALT without the qualifier, and for a different reason than a
-  freeze: Verify grades every contract
-  axis marked `inherits: docs/design.md` against that file, it carries no `status:` of its own, and only
-  `frontend-design` moves it.
+- **Gate-erosion** — safety rail 4 (`references/safety-rails.md`): a diff that erodes a frozen
+  artifact while the implementation is materially unchanged → HALT; never let it pass. An edit to
+  `docs/design.md` is the same HALT without that qualifier.
 - `Verdict: block` (MEDIUM/LOW, no secret) → findings flow into the slice's bounded retry as required fixes.
 
 ## Where you sit in the run

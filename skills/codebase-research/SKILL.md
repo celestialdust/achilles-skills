@@ -1,6 +1,6 @@
 ---
 name: codebase-research
-description: Map the codebase/DB exactly as it is today — a goal-blind, fact-only survey produced by parallel read sub-agents that never see the design — BEFORE any design decision is made. Use this the moment Spec starts, after intent.md is signed and before spec-grilling opens the decision tree; also whenever someone says "research the codebase," "do the codebase dive," or is tempted to decide against a guess about how the code works. Run it AGAIN at the head of Plan, before plan-breakdown cuts slices — the goal-blind Spec survey mapped what the intent implied, and the signed decisions now point at code it had no reason to open. Skip either pass and the ADRs or the slices get decided against recollection.
+description: Map the codebase/DB exactly as it is today — a goal-blind, fact-only survey produced by parallel read sub-agents that never see the design, each persisting its own findings to docs/features/<slug>/research/ — BEFORE any design decision is made. Use this the moment Spec starts, after intent.md is signed and before spec-grilling opens the decision tree; also whenever someone says "research the codebase," "do the codebase dive," or is tempted to decide against a guess about how the code works. Run it AGAIN at the head of Plan, before plan-breakdown cuts slices — the goal-blind Spec survey mapped what the intent implied, and the signed decisions now point at code it had no reason to open. Skip either pass and the ADRs or the slices get decided against recollection.
 ---
 
 # research — the codebase map (goal-blind)
@@ -8,10 +8,11 @@ description: Map the codebase/DB exactly as it is today — a goal-blind, fact-o
 ## Purpose
 
 Stage: **Spec** (pass 1) + **Plan** (pass 2) — first skill in each. Pass 1 runs after intent is signed,
-before `spec-grilling`; pass 2 runs before `plan-breakdown` cuts slices. Produce one file —
-`docs/features/<slug>/research.md` — a **compressed, fact-only description of how the relevant code
-works today**: call graphs, data shapes, external-API behavior, installed packages, prior art already
-present. It is NOT a design, a recommendation, or a comparison of options. If a sentence could be argued
+before `spec-grilling`; pass 2 runs before `plan-breakdown` cuts slices. Produce a **fact-only
+description of how the relevant code works today** — call graphs, data shapes, external-API behavior,
+installed packages, prior art already present — in two places: one file per sub-agent under
+`docs/features/<slug>/research/`, holding what that agent actually found, and
+`docs/features/<slug>/research.md`, the compression of them that every consumer reads first. It is NOT a design, a recommendation, or a comparison of options. If a sentence could be argued
 with, it does not belong. The test of a good `research.md`: a reader who has never seen the problem can
 verify every claim against the actual codebase or external docs.
 
@@ -46,7 +47,9 @@ selected, and asking for it after the decisions exist is the only moment it can 
 **Scope pass 2 to that aspect, and say which one.** Name what the signed decisions now point at — one
 sentence, kept with the work. Scoping is not permission-seeking; it is what keeps the pass from re-walking
 ground `research.md` already maps. Re-surveying what pass 1 covered is refused: `plan-breakdown` reads the
-file that exists for anything already in it. The rule is *a different aspect, not a second opinion*.
+file that exists for anything already in it. The rule is *a different aspect, not a second opinion* — and
+the `## Walked` section of each pass-1 axis file is what makes that judgeable, because it records what was
+searched rather than only what was found.
 
 **Skip** only a true greenfield repo with no relevant prior code — write `## Prior art in the codebase`
 as `_none_ — greenfield` and let `spec-grilling` proceed. Do **not** skip because the change "looks
@@ -89,49 +92,96 @@ because the decision is now signed.
 1. Resolve the sanitized problem statement per `## Inputs`. Refuse-to-run if it cannot be resolved. On the
    Plan-stage pass, the **named aspect is** the statement — write it into the doc so the scope survives the
    run, and refuse-to-run if the invocation cannot say which aspect it is surveying.
-2. **Dispatch research sub-agents in parallel** (`## Research sub-agents`) — one turn, parallel tool calls.
-   Each gets the sanitized problem statement embedded directly; none read prd Solution/Implementation,
-   ADRs, acceptance, plan, or tickets.
-3. **Wait for all sub-agents to return** — no partial synthesis (whichever finishes first would bias the
-   doc).
-4. Run the **objectivity self-check** (`## Objectivity self-check`) over every sub-agent output.
-5. Synthesize into `docs/features/<slug>/research.md` using the template in `## Output template`. **The
+2. **Create `docs/features/<slug>/research/`** — the folder each sub-agent writes its own findings into.
+3. **Dispatch research sub-agents in parallel** (`## Research sub-agents`) — one turn, parallel tool calls.
+   Each gets the sanitized problem statement embedded directly, plus **the path of the one file it owns**;
+   none read prd Solution/Implementation, ADRs, acceptance, plan, or tickets. **One agent, one file, no
+   shared writes** — the parallel-dispatch discipline in `## References` is the reason.
+4. **Wait for all sub-agents to return** — no partial synthesis (whichever finishes first would bias the
+   doc). Each returns only its headline; its findings are already on disk.
+5. Run the **objectivity self-check** (`## Objectivity self-check`) over every file in the folder.
+6. Synthesize into `docs/features/<slug>/research.md` using the template in `## Output template`, reading
+   the axis files rather than the sub-agents' replies — the file is what survives a `/clear`. **The
    Plan pass appends `## Plan pass — <aspect>` and writes its findings there; it never rewrites the six
    stable sections above.** A re-plan appends a section for its own aspect, so a feature planned twice
    carries two; surveying an aspect that already has a section replaces that one section and nothing else. Pass 1's map is what `spec-grilling` decided against and what the Spec gate
    signed over. Regenerating it from one narrow aspect destroys it silently — the six sections would still
    all be present, so the Verification criterion below would pass on the file that just erased its own
    input, and `plan-breakdown` would plan against a survey of one adapter.
-6. Announce: `Research complete for <slug>: <N> files mapped, <M> open items. Ready for spec-grilling.`
+7. Announce: `Research complete for <slug>: <N> files mapped, <M> open items. Ready for spec-grilling.`
    On the Plan-stage pass, name the aspect in the line and end it `Ready for plan-breakdown.`
+
+**The folder is the primary record; `research.md` is the compression of it.** A survey that exists only
+as five sub-agent replies in one context is gone the moment that context ends, and what `research.md`
+keeps is roughly a tenth of what the agents found — the chased call graph, the file-by-file citations and
+the dead ends do not survive synthesis. Writing them down first costs nothing and is what lets the Plan
+pass, a reviewer, or a fresh agent check a claim instead of re-running the survey.
 
 ## Research sub-agents (dispatch in parallel)
 
 Dispatch one sub-agent per topic in a **single turn with parallel tool calls** (READ sub-agents may
 parallelize freely; the orchestrator's parallel-dispatch discipline applies — see `## References`). Each
-sub-agent's prompt embeds the sanitized problem statement, the expected output shape (its section of the
-template), and the explicit instruction: **"Do not read prd Solution/Implementation, ADRs, acceptance, or
-plan files. Do not make recommendations. Report only what exists."**
+sub-agent's prompt embeds the sanitized problem statement, **the path of the file it owns**, the expected
+output shape (`### The shape of an axis file`), and the explicit instruction: **"Write your findings to
+that file before you reply. Return only your headline. Do not read prd Solution/Implementation, ADRs,
+acceptance, or plan files. Do not make recommendations. Report only what exists."**
 
-Typical topics for a production feature:
+Typical topics for a production feature — one file each, under `docs/features/<slug>/research/`:
 
-1. **Codebase-map agent** — Grep for files in the relevant subsystem; Read the top 5–10; map the call
-   graph; chase imports and callers until the slice bottoms out. A map that stops at the first matching
-   file fails the depth bar.
-2. **Dependency-facts agent** — Read `package.json` / `pyproject.toml` / `go.mod`; list installed versions
-   of in-domain packages. No recommendations; just what is installed today.
-3. **External-API agent** — If the domain touches an external service, fetch its docs; record auth
-   mechanism, rate limits, error codes, webhook shapes. Raw facts only — not "how we would call it."
-4. **Prior-art agent** — Search the codebase (and, if warranted, widely-used OSS) for existing patterns
-   that solve structurally similar problems; record what was found and where. Do not rank or compare.
-5. **Structural-facts agent** — Count the adapters behind each seam (an interface with more than one
-   implementation under it); note the boundaries the module layout already draws; read two or three
-   shipped handlers for the error envelope, pagination and versioning in use.
+1. **Codebase-map agent** → `codebase-map.md`. Grep for files in the relevant subsystem; Read the top
+   5–10; map the call graph; chase imports and callers until the slice bottoms out. A map that stops at
+   the first matching file fails the depth bar.
+2. **Dependency-facts agent** → `dependency-facts.md`. Read `package.json` / `pyproject.toml` / `go.mod`;
+   list installed versions of in-domain packages. No recommendations; just what is installed today.
+3. **External-API agent** → `external-apis.md`. If the domain touches an external service, fetch its docs;
+   record auth mechanism, rate limits, error codes, webhook shapes. Raw facts only — not "how we would
+   call it."
+4. **Prior-art agent** → `prior-art.md`. Search the codebase (and, if warranted, widely-used OSS) for
+   existing patterns that solve structurally similar problems; record what was found and where. Do not
+   rank or compare.
+5. **Structural-facts agent** → `structural-facts.md`. Count the adapters behind each seam (an interface
+   with more than one implementation under it); note the boundaries the module layout already draws; read
+   two or three shipped handlers for the error envelope, pagination and versioning in use.
+
+A task's own facts may add an axis — a migration history, a permissions model, a message-queue topology.
+Add the file, name it for the axis, and keep the shape. Below four files the survey is not a survey;
+above eight nobody reads it.
 
 **Model:** default each sub-agent to `sonnet` — research is searching-and-summarizing, not reasoning-heavy,
 and sonnet keeps the parallel fan-out cheap without degrading fact quality. Escalate a single agent to the
 most capable model only when its domain is genuinely novel (e.g., an unfamiliar API with a complex state
 machine).
+
+### The shape of an axis file
+
+Every sub-agent writes exactly this, so eight of them stay readable and so the synthesis step has a
+uniform thing to read:
+
+```markdown
+# <Axis> — <slug>
+
+_Sanitized statement: <the one paragraph this agent was given>_
+
+## Headline
+One sentence: the single fact that most changes how someone decides against this axis. This is the
+only thing the agent returns to the parent.
+
+## Facts
+- <claim> — `path/to/file.ts:120-134`
+- <claim> — `path/to/other.py:44`
+
+## Walked
+- <the paths, globs and call chains actually followed, including the ones that turned up nothing>
+
+## Open
+- <question this axis could not answer>
+```
+
+Sections with nothing in them stay, holding `_none_` — the shape is the contract.
+
+**`## Walked` is what makes the Plan pass cheap.** Scoping pass 2 to "a different aspect, not a second
+opinion" is a judgement nobody can make from a synthesized summary, because the summary records what was
+*found* and not what was *searched*. A dead end costs as much to walk the second time as the first.
 
 ## Objectivity self-check
 
@@ -203,6 +253,13 @@ read it, and renaming a stable section means updating every consumer in the same
   to a direction. Record what exists; `spec-grilling` and `plan-breakdown` decide.
 - *"I can start synthesizing while the last agent finishes."* Partial synthesis biases the doc toward
   whichever agent returned first.
+- *"The agents reported back to me, so the findings are captured — writing files first is bookkeeping."*
+  They are captured in one context, which ends. `research.md` keeps the compression, not the evidence:
+  the chased call graph, the per-file citations and the dead ends are exactly what synthesis drops, and
+  they are exactly what the Plan pass and any reviewer need. Write the file, then synthesize from it.
+- *"Two agents both found things about the data layer, so let them share `codebase-map.md`."* One agent,
+  one file. Two writers on one path is the race this suite refuses everywhere else, and it is not safer
+  here for being read-only work.
 
 ## Red flags
 
@@ -212,6 +269,10 @@ read it, and renaming a stable section means updating every consumer in the same
 - The parent context — or any sub-agent — has read prd Solution/Implementation, ADRs, `acceptance.md`, or
   any plan/slice.
 - Sub-agents dispatched serially, or synthesis started before all returned.
+- A sub-agent that returned its findings in its reply and wrote no file — or two sub-agents pointed at
+  the same path.
+- `research.md` written from the sub-agents' replies rather than from the files in `research/`.
+- A fact in an axis file with no `path:line` behind it.
 - A codebase map that stops at the first matching file (no import/caller chasing).
 - The Plan pass running with no aspect stated, or one so broad ("get more context") that it would justify
   re-surveying anything.
@@ -224,16 +285,24 @@ read it, and renaming a stable section means updating every consumer in the same
 
 Done when ALL hold:
 
-- `docs/features/<slug>/research.md` exists with all six stable sections present (empty → `_none_`).
+- `docs/features/<slug>/research/` holds one file per sub-agent dispatched — between four and eight —
+  each carrying all four headings, empty ones as `_none_`, and every fact citing a `path:line` a reader
+  can open. Every `## Walked` is non-empty: an agent that recorded nothing it walked cannot tell a later
+  pass what is covered.
+- `docs/features/<slug>/research.md` exists with all six stable sections present (empty → `_none_`), and
+  names no axis file that is not in the folder.
 - On the Plan pass: those six sections are unchanged from what pass 1 left, and this pass's findings sit
   under their own `## Plan pass — <aspect>` heading. A pass that rewrote them destroyed its own input.
+  Pass 1's axis files are likewise untouched — pass 2 adds files, it does not edit them.
 - Objectivity self-check passed: zero recommendation verbs, zero comparisons.
 - Every claim is verifiable against the codebase or external docs — no opinion, no design.
 - The announce line was emitted.
 
 ## Outputs & handoff contract
 
-- **Output path:** `docs/features/<slug>/research.md`.
+- **Output paths:** `docs/features/<slug>/research/<axis>.md`, one per sub-agent — the primary record,
+  each written by exactly one agent and edited by nothing afterwards — and
+  `docs/features/<slug>/research.md`, the synthesis every consumer below reads first.
 - **Consumers, in order:** `spec-grilling` reads pass 1 before it opens the decision tree — it refuses to
   run without this file, because the blind-spot pass can only scan territory somebody has surveyed. Then
   `plan-breakdown` (THE planner) grounds its concrete plan (real files, line-steps, exact tests) on the
@@ -241,8 +310,10 @@ Done when ALL hold:
   both stages — to propose a structural variant in Spec, to pin the interface into `plan.md` in Plan.
 - **Stable sections the consumers depend on:** `## Codebase map`, `## Dependency facts`, `## External
   APIs`, `## Prior art in the codebase`, `## Structural facts`, `## Open items for Plan`. Empty sections
-  stay as `_none_` — the shape is the contract. **If you change
-  the output shape, update `spec-grilling` and `plan-breakdown` in the same commit.**
+  stay as `_none_` — the shape is the contract. The five standard axis filenames and the four headings
+  inside each are equally stable: a consumer that wants the evidence behind a synthesized line opens the
+  axis file. **If you change either shape, update `spec-grilling` and `plan-breakdown` in the same
+  commit.**
 - **STATE.md:** on pass 1 the feature stays in `spec` (Spec is human-led and in progress); record
   `research.md` under the feature's `origin:` / artifacts. **No slice rows yet** — slices are born from
   `plan-breakdown`. The Plan-stage pass leaves the feature in `plan` and records the named aspect next to
@@ -251,6 +322,6 @@ Done when ALL hold:
 ## References
 
 - Parallel-dispatch discipline (one turn, parallel calls; READ sub-agents parallelize freely; one writer
-  per file): the `orchestrator` skill + `~/.claude/rules/parallelism.md` (mech b/f).
+  per file): the `orchestrator` skill + safety rail 5, `references/safety-rails.md`.
 - Fresh-subagent-per-task discipline (the controller curates exactly what each sub-agent needs; the
   sub-agent inherits nothing): `superpowers:subagent-driven-development`.

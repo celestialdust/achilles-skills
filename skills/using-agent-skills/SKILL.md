@@ -79,8 +79,7 @@ Task arrives
     │   ├── Need the behavioral contract? ─────→ acceptance-criteria       (Spec → acceptance.md, behavioral-only)
     │   ├── Capture env needs? ────────────────→ environment-manifest      (Spec/Plan → environment.md)
     │   ├── Structure nobody wrote down? ──────→ architecture-design       (Spec · once acceptance.md exists
-    │   │                                        in draft, before spec-review · first pass also writes
-    │   │                                        ARCHITECTURE.md · never scaffolded)
+    │   │                                        in draft, before spec-review → architecture.md)
     │   └── Spec done, fix before review? ─────→ spec-review      (Spec → fixed spec + spec-review.md)
     ├── Signed spec, need a plan? ─────────────→ plan-breakdown   (Plan · THE planner → plan.md + slices + DAG)
     │   └── Need codebase facts? ──────────────→ codebase-research (Plan · head → second pass, scoped to the
@@ -196,7 +195,7 @@ run* carries the full list; read it there rather than counting from memory.
 answer never comes and the run never finishes.
 **Good, with a person present:** "I see X in the spec but Y in the existing code. Which takes precedence?"
 **Good, inside a run:** end the slice reporting "ADR-004 expires sessions at 24h, ADR-011 at 1h; both
-are rank 3, so the source-of-truth order does not settle it" — the `gate` flips `agent → you`, and the
+are rank 2, so the source-of-truth order does not settle it" — the `gate` flips `agent → you`, and the
 next ready slice starts.
 
 ### 3. Push Back When Warranted
@@ -238,7 +237,7 @@ Your job is surgical precision, not unsolicited renovation.
 
 Every skill includes a verification step. A task is not complete until verification passes. "Seems right" is never sufficient — there must be evidence (passing tests, build output, runtime data).
 
-Per-skill verification is the local check. The project-wide bar that applies to *every* change, regardless of which skill is active, is the Definition of Done: tests pass, no regressions, behavior verified at runtime, docs updated. See `../../references/definition-of-done.md`. It complements each task's acceptance criteria rather than replacing them.
+Per-skill verification is the local check. The project-wide bar that applies to *every* change, regardless of which skill is active, is the Definition of Done: tests pass, no regressions, behavior verified at runtime, docs updated. See `references/definition-of-done.md`. It complements each task's acceptance criteria rather than replacing them.
 
 ## Lifecycle & ownership
 
@@ -300,13 +299,12 @@ Two documents can state the same thing differently. This order says which one go
 first. A repository that does not have one of these simply skips its rank.
 
 1. `CLAUDE.md` / `AGENTS.md` — the rules for this repository
-2. `ARCHITECTURE.md` — the repository's structure
-3. `docs/adr/` — the decisions taken, and what each one ruled out
-4. `prd.md` — one feature's product spec
-5. `acceptance.md` — that feature's signed behavioral contract
-6. `plan.md` — that feature's slices
-7. `docs/lessons.md` — what a past defect taught, and the guard that would catch it again
-8. `docs/progress.md` — what each slice actually executed
+2. `docs/adr/` — the decisions taken, and what each one ruled out, including any decided layer order
+3. `prd.md` — one feature's product spec
+4. `acceptance.md` — that feature's signed behavioral contract
+5. `plan.md` — that feature's slices
+6. `docs/lessons.md` — what a past defect taught, and the guard that would catch it again
+7. `docs/progress.md` — what each slice actually executed
 
 Not every document has a rank. `STATE.md`, `CONTEXT.md` and the `CONTEXT-MAP.md` index a multi-context
 repository keeps beside it, and the per-feature `intent.md`, `research.md`, `environment.md`, and `qa.md`
@@ -314,9 +312,8 @@ have none. Three more settle themselves instead of needing one: `docs/session-st
 text that it is the weakest source here and never overrides a decision record or a signed `acceptance.md`;
 a feature's design contract and `docs/design.md` divide one subject rather than compete for it — the
 contract decides that surface, and `docs/design.md` decides every axis the contract marks inherited; and a
-feature's `architecture.md` divides one subject with `ARCHITECTURE.md` the same way — the feature's delta
-decides that feature's structure, and `ARCHITECTURE.md` decides the layering every feature inherits. Where
-two documents with no rank between them disagree, nothing here settles it, and the stop condition in
+feature's `architecture.md` decides that feature's structure while the layer order it rests on, where one
+was decided, is an ADR it cites. Where two documents with no rank between them disagree, nothing here settles it, and the stop condition in
 `orchestrator` is what happens: the slice ends, both files and the claim are named, and the next move is
 yours.
 
@@ -331,7 +328,7 @@ yours.
 | Cross-cut | handoff | per-session compaction to a fresh-agent doc |
 | Ideate | interview-me | optional front door: surface what the user actually wants → intent.md |
 | Ideate | idea-refine | divergent/convergent refinement + "Not Doing"; shares intent.md |
-| Spec · Plan | codebase-research | goal-blind map of the codebase/DB as-is → research.md; runs at the head of Spec, and again at the head of Plan against the aspect the signed decisions now point at |
+| Spec · Plan | codebase-research | goal-blind map of the codebase/DB as-is → one `research/<axis>.md` per sub-agent plus the research.md that compresses them; runs at the head of Spec, and again at the head of Plan against the aspect the signed decisions now point at |
 | Spec | spec-grilling | how to design the product; ADRs + CONTEXT.md (no prd.md) · fans out `codebase-design` / `api-design` variants on a load-bearing structural question; batches the rest as one-line defaults |
 | Spec | to-prd | light dual-audience PRD; references ADRs by id → prd.md |
 | Spec | frontend-design | **UI only** — the skill's own *When to use / when to skip* states the test: throwaway variants → committed prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
@@ -421,7 +418,7 @@ Dispatch is complete when ALL hold:
 - A throwaway-shaped ask got both paths named and no pick made for the human; `gauntlet-loop` was reached
   only because the human named it.
 - The project-wide Definition of Done still governs every change the dispatched skill will make
-  (`../../references/definition-of-done.md`).
+  (`references/definition-of-done.md`).
 
 ## Outputs & handoff contract
 

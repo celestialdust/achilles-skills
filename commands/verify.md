@@ -20,8 +20,7 @@ Agent-internal gate, not a human checkpoint. During an autonomous `/orchestrate`
 ## Refuse-to-run / halt
 
 - Refuse if `acceptance.md` is absent or `status: draft` (no signed oracle) — send the feature back to Spec sign-off; do not invent scenarios.
-- Frozen under retry: never edit `acceptance.md`, a RED test, or the `Regression surface` to make a slice go green — that is gate-erosion and it HALTS. These three are frozen for the slice's retry loop; between runs a person can change them by a signed Spec change.
-- Read-only rather than frozen — `docs/design.md`, the repository's decided look. It is not a fourth frozen thing; it is a file Verify reads and never writes. Every contract axis marked `inherits: docs/design.md` is graded against it and it carries no `status:` of its own, so nothing else catches an edit: moving the decided look so a built surface matches it is the same gate-erosion HALT, with no retry qualifier. Only `frontend-design` moves that file.
+- Frozen under retry, and the read-only `docs/design.md`: safety rail 4, `references/safety-rails.md`. Verify reads that file to grade every axis marked `inherits:` against it and never writes it; moving any of them to make a slice go green HALTS.
 - Reporting a scenario `not-reachable` is honest reporting, not weakening — it stays in the contract and picks up a required human-ack line in the PR. Nothing halts.
 - A security CRITICAL/HIGH finding or a secret in the diff is a hard halt — no retry, no PR.
 - Route real `exercised-fail` defects through debugging-and-error-recovery, then re-verify within the bounded loop.

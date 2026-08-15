@@ -48,7 +48,7 @@ against what the user actually asked for):
    `inherits:` or `departs:` is complete as written. The three axes that file decides nothing on are the
    exception, and the split table below says what to do about them.
 7. `architecture.md` + `architecture.html` (architecture-design) — **only if the feature ran a structure
-   pass**; read `ARCHITECTURE.md` alongside them when the repo has one. The page carries the markdown's
+   pass**. The page carries the markdown's
    source block verbatim, so the two are one artifact in two forms. `status:` reads `unsigned` here and
    stays that way — a person flips it at the gate after reading the page, and nothing an agent does flips it.
 
@@ -127,7 +127,7 @@ the gate. ADR cross-refs are immutable once written — rename/supersede → upd
   must be visible.
 - `intent.md` is absent → **refuse to run**; there is no oracle to grade against.
 - An embedded value in `environment.md` looks like a real, committed secret → remove it from the manifest
-  AND treat the exposure as a security STOP per `security.md` (hard halt + surface to the human).
+  AND treat the exposure as a security STOP per safety rail 2 (`references/safety-rails.md`) — hard halt, surface to the human.
 
 ## Verification (ending criteria)
 

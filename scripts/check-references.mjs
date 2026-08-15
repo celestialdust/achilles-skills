@@ -213,8 +213,18 @@ for (const path of markdownFiles(ROOT)) {
   const tick = /`([^`\n]+)`/g;
   while ((m = tick.exec(source)) !== null) {
     const body = m[1].trim();
-    if (!PATHLIKE.test(body) || body.includes('<') || body.includes('>') || body.includes('..')) continue;
-    if (!SHIPPED.test(body)) continue;
+
+    // `../../references/x.md` is the disambiguating form, not a sloppy one. Inside a skill that owns its
+    // own `references/` directory the bare `references/x.md` names the local file, and a reader standing
+    // in that skill cannot tell which was meant. Skipping every path containing `..` made exactly the
+    // unambiguous form the one CI could not see — so the flattened, ambiguous form was the one that went
+    // green. Leading `../` segments resolve against the file's own directory, the only base they can
+    // mean; a `..` anywhere else is still skipped, because a path that climbs mid-way names nothing this
+    // check can attribute to a writer.
+    const upward = /^(?:\.\.\/)+/.exec(body);
+    const tail = upward ? body.slice(upward[0].length) : body;
+    if (!PATHLIKE.test(tail) || tail.includes('<') || tail.includes('>') || tail.includes('..')) continue;
+    if (!SHIPPED.test(tail)) continue;
 
     // A provenance line names a path in the project the code came FROM, and that path is not supposed
     // to exist here — recording it is the entire purpose of a vendoring note, which states the
@@ -238,10 +248,12 @@ for (const path of markdownFiles(ROOT)) {
     // "`spec-grilling`'s `references/CONTEXT-FORMAT.md`" says whose file it is, in the two words before
     // the path. Resolve it against that skill. Without this the check reads the path bare, finds it
     // absent from the writer's own directory, and reports prose that already named the owner correctly.
-    const owned = [...bases];
+    // An upward path is written from one place only — the file it sits in — so it gets one base. Trying
+    // it against ROOT too would resolve outside the repository, where a hit proves nothing.
+    const owned = upward ? [here] : [...bases];
     const before = source.slice(Math.max(0, m.index - 60), m.index);
     const possessive = before.match(/`([a-z][a-z0-9-]*)`'s\s*$/);
-    if (possessive && existsSync(join(ROOT, 'skills', possessive[1]))) {
+    if (!upward && possessive && existsSync(join(ROOT, 'skills', possessive[1]))) {
       owned.push(join(ROOT, 'skills', possessive[1]));
     }
 

@@ -48,7 +48,7 @@ first (context-budget rule), then hand off. A handoff written mid-thought is wor
   the lens — tailor every field toward that focus.
 - **Read-only, to reference (never restate):** `STATE.md`; the per-feature chain under
   `docs/features/<slug>/` (`intent.md`, `prd.md`, `acceptance.md`, `architecture.md`, `plan.md`,
-  `qa.md`); `docs/adr/`; `ARCHITECTURE.md`; `docs/progress.md`; `docs/lessons.md`;
+  `qa.md`); `docs/adr/`; `docs/progress.md`; `docs/lessons.md`;
   recent commits/diffs.
 
 No refuse-to-run gate — a handoff can always be written from the conversation. But **read the
@@ -69,6 +69,13 @@ durable artifacts FIRST** so you reference them by path rather than copy their b
    and OUT of scope for the next agent — do not let them over- or under-reach) · `## Next phase`
    (the single next action, specific enough to resume without asking a question). These five are
    overwritten in place; only the latest version is true.
+
+   **They are a snapshot, so they carry no history.** What the fields said last time is not context for
+   this time — it is the previous snapshot, and it has been replaced. Write the five in the fewest words
+   that let somebody resume without asking a question, and let that be the length: a field that has
+   grown into a narrative of how the work got here is one nobody reads before starting, which costs
+   exactly what the handoff was written to prevent. Where the story matters, it is a `## Log` entry —
+   that is the zone that keeps things.
 4. **Append one `## Log` entry per decision this session made.** Decision · reason · what was ruled
    out · what is still open. Appended after the last existing entry; earlier entries untouched. See
    "The session log" below for the shape and the append-only rule.
@@ -225,6 +232,16 @@ Gitignored, it dies on the next fresh clone — which is exactly the case it exi
   would have changed, and why the change was refused; a silent refusal reads as a silent success.
 - *"The log is getting long — I'll roll up the old entries."* → No. Entries grow with decisions, and
   decisions are work. Compaction is for what grows with elapsed time, not for what grows with work.
+  A log that has genuinely got too long to skim was not written too much, it was **admitted** too
+  much — and the fix is the entry you are about to add, never the hundred already there.
+- *"A lot happened this session, so I'll write it up so the record is complete."* → The log records
+  decisions, not activity. A long session that settled one question appends one entry; a session that
+  settled none appends none, and that is a correct outcome rather than a gap. What happened is in git,
+  in `docs/progress.md`, and in the diff — three places that already hold it better than prose can.
+- *"The next agent will want the background, so I'll put it in `Current state`."* → The five fields are
+  a snapshot of where things stand, not how they got there. Background that changes what somebody does
+  next belongs in a `## Log` entry, where it is kept; background that does not is what makes a handoff
+  too long to read, which is the failure the file exists to prevent.
 - *"I'll list the files I touched in the entry so it's complete."* → No. Git holds that, exactly. A
   stored copy of a derivable fact can disagree with its source. Record only what git cannot show.
 - *"`session-state.md` is scratch — gitignore it."* → No. The log exists to survive the session that

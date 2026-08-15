@@ -51,14 +51,12 @@ gracefully — comment on the code, not the person.
 
 ## Hard stops
 
-- **Gate-erosion circuit breaker:** if the diff weakens a frozen `acceptance.md` assertion,
-  deletes/narrows a RED test, or shrinks the declared regression surface while the implementation is
-  materially unchanged (reward-hack signature) → raise `Critical:` and signal a **gate-erosion HALT**.
-  Never `Approve` a diff that moved the goalposts instead of the code. Those three are frozen for the
-  slice's retry loop, which is why the reward-hack qualifier applies — between runs a person can change
-  them by a signed Spec change. A diff that edits `docs/design.md` is the same call with **no** qualifier:
-  Verify grades every contract axis marked `inherits: docs/design.md` against that file, and only
-  `frontend-design` moves it — under the sign-off of a surface that means to.
+- **Gate-erosion circuit breaker** — safety rail 4 (`references/safety-rails.md`): a diff that
+  erodes a frozen artifact → raise `Critical:` and signal a **gate-erosion HALT**. Never `Approve` a
+  diff that moved the goalposts instead of the code. The **reward-hack qualifier** is yours to apply:
+  the frozen three thaw between runs by a signed Spec change, so a diff touching one is erosion only
+  where the implementation is materially unchanged. `docs/design.md` is the same call with **no**
+  qualifier — nothing legitimately edits it here.
 - **Security escalation:** a CRITICAL/HIGH vuln or a secret in the diff is a hard `Critical:` + STOP —
   place it at the top of `Findings`; the slice gets no PR.
 

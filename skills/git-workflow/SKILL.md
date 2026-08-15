@@ -26,15 +26,11 @@ artifact and has no refuse-to-run on the artifact chain. What it needs to run:
   task does not forbid it, `git init` first — never commit into a non-repo.
 - The **changes to be committed** (staged or unstaged) plus the slice/feature context that
   produced them, so the message can explain the *why*, not just the *what*.
-- When invoked inside an autonomous slice loop: the slice's declared `Regression surface`
-  and the **frozen** `acceptance.md` + RED tests are **read-only** here. Git never amends,
-  rebases, force-pushes, or re-stages to widen a surface or weaken a test under retry — that is a
-  gate-erosion **HALT** the orchestrator enforces. Git's job is to record the change, not to edit
-  the oracle. Those three thaw between runs by a signed Spec change and never inside one.
-  `docs/design.md` is read-only here as well, for a different reason than a freeze: Verify grades every
-  contract axis marked `inherits: docs/design.md`
-  against it, and only `frontend-design` moves it — never stage or commit an edit to the decided look to
-  clear a design gate.
+- When invoked inside an autonomous slice loop: safety rail 4 (`references/safety-rails.md`) applies,
+  and git is where it is easiest to break by accident. Never amend, rebase, force-push, or re-stage in
+  a way that widens a surface or weakens a test under retry, and never stage or commit an edit to
+  `docs/design.md` to clear a design gate. Git's job is to record the change, not to edit the oracle —
+  and a history rewrite erodes a frozen artifact just as effectively as an editor does.
 
 Refuse-to-run only if there is no repository and the task forbids creating one. Otherwise git
 always applies.
@@ -333,7 +329,8 @@ For every commit:
 **Emits:** no artifact-chain file — git is a *referenced* discipline. What it produces is **state
 the rest of the suite anchors to**:
 
-- **Atomic commits on the cluster branch** (`cluster/<id>` per `branch-naming.md`), each a
+- **Atomic commits on the cluster branch** (`cluster/<id>` per safety rail 1,
+  `references/safety-rails.md`), each a
   save-point doing one logical thing, ~100 lines, message in `<type>: <why>` form. **Never** a
   commit to `main`/`master` — the autonomous run terminates at an open PR for async human merge,
   not a direct push (fail-safe).
@@ -341,7 +338,7 @@ the rest of the suite anchors to**:
   commit (`git reset --hard HEAD`) without disturbing any other slice's work.
 - **A secret-free diff** — the pre-commit scan (`git diff --staged | grep -i
   "password\|secret\|api_key\|token"`) is clean before every commit. A hit is a hard STOP +
-  PushNotification and is **never** committed (security.md / secret circuit-breaker).
+  PushNotification and is **never** committed (safety rail 2 / secret circuit-breaker).
 
 **Stable handles downstream skills depend on:**
 - `pull-request` reads the commit history (`git log`, `git diff <base>...HEAD`) to anchor the PR summary to
@@ -349,7 +346,7 @@ the rest of the suite anchors to**:
 - The `orchestrator` reads branch + commit state to drive the slice `ship` transition in
   `STATE.md`. Git does **not** write `STATE.md` (the orchestrator owns the board).
 
-**Handoff:** leave the branch named per `branch-naming.md`, every increment committed (no dirty
+**Handoff:** leave the branch named per safety rail 1, every increment committed (no dirty
 tree), and emit the **CHANGES MADE / DIDN'T TOUCH / POTENTIAL CONCERNS** summary (see §Change
 Summaries) so the next agent — or the human reviewer at the open-PR gate — inherits a clear,
 scope-disciplined map of the change.

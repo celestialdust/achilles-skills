@@ -1,6 +1,6 @@
 ---
 name: architecture-design
-description: Reconciles a feature's structure into an artifact a person can sign before any code is planned — the repository's `ARCHITECTURE.md`, one feature's `architecture.md`, and the committed `architecture.html` read at the Spec gate. Use in Spec once `acceptance.md` exists in draft and before `spec-review`, whenever a feature adds a module, adds a dependency between parts that already exist, or introduces a seam — and whenever anyone is about to plan, break down, or implement against a structure nobody wrote down. It traces every scenario through the structure, records the invariants, grades the result with two code-cold sweeps whose findings become questions for the person rather than edits, and cites the decisions taken during `spec-grilling` rather than taking them itself; a scenario that traces through nothing goes back to `acceptance-criteria` while it is still editable. REFUSES to run with no `acceptance.md` at all, never scaffolds `ARCHITECTURE.md` into a fresh repository, never invents a layer order nobody decided, and never pins a signature or field list — those are Plan's.
+description: Reconciles a feature's structure into an artifact a person signs before any code is planned — one feature's `architecture.md` plus the committed `architecture.html` read at the Spec gate. ALWAYS run this in Spec, once `acceptance.md` exists in draft and before `spec-review`, whenever a feature adds a module, adds a dependency between parts that already exist, or introduces a seam — and before anyone plans, breaks down, or implements against a structure nobody wrote down. It traces every scenario through the structure, records the invariants, grades what it wrote with two code-cold sweeps whose findings become questions for the person rather than edits, and cites the decisions taken during `spec-grilling` rather than taking them itself. Never invent a layer order nobody decided, and never pin a signature or field list — those are Plan's.
 ---
 
 ## Purpose
@@ -15,8 +15,8 @@ and, for a user interface, a look (`design-contract.md`). None of them says whet
 decisions imply carries the behaviour the scenarios promise — a decision record cannot, because it was
 written before the scenarios were.
 
-This skill is that pass: a repository map, one feature's structural delta, and a page that answers the
-gate's questions without the reader opening a skill.
+This skill is that pass: one feature's structure, and a page that answers the gate's questions without
+the reader opening a skill.
 
 Tracing alone cannot catch a structure that is consistent and poor — every scenario has a path, every edge
 cites a decision, and the modules still do not earn their rows. `spec-grilling` grills only a structural
@@ -32,10 +32,9 @@ signature. A scenario that traces through nothing goes back to `acceptance-crite
 editable. Running after `spec-review` instead would make the one artifact a person signs the one artifact
 no code-cold reader ever checked.
 
-Reach for it when a feature adds a module, adds a dependency between parts that already exist, introduces
-a seam, or is the first feature in a repository whose structure nobody has written down. Reach for it
-also when someone is about to break the work into slices against a structure that exists only in their
-head.
+Reach for it when a feature adds a module, adds a dependency between parts that already exist, or
+introduces a seam. Reach for it also when someone is about to break the work into slices against a
+structure that exists only in their head.
 
 These belong to other skills; this one references them as methods rather than absorbing them:
 
@@ -52,7 +51,7 @@ them in Spec again to grade the structure it wrote, and `plan-breakdown` reaches
 the interface into `plan.md`. They own no artifact of their own, because what they produce lands in a file
 another skill owns.
 
-The table above still holds while they run here, because **a lens is not an output**: in step 5 they read
+The table above still holds while they run here, because **a lens is not an output**: in step 4 they read
 sections 2, 3, 4 and 6 and return findings, and the signatures and field lists they produce as a discipline
 still land in `plan.md` and nowhere else. What they produced under `spec-grilling` reaches this pass as a
 decision to cite.
@@ -73,46 +72,38 @@ Refuse-to-run (fail-safe deny) unless these resolve:
   come from the glossary verbatim rather than being coined here. Those decisions were taken during
   `spec-grilling`, with the person in the room: cite them. A question grilling left open is a section 8
   row here, not a chance to decide it alone.
-- **Read when the repository has one — `ARCHITECTURE.md`.** **No refuse-to-run here.** Its absence is
-  correct rather than missing: this feature is the first to run a structure pass, so this pass writes it.
 
 ## The Structure Pass
 
-Eight steps. The format of everything written below lives in
+Seven steps. The format of everything written below lives in
 [`references/section-contract.md`](references/section-contract.md) — the eight sections, their tables, the
-page, and the comparison. Read it before writing a word. The two sweeps step 5 dispatches live in
+page, and the comparison. Read it before writing a word. The two sweeps step 4 dispatches live in
 [`references/lens-passes.md`](references/lens-passes.md).
 
-**1 · Find out which map you are writing.** Look for `ARCHITECTURE.md` at the repository root.
+**1 · Take the layer order, or record that there is none.** A layer order is a decision, so it lives
+where decisions live — in `docs/adr/`, recorded when somebody took it.
 
-- **Absent** → this feature is the first structure pass here. Write `ARCHITECTURE.md` from `research.md`
-  as the repository map, then this feature's `architecture.md` as its delta against it.
-- **Present** → write the delta only, with `inherits: ARCHITECTURE.md` in the header block. Do not restate
-  the repository map inside a feature file; a second copy of the layering is a second thing that has to
-  stay true.
+- **An accepted ADR declares an order** → section 3 states which edges that order permits, and an edge
+  outside it is a section 8 question for the person, not a line to quietly add. Cite the ADR in the
+  `Decision` column.
+- **No ADR declares one** → section 3 records the edges `research.md` found in the code today and states
+  **`layer order: not decided`**. Propose none. This is most repositories.
 
-**2 · Take the layer order, or record that there is none.**
+That second case is the one that goes wrong. Its rules — what section 3 may contain, what section 2's
+`Layer` column says, and what a *later* feature may read out of those rows — are in
+`references/section-contract.md` under **Where no layer order is decided**.
 
-- `ARCHITECTURE.md` **declares an order** → section 3 states which edges that order permits, and an edge
-  outside it is a section 8 question for the person, not a line to quietly add.
-- It **declares none**, or does not exist yet → section 3 records the edges `research.md` found in the
-  code today and states **`layer order: not decided`**. Propose none.
-
-The second case is most repositories and it is the one that goes wrong. Its rules — what section 3 may
-contain, what section 2's `Layer` column says, and what a *later* feature may read out of those rows —
-are in `references/section-contract.md` under **Where no layer order is decided**.
-
-**3 · Write `architecture.md`** against the eight sections, in order. Sections 2 and 3 carry the gate's
+**2 · Write `architecture.md`** against the eight sections, in order. Sections 2 and 3 carry the gate's
 first two questions — which parts are new, and which dependencies this feature adds — so write them so a
 reader answers both without prose archaeology.
 
-**4 · Trace every scenario** into section 5, one row per scenario, keyed by its `acceptance.md` id. A
+**3 · Trace every scenario** into section 5, one row per scenario, keyed by its `acceptance.md` id. A
 scenario with no path is a behaviour nothing was designed to handle, and it is far cheaper to find here
 than in Verify — cheaper in both directions now that the contract is still a draft, since the fix may be
 the structure *or* the scenario. Hand it back to `acceptance-criteria` once, and whatever survives that
 single round trip is a section 8 row the person answers at the gate.
 
-**5 · Grade what you wrote.** Dispatch both sweeps in
+**4 · Grade what you wrote.** Dispatch both sweeps in
 [`references/lens-passes.md`](references/lens-passes.md) as fresh, code-cold subagents — in one message, so
 they run in parallel. The depth sweep reads sections 2 and 4 with section 5 as evidence; the interface
 sweep reads section 3's consumers and section 6. Each is given `architecture.md` and `research.md` and
@@ -124,28 +115,17 @@ finding to sections 2, 3 or 4.** Applying one takes a structural decision at the
 watching; the person at the gate is who takes it. Write the heading even when both
 sweeps return nothing — `references/section-contract.md` says what goes under it then, and why.
 
-**6 · Author `architecture.html`,** self-contained and theme-aware, draw section 3's graph on it as inline
+**5 · Author `architecture.html`,** self-contained and theme-aware, draw section 3's graph on it as inline
 SVG so the person at the gate sees the structure rather than reassembling it from rows, and **splice** the
 source block from `architecture.md` — read the file and place its bytes between the tags. **Never retype it.** A copy that
 was typed rather than spliced is already drifting while looking exactly like one that is not.
 
-**7 · Run the comparison** in `references/section-contract.md`. It is a byte comparison, not a reading —
+**6 · Run the comparison** in `references/section-contract.md`. It is a byte comparison, not a reading —
 `0` clean, `1` drifted, `2` no block at all. Run it again after any later edit to either file, including
 one that only fixes a typo.
 
-**8 · Hand it to the gate.** `spec-review` hardens both files and re-runs the comparison; then the person
+**7 · Hand it to the gate.** `spec-review` hardens both files and re-runs the comparison; then the person
 reads the page and signs this file and `acceptance.md` together. Nothing an agent does flips `status:`.
-
-### Never scaffold the repository map
-
-`ARCHITECTURE.md` is written by the **first feature that runs this pass**, never by repository setup. An
-empty one asserts a layering nobody chose, and a reader cannot tell an unfilled template from a decided
-structure — the same reason `docs/design.md` is written by the first user interface built in a repository
-rather than seeded with the substrate.
-
-A fresh repository therefore has no structure map, and that is the correct state. What setup owes the
-reader is the **name**: the entry point says what `ARCHITECTURE.md` is and who writes it, so its absence
-reads as "not yet decided" rather than "missing".
 
 ## Rationalizations
 
@@ -173,7 +153,6 @@ Each of these means the pass is being violated, not merely that a file is untidy
 - An edge in section 3 with an empty `Decision` cell.
 - The page's source block differs from the file in whitespace or line wrapping only — the tell of a block
   that was retyped.
-- `ARCHITECTURE.md` created by anything other than a feature running this pass, or created empty.
 - A `see ADR-NNN` in the artifact pointing at no file under `docs/adr/`.
 - A seam in section 4 with one adapter.
 - A section 6 row this pass decided rather than cited, or a section 8 question it answered on its own.
@@ -193,13 +172,13 @@ The pass is finished when all of these hold, each checked rather than assumed:
   the middle.
 - **Section 8 carries the sweeps' heading**, in the form `references/section-contract.md` gives it. That
   heading is the only trace the sweeps leave in the artifact, so it is the only one a later reader can check.
-  Whether each was dispatched code-cold is **not** checkable here — it is step 5's instruction, and no
+  Whether each was dispatched code-cold is **not** checkable here — it is step 4's instruction, and no
   artifact records it. Stating it as a criterion would only invite the agent to attest to its own memory.
 - **Section 8 opens with the line naming who answers its rows**, the one `references/section-contract.md`
   requires. `spec-review` runs after this pass and cites that line as its reason for leaving those rows
   alone, so a section 8 missing it loses the protection without anything failing.
 - Every finding that came back is either dropped as already cited in section 6 or is a section 8 row.
-  None of them changed sections 2, 3 or 4 — check by diffing those sections against what step 3 wrote.
+  None of them changed sections 2, 3 or 4 — check by diffing those sections against what step 2 wrote.
 - Every section 3 edge cites a decision id, an `ADR-NNN` that resolves to a file under `docs/adr/`, or
   `default — not contested`; or section 3 states `layer order: not decided` and its rows are the edges
   `research.md` recorded.
@@ -218,20 +197,19 @@ The pass is finished when all of these hold, each checked rather than assumed:
 
 ## Outputs & handoff contract
 
-**Writes** — three files, and this skill is the only one that writes any of them:
+**Writes** — two files, and this skill is the only one that writes either:
 
-- **Creates `ARCHITECTURE.md`**, and only where the repository has none. The first feature to run this
-  pass writes it; nothing scaffolds it and nothing creates it empty.
-- **Creates `docs/features/<slug>/architecture.md`** — the feature's structural delta, eight sections.
+- **Creates `docs/features/<slug>/architecture.md`** — this feature's structure, eight sections. It is
+  self-contained: there is no repository-level map to inherit from, and a decided layer order lives in
+  `docs/adr/`, cited by section 3.
 - **Creates `docs/features/<slug>/architecture.html`** — committed beside the markdown, self-contained,
   its source block spliced from that file.
 
-**The two sweeps write nothing.** Step 5 dispatches them, they return findings, and they own no artifact —
+**The two sweeps write nothing.** Step 4 dispatches them, they return findings, and they own no artifact —
 as everywhere else `codebase-design` and `api-design` run. What they find reaches the person as section 8
 rows in the file above, and reaches nothing else.
 
-**Reads** — `acceptance.md` (draft or signed), `research.md`, `prd.md`, `docs/adr/`, `CONTEXT.md`, and
-`ARCHITECTURE.md` where the repository has one.
+**Reads** — `acceptance.md` (draft or signed), `research.md`, `prd.md`, `docs/adr/`, and `CONTEXT.md`.
 
 **Never edits** `acceptance.md`, `prd.md`, or any signed artifact. A scenario that traces through nothing goes back to
 `acceptance-criteria`, which owns that file; a structure that still will not fit after that round trip is

@@ -66,7 +66,7 @@ Refuse-to-run (fail-safe deny) unless these resolve:
   layout language, motion posture, signature vocabulary, shared by every interface in the repo. A UI
   slice's contract records only what differs from it, so an axis the contract marks
   `inherits: docs/design.md` is graded against this file (shape:
-  `../../references/design-system-format.md`). **There is no refuse-to-run here:** a repo whose look was
+  `references/design-system-format.md`). **There is no refuse-to-run here:** a repo whose look was
   never decided has no such file, and a contract that states all seven axes itself is graded exactly as it
   was before this file existed. You read it and never edit it.
 - **REQUIRED — a running build of the slice** in its worktree (the orchestrator provides it). If it will not
@@ -109,9 +109,12 @@ Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa
    `Regression surface`** (frozen-under-retry). Route the failure to `debugging-and-error-recovery`
    (reproduce · localize · reduce · fix · guard) which sends the fix back through `incremental-implementation`. Re-verify.
 
-5. **Bounded loop.** Up to the per-slice round budget (3 implement→verify cycles). If the slice still
-   fails after the budget, or a no-progress tripwire fires (identical failure/diff twice, N=2) → the slice is
-   **`halted`**: write the ledger as-is, flip STATE `gate: agent → you`, surface it. Do not loop forever.
+5. **Bounded loop.** Up to the per-slice round budget (3 implement→verify cycles). A no-progress
+   tripwire (identical failure/diff twice, N=2) says the *tactic* is wrong, not that the slice is: inside
+   an orchestrated run it ends that rung and hands the slice back for the next one on *The escalation
+   ladder* (`orchestrator`), which is what decides a halt. Run standalone there is no ladder, so a spent
+   budget is the end: the slice is **`halted`** — write the ledger as-is, flip STATE `gate: agent → you`,
+   surface it. Either way, do not loop forever.
 
 6. **Write `qa.md`** (see *Outputs*). Every scenario id the slice realizes has a verdict; the design gate has a
    verdict (UI); the overall verdict is `pass` or `halted`; the frozen-artifact check is recorded; any
@@ -169,7 +172,7 @@ non-overlapping sources** (do not let them collapse into one "looks good"):
   - **Objective subset (check mechanically via the engine):** *responsive* (resize viewport down to mobile —
     layout holds), *visible keyboard focus* (tab through — focus ring present and logical), *reduced motion
     respected* (`prefers-reduced-motion` honored). These three are the contract's quality floor; they are
-    pass/fail, not judgment. Lean on the suite-level `../../references/accessibility-checklist.md` (the same
+    pass/fail, not judgment. Lean on the suite-level `references/accessibility-checklist.md` (the same
     a11y checklist `browser-testing-with-devtools` drives).
   - The other axes are judgment calls graded against the contract's stated intent.
   - **Departures.** A `## Departure` block records an axis where this surface deliberately moves away from
@@ -201,30 +204,20 @@ them. For non-UI slices, exercise behavior directly (HTTP calls, CLI invocation,
 The core risk of grading your own family's work under retry pressure is **flipping the gate instead of fixing
 the code** (weaken a test, reinterpret a scenario). qa defends mechanically, not by hoping:
 
-- **Frozen artifacts under retry.** `acceptance.md`, the RED tests realized from it, and the declared
-  `Regression surface` are **immutable during a slice's retry loop**. A retry diff that weakens/deletes an
-  assertion or narrows the surface = **gate-erosion HALT** (not a pass).
-- **The decided look, read-only rather than frozen.** `docs/design.md` is not a fourth frozen artifact —
-  it is a file this skill reads and never writes. Every contract axis marked `inherits: docs/design.md`
-  is graded against it, and it carries no `status:` of its own, so nothing else catches an edit to it:
-  moving the decided look so the built surface matches is the same **gate-erosion HALT**, with no retry
-  qualifier and no reward-hack test. Only `frontend-design` moves that file.
-- **The halt names what changed.** Every gate-erosion halt records the artifact in the halt reason and
-  in `qa.md`. "Gate erosion" alone tells the person reading it nothing about which guarantee was about to
-  be traded away, so it cannot be checked.
-- **Reward-hack tripwire.** If the failure signature moved only because a test or `acceptance.md` was edited
-  while the implementation is materially unchanged → **HALT**. The contract is the oracle; you do not get to
-  edit the oracle to pass.
+- **The frozen artifacts, the reward-hack tripwire, and the read-only decided look** are safety rail 4
+  (`references/safety-rails.md`) and are not restated here. What this skill adds to them: the halt names
+  the artifact **in `qa.md` as well as in the halt reason**, because `qa.md` is what a person reads after
+  the run, and it grades every design-contract axis marked `inherits: docs/design.md` against that file
+  while never writing it.
 - **Not-reachable is never silent — and never a weakening.** Every `not-reachable` id is surfaced as a
   required human-ack line in the PR body; a **person** decides whether an unexercised scenario is
   acceptable. The oracle is anchored to a person — they signed `acceptance.md` — so no agent can settle
   this in their place. The scenario stays in the contract, unproven, with a person named to settle it,
   so nothing stopped being checked and **nothing halts**. The test is whether the scenario survives the
   act — still in the contract with a person named → honest reporting; gone from the contract, or
-  rewritten to assert less → the gate-erosion HALT above.
-- **Security circuit-breaker.** A localized CRITICAL/HIGH finding or a secret in the diff during verification
-  = **hard halt of the slice, no retry, never a PR**; an exposed/committed secret fires a `PushNotification`.
-  (Defer to the `security-and-hardening` review skill for classification; qa's job is to stop the line.)
+  rewritten to assert less → the gate-erosion HALT of safety rail 4.
+- **Security circuit-breaker** — safety rails 2 and 3. Classification is `security-and-hardening`'s;
+  qa's job is to stop the line.
 
 ## Rationalizations
 

@@ -35,7 +35,7 @@
 // `orchestrator` row and would otherwise stand in for two other skills' rows.
 //
 // WHAT IT DOES NOT REACH.
-//   · Artifacts. `ARCHITECTURE.md`, `docs/progress.md`, `docs/lessons.md` and the rest are enumerated
+//   · Artifacts. `docs/progress.md`, `docs/lessons.md` and the rest are enumerated
 //     in prose rather than in a column, and no parser picks those out of a sentence. Those are the
 //     ones that went wrong most often in this build, and they still have to be swept by hand.
 //   · The routing tree in the MISSING direction only. A destination token that names nothing — what a

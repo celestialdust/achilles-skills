@@ -404,7 +404,7 @@ After completing all increments for a task:
 
 ## See Also
 
-Per-increment verification is the local check. Before declaring a task done, apply the project-wide Definition of Done as the final gate, the standing bar every increment clears regardless of the task. See `../../references/definition-of-done.md`.
+Per-increment verification is the local check. Before declaring a task done, apply the project-wide Definition of Done as the final gate, the standing bar every increment clears regardless of the task. See `references/definition-of-done.md`.
 
 ## Outputs & handoff contract
 
@@ -419,19 +419,14 @@ Per-increment verification is the local check. Before declaring a task done, app
   - The worktree is **compilable and green at every increment checkpoint** — never left broken between slices.
   - The slice diff stays within the **≤400 LOC** cluster cap; if it cannot, the
     slice was mis-sliced — stop and surface, do not stretch the cap.
-- **Frozen-under-retry (silent-false-green defense — non-negotiable):** during this slice's bounded retry
-  rounds, `acceptance.md`, the RED tests, and the declared `Regression surface` are **immutable**. A retry
-  diff that weakens an assertion, deletes a test, or narrows the surface = **HALT** (gate-erosion + reward-hack
-  tripwire: the failure signature must not move only because a test/acceptance was edited while impl is
-  materially unchanged). The way to green is to fix the impl (via `debugging-and-error-recovery`), never to
-  move the goalposts. No `--no-verify`, no hook edits, no `SKIP_HOOKS` (security.md / CLAUDE.md).
-  Those three thaw between runs — a person can change them by a signed Spec change, outside the run.
-- **Read-only rather than frozen — `docs/design.md`, the repository's decided look.** It is not a fourth
-  frozen artifact; it is a file a slice reads and never writes. Verify grades every contract axis marked
-  `inherits: docs/design.md` against it, and it carries no `status:` of its own, so nothing else catches
-  an edit. Moving the decided look so the built surface matches the code is weakening a check to clear a
-  gate — the same gate-erosion **HALT**, retry or not. Only `frontend-design` writes that file, under the
-  sign-off of a surface that means to move the whole look.
+- **Frozen-under-retry** — safety rail 4 (`references/safety-rails.md`) governs `acceptance.md`, the RED
+  tests, and the declared `Regression surface`, and it applies here on **every rung of the escalation
+  ladder**, including the two that change the approach and the shape of the slice. Those change how the
+  outcome is reached; the outcome is what `acceptance.md` says, on rung 1 and rung 4 alike. The way to
+  green is to fix the impl, via `debugging-and-error-recovery` — no `--no-verify`, no hook edits, no
+  `SKIP_HOOKS`.
+- **Read-only rather than frozen — `docs/design.md`, the repository's decided look** (safety rail 4).
+  A slice reads it and never writes it, retry or not.
 - **Appends to `docs/progress.md`** — this slice's entry, **only on the hand-run path**: no orchestrator
   dispatched it and no worktree was handed over, so the append lands in the repository itself, where a
   reader will find it. Inside a run the orchestrator owns the entry and this skill returns its commands
@@ -446,7 +441,10 @@ Per-increment verification is the local check. Before declaring a task done, app
   nowhere. On the hand-run path there is nothing to carry: the author already appended it in the
   repository itself. Full rule in *The lesson a slice hands back* above.
 - **`STATE.md` update:** on a green slice checkpoint, flip the slice **`impl → verify`** (gate stays `agent`)
-  and hand off to `quality-verification`. If the slice cannot pass after the bounded rounds (3 implement→verify→review cycles),
-  flip it **`impl → halted`** and **flip its gate `agent → you`** — the failure-escalation path is the only
-  place a human gate survives the autonomous run.
+  and hand off to `quality-verification`. A slice that will not pass climbs the rungs of `orchestrator`'s
+  *escalation ladder* first — each one a different tactic, not another pass at the last one — and only a
+  slice that has spent them within the bounded rounds (3 implement→verify→review cycles) is flipped
+  **`impl → halted`** with its gate flipped **`agent → you`**. That is the failure-escalation path, the
+  only place a human gate survives the autonomous run, and it is where a slice arrives after four
+  different repairs rather than four identical retries.
 - **Consumer:** `quality-verification` (Verify). Change the shape of what you emit → update `quality-verification` in the same commit.
