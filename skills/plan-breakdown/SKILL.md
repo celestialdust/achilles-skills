@@ -330,7 +330,7 @@ somebody has to remember is not.
 One per slice, named for the slice id and nothing else, so the path is derivable from the id and an agent
 handed only `PWR-2` can find its steps.
 
-```markdown
+````markdown
 # PWR-1 — [user-facing capability]
 
 Row: `docs/features/password-reset/plan.md` → `## Vertical slices`
@@ -344,7 +344,7 @@ Row: `docs/features/password-reset/plan.md` → `## Vertical slices`
   export const resetTokenTable = pgTable("reset_token", { /* ... */ });
   ```
 - **test:** `tactics: tests/reset.test.ts — rejects expired token, accepts fresh token` (realizes acceptance `PWR-A1`)
-```
+````
 
 (Repeat one block per non-trivial step. Trivial edits — rename, import add, single-line change — may use a
 one-line prose body. No `TBD`/`TODO`/`add validation`/`handle edge cases` placeholders.)

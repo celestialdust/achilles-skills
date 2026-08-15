@@ -82,10 +82,11 @@ keeps the table from being shrunk until it stops catching anything.
 | `STATE.md` | `Artifacts` — the security findings entry | `security-findings.md` | `security-and-hardening` | append only |
 | `STATE.md` | `Artifacts` — the release runbook entry | `release.md` | `shipping-and-launch` | append only |
 | `STATE.md` | `Artifacts` — every other entry | `Artifacts` | `orchestrator` | append only |
-| `docs/session-state.md` | the file, its five field headings and `## Log` | — | `project-setup` | create |
+| `docs/session-state.md` | the file and its five field headings | — | `project-setup` | create |
 | `docs/session-state.md` | the five fields | — | `handoff` | create |
-| `docs/session-state.md` | `## Log` | — | `handoff` | append only |
-| `docs/session-state.md` | an entry already in `## Log` | — | nobody | never |
+| `docs/session-log.md` | the file, its preamble and the entry shape | `preamble` | `project-setup` | create |
+| `docs/session-log.md` | an entry for a decision | `entry per decision` | `handoff` | create |
+| `docs/session-log.md` | an entry already written | — | nobody | never |
 | `docs/design.md` | the whole file — written from the first user interface built here, and again where a later surface deliberately moves the repository's look | — | `frontend-design` | create |
 | `docs/design.md` | any part of it, for a surface that inherits the look rather than moving it | — | nobody | never |
 | `docs/features/<slug>/` | the directory | — | `project-setup` | create |

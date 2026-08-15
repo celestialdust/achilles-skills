@@ -96,7 +96,7 @@ OpenCode does not require slash commands like `/spec` or `/plan`. The same lifec
 Two cross-cutting commands round out the set:
 
 - `/orchestrate` → `orchestrator` — the autonomous wave-parallel DAG runner that drives every slice Implement → Ship to open draft PRs. Its readiness gate is `preflight-readiness`; per-session compaction is `handoff`.
-- `/setup` → `project-setup` — one-time repo ecosystem bootstrap (`STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other).
+- `/setup` → `project-setup` — one-time repo ecosystem bootstrap (`STATE.md`, `CONTEXT.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/session-log.md`, `docs/progress.md`, `docs/lessons.md`, the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md`, and a short pointer to it in the other).
 
 Three further commands are **standalone** — they belong to no stage and can run at any time without advancing one:
 

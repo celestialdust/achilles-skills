@@ -45,7 +45,8 @@ lives.
 |---|---|---|
 | `STATE.md` | the work board — one block per feature, one row per slice, and a `gate` column naming who owns the next action | `plan-breakdown` adds the rows; the orchestrator drives them |
 | `CONTEXT.md` | the glossary — one plain-language definition per domain term, no implementation detail | `project-setup` seeds it; `spec-grilling` appends terms |
-| `docs/session-state.md` | where the work stands (five fields, rewritten each time) plus an append-only log of decisions | `handoff` |
+| `docs/session-state.md` | where the work stands — five fields, rewritten each time, holding no history | `handoff` |
+| `docs/session-log.md` | why it stands there — the append-only record of decisions, one entry each, never edited | `handoff` |
 | `docs/design.md` | the repository's decided look — what every interface shares, as against what one screen decides for itself | the **first** UI surface built in the repo, via `frontend-design`; nothing scaffolds it |
 | `docs/adr/` | one file per architectural decision, with the reasoning and what was ruled out | `spec-grilling`, `plan-breakdown`, `documentation-and-adrs` |
 | `docs/progress.md` | the run record — what each slice actually executed: the commands, their real output, and what was not run and why | `project-setup` seeds it; whichever skill runs a slice appends one entry per slice |

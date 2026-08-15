@@ -16,7 +16,7 @@ apply the right skill, in the right order, for the current task.
 ## When to use / when to skip
 
 **Use** at the start of every session, and any time you are unsure which skill applies or which stage you
-are in. Read `STATE.md`, `docs/session-state.md`, and `docs/progress.md` first, then route.
+are in. Read `STATE.md`, `docs/session-state.md`, `docs/session-log.md`, and `docs/progress.md` first, then route.
 
 **Skip** only once you are already executing a named skill mid-stage — you do not re-dispatch on every turn.
 You still re-consult this index when the stage changes (e.g. plan signed → moving to Implement) or when a
@@ -27,8 +27,9 @@ task spans phases (a feature flows Ideate → … → Ship; a bug fix may need o
 - **`STATE.md`** (repo root) — the two-level board. Read the `feature state`, `slice state`, and `gate`
   columns to locate the current stage and who owns the next action. **If `STATE.md` is absent, route to
   `project-setup` before dispatching anything else.**
-- **`docs/session-state.md`** (when the repo has one) — the session log. Its five fields say where the
-  work stands; `## Log` beneath them says why, and which questions are already settled. Read both before
+- **`docs/session-state.md`** (when the repo has one) — the snapshot. Its five fields say where the
+  work stands. **`docs/session-log.md`** is the separate append-only record saying why, and which
+  questions are already settled. Read both before
   you route, so a question the log already answers is not re-opened. Reversing a logged decision is a new
   entry with a reason, not a debate restarted from zero. No file → nothing to read; route on.
 - **`docs/progress.md`** (when the repo has one) — the run record: what each slice actually executed, one
@@ -51,7 +52,7 @@ This skill is the entry point, so it does not refuse-to-run; its one hard rule i
 
 ## Process
 
-This skill runs first. Read `docs/session-state.md` — both zones — and `docs/progress.md` before you
+This skill runs first. Read `docs/session-state.md`, `docs/session-log.md`, and `docs/progress.md` before you
 route, so the questions this project has already settled are in hand, along with what the last run
 actually executed. Then identify the stage from `STATE.md`'s `gate` column
 (or, if no STATE.md exists yet, run `project-setup`) and route the task to the stage skill below. The
@@ -308,7 +309,7 @@ first. A repository that does not have one of these simply skips its rank.
 
 Not every document has a rank. `STATE.md`, `CONTEXT.md` and the `CONTEXT-MAP.md` index a multi-context
 repository keeps beside it, and the per-feature `intent.md`, `research.md`, `environment.md`, and `qa.md`
-have none. Three more settle themselves instead of needing one: `docs/session-state.md` says in its own
+have none. Three more settle themselves instead of needing one: `docs/session-log.md` says in its own
 text that it is the weakest source here and never overrides a decision record or a signed `acceptance.md`;
 a feature's design contract and `docs/design.md` divide one subject rather than compete for it — the
 contract decides that surface, and `docs/design.md` decides every axis the contract marks inherited; and a
@@ -322,7 +323,7 @@ yours.
 | Stage | Skill | One-line summary |
 |-------|-------|------------------|
 | Cross-cut | using-agent-skills | this meta-dispatcher: task → skill + lifecycle map |
-| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/session-state.md, docs/progress.md, docs/lessons.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other) |
+| Cross-cut | project-setup | one-time repo ecosystem (STATE.md, CONTEXT.md, docs/adr/, docs/features/, docs/session-state.md, docs/session-log.md, docs/progress.md, docs/lessons.md, the `## Agent skills` block in one of CLAUDE.md / AGENTS.md + a short pointer to it in the other) |
 | Cross-cut | orchestrator | wave-parallel DAG executor; platform-adaptive; runs to open draft PRs, never waits |
 | Cross-cut | preflight-readiness | env-readiness gate; refuses the wave until provisioned |
 | Cross-cut | handoff | per-session compaction to a fresh-agent doc |
@@ -405,8 +406,8 @@ These are the subtle errors that look like productivity but create problems:
 ## Verification (ending criteria)
 
 Dispatch is complete when ALL hold:
-- `docs/session-state.md` was read before you routed — both the five fields and `## Log` — where the repo
-  has one, and no question the log already answers was re-opened.
+- `docs/session-state.md` and `docs/session-log.md` were read before you routed, where the repo
+  has them, and no question the log already answers was re-opened.
 - `docs/progress.md` was read before you routed, where the repo has one, so what the last run actually
   executed is in hand rather than reconstructed from a summary of it. Nothing was routed off it: it says
   what ran, never who acts next.
@@ -428,5 +429,5 @@ Dispatch is complete when ALL hold:
   skill starts cold without re-deriving context.
 - **STATE.md:** this skill **does not write** STATE.md — the dispatched stage skill (or the orchestrator)
   records the transition. The dispatcher only reads STATE.md to decide. The same holds for
-  `docs/session-state.md` and `docs/progress.md`: it reads all three and writes none of them.
+  `docs/session-state.md`, `docs/session-log.md` and `docs/progress.md`: it reads them all and writes none.
 - **Re-entry:** on any stage change or a `gate` flip in STATE.md, re-consult this skill.
