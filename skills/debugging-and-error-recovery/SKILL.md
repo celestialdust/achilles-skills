@@ -31,18 +31,12 @@ What it requires before it may run:
 - **Caller context** — who invoked this and why:
   - from `incremental-implementation` — a slice's RED/GREEN test broke, or the build broke mid-slice; or
   - from `quality-verification` — a behavioral scenario came back failing / not-reachable in the `qa.md` ledger.
-- **The frozen-artifact set, when inside a retry loop.** If this triage runs as part of a
-  slice's bounded retry, treat `acceptance.md`, the slice's RED tests, and the declared
-  `regression_surface` as IMMUTABLE inputs. They constrain the fix; they are not yours to edit.
-  A "fix" that weakens an assertion, relaxes a scenario, or narrows the regression surface is
-  **gate-erosion → HALT**: stop, flip the slice's gate column to `you`, and surface it. The whole
-  point of this skill is to change the code until the frozen tests pass, never to change the tests
-  until the code passes.
-- **The decided look, read-only and not one of the three.** Where the repo has a `docs/design.md`, Verify
-  grades every contract axis marked `inherits: docs/design.md` against that file, and it carries no
-  `status:` of its own, so nothing else catches an edit to it. A "fix" that moves the decided look so the
-  built surface matches is weakening a check to clear a gate — the same **gate-erosion → HALT**, inside a
-  retry loop or outside one. Read it; never write it. Only `frontend-design` moves it.
+- **The frozen-artifact set** — safety rail 4 (`references/safety-rails.md`): `acceptance.md`, the
+  slice's RED tests, the declared `regression_surface`, and the decided look in `docs/design.md` are
+  **inputs to the fix, not surfaces for it**. This is the skill where that distinction does the most
+  work, because a triage that has narrowed to one failing assertion is exactly one keystroke from
+  making it pass. The whole point here is to change the code until the frozen tests pass, never the
+  tests until the code passes — inside a retry loop or outside one.
 
 ## The Stop-the-Line Rule
 

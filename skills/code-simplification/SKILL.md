@@ -50,20 +50,15 @@ Refuse to run unless ALL of these resolve:
 - **Project conventions** — `CLAUDE.md` / `CONTEXT.md` and the neighboring code, so simplification
   converges on the house style instead of imposing a foreign one (Principle 2).
 
-**Frozen under this skill (silent-false-green invariant):** `acceptance.md`, the RED/passing tests,
-and the declared `Regression surface` are IMMUTABLE here; they thaw between runs by a signed Spec change
-and never inside one. A simplification you cannot recommend without a test being edited, an assertion
-weakened, or the surface widened or narrowed is **gate-erosion → HALT**: stop, return `block`, and
-surface it — naming the artifact, since "gate erosion" alone does not tell the reader which guarantee
-was nearly traded away. The orchestrator owns the board: it flips the slice's gate column to `you`, and
-a person decides.
+**Safety rail 4** (`references/safety-rails.md`) applies here, and this skill meets it from an unusual
+angle: it does not write code, it *recommends* changes. So the rail's test becomes — a simplification
+you cannot recommend without a test being edited, an assertion weakened, the surface moved, or the
+decided look in `docs/design.md` shifted is **gate-erosion → HALT**. Return `block`, name the artifact,
+and let a person decide; the orchestrator flips the slice's gate column to `you`.
 
-`docs/design.md` is **read-only** here rather than frozen — a different constraint for a different
-reason: Verify grades every contract axis marked `inherits: docs/design.md` against it, and only
-`frontend-design` moves it. It is not a fourth frozen artifact, and this skill never writes it. Reading
-rather than writing removes the authority to move that file, not the duty to report a collision with
-it — so a simplification that cannot be had unless the decided look moves is **gate-erosion → HALT**
-on the same terms: return `block`, and a person decides.
+Reading rather than writing removes the authority to move any of those files. It does not remove the
+duty to **report** a collision with one — a simplification blocked by a frozen artifact is a finding,
+not a silence.
 
 ## The Five Principles
 

@@ -187,9 +187,8 @@ Done when ALL hold:
   ledger by id in `qa.md`; refuses an unsigned contract) · `spec-review` (checks every story id → ≥1
   reachable scenario before the human reviews) · `pull-request` (any "not-reachable" classification at run time
   → a required human-ack line in the PR body, never silently absorbed).
-- **Frozen-under-retry invariant:** once signed, `acceptance.md` is **immutable during a slice's
-  retry loop**. A retry diff that weakens or deletes a scenario to make a test pass = gate-erosion **HALT**
-  (the reward-hack tripwire). The contract may only change by a fresh human re-sign.
+- **Frozen-under-retry invariant** — safety rail 4, `references/safety-rails.md`. What this skill owns
+  is the way out: the contract changes only by a **fresh human re-sign**, never by an agent's edit.
 - **Boundary with `frontend-design`:** design floors/rubric/prototype-fidelity live in its signed design
   contract and, for an axis that contract marks inherited, in `docs/design.md`; `acceptance.md` carries
   zero design content. No two signed artifacts can contradict. `frontend-design` running *before* this

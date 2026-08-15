@@ -26,15 +26,11 @@ artifact and has no refuse-to-run on the artifact chain. What it needs to run:
   task does not forbid it, `git init` first — never commit into a non-repo.
 - The **changes to be committed** (staged or unstaged) plus the slice/feature context that
   produced them, so the message can explain the *why*, not just the *what*.
-- When invoked inside an autonomous slice loop: the slice's declared `Regression surface`
-  and the **frozen** `acceptance.md` + RED tests are **read-only** here. Git never amends,
-  rebases, force-pushes, or re-stages to widen a surface or weaken a test under retry — that is a
-  gate-erosion **HALT** the orchestrator enforces. Git's job is to record the change, not to edit
-  the oracle. Those three thaw between runs by a signed Spec change and never inside one.
-  `docs/design.md` is read-only here as well, for a different reason than a freeze: Verify grades every
-  contract axis marked `inherits: docs/design.md`
-  against it, and only `frontend-design` moves it — never stage or commit an edit to the decided look to
-  clear a design gate.
+- When invoked inside an autonomous slice loop: safety rail 4 (`references/safety-rails.md`) applies,
+  and git is where it is easiest to break by accident. Never amend, rebase, force-push, or re-stage in
+  a way that widens a surface or weakens a test under retry, and never stage or commit an edit to
+  `docs/design.md` to clear a design gate. Git's job is to record the change, not to edit the oracle —
+  and a history rewrite erodes a frozen artifact just as effectively as an editor does.
 
 Refuse-to-run only if there is no repository and the task forbids creating one. Otherwise git
 always applies.

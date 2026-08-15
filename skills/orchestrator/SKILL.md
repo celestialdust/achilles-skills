@@ -401,27 +401,18 @@ diff ≤400 LOC`. Circuit-breakers override any averaging: **security CRITICAL /
 With no mid-run human gate, bounded retries pressure the agent to *flip the gate* (weaken a
 test, reinterpret acceptance) rather than fix the code (Goodhart; AP1–AP2). Defeated by
 mechanical invariants, not a human halt:
-1. **Frozen artifacts under retry** — `acceptance.md` + the RED tests + the declared
-   `Regression surface` are immutable during a slice's retry loop. A retry diff that weakens
-   an assertion or narrows the surface = gate-erosion **HALT**. (An instance of *Changing what judges
-   the work*: a loosening, so it needs a measurement and a human — and mid-retry it has neither.)
-   These three thaw *between* runs, by a Spec change a person signs.
-
-   **The decided look, read-only rather than frozen** — `docs/design.md` is not a fourth frozen artifact;
-   it is a file every run reads and only `frontend-design` writes. Verify grades each contract axis
-   marked `inherits: docs/design.md` against it, and it carries no `status:` of its own, so nothing else
-   catches an edit. Moving the decided look so a built surface matches it is the same **HALT**, retry or
-   not.
-2. **Reward-hack tripwire** — failure signature moved only because a test/acceptance was
-   edited while impl is materially unchanged → **HALT**. (Same rule: the edit loosened the check, so
-   the burden was evidence plus a human, not a passing run.)
-3. **Fail-closed ship + code-cold promotion** — a passing slice's terminal state is a
+1. **Frozen artifacts under retry, and the reward-hack tripwire** — safety rail 4
+   (`references/safety-rails.md`), covering `acceptance.md`, the RED tests, the declared
+   `Regression surface`, and the read-only `docs/design.md`. What the run adds: each of these is also
+   an instance of *Changing what judges the work* — a loosening, so it needs a measurement and a
+   human, and mid-retry it has neither. That is why the halt is immediate rather than a request.
+2. **Fail-closed ship + code-cold promotion** — a passing slice's terminal state is a
    **DRAFT PR**. Promotion to ready-to-merge is by a **fresh code-cold verifier with NO
    test-write access** (maker≠checker); a NEW checker each round sees only what the brief hands it —
    the human-anchored oracle (the signed `acceptance.md`) plus the running build — and never the
    implementer's reasoning, so the oracle never drifts.
-4. **Integration gate** — the merged-union suite on a connected DAG component (above).
-5. **Inverted risk report** — every SHIPPED slice carries the risk band `pull-request` computed for
+3. **Integration gate** — the merged-union suite on a connected DAG component (above).
+4. **Inverted risk report** — every SHIPPED slice carries the risk band `pull-request` computed for
    it, reproduced here **alongside the halts and highest band first**, to draw the human's scarce
    attention both to what the wave's diffs *touched* and to the quiet greens where unattended defects
    actually ship. **The rule that produces a band is `pull-request` Step 2, and it is not restated
@@ -641,8 +632,8 @@ have it caught before the code is written, build that slice on the single-slice 
 
 ## Red flags — STOP
 
-- About to weaken/edit `acceptance.md`, a RED test, or `Regression surface` during a retry → HALT (gate-erosion; a loosening, and a retry loop has neither the measurement nor the human). Those three are frozen for the retry loop; between runs a person can change them by a signed Spec change.
-- About to edit `docs/design.md` so a built surface matches it → HALT (same gate-erosion). Verify grades every contract axis marked `inherits: docs/design.md` against that file, and it carries no `status:` of its own, so moving it is the one way to clear a design gate that nothing else catches.
+- About to weaken/edit `acceptance.md`, a RED test, or `Regression surface` during a retry → HALT (safety rail 4; also a loosening, and a retry loop has neither the measurement nor the human).
+- About to edit `docs/design.md` so a built surface matches it → HALT (same gate-erosion, safety rail 4). It carries no `status:` of its own, so this is the one way to clear a design gate that nothing else catches.
 - About to drop a reviewer, delete a guard, deactivate a scenario (remove it from its contract), or weaken any check — at any time, including at plan time or by editing these skill files → STOP. Refuse, and name the measurement that is missing.
   - **Not this:** Verify classifying a scenario `not-reachable`. That leaves the scenario where it was, in `acceptance.md`, and escalates it to a human via the required PR ack line, so nothing stopped being checked. It is the reporting path this suite mandates — record it, add the ack line, keep going. Never a halt, never a refusal, no measurement needed.
 - Treating a merge of several checks into one as a simplification → STOP (ambiguous direction defaults to loosening).

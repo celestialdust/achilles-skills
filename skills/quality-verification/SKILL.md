@@ -201,30 +201,20 @@ them. For non-UI slices, exercise behavior directly (HTTP calls, CLI invocation,
 The core risk of grading your own family's work under retry pressure is **flipping the gate instead of fixing
 the code** (weaken a test, reinterpret a scenario). qa defends mechanically, not by hoping:
 
-- **Frozen artifacts under retry.** `acceptance.md`, the RED tests realized from it, and the declared
-  `Regression surface` are **immutable during a slice's retry loop**. A retry diff that weakens/deletes an
-  assertion or narrows the surface = **gate-erosion HALT** (not a pass).
-- **The decided look, read-only rather than frozen.** `docs/design.md` is not a fourth frozen artifact —
-  it is a file this skill reads and never writes. Every contract axis marked `inherits: docs/design.md`
-  is graded against it, and it carries no `status:` of its own, so nothing else catches an edit to it:
-  moving the decided look so the built surface matches is the same **gate-erosion HALT**, with no retry
-  qualifier and no reward-hack test. Only `frontend-design` moves that file.
-- **The halt names what changed.** Every gate-erosion halt records the artifact in the halt reason and
-  in `qa.md`. "Gate erosion" alone tells the person reading it nothing about which guarantee was about to
-  be traded away, so it cannot be checked.
-- **Reward-hack tripwire.** If the failure signature moved only because a test or `acceptance.md` was edited
-  while the implementation is materially unchanged → **HALT**. The contract is the oracle; you do not get to
-  edit the oracle to pass.
+- **The frozen artifacts, the reward-hack tripwire, and the read-only decided look** are safety rail 4
+  (`references/safety-rails.md`) and are not restated here. What this skill adds to them: the halt names
+  the artifact **in `qa.md` as well as in the halt reason**, because `qa.md` is what a person reads after
+  the run, and it grades every design-contract axis marked `inherits: docs/design.md` against that file
+  while never writing it.
 - **Not-reachable is never silent — and never a weakening.** Every `not-reachable` id is surfaced as a
   required human-ack line in the PR body; a **person** decides whether an unexercised scenario is
   acceptable. The oracle is anchored to a person — they signed `acceptance.md` — so no agent can settle
   this in their place. The scenario stays in the contract, unproven, with a person named to settle it,
   so nothing stopped being checked and **nothing halts**. The test is whether the scenario survives the
   act — still in the contract with a person named → honest reporting; gone from the contract, or
-  rewritten to assert less → the gate-erosion HALT above.
-- **Security circuit-breaker.** A localized CRITICAL/HIGH finding or a secret in the diff during verification
-  = **hard halt of the slice, no retry, never a PR**; an exposed/committed secret fires a `PushNotification`.
-  (Defer to the `security-and-hardening` review skill for classification; qa's job is to stop the line.)
+  rewritten to assert less → the gate-erosion HALT of safety rail 4.
+- **Security circuit-breaker** — safety rails 2 and 3. Classification is `security-and-hardening`'s;
+  qa's job is to stop the line.
 
 ## Rationalizations
 

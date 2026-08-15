@@ -57,10 +57,11 @@ comes from an audit and names a vulnerability; the band comes from `pull-request
 
 ## 4. Nothing edits what judges it
 
-The signed `acceptance.md`, a failing test written before the code meant to pass it, a slice's
-declared regression surface, and the repository's decided look in `docs/design.md` are **frozen while
-a slice is being made to pass**. An edit to any of them that would turn a red gate green is
-gate-erosion: the slice halts, and the halt names the artifact that was about to change.
+The signed `acceptance.md`, a failing test written before the code meant to pass it, and a slice's
+declared regression surface are **frozen while a slice is being made to pass**. An edit to any of
+them that would turn a red gate green is gate-erosion: the slice halts, and the halt **names the
+artifact that was about to change** — "gate erosion" on its own says nothing about which guarantee
+was nearly traded away, so it cannot be checked.
 
 The rail is not about honesty. It is that a check the maker can edit is not a check, and an agent
 under retry pressure has every local reason to edit one — the failure is right there, the edit is one
@@ -75,8 +76,19 @@ Two shapes of the same thing are worth naming because they do not look like edit
   run as fresh, code-cold subagents that never see the implementer's reasoning, only the diff and the
   running build. An agent grading its own work is editing what judges it by a slower route.
 
-These thaw between runs, not during one. A person can change any of them through a signed Spec
+These three thaw between runs, not during one. A person can change any of them through a signed Spec
 change, in the open, where the change is the subject rather than a step toward green.
+
+**`docs/design.md` is read-only rather than frozen, and the difference matters.** The repository's
+decided look is not a fourth frozen artifact — it is a file every skill reads and only
+`frontend-design` writes, under the sign-off of a surface that means to move the whole look. It never
+thaws for a slice, because it was never frozen *to* a slice.
+
+What makes it worth naming here anyway: Verify grades every design-contract axis marked
+`inherits: docs/design.md` against this file, and the file carries no `status:` of its own — so
+nothing else in the suite catches an edit to it. Moving the decided look so a built surface matches
+the code is weakening a check to clear a gate, and it is the same halt as any other, with no retry
+qualifier and no reward-hack test to apply first.
 
 ## 5. One writer per file
 

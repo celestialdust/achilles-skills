@@ -241,35 +241,24 @@ Next failing test for the next scenario / feature.
 
 ## Frozen artifacts under retry (gate-erosion is a HALT)
 
-In the autonomous run no human watches you grade your own work, so the RED tests are a human-anchored
-oracle that must not drift. **Three things are frozen here, immutable while a slice is in its retry
-loop**:
-- the consumed **`acceptance.md`** scenarios,
-- the **RED tests** you wrote for them,
-- the slice's declared **`Regression surface`**.
+Safety rail 4 (`references/safety-rails.md`) governs this and is not restated here: the consumed
+`acceptance.md` scenarios, the RED tests you wrote for them, and the slice's declared
+`Regression surface` are frozen while the slice is being made to pass; weakening an assertion,
+deleting or skipping a RED test, narrowing the surface, or editing a scenario is **gate-erosion →
+HALT** (flip `gate: agent → you`), and the halt names the artifact. `docs/design.md` is read-only on
+the same rail.
 
-A retry diff that **weakens an assertion, deletes/skips a RED test, narrows the surface, or edits a
-scenario** is **gate-erosion → HALT** the slice (flip `gate: agent → you`). Do not "fix" the test to
-make it pass.
-
-These three are frozen *for this slice's retry loop* — between runs they can still change, by a Spec
-change a person signs. **The halt names the artifact.** Say which guarantee was about to go; "gate
-erosion" on its own leaves whoever reads the halt unable to tell what was traded away, or whether the
-trade was reasonable.
+What this stage adds is the reason the rail bites hardest here. **You are the party that writes the
+oracle.** In the autonomous run nobody watches you write the test that will later judge your code, so
+the window between "this test is red" and "this test is green" is the one place a false green can be
+manufactured at zero cost — the edit is one line and it is in a file you already have open. That is
+why the freeze starts the moment the test goes red rather than at Verify.
 
 **Reporting a scenario unreachable is not weakening it.** If this slice cannot construct a scenario's
 Given — the state depends on work that does not exist yet — record the id as not reachable and carry on.
 The scenario stays in `acceptance.md`, unproven, and reaches a person through the required PR
 acknowledgement line. Nothing stopped being checked, so nothing halts. Only removing a scenario from the
-contract, or rewriting it to assert less, is the erosion above.
-
-**The decided look is not yours to move either.** Where the repo has a `docs/design.md`, Verify grades
-every contract axis marked `inherits: docs/design.md` against that file. It carries no `status:` of its own,
-so nothing else catches an edit to it — editing the decided look so the built surface matches is weakening
-a check to clear a gate, the same **gate-erosion → HALT**. Read it; never write it.
-
-If the failure signature only moved because a test/acceptance was edited while the implementation is
-materially unchanged, that is the **reward-hack tripwire → HALT**.
+contract, or rewriting it to assert less, is the erosion.
 
 **Fix the code, never the oracle.** A frozen failing test is information; a relaxed test is a silent
 false-green.
@@ -329,8 +318,7 @@ Gate-erosion red flags (HALT the slice, flip `gate: agent → you`):
 - Weakening/deleting/skipping a frozen RED test to make a slice pass
 - Editing an `acceptance.md` scenario mid-retry
 - Narrowing the declared `Regression surface` to dodge a failure
-- Editing `docs/design.md` so the built surface matches it — the decided look is read-only rather than
-  frozen, and off-limits in a retry or at any other moment
+- Editing `docs/design.md` so the built surface matches it — read-only at any moment, retry or not
 - Halting for gate erosion **without naming** the artifact that was about to change
 
 **The first group means: delete code, start over with TDD. The second group means: stop, do not ship.**

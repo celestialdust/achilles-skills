@@ -31,7 +31,7 @@ Security-first development practices for web applications. Treat every external 
 - The slice id and its frozen **`Regression surface`** (from `STATE.md` / `plan.md`) — lets a CRITICAL/secret be localized to this slice vs. classified repo-wide.
 - `acceptance.md` security-observable scenarios — when the feature has LLM or untrusted-input surfaces, to know which abuse cases were promised.
 
-**Dispatch contract:** you run as a **fresh, code-cold subagent in parallel** on the security axis (maker≠checker; `parallelism.md` mech f) with **no test-write access**. You read the diff cold — you do not see the implementer's reasoning, and you must not weaken any test or the frozen `acceptance.md`/`Regression surface` to make a finding go away (that is gate-erosion). `docs/design.md` is off-limits too, for a different reason than a freeze: Verify grades every contract axis marked `inherits: docs/design.md` against that file, it carries no `status:` of its own, and only `frontend-design` moves it — so a diff that edits the decided look is gate-erosion with no "materially unchanged" qualifier.
+**Dispatch contract:** you run as a **fresh, code-cold subagent in parallel** on the security axis (maker≠checker and one writer per file — safety rails 4 and 5, `references/safety-rails.md`) with **no test-write access**. You read the diff cold, without the implementer's reasoning, and the frozen artifacts are not yours to move to make a finding go away.
 
 ## Process: Threat Model First
 
@@ -451,8 +451,8 @@ After implementing security-relevant code:
 
 **Gate wiring — security is a circuit-breaker leg of the SHIP AND-conjunction (it overrides any averaging; there is no "net pass"):**
 - A localized **CRITICAL or HIGH** finding, **or any secret in the diff** ⇒ `## Verdict: STOP` + `## Circuit-breaker: slice-halt-no-PR` ⇒ the slice goes `halted` in `STATE.md`, **no retry, never a PR**, and tops the run's risk report.
-- An **exposed/committed secret with repo-wide blast radius** ⇒ `## Circuit-breaker: repo-wide-secret-STOP` ⇒ fire a **PushNotification**, **freeze the next wave barrier**, open **no further PRs** (security.md's literal STOP). Fix is **rotate-then-purge**, never delete-the-line.
-- `## Verdict: block` (MEDIUM/LOW only, no secret) ⇒ findings flow into the slice's bounded retry loop as required fixes; the frozen `acceptance.md` / RED tests / `Regression surface` are **immutable** during retry (weakening them = gate-erosion HALT).
+- An **exposed/committed secret with repo-wide blast radius** ⇒ `## Circuit-breaker: repo-wide-secret-STOP` ⇒ fire a **PushNotification**, **freeze the next wave barrier**, open **no further PRs** (safety rail 2's literal STOP). Fix is **rotate-then-purge**, never delete-the-line.
+- `## Verdict: block` (MEDIUM/LOW only, no secret) ⇒ findings flow into the slice's bounded retry loop as required fixes, under safety rail 4 like any other retry.
 - Findings + severity counts feed the **inverted risk report** for every shipped slice.
 
 **STATE.md update:** on STOP, flip the slice to `halted` (and, for a repo-wide secret, freeze the barrier); on `pass`, append `security-findings.md` to the slice's Artifacts column and leave the gate decision to the three-leg AND-conjunction.
