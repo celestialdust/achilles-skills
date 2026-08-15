@@ -39,7 +39,6 @@ Misalignment starts before the first question is asked: a prompt only contains w
 - **Blind-spot pass** (`interview-me`, `spec-grilling`) — scan the territory *before* the first question and brief you on decisions your ask never mentions.
 - **Reactable options** (`idea-refine`) — wildly different throwaway mock-ups to react to when the answer is "I'd know it when I see it."
 - **Leverage-ordered questions** — architecture-changing questions first; uncontested defaults stated inline, not asked.
-- **Sign-off quiz** — before you sign `intent.md` or the ADRs, 2–3 scenario questions prove the artifact matches your mental model.
 
 The shared playbook is [`references/finding-unknowns.md`](./references/finding-unknowns.md). Discovery effort follows ignorance: novel territory gets the full treatment, familiar ground gets compressed.
 
@@ -52,7 +51,7 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 | `skills/` | The 40 skills — one discipline per `SKILL.md` |
 | `agents/` | The 5 fresh-context personas |
 | `commands/` | The 12 slash commands — thin wrappers over the skills |
-| `references/` | Shared reference material: checklists (security, performance, accessibility, …), `language-style.md` (the prose style guide for everything this repo ships), and `write-ownership.md` (the write table `scripts/check-write-table.mjs` reads) |
+| `references/` | Shared reference material: checklists (security, performance, accessibility, …), `safety-rails.md` (the six things an agent does not decide for itself — every skill cites it rather than restating a rail), `language-style.md` (the prose style guide for everything this repo ships), and `write-ownership.md` (the write table `scripts/check-write-table.mjs` reads) |
 | `docs/` | Reader-facing documentation: getting started + per-agent setup guides. `CONTEXT.md` at the root is a different case: the suite runs its own process, so it carries the glossary that process produces |
 | `scripts/` | The six checks a change to this repo is measured against — see *How a change here is checked* below |
 | `.claude-plugin/` | `plugin.json` and `marketplace.json`, the install manifests. `plugin.json` is the only file that states the version, and the only path the plugin loader reads |
@@ -60,28 +59,9 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 
 `docs/` is for readers of this repo. The pipeline artifacts the suite produces (`STATE.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/progress.md`, `docs/lessons.md`) live in **your** project once `/setup` scaffolds them there — not in this one. One is an exception, and it is here for the same reason: this repo runs the same loop, so it carries it. `/setup` scaffolds a copy of `CONTEXT.md` into your project; this repo keeps its own.
 
-`docs/design.md` — the decided look — and `ARCHITECTURE.md` — the structure map — are in neither list. Nothing scaffolds either: the first user interface built in a repo writes the one, and the first feature to run `architecture-design` writes the other. This repo builds no interface and has run no such pass, so it has neither. Their absence is a look and a layering nobody has decided yet, which is the correct state here rather than a gap.
+`docs/design.md` — the decided look — is in neither list. Nothing scaffolds it: the first user interface built in a repo writes it. This repo builds no interface, so it has none. That absence is a look nobody has decided yet, which is the correct state here rather than a gap.
 
 Two contracts sit outside `docs/`, for different reasons. `using-agent-skills` carries **Source-of-truth order**, which ranks a repository's own documents so a reader whose files disagree knows which one governs instead of picking — it sits there because that is the file an agent already loads to route. `references/write-ownership.md` carries **Who writes what**, a write table keyed by zone — one part of a file, with one writer named for it — and **deny-by-default**: a write with no row permitting it is a write nobody may make. That one is maintainer-only and never scaffolded, because what it constrains is this suite's own integrity rather than anything about how your work ships. Between them they are why a skill can be read on its own, rather than only alongside every other file in the repo.
-
----
-
-## How a change here is checked
-
-Most of this repo is prose, and CI reaches almost none of it — `.github/workflows/companion-tests.yml` is path-filtered to the vendored companion engine under `skills/frontend-design/scripts/`. For everything else the checker is a person running these:
-
-```
-node scripts/check-envelope.mjs        # two frontmatter keys, eight body slots in order
-node scripts/check-enumerations.mjs    # every stated total, recomputed and diffed against the tree
-node scripts/check-registries.mjs      # membership both ways, judged against each registry's own column
-node scripts/check-references.mjs      # every link, anchor and shipped path resolves
-node scripts/check-stages.mjs          # the stage a registry files a skill under, against the stage the skill claims
-node scripts/check-write-table.mjs     # every write a skill declares, against the zone the table grants it
-```
-
-The first five are silent when they pass. `check-write-table.mjs` exits non-zero by design — it reports a standing backlog, so compare its output before and after your change rather than reading a clean run as the goal. **Never edit the table to make it green**: widening a row is the gate erosion the table exists to catch, and so is quietly rewording the skill so it stops declaring the write.
-
-Each check states in its own header what it cannot reach, and that half is the one to read. No walk can see a `SKILL.md`'s Process slot, a total worded outside the recognised frames, or anything under `docs/`. Those are yours to read. [CONTRIBUTING.md](./CONTRIBUTING.md) carries the full pre-PR list.
 
 ---
 
@@ -228,20 +208,20 @@ Every skill is a structured workflow — purpose, when-to-use, process, rational
 
 | Skill | Responsibility |
 |---|---|
-| [interview-me](./skills/interview-me/SKILL.md) | Optional front door: blind-spot scan + one-question-at-a-time interview → quizzed, signed `intent.md` |
+| [interview-me](./skills/interview-me/SKILL.md) | Optional front door: blind-spot scan + one-question-at-a-time interview → signed `intent.md` |
 | [idea-refine](./skills/idea-refine/SKILL.md) | Refine the idea (divergent/convergent, reactable throwaway variants, an explicit "Not Doing" list) |
 
 ### Spec — human-led
 
 | Skill | Responsibility |
 |---|---|
-| [codebase-research](./skills/codebase-research/SKILL.md) | Head of Spec and again at the head of Plan: goal-blind parallel map of the codebase/DB as-is → `research.md`. Pass 1 runs before any design decision; pass 2 surveys the aspect those decisions point at |
+| [codebase-research](./skills/codebase-research/SKILL.md) | Head of Spec and again at the head of Plan: goal-blind parallel map of the codebase/DB as-is → one `research/<axis>.md` per sub-agent plus the `research.md` that compresses them. Pass 1 runs before any design decision; pass 2 surveys the aspect those decisions point at |
 | [spec-grilling](./skills/spec-grilling/SKILL.md) | Design the product from intent + the survey → ADRs + `CONTEXT.md` glossary; refuses without `research.md`; a blind-spot pass surfaces decisions you haven't considered |
 | [to-prd](./skills/to-prd/SKILL.md) | Light dual-audience PRD at product altitude; references the ADRs |
 | [frontend-design](./skills/frontend-design/SKILL.md) | Spec, **UI only** — after `to-prd` and before `acceptance-criteria` and `environment-manifest` run. The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | [acceptance-criteria](./skills/acceptance-criteria/SKILL.md) | BDD prose contract (Given/When/Then), behavioral-only, signed |
 | [environment-manifest](./skills/environment-manifest/SKILL.md) | Typed-kind environment manifest (no values, no commands) |
-| [architecture-design](./skills/architecture-design/SKILL.md) | Reconciles and renders — traces every scenario, records the invariants, cites the decisions taken in `spec-grilling`; takes none itself. Writes one feature's `architecture.md` + the committed `architecture.html` read at the Spec gate, and `ARCHITECTURE.md` on the repo's first such pass |
+| [architecture-design](./skills/architecture-design/SKILL.md) | Reconciles and renders — traces every scenario, records the invariants, cites the decisions taken in `spec-grilling`; takes none itself. Writes one feature's `architecture.md` + the committed `architecture.html` read at the Spec gate |
 | [spec-review](./skills/spec-review/SKILL.md) | Fresh code-cold agent fixes the spec before the user reviews it |
 
 ### Plan — human-led

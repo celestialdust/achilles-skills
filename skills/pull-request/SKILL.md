@@ -30,13 +30,13 @@ are met (correctness≥8, testing_strategy≥7, plan_adherence≥8, regression_s
 
 **Skip / refuse:**
 - Any internal gate is not green → **no PR** (route back per `qa.md` / Review findings).
-- A security **CRITICAL/HIGH** or a **secret in the diff** → **hard halt, no PR ever** (security.md); top the report, and for a committed secret fire **PushNotification** + freeze the
+- A security **CRITICAL/HIGH** or a **secret in the diff** → **hard halt, no PR ever** (safety rails 2 and 3, `references/safety-rails.md`); top the report, and for a committed secret fire **PushNotification** + freeze the
   next barrier.
 - `depth: lite` — a docs-only or config-only slice still gets a PR, but the code-reading checklist may
   name **fewer than 3** files: name what is actually risky, do not pad.
 
 **Never** `gh pr merge`, push to `main`, or trigger a deploy — those are fenced behind the human
-(branch-naming.md).
+(safety rail 1, `references/safety-rails.md`).
 
 ## Inputs
 
@@ -204,7 +204,7 @@ Each section earns its place; none is decorative:
 
 ## Red flags (STOP)
 - A security CRITICAL/HIGH or a secret in the diff → **no PR, hard halt**, top the report; a committed
-  secret → **PushNotification** + freeze the next barrier (security.md's literal STOP).
+  secret → **PushNotification** + freeze the next barrier (safety rail 2's literal STOP).
 - An internal gate (`quality-verification` / Review / an evaluator floor) is not green → **no PR**.
 - The `regression_surface` narrowed, or a frozen test / `acceptance.md` line changed during retries →
   **HALT** (gate-erosion); do not ship. Name the artifact in the report — "gate erosion" alone tells
@@ -253,7 +253,7 @@ draft → ready-to-merge after the **integration gate** on the connected DAG com
 feature → if any sibling slice halted, hold this PR **DRAFT** (atomic; never hand a human half a
 feature).
 
-**Merge is the human's** — never auto-merge to `main`; auto-deploy is OUT of v1 (branch-naming.md;
+**Merge is the human's** — never auto-merge to `main`; auto-deploy is OUT of v1 (safety rail 1;
 `ci-cd`/`shipping-and-launch` deploy actions are fenced behind the human merge).
 
 ## Neighbor skills

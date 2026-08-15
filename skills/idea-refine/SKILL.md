@@ -86,7 +86,7 @@ This skill is primarily an interactive dialogue. When the user invokes it with a
 
    Push beyond what the user initially asked for. Create products people don't know they need yet.
 
-   **Make variations reactable when taste is involved.** If the idea has any "know it when I see it" surface — UI, UX flow, report format, CLI/API ergonomics — render the 3-4 strongest variations as *throwaway* artifacts (rough HTML mock-ups, sample outputs, fake-data sketches), wildly different from each other, and ask the user to react; delete them after. Why reacting beats describing: `../../references/finding-unknowns.md`, "reactable options". These probes triangulate taste for the intent only — actual UI design and the committed prototype still go through `frontend-design` at Spec.
+   **Make variations reactable when taste is involved.** If the idea has any "know it when I see it" surface — UI, UX flow, report format, CLI/API ergonomics — render the 3-4 strongest variations as *throwaway* artifacts (rough HTML mock-ups, sample outputs, fake-data sketches), wildly different from each other, and ask the user to react; delete them after. Why reacting beats describing: `references/finding-unknowns.md`, "reactable options". These probes triangulate taste for the intent only — actual UI design and the committed prototype still go through `frontend-design` at Spec.
 
 **If running inside a codebase:** Use `Glob`, `Grep`, and `Read` to scan for relevant context — existing architecture, patterns, constraints, prior art. Ground your variations in what actually exists. Reference specific files and patterns when relevant.
 

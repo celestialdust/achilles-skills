@@ -433,9 +433,10 @@ and the **quality-gate verdict** those workflows compute on each PR/push.
 **Autonomy fencing (load-bearing):** the achilles agent runs Implement→Ship autonomously but terminates
 at an **OPEN, risk-banded PR** for async human merge. This skill's **auto-merge and deploy actions are
 reference patterns only and are FENCED behind the human merge** — the agent configures the gates and the
-rollback/flag scaffolding but **never auto-merges to `main` (branch-naming.md) and never auto-deploys
+rollback/flag scaffolding but **never auto-merges to `main` (safety rail 1,
+`references/safety-rails.md`) and never auto-deploys
 (auto-deploy is OUT of v1)**. Secrets are wired by name only; a secret literal reaching a workflow file
-is a security **STOP** (security.md), not a CI-config bug.
+is a security **STOP** (safety rail 2), not a CI-config bug.
 
 **STATE.md update:** none directly (referenced discipline). Pipeline-green is recorded as part of the slice's
 `ship` gate evidence by the `pull-request` / orchestrator that invoked this skill, not by this skill.

@@ -15,7 +15,7 @@ Ship with confidence. The goal is not just to deploy — it's to deploy safely, 
 
 A merged change is therefore the entry condition, and that is what puts this skill outside the autonomous run. Nothing in this suite is merged by the agent: a run ends at an open draft PR and the human merges whenever they get to it. Whoever invokes this skill afterwards — the human, or an agent the human starts — is working on the far side of that merge.
 
-> **v1 autonomy fence.** This skill AUTHORS the release runbook; it does **not execute deploy, rollout, or rollback commands**, and it sits **outside the autonomous span**. The agent's run ends at the open draft PR (`pull-request` workhorse); this skill picks up on the far side of the human's merge — every `DEPLOY` / `ENABLE` / canary-advance / `ROLL BACK` step below is a runbook the **human runs**, never an action the agent fires unattended. Auto-deploy and auto-merge are out of v1 (`branch-naming.md`: never commit to main). Whoever invokes it, human or agent, its output is a written plan in `release.md`, not a side effect.
+> **v1 autonomy fence.** This skill AUTHORS the release runbook; it does **not execute deploy, rollout, or rollback commands**, and it sits **outside the autonomous span**. The agent's run ends at the open draft PR (`pull-request` workhorse); this skill picks up on the far side of the human's merge — every `DEPLOY` / `ENABLE` / canary-advance / `ROLL BACK` step below is a runbook the **human runs**, never an action the agent fires unattended. Auto-deploy and auto-merge are out of v1 (safety rail 1, `references/safety-rails.md`: a human merges). Whoever invokes it, human or agent, its output is a written plan in `release.md`, not a side effect.
 
 ## When to use / when to skip
 
@@ -286,10 +286,10 @@ Every deployment needs a rollback plan before it happens:
 ```
 ## See Also
 
-- For the project-wide Definition of Done that every change must clear before this checklist, see `../../references/definition-of-done.md`
-- For security pre-launch checks, see `../../references/security-checklist.md`
-- For performance pre-launch checklist, see `../../references/performance-checklist.md`
-- For accessibility verification before launch, see `../../references/accessibility-checklist.md`
+- For the project-wide Definition of Done that every change must clear before this checklist, see `references/definition-of-done.md`
+- For security pre-launch checks, see `references/security-checklist.md`
+- For performance pre-launch checklist, see `references/performance-checklist.md`
+- For accessibility verification before launch, see `references/accessibility-checklist.md`
 
 ## Rationalizations
 
@@ -346,4 +346,4 @@ Emits the **release** artifact → `release.md` under `docs/features/<slug>/` (o
 
 **Consumer:** the human running the deploy. No skill reads `release.md` — `pull-request` in particular does not, because a slice's draft PR opens well before any release exists and never waits on one.
 
-STATE.md: shipping-and-launch is **release-level and post-merge** — it does NOT own a slice row and never flips a slice `gate` to `agent` for a deploy action (`pull-request` owns the slice row). Once the feature's slices read `done` and their PRs are merged, record `release.md` under that feature's `Artifacts` cell. If a CRITICAL/HIGH security finding or a secret surfaces while preparing the release → hard STOP, fire `PushNotification`, open no release (security.md).
+STATE.md: shipping-and-launch is **release-level and post-merge** — it does NOT own a slice row and never flips a slice `gate` to `agent` for a deploy action (`pull-request` owns the slice row). Once the feature's slices read `done` and their PRs are merged, record `release.md` under that feature's `Artifacts` cell. If a CRITICAL/HIGH security finding or a secret surfaces while preparing the release → hard STOP, fire `PushNotification`, open no release (safety rails 2 and 3).

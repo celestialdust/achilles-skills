@@ -20,6 +20,7 @@ skills/          → 40 skills, one discipline each (skills/<name>/SKILL.md)
 agents/          → 5 review personas (code-cold subagents)
 commands/        → 12 slash commands (*.md) — 9 lifecycle + 3 standalone
 references/      → shared reference material: checklists (security, performance, accessibility, …),
+                   safety-rails.md, the six things an agent does not decide for itself,
                    language-style.md, the prose style guide for everything this repo ships, and
                    write-ownership.md, the write table check-write-table.mjs reads
 docs/            → per-agent setup guides
@@ -48,7 +49,6 @@ lives.
 | `docs/session-state.md` | where the work stands (five fields, rewritten each time) plus an append-only log of decisions | `handoff` |
 | `docs/design.md` | the repository's decided look — what every interface shares, as against what one screen decides for itself | the **first** UI surface built in the repo, via `frontend-design`; nothing scaffolds it |
 | `docs/adr/` | one file per architectural decision, with the reasoning and what was ruled out | `spec-grilling`, `plan-breakdown`, `documentation-and-adrs` |
-| `ARCHITECTURE.md` | the repository's structure — its domains, the layer order, and the dependency edges a diff may add | the **first** feature to run `architecture-design`; nothing scaffolds it |
 | `docs/progress.md` | the run record — what each slice actually executed: the commands, their real output, and what was not run and why | `project-setup` seeds it; whichever skill runs a slice appends one entry per slice |
 | `docs/lessons.md` | root-caused defects, seven fields each, naming the guard that would catch a recurrence | `project-setup` seeds it; `debugging-and-error-recovery` and `code-review` append |
 | `docs/features/<slug>/` | one feature's `intent.md`, `research.md`, `prd.md`, `acceptance.md`, `environment.md`, `architecture.md`, `architecture.html`, `plan.md`, `qa.md` | the stage that produces each one |

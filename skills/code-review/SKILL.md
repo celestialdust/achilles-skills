@@ -415,8 +415,8 @@ Part of code review is dependency review:
 ```
 ## See Also
 
-- For detailed security review guidance, see `../../references/security-checklist.md` (owned by the `security-and-hardening` skill)
-- For performance review checks, see `../../references/performance-checklist.md` (owned by the `performance-optimization` skill)
+- For detailed security review guidance, see `references/security-checklist.md` (owned by the `security-and-hardening` skill)
+- For performance review checks, see `references/performance-checklist.md` (owned by the `performance-optimization` skill)
 
 ## Common Rationalizations
 

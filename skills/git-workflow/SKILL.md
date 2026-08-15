@@ -333,7 +333,8 @@ For every commit:
 **Emits:** no artifact-chain file — git is a *referenced* discipline. What it produces is **state
 the rest of the suite anchors to**:
 
-- **Atomic commits on the cluster branch** (`cluster/<id>` per `branch-naming.md`), each a
+- **Atomic commits on the cluster branch** (`cluster/<id>` per safety rail 1,
+  `references/safety-rails.md`), each a
   save-point doing one logical thing, ~100 lines, message in `<type>: <why>` form. **Never** a
   commit to `main`/`master` — the autonomous run terminates at an open PR for async human merge,
   not a direct push (fail-safe).
@@ -341,7 +342,7 @@ the rest of the suite anchors to**:
   commit (`git reset --hard HEAD`) without disturbing any other slice's work.
 - **A secret-free diff** — the pre-commit scan (`git diff --staged | grep -i
   "password\|secret\|api_key\|token"`) is clean before every commit. A hit is a hard STOP +
-  PushNotification and is **never** committed (security.md / secret circuit-breaker).
+  PushNotification and is **never** committed (safety rail 2 / secret circuit-breaker).
 
 **Stable handles downstream skills depend on:**
 - `pull-request` reads the commit history (`git log`, `git diff <base>...HEAD`) to anchor the PR summary to
@@ -349,7 +350,7 @@ the rest of the suite anchors to**:
 - The `orchestrator` reads branch + commit state to drive the slice `ship` transition in
   `STATE.md`. Git does **not** write `STATE.md` (the orchestrator owns the board).
 
-**Handoff:** leave the branch named per `branch-naming.md`, every increment committed (no dirty
+**Handoff:** leave the branch named per safety rail 1, every increment committed (no dirty
 tree), and emit the **CHANGES MADE / DIDN'T TOUCH / POTENTIAL CONCERNS** summary (see §Change
 Summaries) so the next agent — or the human reviewer at the open-PR gate — inherits a clear,
 scope-disciplined map of the change.

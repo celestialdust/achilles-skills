@@ -89,7 +89,7 @@ If you can't name the trust boundaries for a feature, you're not ready to secure
 
 ## OWASP Top 10 Prevention Patterns
 
-These are prevention patterns, not a ranking. For the 2021 ordering, see the quick-reference table in `../../references/security-checklist.md`.
+These are prevention patterns, not a ranking. For the 2021 ordering, see the quick-reference table in `references/security-checklist.md`.
 
 ### Injection (SQL, NoSQL, OS Command)
 
@@ -394,11 +394,11 @@ container.textContent = await llm.reply(userMessage);
 
 ## Security Review Checklist
 
-The full Authentication / Authorization / Input / Data / Infrastructure / Supply-Chain / AI-LLM checklist lives in `../../references/security-checklist.md` — run it as the pre-PR pass.
+The full Authentication / Authorization / Input / Data / Infrastructure / Supply-Chain / AI-LLM checklist lives in `references/security-checklist.md` — run it as the pre-PR pass.
 
 ## See Also
 
-For detailed security checklists and pre-commit verification steps, see `../../references/security-checklist.md`.
+For detailed security checklists and pre-commit verification steps, see `references/security-checklist.md`.
 
 ## Rationalizations
 
@@ -457,7 +457,7 @@ After implementing security-relevant code:
 
 **STATE.md update:** on STOP, flip the slice to `halted` (and, for a repo-wide secret, freeze the barrier); on `pass`, append `security-findings.md` to the slice's Artifacts column and leave the gate decision to the three-leg AND-conjunction.
 
-**References:** `../../references/security-checklist.md` (carried) — the pre-commit / OWASP / OWASP-LLM quick-reference this skill cites.
+**References:** `references/security-checklist.md` (carried) — the pre-commit / OWASP / OWASP-LLM quick-reference this skill cites.
 
 ## Subagents
 

@@ -20,7 +20,7 @@ use native tools, then fall back to git — never fight the harness.**
 ## When to use / when to skip
 
 **Use when** the orchestrator is about to dispatch a slice into `incremental-implementation` and hands you a branch
-name (per `branch-naming.md`), or a human asks for "an isolated workspace / a worktree / a clean
+name (per safety rail 1, `references/safety-rails.md`), or a human asks for "an isolated workspace / a worktree / a clean
 branch to work on" before starting feature work.
 
 **Skip when:** Step 0 detects you are ALREADY in a linked worktree on the intended branch (do not
@@ -29,7 +29,7 @@ or the user has explicitly declined isolation (then work in place and just run s
 
 **Escape hatch (`depth: lite`):** even a single-slice wave gets its own worktree and a verified
 baseline — do not "just edit in the main checkout because it's one small slice." The isolation and
-the clean baseline are the point even for a wave of one (consistent with `parallelism.md`:
+the clean baseline are the point even for a wave of one (consistent with safety rail 5:
 worktree-level parallelism; same-wave slices are isolated by construction).
 
 ## Inputs
@@ -37,7 +37,7 @@ worktree-level parallelism; same-wave slices are isolated by construction).
 Foundation-only — no upstream *artifact* is consumed. Resolve these before creating anything; refuse
 only on the one hard-missing case noted:
 
-- **Branch name** (REQUIRED) — per `branch-naming.md` (`cluster/C-<NNN>`, `feat/<slug>`, …), handed
+- **Branch name** (REQUIRED) — per safety rail 1 (`cluster/C-<NNN>`, `feat/<slug>`, …), handed
   by the orchestrator at dispatch, or derivable from the slice's row in `STATE.md`. If none is
   supplied AND none is derivable → **ask; never invent a branch name** (a wrong branch is
   hard-to-reverse). This is the refuse-to-run guard.

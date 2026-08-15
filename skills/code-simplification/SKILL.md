@@ -30,7 +30,8 @@ Find the complexity in a change and name the simpler version, without changing w
 ## Inputs
 
 **Stage:** Review — one axis of the parallel fan-out. The orchestrator dispatches this as a fresh,
-code-cold subagent on the *simplification* axis (maker≠checker; `parallelism.md` mech f). It reports
+code-cold subagent on the *simplification* axis (maker≠checker; safety rail 4,
+`references/safety-rails.md`). It reports
 findings; it does not edit the code it grades. Sibling axes are reading those same files at the
 same moment, so a write here lands under a reviewer mid-read — and a checker that rewrites what it
 just graded has stopped being a checker. The slice's own implementer applies the fix on the

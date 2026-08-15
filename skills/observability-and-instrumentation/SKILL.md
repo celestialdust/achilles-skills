@@ -221,7 +221,7 @@ After instrumenting a feature, confirm:
 - [ ] Every new alert is symptom-based, has a runbook link, and was test-fired once
 - [ ] An induced failure in staging was located via telemetry alone, without reading the source
 
-For the at-a-glance version of this list, including the pre-launch instrumentation gate, see `../../references/observability-checklist.md`.
+For the at-a-glance version of this list, including the pre-launch instrumentation gate, see `references/observability-checklist.md`.
 
 ## Outputs & handoff contract
 
@@ -237,7 +237,7 @@ Stable hand-off surfaces other skills depend on:
   with retries/queues/external calls and zero new telemetry is a HIGH-risk signal in the inverted
   risk report.
 - **Into the pre-launch gate** → `shipping-and-launch`, release-level and post-merge: the **Pre-Launch Gate**
-  section of `../../references/observability-checklist.md` is the release blocker this skill feeds. It blocks a
+  section of `references/observability-checklist.md` is the release blocker this skill feeds. It blocks a
   release, never a slice's draft PR — that gate is `pull-request`'s, one line above.
 
 `STATE.md`: this skill owns no slice-state transition of its own; it runs *within* a slice's `impl`

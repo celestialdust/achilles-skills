@@ -66,7 +66,7 @@ Refuse-to-run (fail-safe deny) unless these resolve:
   layout language, motion posture, signature vocabulary, shared by every interface in the repo. A UI
   slice's contract records only what differs from it, so an axis the contract marks
   `inherits: docs/design.md` is graded against this file (shape:
-  `../../references/design-system-format.md`). **There is no refuse-to-run here:** a repo whose look was
+  `references/design-system-format.md`). **There is no refuse-to-run here:** a repo whose look was
   never decided has no such file, and a contract that states all seven axes itself is graded exactly as it
   was before this file existed. You read it and never edit it.
 - **REQUIRED — a running build of the slice** in its worktree (the orchestrator provides it). If it will not
@@ -169,7 +169,7 @@ non-overlapping sources** (do not let them collapse into one "looks good"):
   - **Objective subset (check mechanically via the engine):** *responsive* (resize viewport down to mobile —
     layout holds), *visible keyboard focus* (tab through — focus ring present and logical), *reduced motion
     respected* (`prefers-reduced-motion` honored). These three are the contract's quality floor; they are
-    pass/fail, not judgment. Lean on the suite-level `../../references/accessibility-checklist.md` (the same
+    pass/fail, not judgment. Lean on the suite-level `references/accessibility-checklist.md` (the same
     a11y checklist `browser-testing-with-devtools` drives).
   - The other axes are judgment calls graded against the contract's stated intent.
   - **Departures.** A `## Departure` block records an axis where this surface deliberately moves away from

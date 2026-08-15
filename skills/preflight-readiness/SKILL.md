@@ -78,7 +78,7 @@ the manifest gives it no value to read). Then apply the verdict gate.
   plus a new enum member — never an `if`-branch grafted onto an existing prober, and never a
   probe-DSL embedded in the manifest. Adding a case is a new file, not an edit to a switch.
 
-**Value-blindness invariant (`security.md`):** no prober reads, prints, logs, or writes any
+**Value-blindness invariant (safety rail 2, `references/safety-rails.md`):** no prober reads, prints, logs, or writes any
 secret value. A prober that *needs* the value to do its job is mis-designed — re-scope it to a
 presence/reachability check. The verdict and ledger are guaranteed secret-free.
 
