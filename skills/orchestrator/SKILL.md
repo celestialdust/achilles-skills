@@ -501,7 +501,7 @@ ladder, and **a rung is only spent when the approach actually changed**:
 | 1 | **Retry with the failure in context.** Hand the implementer the command that ran, its real output, and the diff that produced it — not "the tests failed". | Always first. The commonest cause of a red slice is an agent that never saw the error text. |
 | 2 | **Root-cause it.** Stop editing and route the slice into `debugging-and-error-recovery`: reproduce it, form one hypothesis, prove it before anything changes. | Rung 1 came back with the same failure, or traded it for a different one. |
 | 3 | **Change the route, not the destination.** The plan step named one way there; the failure says that way does not work here. Hold the step's `done_when` and the signed contract exactly as they are, and reach them differently. | The root cause is the approach itself — a library that does not do what the survey read it as doing, a seam that will not take the adapter. |
-| 4 | **Shrink the slice.** Split what passes from what does not: finish and ship the passing part, and cut the rest into a **new slice row** carrying the same contract and the failure as its reason. | Part of the slice is green, the rest is not, and the two do not have to ship together. |
+| 4 | **Shrink the slice.** Split what passes from what does not: finish and ship the passing part, then halt on the remainder, naming in the halt the contract it still owes and the failure that stopped it. Cutting that remainder into a row of its own is `plan-breakdown`'s write, not the run's. | Part of the slice is green, the rest is not, and the two do not have to ship together. |
 | 5 | **Surface it.** The slice halts, its gate flips to you, and the run report carries every rung that was tried and why each one did not work. | The ladder is exhausted, or the next rung needs something only a person has — a credential, a product call, a decision the ADRs do not contain. |
 
 **The no-progress guard promotes; it does not halt.** An identical failure signature or an identical
@@ -512,7 +512,7 @@ allowed to attempt, and hands a person a slice nobody has actually debugged yet.
 **Rungs 3 and 4 change how, never what.** The signed `acceptance.md` is the oracle and it is frozen on
 every rung. An approach that reaches a *different* outcome is not a repair, it is a loosening, and
 *Changing what judges the work* governs it exactly as it governs one proposed any other way. Rung 4's
-new slice carries the **same** contract: a slice cut small enough that the scenarios it was failing no
+remainder still owes the **same** contract: a slice cut small enough that the scenarios it was failing no
 longer apply to it is that same loosening wearing a planner's hat.
 
 **Some failures skip the ladder entirely.** A Critical or High security finding, a secret in a diff, an

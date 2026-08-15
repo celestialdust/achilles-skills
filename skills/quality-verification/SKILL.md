@@ -109,9 +109,12 @@ Grade behavior, then design (if UI), inside a bounded retry loop, then write `qa
    `Regression surface`** (frozen-under-retry). Route the failure to `debugging-and-error-recovery`
    (reproduce · localize · reduce · fix · guard) which sends the fix back through `incremental-implementation`. Re-verify.
 
-5. **Bounded loop.** Up to the per-slice round budget (3 implement→verify cycles). If the slice still
-   fails after the budget, or a no-progress tripwire fires (identical failure/diff twice, N=2) → the slice is
-   **`halted`**: write the ledger as-is, flip STATE `gate: agent → you`, surface it. Do not loop forever.
+5. **Bounded loop.** Up to the per-slice round budget (3 implement→verify cycles). A no-progress
+   tripwire (identical failure/diff twice, N=2) says the *tactic* is wrong, not that the slice is: inside
+   an orchestrated run it ends that rung and hands the slice back for the next one on *The escalation
+   ladder* (`orchestrator`), which is what decides a halt. Run standalone there is no ladder, so a spent
+   budget is the end: the slice is **`halted`** — write the ledger as-is, flip STATE `gate: agent → you`,
+   surface it. Either way, do not loop forever.
 
 6. **Write `qa.md`** (see *Outputs*). Every scenario id the slice realizes has a verdict; the design gate has a
    verdict (UI); the overall verdict is `pass` or `halted`; the frozen-artifact check is recorded; any
