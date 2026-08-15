@@ -241,7 +241,7 @@ Next failing test for the next scenario / feature.
 
 ## Frozen artifacts under retry (gate-erosion is a HALT)
 
-Safety rail 4 (`references/safety-rails.md`) governs this and is not restated here: the consumed
+Safety rail 4 (`../../references/safety-rails.md`) governs this and is not restated here: the consumed
 `acceptance.md` scenarios, the RED tests you wrote for them, and the slice's declared
 `Regression surface` are frozen while the slice is being made to pass; weakening an assertion,
 deleting or skipping a RED test, narrowing the surface, or editing a scenario is **gate-erosion →

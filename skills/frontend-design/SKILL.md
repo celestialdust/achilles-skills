@@ -60,7 +60,7 @@ content throughout.
 
 ### Phase 0.5 — Inherit the decided look
 Read `docs/design.md` — the repository's **decided look**: palette, type, layout language, motion posture,
-signature vocabulary. Its shape, and the contract's, are in `references/design-system-format.md`.
+signature vocabulary. Its shape, and the contract's, are in `../../references/design-system-format.md`.
 
 - **It exists** → the look is already decided and it is your starting point. Exploration runs *inside* it:
   variants differ in structure, information hierarchy, and the signature element — never in palette or
@@ -159,7 +159,7 @@ four of the seven, so `Quality floor`, `Restraint`, and `Copy-as-design-material
 An inherited axis is **not** restated: a second copy of a decision is a copy that can disagree with the
 first, and a reviewer then has no way to tell which one is stale. `## Prototype` is always filled in full
 (it is per-surface and never inherited). The exact shape is in
-`references/design-system-format.md`. Where the repo has no `docs/design.md`, state all seven axes
+`../../references/design-system-format.md`. Where the repo has no `docs/design.md`, state all seven axes
 here as before — there is nothing to inherit.
 
 ## Design rubric (= the design contract's seven rubric sections AND the Verify grading axes)
@@ -214,7 +214,7 @@ A **delta** fills in something `docs/design.md` leaves to each surface. A **depa
 something it already decided. The two are graded differently, so they are written differently: the axis
 carries `departs: docs/design.md`, and the departure gets its own heading in the contract, next to the axis
 it moves, naming what the decided look says, what this surface does instead, and why. The block's shape is
-in `references/design-system-format.md`.
+in `../../references/design-system-format.md`.
 
 - **The reason is not optional.** Without it nobody can tell a decision from a drift, and
   `quality-verification` records a departure with no reason as a finding.
@@ -315,7 +315,7 @@ Done when ALL hold:
   re-implements**, at `docs/features/<slug>/prototype/index.html`; (2) the **design contract** — the
   signed Spec artifact a UI feature adds to the bundle — written to `docs/features/<slug>/design-contract.md`;
   (3) `docs/design.md`, the repository's decided look, **when this is the repo's first UI surface** or when
-  this surface deliberately moves the whole look. Shape: `references/design-system-format.md`. Every
+  this surface deliberately moves the whole look. Shape: `../../references/design-system-format.md`. Every
   other surface reads that file and writes none of it.
 - **Stable sections** (consumers depend on these names): `Distinctiveness · Typography ·
   Structure-as-information · Motion · Quality floor (responsive/visible-focus/reduced-motion) · Restraint ·

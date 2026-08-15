@@ -35,7 +35,7 @@ Refuse to run if there is **no diff** to review — with nothing changed there i
 - `acceptance.md` (the signed behavioral contract) — a human-anchored oracle, frozen under the slice's retry loop. You are dispatched **code-cold**: you see `acceptance.md`, not the conversation that wrote the code, so the oracle never drifts.
 - `STATE.md` slice row — the PRD-namespaced id of the slice you are reviewing.
 
-**Dispatch contract:** the orchestrator runs you as a **fresh, code-cold subagent on the review axis, in parallel with `code-simplification` / `security-and-hardening` / `performance-optimization`** (maker≠checker; parallelism.md mech f). No persona role-play.
+**Dispatch contract:** the orchestrator runs you as a **fresh, code-cold subagent on the review axis, in parallel with `code-simplification` / `security-and-hardening` / `performance-optimization`** (maker≠checker — safety rail 4, `references/safety-rails.md`). No persona role-play.
 
 ## The Five-Axis Review
 

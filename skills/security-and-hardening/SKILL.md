@@ -441,7 +441,7 @@ After implementing security-relevant code:
 
 ## Outputs & handoff contract
 
-**Emits:** `findings` → `docs/features/<slug>/<SLICE-ID>/security-findings.md`, **one file per owning slice**. In the orchestrator's wave-scoped Review fan-out the audit runs **once over the whole wave's combined diff**, then routes each finding to the slice that owns its file (the disjoint-file guard makes this unambiguous) — so each slice still gets its own `security-findings.md` and the per-slice contract below is unchanged. **You are the sole writer** of these files (disjoint from `performance-optimization`'s findings file — the Review fan-out's disjoint-file guard, `parallelism.md` mech e).
+**Emits:** `findings` → `docs/features/<slug>/<SLICE-ID>/security-findings.md`, **one file per owning slice**. In the orchestrator's wave-scoped Review fan-out the audit runs **once over the whole wave's combined diff**, then routes each finding to the slice that owns its file (the disjoint-file guard makes this unambiguous) — so each slice still gets its own `security-findings.md` and the per-slice contract below is unchanged. **You are the sole writer** of these files (disjoint from `performance-optimization`'s findings file — the Review fan-out's disjoint-file guard, safety rail 5, `references/safety-rails.md`).
 
 **Stable sections the orchestrator + `pull-request` depend on** (change the shape → update the consumer in the same commit):
 - `## Verdict` — one token: `pass` | `block` | `STOP`.

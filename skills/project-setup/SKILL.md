@@ -850,7 +850,7 @@ Done when **all** hold:
   writes its skeleton, that an entry naming no `Automated guard` is refused, that it is append-only and an
   attempt to change an earlier entry stops the work and is reported, that the same lesson twice is two
   entries, and every party that writes an entry, and on what terms. **Take that roster off
-  `references/write-ownership.md`'s write table, not off this line.** As it stands, three parties append entries:
+  `../../references/write-ownership.md`'s write table, not off this line.** As it stands, three parties append entries:
   whoever root-causes a defect, a review with a `Critical:` finding, and the run that carries back an
   entry a slice handed it. A count written here goes stale the moment the table grows a writer, and this
   one already did — the courier row was added while both this criterion and the seed it grades still said
@@ -1017,7 +1017,7 @@ Emits the repo substrate the whole suite consumes:
 every later interface inherits and records only its differences from. The **first** UI surface writes it,
 via `frontend-design`. This skill names the path so a cold agent reads it instead of inventing one, and
 scaffolds nothing. Seeding it
-empty is the move to avoid: an empty look or an empty layering reads as a decision somebody made, when
+empty is the move to avoid: an empty look reads as a decision somebody made, when
 nobody has.
 
 Downstream consumers: `interview-me`/`idea-refine` → `docs/features/<slug>/intent.md`; `spec-grilling` →

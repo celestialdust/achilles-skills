@@ -72,7 +72,7 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
    aren't — which is why it reads a survey rather than your recollection. You cannot recall a decision
    point you never knew existed.) Ask up front which parts of the domain the user knows cold and which
    they know nothing about, and calibrate by that disclosure: skip the pass on familiar ground; run it in
-   full on unfamiliar ground. Technique details: `references/finding-unknowns.md`.
+   full on unfamiliar ground. Technique details: `../../references/finding-unknowns.md`.
 
    **Carry a structural branch.** An intent says what the product does, not what the code is arranged
    into, so a tree grown from one is all mechanism and no shape. Three questions fix that, each
