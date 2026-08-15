@@ -105,7 +105,7 @@ language. Every term this repository defines lives in this one section.
   and the running build, never the implementer's reasoning. Verify and Review are always code-cold, so
   nobody grades their own work.
 - **Risk band** — the label a draft pull request carries that tells a person how hard to look before
-  merging: `LOW` or `MEDIUM`. Blast radius raises it — authentication, payments, data, deletions,
+  merging: `LOW`, `MEDIUM`, or `HIGH`. Blast radius raises it — authentication, payments, data, deletions,
   deploys, secrets — and so does a quiet pass: a check that landed exactly at its threshold, a scenario
   nobody could reach, retries spent. It exists because nothing stops mid-run for a person to sign off, so
   the risk has to surface at the merge instead. Not the same vocabulary as the environment probe, which
@@ -125,12 +125,11 @@ language. Every term this repository defines lives in this one section.
   that way is the fact worth keeping.
 - **Substrate** — the durable files a stage reads and writes instead of remembering: the board, this
   glossary, the decision records, the per-feature documents, the run record at `docs/progress.md`, the
-  lessons record at `docs/lessons.md`, the decided look at `docs/design.md`, the structure map at
-  `ARCHITECTURE.md`, and the session state — plus
+  lessons record at `docs/lessons.md`, the decided look at `docs/design.md`, and the session state — plus
   the `## Agent skills` block written into the repo's `CLAUDE.md` or `AGENTS.md`, which is what points a
   cold agent at the rest. `project-setup` creates them once so every later skill reads them cold — all but
-  `docs/design.md` and `ARCHITECTURE.md`, which it names so nobody invents a path for either, and which
-  the first user interface and the first feature to run `architecture-design` write respectively. Files
+  `docs/design.md`, which it names so nobody invents a path for it, and which the first user interface
+  built in the repo writes. Files
   that only describe how this suite itself is written are not substrate; nothing scaffolds those into a
   consuming project.
 - **Source-of-truth order** — the stated ranking that says which document governs when two of them say

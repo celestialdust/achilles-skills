@@ -135,12 +135,14 @@ contract paths, not the session history.
    literal 4 and drop a triggered reviewer to hit it — that is a loosening. Attribute every finding to its
    **owning slice by file**: the disjoint-file guard guarantees each file belongs to exactly one
    slice, so attribution is unambiguous. A finding routes *only its owning slice* back to
-   `incremental-implementation` (bounded retries); after that slice re-passes Verify, **re-review
-   only its diff**, never the whole wave again.
+   `incremental-implementation`, which climbs *The escalation ladder* against it; after that slice
+   re-passes Verify, **re-review only its diff**, never the whole wave again.
 9. **Evaluator floors + DRAFT PR per slice** — still per-slice (each slice owns its plan steps and
    regression surface). A slice whose attributed review findings are clear and whose floors are met
-   opens its own DRAFT PR. Bounded retries: **2 per gate, 3 implement→verify→review cycles per
-   slice**.
+   opens its own DRAFT PR. A slice that fails instead climbs *The escalation ladder* — five rungs, each
+   a different tactic, and it halts only when they are spent. Budget: **2 attempts per gate, 3
+   implement→verify→review cycles per slice**, spent across the ladder rather than on repeating one
+   approach.
 10. **TERMINAL barrier.** Wait for EVERY slice in the wave to reach a **TERMINAL** state
    (`done | halted | blocked`) — **never `success`**. Write every transition + gate flip to
    `STATE.md` as it happens. **Complete each slice's entry** in `docs/progress.md` from what the slice
@@ -159,7 +161,7 @@ contract paths, not the session history.
 The DAG → topological-wave structure is the whole point: independent branches drain in
 parallel, dependent branches serialize, and the barrier between waves is what makes the run
 resumable from `STATE.md` alone. The barrier waits for **TERMINAL, not SUCCESS**
-(parallelism.md mech-f): a `halted` or `blocked` slice still satisfies the barrier — the run
+(safety rail 5, `references/safety-rails.md`): a `halted` or `blocked` slice still satisfies the barrier — the run
 does not stall waiting for a slice that will never pass. Its dependents transitively flip to
 `blocked`; every *other* independent branch keeps draining.
 
@@ -293,7 +295,7 @@ enough waves to compute the rate — not when the fan-out starts to feel expensi
 
 Same-wave slices parallelize **only if their declared file ownership is disjoint** — never
 two write subagents on one file (dispatching-parallel-agents §Shared state;
-parallelism.md mech-e). On overlap: **serialize** them into sub-waves (or merge them into one
+safety rail 5). On overlap: **serialize** them into sub-waves (or merge them into one
 slice). This is consistent with worktree-level parallelism — same-level slices are
 independent by construction, so serializing an overlap is not a cohesion violation, it is the
 guard doing its job.
@@ -492,6 +494,45 @@ the router reading the diff, not a skip. A **gate** is never skipped: the four f
 every wave even when the diff looks trivial, because "provably nothing to review" is a claim about a
 diff nobody has reviewed yet.
 
+## The escalation ladder — what a run does before it gives up
+
+A run's job is to finish the graph, not to report that it could not. Most slice failures are ordinary:
+an import that points at the wrong path, a fixture missing a row, an API whose shape the survey read
+slightly wrong. The agent that hit those can fix them, and a run that halts on the first red test hands
+a person work it was standing right next to.
+
+What makes a retry worth spending is that it **changes tactic**. Three attempts at one approach is one
+attempt and two extra bills — the model does not get luckier on the third pass. So a failure climbs a
+ladder, and **a rung is only spent when the approach actually changed**:
+
+| Rung | The move | Spend it when |
+|---|---|---|
+| 1 | **Retry with the failure in context.** Hand the implementer the command that ran, its real output, and the diff that produced it — not "the tests failed". | Always first. The commonest cause of a red slice is an agent that never saw the error text. |
+| 2 | **Root-cause it.** Stop editing and route the slice into `debugging-and-error-recovery`: reproduce it, form one hypothesis, prove it before anything changes. | Rung 1 came back with the same failure, or traded it for a different one. |
+| 3 | **Change the route, not the destination.** The plan step named one way there; the failure says that way does not work here. Hold the step's `done_when` and the signed contract exactly as they are, and reach them differently. | The root cause is the approach itself — a library that does not do what the survey read it as doing, a seam that will not take the adapter. |
+| 4 | **Shrink the slice.** Split what passes from what does not: finish and ship the passing part, and cut the rest into a **new slice row** carrying the same contract and the failure as its reason. | Part of the slice is green, the rest is not, and the two do not have to ship together. |
+| 5 | **Surface it.** The slice halts, its gate flips to you, and the run report carries every rung that was tried and why each one did not work. | The ladder is exhausted, or the next rung needs something only a person has — a credential, a product call, a decision the ADRs do not contain. |
+
+**The no-progress guard promotes; it does not halt.** An identical failure signature or an identical
+diff twice means *that rung* is finished, not that the slice is. Advance and spend the next rung's
+budget. Halting on rung 1's second identical failure throws away four rungs of repair the run was
+allowed to attempt, and hands a person a slice nobody has actually debugged yet.
+
+**Rungs 3 and 4 change how, never what.** The signed `acceptance.md` is the oracle and it is frozen on
+every rung. An approach that reaches a *different* outcome is not a repair, it is a loosening, and
+*Changing what judges the work* governs it exactly as it governs one proposed any other way. Rung 4's
+new slice carries the **same** contract: a slice cut small enough that the scenarios it was failing no
+longer apply to it is that same loosening wearing a planner's hat.
+
+**Some failures skip the ladder entirely.** A Critical or High security finding, a secret in a diff, an
+attempt to edit a frozen artifact, or a check about to be weakened is not a defect to repair — it is the
+gate doing its job. Those land on rung 5 on contact, with no rungs spent, per *What stops a run* below.
+
+**Climbing is per slice, and the wave does not wait for it.** A slice on rung 3 holds up nothing: the
+barrier waits for TERMINAL states, and a slice still climbing has not reached one, so its own wave
+completes when it does. Every independent branch keeps draining throughout — the ladder buys repair
+attempts, never a pause.
+
 ## What stops a run
 
 A run is one pass over the slice graph, Implement through Ship, and it has exactly two endings. **It
@@ -518,7 +559,7 @@ and let the rest of the graph keep draining. The middle column says which.
 | **A security finding is Critical or High, or a secret appears in the diff.** | the slice | A hard stop: no retry, no pull request for that slice. The finding is reported as it stands. |
 | **A secret is already committed.** A live credential is in the repository's history, not only in a diff waiting to be committed, so its blast radius is the whole repository rather than one slice. | the run | You are told as soon as it is found. The run freezes at the next barrier — it lets the slices already in flight end, then dispatches nothing more and opens no further pull requests. It does not wait for you. Rotating the credential is yours, and the report names where the secret was found. |
 | **Two sources of truth disagree.** Two documents state the same thing differently and `using-agent-skills`'s *Source-of-truth order* does not settle which one governs. | the slice | The slice ends. What ended it names both files and the claim they disagree on, and its `gate` flips from the agent to you. Nothing is picked on your behalf, and nothing waits for your answer — the rest of the graph keeps draining and you settle it when you next look. |
-| **The retries ran out.** A real failure first routes into root-cause debugging and is retried a bounded number of times; exhausting those retries is what stops the slice. | the slice | The slice stays at the stage that failed, its `gate` flips from the agent to you, and the failure surfaces with a record of what was tried. |
+| **The ladder ran out.** A real failure climbs the five rungs of *The escalation ladder* — the error in context, root-cause, a different route, a smaller slice — and exhausting them is what stops the slice. A slice reaches here having been repaired four different ways, not retried four times. | the slice | The slice stays at the stage that failed, its `gate` flips from the agent to you, and the failure surfaces with **what each rung tried and why it did not work** — enough to pick up without re-deriving it. |
 | **Gates are failing at a rising rate across the run.** Not one slice going wrong, but the run as a whole drifting. | the run | The run terminates instead of grinding on. What already passed still stands; the rest is reported unfinished. |
 
 ### High-risk work is not one of these
@@ -541,13 +582,15 @@ have it caught before the code is written, build that slice on the single-slice 
 - **No mid-run human halt.** The human owns Spec+Plan upstream; do not check in or summarize
   progress between waves (subagent-driven-development §Continuous execution). The only stops
   are the three termination predicates.
-- **Never auto-merge to main** (branch-naming.md). The autonomous span ends at the `pull-request`
+- **Never auto-merge to main** (safety rail 1). The autonomous span ends at the `pull-request`
   workhorse; the terminal state is an OPEN, gates-green, risk-banded PR on the cluster branch
   for **async human merge**. Auto-deploy is OUT of v1 (ci-cd/shipping deploy actions are
   fenced behind the human merge).
-- **Failure → DAG-aware partial completion**, never a whole-run halt. A slice exhausting its
-  retries → `halted`, gate flips `agent → you`, dependents → `blocked` transitively, every
-  other branch drains. The human gate survives on the **failure-escalation path only**.
+- **Failure → repair first, then DAG-aware partial completion** — never a whole-run halt. A failing
+  slice climbs *The escalation ladder* before anything is surfaced; only a slice that spends it →
+  `halted`, gate flips `agent → you`, dependents → `blocked` transitively, every other branch drains.
+  The human gate survives on the **failure-escalation path only**, and it is the last rung rather than
+  the first move.
 - **Security** — localized CRITICAL/HIGH or secret-in-diff = hard halt of that slice, no
   retry, never a PR, tops the report; an exposed/committed secret (repo-wide blast radius)
   fires an immediate `PushNotification`, freezes the next barrier, opens no further PRs.
@@ -651,8 +694,10 @@ The run terminates on **exactly one** predicate:
 - **BLOCKED:** no agent-actionable slice remains (every not-done slice is `blocked`/`halted`).
 - **DIVERGENCE / security STOP:** rising internal-gate failure rate, or a security trigger.
 
-Runaway guard: **no-progress N=2** (identical failure signature or identical diff twice → early
-halt of that slice). Per shipped slice, the done-predicate is the full SHIP conjunction above,
+Runaway guard: **no-progress N=2** — an identical failure signature or an identical diff twice ends
+*that rung* of *The escalation ladder* and promotes the slice to the next one. It halts the slice only
+once the ladder is spent, because the same output twice is evidence that the tactic is wrong, not that
+the slice is unfixable. Per shipped slice, the done-predicate is the full SHIP conjunction above,
 AND the slice sits as an OPEN risk-banded PR (a DRAFT promoted by a code-cold verifier).
 
 Also true of every terminated run: **nothing that judges the work got looser during it.** Every wave
@@ -729,6 +774,13 @@ carries no diff, no worktree changes, and no PR.
 - **Inverted risk report** appended at run terminal, alongside the halts — each shipped slice's band
   exactly as `pull-request` computed it (that skill's Step 2 owns the rule), ordered highest band first
   so the merge queue reads in triage order. This skill reproduces bands; it does not compute them.
+- **What could not be settled**, in the same report and read first, because it is the only part that
+  asks anything of the reader. One entry per halted slice, and each says four things: the slice and the
+  stage it stopped at, **the rung of *The escalation ladder* it reached**, what each rung tried and what
+  came back, and the one thing a person has that the run did not — a credential, a product call, a
+  decision the ADRs do not contain. Slices `blocked` behind a halt are listed under the halt that
+  blocked them rather than as entries of their own: there is one thing to settle, not five. A run that
+  halted nothing says so in a line, which is the report a person should be able to skim in a second.
 - **Terminal hand-off:** risk-banded OPEN PRs on cluster branches for async human merge — the
   surviving downstream gate. No `session-state.md` 5-field handoff needed unless context fills
   mid-run (then `handoff` compacts; the artifacts let a fresh agent resume cold).
