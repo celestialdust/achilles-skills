@@ -54,20 +54,8 @@ Spend interview questions where the answer changes the architecture or scope of 
 If a recommended answer is an uncontested default, state it as the default inline and move on —
 one line, not a round. A question whose every answer leads to the same build was never a question.
 
-## Technique: the sign-off quiz
-
-An explicit "yes" to a restate is a weak signal — reading-and-nodding is easy. Before a
-consequential signature (an intent, a set of design decisions), flip the interview: ask the human
-2–3 scenario questions derived from what they are about to sign ("per what we agreed, what should
-happen when X?").
-
-- Answers match → the map is genuinely shared; sign.
-- A miss → the artifact and the human's mental model diverge; reopen at that point. It is the
-  cheapest bug you will ever catch.
-
 ## Calibration: effort follows ignorance
 
-Novel territory → run everything: scan, reactable options, full interview, quiz. Familiar
-territory → compress: skip the scan, fewer questions, no quiz — except keep the quiz when the
-signature is high-stakes. Ask what the human knows nothing about at the start — that answer
-decides where discovery effort goes. Discovery is a dial, not a ritual.
+Novel territory → run everything: scan, reactable options, full interview. Familiar territory →
+compress: skip the scan, fewer questions. Ask what the human knows nothing about at the start — that
+answer decides where discovery effort goes. Discovery is a dial, not a ritual.

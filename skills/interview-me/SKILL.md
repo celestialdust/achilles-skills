@@ -63,7 +63,7 @@ Two quick moves before the first question — both exist to grow the map beyond 
 
 1. **Calibrate depth.** Ask (or infer from the prompt) which parts of the ask the user knows well and which they know nothing about. Familiar territory → compress: fewer questions, skip the scan below. Novel territory → invest: the full process, scan included. Discovery effort should follow ignorance, not habit.
 
-2. **Blind-spot scan (novel territory).** The interview can only interrogate what's already on the user's map — their unknown unknowns are, by definition, not on it. So scan the territory first: the codebase (if one exists), prior art, adjacent constraints, the domain itself. Present a short **blind-spot brief** — 3–5 things the user likely hasn't considered that would change the ask if true. Then interview against the grown map. Technique details: `../../references/finding-unknowns.md`.
+2. **Blind-spot scan (novel territory).** The interview can only interrogate what's already on the user's map — their unknown unknowns are, by definition, not on it. So scan the territory first: the codebase (if one exists), prior art, adjacent constraints, the domain itself. Present a short **blind-spot brief** — 3–5 things the user likely hasn't considered that would change the ask if true. Then interview against the grown map. Technique details: `references/finding-unknowns.md`.
 
 The brief is context, not questions — it doesn't break the one-question-at-a-time rule; it makes the questions worth asking.
 
@@ -163,17 +163,11 @@ If yes, you have shared understanding. Stop interviewing and produce the restate
 
 This is a checkable test, not a vibe. It also has a floor: if you've gone several rounds and still can't predict, that's information about the ask, not a reason to keep grinding. Stop and tell the user: "I've asked X questions and I still can't predict your reactions. Something foundational is missing. Want to step back?"
 
-### Step 6: Quiz the signature (calibrated)
-
-For novel or high-stakes intents, an explicit yes to a restate is still a weak signal — reading-and-nodding is easy. Before saving `intent.md`, flip the interview: ask the user 2–3 concrete scenario questions derived from the confirmed intent ("Per what we agreed, what should happen when X?"), one at a time like the interview itself. Answers match the intent → the map is genuinely shared; save. An answer contradicts it → the restate hid a divergence; reopen the interview at that point. (Why this works: `../../references/finding-unknowns.md`, "the sign-off quiz".)
-
-Skip the quiz for small, familiar asks — it's a gate for consequential signatures, not ceremony for every rename.
-
 ## Output
 
-The output of this skill is a **confirmed statement of intent**: the restate from Step 4, with an explicit yes from Step 5 — and, for novel or high-stakes intents, a passed Step-6 scenario quiz. That's the deliverable. Specs, plans, and task lists are downstream; they consume the intent this skill produces.
+The output of this skill is a **confirmed statement of intent**: the restate from Step 4, with an explicit yes from Step 5. That's the deliverable. Specs, plans, and task lists are downstream; they consume the intent this skill produces.
 
-If the user wants the intent to persist (a multi-session project, a handoff to another collaborator), offer to save it to `docs/features/<slug>/intent.md`. Only save if they confirm (and the Step-6 quiz, when it applies, passes).
+If the user wants the intent to persist (a multi-session project, a handoff to another collaborator), offer to save it to `docs/features/<slug>/intent.md`. Only save if they confirm.
 
 ## Example
 
@@ -235,7 +229,6 @@ Two questions in, the agent has discovered the actual ask isn't "a dashboard." I
 | "If I attach my guess, I'm leading them" | Leading is the point. Reacting is faster than generating from scratch. The risk is sycophancy, not leading; mitigate by being visibly willing to be wrong. |
 | "We've talked enough, I get it" | Test it: can you predict their reaction to the next three questions? If not, you don't get it yet. |
 | "The user said yes, we're done" | If the yes followed a vague restate or an open-ended "sounds good," the yes is hollow. Restate concretely and re-confirm. |
-| "They said yes — quizzing them now is patronizing" | The quiz tests the shared map, not the user. A scenario miss at signing costs one more round; the same miss discovered during implementation costs the build. |
 
 ## Red Flags
 
@@ -251,7 +244,6 @@ Two questions in, the agent has discovered the actual ask isn't "a dashboard." I
 - Skipping the "Out of scope" line in the restate (silent disagreement about non-goals is half of misalignment)
 - Interviewing a novel ask with zero territory scan — you're interrogating the user's map and calling it discovery
 - Spending a full round on a question a stated default would have answered
-- Saving a novel or high-stakes intent without the Step-6 scenario quiz
 
 ## Verification
 
@@ -265,15 +257,13 @@ After applying interview-me:
 - [ ] A concrete restate (Outcome / User / Why now / Success / Constraint / Out of scope) was written back to the user
 - [ ] The user confirmed the restate with an explicit yes (not "whatever you think," not "sounds good," not silence)
 - [ ] At the stop point, the agent could predict reactions to the next three questions it would ask
-- [ ] For a novel or high-stakes intent, the scenario quiz ran (and a miss reopened the interview) before the intent was saved
 - [ ] Any handoff to a downstream skill (`idea-refine`, `spec-grilling`) was framed in terms of the confirmed intent, not the original underspecified ask
 
 ## Outputs & handoff contract
 
 **Emits:** `intent.md`, per-feature, at `docs/features/<slug>/intent.md`. interview-me **owns** this
-artifact. Write it only after the user gives an explicit "yes" in Step 5 — and, for novel or
-high-stakes intents, after the Step-6 quiz passes — never before (saving early implies a yes the
-user didn't give; see §"Red Flags").
+artifact. Write it only after the user gives an explicit "yes" in Step 5 — never before (saving
+early implies a yes the user didn't give; see §"Red Flags").
 
 **Stable sections** (consumers read these cold — keep the heading names exactly):
 

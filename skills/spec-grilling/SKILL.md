@@ -72,7 +72,7 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
    aren't — which is why it reads a survey rather than your recollection. You cannot recall a decision
    point you never knew existed.) Ask up front which parts of the domain the user knows cold and which
    they know nothing about, and calibrate by that disclosure: skip the pass on familiar ground; run it in
-   full on unfamiliar ground. Technique details: `../../references/finding-unknowns.md`.
+   full on unfamiliar ground. Technique details: `references/finding-unknowns.md`.
 
    **Carry a structural branch.** An intent says what the product does, not what the code is arranged
    into, so a tree grown from one is all mechanism and no shape. Three questions fix that, each
@@ -127,10 +127,6 @@ Also read, if present: repo-root `CONTEXT.md` (you will challenge against it and
 5. **Capture as you resolve, not in a batch.** The moment a term crystallises, append it to `CONTEXT.md`. The
    moment a decision meets the ADR test (below), write the ADR. Defer nothing — you'll lose the rationale.
 
-6. **Close with a calibrated quiz.** For novel or high-stakes designs, don't end on the user nodding at
-   the substrate they just signed. Ask 2–3 scenario questions against the recorded decisions ("given what
-   we decided in ADR-NNN, what happens when X?"). A miss means an ADR and the user's mental model diverge —
-   reopen that decision, don't paper over it. Skip for `depth: lite` sessions.
 
 ## What you emit — and what you must NOT
 
@@ -173,8 +169,6 @@ narrative; default OFF.
   code-cold sweeps do catch a structural question nobody asked — and put it to the person at the gate, one
   row among several, answered cold. Here they can amend: "C, but move the seam up" is an answer a row at
   the gate leaves no room for.
-- "The user approved every decision as we went, so we're aligned." → Approving one decision at a time is
-  not holding the whole design. The closing quiz checks the assembled model, cheaply.
 - "I know this codebase well enough to start grilling; I'll read the code as questions come up." → Reading
   as questions come up only answers questions you already have. The survey exists to hand you the ones you
   don't, before an ADR freezes the answer. Run `codebase-research` and come back.
@@ -193,7 +187,6 @@ narrative; default OFF.
 - A tree with no structural branch on a feature that adds a part, adds a dependency, or exposes a surface.
 - Settling a load-bearing structural question out of your own single answer — or fanning out variants on
   one that clears none of the three legs.
-- Ending a novel or high-stakes session without the closing quiz.
 - Editing or contradicting an accepted ADR without an explicit supersede link.
 
 ## Verification (ending criteria)
@@ -208,7 +201,6 @@ Done when:
 - Every decision meeting all three ADR conditions has an ADR in `docs/adr/`; **no** ADR exists that fails the
   test.
 - No `prd.md`, file path, or signature was produced here.
-- For novel/high-stakes designs, the closing quiz ran and any miss reopened its decision.
 - Re-read `intent.md`'s Outcome/Success — the design satisfies them.
 
 ## Outputs & handoff contract
