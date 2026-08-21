@@ -1,7 +1,7 @@
 {
   "name": "achilles-skills",
-  "version": "1.2.0",
-  "description": "Independent, self-contained skill suite automating Ideate → Spec → Plan → Implement → Verify → Review → Ship. The human owns Ideate+Spec+Plan; the agent runs Implement→Ship fully autonomously, terminating at risk-banded open draft PRs for async human merge.",
+  "version": "1.3.0",
+  "description": "Independent, self-contained skill suite automating Ideate \u2192 Spec \u2192 Plan \u2192 Implement \u2192 Verify \u2192 Review \u2192 Ship. The human owns Ideate+Spec+Plan; the agent runs Implement\u2192Ship fully autonomously, terminating at risk-banded open draft PRs for async human merge.",
   "author": {
     "name": "Joey"
   },
