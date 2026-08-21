@@ -54,7 +54,7 @@ to check, and `plan-breakdown` then has two sources for one fact.
 
 ## The six sections
 
-### `## 1. Requirements Gathering`
+### `## 1. Requirements`
 
 Three tables, in Anthropic's order: what it does, what it must hold to, what boxes it in. All three are
 recap — `prd.md` and `acceptance.md` state the first, and the second and third are usually the ones nobody
@@ -93,7 +93,7 @@ Team size, timeline, and the existing stack at minimum. The stack rows come from
 belong in a design document because they are the reasons a reader will otherwise read as incompetence —
 "why did they not just use a queue" is answered by a row saying there is one engineer and three weeks.
 
-### `## 2. High-Level Design`
+### `## 2. High-level design`
 
 Four parts, in Anthropic's order: the component diagram, the data flow, the API contracts, the storage
 choices.
@@ -186,7 +186,7 @@ whatever a consumer can observe whether or not this table says so.
 reason; "chose Postgres" is the `Store` cell said twice. A reader who cannot see why cannot tell a decision
 from a default nobody examined.
 
-### `## 3. Deep Dive`
+### `## 3. Deep dive`
 
 Five topics, in Anthropic's order. Each is a table, and **each is a recap of what was already decided** —
 the section that most tempts an agent into deciding, which is why the never-pin rule above is aimed here.
@@ -213,7 +213,7 @@ Under each of:
 A topic with no record behind it is a **§6 row**, not a cell you decide. Left out, it gets settled during
 Implement by whichever slice reaches it first, and the person never sees the choice.
 
-### `## 4. Scale and Reliability`
+### `## 4. Scale and reliability`
 
 Four parts, in Anthropic's order. **You may do the arithmetic; you may not pick the posture.** Estimating
 is a calculation — the inputs are in §1 and the multiplication is checkable by anyone reading it. Choosing
@@ -256,7 +256,7 @@ dashboard is what makes this section decorative; naming the gap is what makes it
 `observability-and-instrumentation` owns how a signal gets emitted — this table only records which ones the
 design assumes exist.
 
-### `## 5. Trade-off Analysis`
+### `## 5. Trade-offs`
 
 Anthropic's rule is the whole section: every decision has trade-offs, so make them explicit. This is the
 citation index that §2, §3 and §4 point at with their `Decision` cells, and it is where the cost of each
@@ -289,7 +289,7 @@ months later nobody does.
 `retention past 90 days`. Each one names an assumption in §1 or §4 that stops holding, so a later reader
 can check whether it still does. A row saying "if it gets slow" is worth nothing to them.
 
-### `## 6. Open Questions for the Human`
+### `## 6. Open questions for the human`
 
 Numbered, under two headings:
 

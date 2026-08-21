@@ -3,8 +3,8 @@
 Two sweeps over a written `architecture.md`, each run by a fresh agent that did not write it. `SKILL.md`
 carries the method and `section-contract.md` the format; this file carries the grading.
 
-Section references below are to the six headings in `section-contract.md`: §1 Requirements Gathering,
-§2 High-Level Design, §3 Deep Dive, §4 Scale and Reliability, §5 Trade-off Analysis, §6 Open Questions.
+Section references below are to the six headings in `section-contract.md`: §1 Requirements,
+§2 High-level design, §3 Deep dive, §4 Scale and reliability, §5 Trade-offs, §6 Open questions.
 
 ## What both sweeps are given, and what neither may do
 

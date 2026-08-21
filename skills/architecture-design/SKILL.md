@@ -1,6 +1,6 @@
 ---
 name: architecture-design
-description: Reconciles a feature's structure into an artifact a person signs before any code is planned — one feature's `architecture.md`, written in Anthropic's five-part system-design format (requirements gathering · high-level design · deep dive · scale and reliability · trade-off analysis) plus a sixth section holding the questions a person answers, alongside the committed `architecture.html` read at the Spec gate. ALWAYS run this in Spec, once `acceptance.md` exists in draft and before `spec-review`, whenever a feature adds a component, adds a dependency between parts that already exist, or changes what the system must hold to under load — and before anyone plans, breaks down, or implements against a structure nobody wrote down. The artifact is a RECAP: it traces every scenario through the structure, restates the requirements, storage, scale and reliability posture already decided, grades what it wrote with two code-cold sweeps whose findings become questions for the person rather than edits, and cites the decisions taken during `spec-grilling` rather than taking them itself. It may do the load arithmetic but never picks the posture; never invent a layer order nobody decided, never invent a latency or cost target nobody stated, never pin a signature, field list, or schema — those are Plan's — and keep `architecture.md` inside its 2000-line budget, cutting prose rather than rows.
+description: Reconciles a feature's structure into an artifact a person signs before any code is planned — one feature's `architecture.md`, written in Anthropic's five-part system-design format (requirements · high-level design · deep dive · scale and reliability · trade-offs) plus a sixth section holding the questions a person answers, alongside the committed `architecture.html` read at the Spec gate. ALWAYS run this in Spec, once `acceptance.md` exists in draft and before `spec-review`, whenever a feature adds a component, adds a dependency between parts that already exist, or changes what the system must hold to under load — and before anyone plans, breaks down, or implements against a structure nobody wrote down. The artifact is a RECAP: it traces every scenario through the structure, restates the requirements, storage, scale and reliability posture already decided, grades what it wrote with two code-cold sweeps whose findings become questions for the person rather than edits, and cites the decisions taken during `spec-grilling` rather than taking them itself. It may do the load arithmetic but never picks the posture; never invent a layer order nobody decided, never invent a latency or cost target nobody stated, never pin a signature, field list, or schema — those are Plan's — and keep `architecture.md` inside its 2000-line budget, cutting prose rather than rows.
 ---
 
 ## Purpose
@@ -11,8 +11,8 @@ the structure, recaps the requirements and the scale and reliability posture alr
 wrote graded code-cold against the two design disciplines, and cites the decisions taken during
 `spec-grilling` rather than taking them itself.
 
-**The output format is Anthropic's `system-design` framework, verbatim** — requirements gathering,
-high-level design, deep dive, scale and reliability, trade-off analysis — plus a sixth section this suite
+**The output format is Anthropic's `system-design` framework, verbatim** — requirements,
+high-level design, deep dive, scale and reliability, trade-offs — plus a sixth section this suite
 adds for the questions nobody has answered yet. `references/section-contract.md` carries the tables that go
 under each heading. The format is a recap of decisions already taken, which is what makes it signable in
 one sitting rather than a design session with a signature at the end.
