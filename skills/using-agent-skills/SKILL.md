@@ -335,7 +335,7 @@ yours.
 | Spec | frontend-design | **UI only** — the skill's own *When to use / when to skip* states the test: throwaway variants → committed prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
 | Spec | acceptance-criteria | behavioral-only Given/When/Then contract → acceptance.md |
 | Spec | environment-manifest | typed-kind manifest (no values, no commands) → environment.md |
-| Spec | architecture-design | reconciles, grades, and renders — traces every scenario, records the invariants, has the result graded code-cold, cites the decisions taken in `spec-grilling`; takes none itself · runs against a draft `acceptance.md`; the two are signed together at the Spec gate · emits architecture.md + the committed architecture.html |
+| Spec | architecture-design | reconciles, grades, and renders — traces every scenario, recaps the requirements and the scale and reliability posture, has the result graded code-cold, cites the decisions taken in `spec-grilling`; takes none itself · Anthropic's five-part system-design format plus a sixth section of open questions · runs against a draft `acceptance.md`; the two are signed together at the Spec gate · emits architecture.md + the committed architecture.html |
 | Spec | spec-review | fresh code-cold agent fixes the spec before the human reviews |
 | Plan | plan-breakdown | THE planner: concrete plan → vertical slices + dependency DAG; reads the Plan-stage research.md that the second codebase-research pass writes |
 | Spec · Plan | codebase-design | Referenced discipline, Spec and Plan — proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own. Deep modules, deletion test |
