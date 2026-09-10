@@ -9,14 +9,21 @@
   "plugins": [
     {
       "name": "achilles-skills",
-      "source": {
-        "source": "github",
-        "repo": "celestialdust/achilles-skills"
-      },
+      "source": "./",
       "description": "39 skills and 12 slash commands (9 lifecycle + 3 standalone) — covering ideate, spec, plan, implement, verify, review, and ship, with maker≠checker discipline throughout: Verify and Review run code-cold, and the run ends at an open draft PR a human merges.",
       "homepage": "https://github.com/celestialdust/achilles-skills",
       "license": "MIT",
-      "keywords": ["skills", "engineering", "spec", "tdd", "review", "ship", "autonomous", "orchestrator", "lifecycle"]
+      "keywords": [
+        "skills",
+        "engineering",
+        "spec",
+        "tdd",
+        "review",
+        "ship",
+        "autonomous",
+        "orchestrator",
+        "lifecycle"
+      ]
     }
   ]
 }
