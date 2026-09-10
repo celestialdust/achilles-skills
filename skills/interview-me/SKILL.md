@@ -1,294 +1,145 @@
 ---
 name: interview-me
-description: Extracts what the user actually wants instead of what they think they should want. Achieves this through one-question-at-a-time interview until ~95% confidence about the underlying intent. Use when an ask is underspecified ("build me X" without "for whom" or "why now"), when the user explicitly invokes ("interview me", "grill me", "are we sure?", "stress-test my thinking"), when you catch yourself silently filling in ambiguous requirements before any plan, spec, or code exists, or when the user asks what they're missing, wants their blind spots surfaced, or says "quiz me" before committing.
+description: Extract what a person actually wants before any plan, spec, or code — one question at a time, each carrying your guess, until you can predict their answers. Run on an underspecified ask, or on "interview me", "grill me", "stress-test my thinking", "what am I missing". Writes intent.md. Not idea-refine's options, not spec-grilling's how.
 ---
 
 # Interview Me
 
-## Overview
+## Purpose
 
-**Stage: Ideate.** It runs before any artifact exists, so it interviews rather than reads — `intent.md` is what it writes, not what it consumes.
+**Stage: Ideate.** Principles 1, 6, 10.
 
-What people ask for and what they actually want are different things. They ask for "a dashboard" because that's what one asks for, not because a dashboard solves their problem. They say "make it faster" without a number to hit.
+Extracts what a person actually wants, as against what they think they should want: one question at a
+time, each carrying your own guess, until you can predict their answers. It writes
+`docs/features/<slug>/intent.md`, the first link in the artifact chain, and interviews rather than reads
+because nothing upstream of it exists — the gap between the ask and the want being cheapest to close
+before code makes switching expensive.
 
-The cheapest moment to find this gap is before any plan, spec, or code exists. Once you've started building, switching costs are real, and the user will rationalize the wrong thing into a "good enough" thing. The misfit gets locked in.
+## When to use / when to skip
 
-This skill closes the gap before it costs anything. The other Define-phase skills assume you already know roughly what you want: `idea-refine` generates variations from an idea, `spec-grilling` writes the requirements down, `doubt-driven-development` stress-tests a plan after you've drafted one. Interview-me is the part before all of those, where you ask one question at a time, with your best guess attached, until you can predict what the user is going to say before they say it.
-
-## When to Use
-
-Apply this skill when:
-
-- The ask is missing at least one of: **who** the user is, **why** they want it, what **success** looks like, what the binding **constraint** is
-- The request is conventional rather than specific ("build me X", "make it faster") and you can't unpack the convention without guessing
-- You're tempted to start with assumptions you haven't surfaced
-- The user hasn't said which value they're optimizing for when two reasonable ones are in tension (simplicity vs. flexibility, cost vs. speed)
-- The user explicitly invokes: "interview me", "grill me", "before we start, are we sure?", "stress-test my thinking", "what am I missing?", "quiz me"
-
-**When NOT to use:**
-
-- The ask is unambiguous and self-contained ("rename this variable", "fix this typo")
-- The user has explicitly asked for speed over verification
-- Pure information requests ("how does X work?", "what does this code do?")
-- Mechanical operations (renames, formats, file moves)
-- You already have ≥95% confidence; re-read the stop condition below before assuming you don't
-
-## Loading Constraints
-
-This skill needs a live, responsive user. **Do not invoke in non-interactive contexts** like CI pipelines, scheduled runs, `/loop`, or autonomous-loop. If you're in one of those and the ask is underspecified, flag that as a blocker for the user instead of guessing.
+- The ask leaves out who it is for, why now, what success looks like or the binding limit, and you are
+  about to fill one in silently.
+- It is conventional rather than specific — "build me a dashboard", "make it faster" — and the
+  convention will not unpack without a guess.
+- Two reasonable values are in tension (simplicity against flexibility, cost against speed) and nobody
+  has said which wins.
+- The person invokes it: "interview me", "grill me", "are we sure?", "what am I missing?"
+- Skip a self-contained or mechanical ask (a rename, a typo, a file move), a question about how
+  something works, or an ask where speed was chosen out loud.
+- Near-miss — the intent is settled and you want options against it: `idea-refine`, refining this same
+  `intent.md` in place.
+- Near-miss — the what is settled and the question is how it gets built: `spec-grilling`, which takes a
+  raw idea when this was skipped.
+- Near-miss — a drafted plan to attack after the fact: `doubt-driven-development`.
 
 ## Inputs
 
-interview-me is the **front door** of the suite and the first link in the artifact chain, so it
-consumes no prior artifact — only the user's prompt.
+- **A person answering** — helps: the interview is the work, and their yes is what makes an intent
+  confirmed rather than guessed · without it: derive the six lines from the prompt, the repository and
+  the domain, mark each unread line `derived`, and write `status: derived`.
+- **The raw ask** — helps: the thing being unpacked, in their own wording · without it: there is nothing
+  to interview about.
+- The repository, prior art and the domain — helps: the territory the blind-spot scan reads · without
+  it: the domain and prior art alone, which a greenfield ask still has.
+- `CONTEXT.md` — helps: terms already fixed in one sense · without it: their own words; `spec-grilling`
+  seeds the glossary.
+- `docs/features/<slug>/intent.md` — helps: an intent being re-opened, edited in place · without it:
+  create it.
 
-**Consumes:**
-- A raw idea or underspecified ask, stated in the user's prompt. That is the only required input.
-
-**Refuse-to-run condition:** this skill needs a live, responsive user — it is a one-question-at-a-time
-interview. If invoked in a non-interactive context (CI, a scheduled run, `/loop`, or the autonomous
-orchestrator), STOP and surface the underspecified ask to the user as a blocker. Do **not** guess your
-way past it. (This is the same boundary as §"Loading Constraints" above, and it matches: the human
-owns the Ideate stage; the agent's autonomous loop never runs Ideate.)
-
-**Optional front door:** running interview-me is optional. The user MAY skip it and open
-`spec-grilling` directly with a prompt that already contains the idea. When interview-me runs, it owns
-`intent.md`; when it is skipped, `spec-grilling` accepts the raw idea instead.
+Ideate is where a person's attention is worth most (principle 10), so the three-question ceiling on an
+absent input does not bound the interview itself.
 
 ## The Process
 
-### Step 0: Calibrate, then scan for blind spots
-
-Two quick moves before the first question — both exist to grow the map beyond what the user brought:
-
-1. **Calibrate depth.** Ask (or infer from the prompt) which parts of the ask the user knows well and which they know nothing about. Familiar territory → compress: fewer questions, skip the scan below. Novel territory → invest: the full process, scan included. Discovery effort should follow ignorance, not habit.
-
-2. **Blind-spot scan (novel territory).** The interview can only interrogate what's already on the user's map — their unknown unknowns are, by definition, not on it. So scan the territory first: the codebase (if one exists), prior art, adjacent constraints, the domain itself. Present a short **blind-spot brief** — 3–5 things the user likely hasn't considered that would change the ask if true. Then interview against the grown map. Technique details: `references/finding-unknowns.md`.
-
-The brief is context, not questions — it doesn't break the one-question-at-a-time rule; it makes the questions worth asking.
-
-### Step 1: Hypothesize, with a confidence number
-
-Before asking anything, write down your current best read of what the user wants in **one sentence**, plus an honest confidence number (0–100%):
-
-```
-HYPOTHESIS: You want a way to answer "how are we doing?" in standup, and "dashboard" was the convention that came to mind.
-CONFIDENCE: ~30% — missing: who it's for, what "metrics" means in context, and what success looks like
-```
-
-The number forces honesty. If you wrote down a high number but can't actually predict the user's reactions to the next three questions you'd ask, the number is wrong. Start at the confidence level you can defend.
-
-When confidence is below ~70%, append a brief reason on the same line — what's still unresolved or missing. This tells the user exactly what the interview needs to surface, and prevents the number from being a vague signal.
-
-### Step 2: Ask one question at a time, each with a guess attached
-
-Format:
-
-```
-Q: <one focused question>
-GUESS: <your hypothesis for the answer, with the reasoning that produced it>
-```
-
-Wait for the user to react before asking the next question.
-
-**Which question first:** spend questions where the answer would change the shape of what gets built — who it's for, what problem it solves, the binding constraint. If your GUESS is a safe default nobody would contest, state it as the default inside a larger question and move on; a question whose every answer leads to the same build was never a question.
-
-**Why one at a time, not a batch:**
-
-- The user can't react to your hypotheses if you bury them in a list
-- Batches encourage skim-reading and surface answers
-- The third question often depends on the answer to the first; asking them all at once locks in the wrong framing
-- The user's energy for thinking carefully is finite; spend it one question at a time
-
-**Why attach a guess:**
-
-- The user reacts faster to a wrong guess than they generate an answer from scratch
-- It commits you to a hypothesis you can be visibly wrong about, which keeps you honest
-- It surfaces *your* assumptions, which is what the interview is meant to expose
-
-The risk here is a polite user agreeing with your guess to be agreeable. Mitigate by being visibly willing to be wrong, and occasionally guess in a direction you expect the user to push back on.
-
-### Step 3: Listen for "want vs. should want"
-
-The most dangerous answers are the ones where the user says what a thoughtful answer *sounds like* rather than what they actually want. Watch for:
-
-- Answers that pattern-match best-practice talk ("I want it to be scalable", "clean architecture") without specifics
-- Answers that defer to convention ("the way most apps do it", "the standard approach")
-- Phrases like "I should probably…", "I think I'm supposed to…", "good engineering practice says…"
-- Buzzwords as goals — when "modern", "scalable", "robust" are the answer instead of a specific outcome
-
-When you hear these, the question to ask is:
-
-> *"If you didn't have to justify this to anyone, what would you actually want?"*
-
-That single question often does more work than the previous five.
-
-### Step 4: Restate intent in the user's own words
-
-When your confidence is high, write back what you now think the user wants. Keep it tight (5–8 lines), use their language where possible, and structure it so the user can confirm or correct line by line:
-
-```
-Here's what I now think you want:
-
-- Outcome:      <one line>
-- User:         <one line — who benefits>
-- Why now:      <one line — what changed>
-- Success:      <one line — how we know it worked>
-- Constraint:   <one line — the binding limit>
-- Out of scope: <one line — what we're explicitly not doing>
-
-Yes / no / refine?
-```
-
-Including "Out of scope" is non-negotiable. Half of misalignment is silent disagreement about what is *not* being built.
-
-### Step 5: Confirm — explicit yes, not "whatever you think"
-
-The gate is an explicit "yes." The following are **not** yes:
-
-- "Whatever you think is best." → The user is delegating, which means they don't have 95% confidence either. Re-ask with two concrete options framed as a choice.
-- "Sounds good." → Ambiguous. Ask: "Anything you'd refine?" Silence isn't confirmation.
-- "Sure, let's go." → Often a polite exit, not an endorsement. Same follow-up.
-- Silence followed by "okay let's start." → The user has given up on the interview, not converged. Stop and ask whether you've missed something.
-
-If they correct you, fold the correction in and restate. Loop until you get an explicit yes.
-
-### The 95% Confidence Stop
-
-You're done when you can answer yes to this:
-
-> *Can I predict the user's reaction to the next three questions I would ask?*
-
-If yes, you have shared understanding. Stop interviewing and produce the restate. If no, you're not done; ask the next question.
-
-This is a checkable test, not a vibe. It also has a floor: if you've gone several rounds and still can't predict, that's information about the ask, not a reason to keep grinding. Stop and tell the user: "I've asked X questions and I still can't predict your reactions. Something foundational is missing. Want to step back?"
-
-## Output
-
-The output of this skill is a **confirmed statement of intent**: the restate from Step 4, with an explicit yes from Step 5. That's the deliverable. Specs, plans, and task lists are downstream; they consume the intent this skill produces.
-
-If the user wants the intent to persist (a multi-session project, a handoff to another collaborator), offer to save it to `docs/features/<slug>/intent.md`. Only save if they confirm.
-
-## Example
-
-A short before-and-after.
-
-**Without `interview-me`:**
-
-```
-User:  build me a dashboard for our metrics
-Agent: <starts proposing chart libraries and layouts>
-```
-
-The agent has assumed: who it's for, what metrics, what "for our team" means, what success looks like. None of these are stated. Every assumption is a place the user can later say "that's not what I meant."
-
-**With `interview-me`:**
-
-```
-User: build me a dashboard for our metrics
-
-Agent:
-HYPOTHESIS: You want a way to answer "how are we doing?" in standup, and "dashboard" came to mind because that's the conventional answer.
-CONFIDENCE: ~30% — missing: who it's for, what "metrics" are, and what success looks like
-
-Q:     When you say "how are we doing?", who's asking — you alone, the engineering team in standup, or up the chain (e.g., your manager, an exec, a board)?
-GUESS: engineering team in standup, because "we" usually scopes that way and standups are where this question gets asked. If it's for execs the metrics and the framing change a lot.
-
-User: It's actually for me. I keep losing track of which experiments are running and what their early signal looks like.
-
-Agent:
-Updated read: not a team dashboard at all. It's a personal experiment tracker. Confidence: ~60% — still missing: what "early signal" means and what done looks like.
-
-Q:     Is the gap that you don't know which experiments exist, or that you can't see their results in one place?
-GUESS: the second one. You have a list of experiments somewhere, but their results live in five different tools, and reconciling them by hand is what you're tired of.
-
-User: First one actually. I literally don't have a list. They're spread across different docs.
-
-Agent: <continues>
-```
-
-Two questions in, the agent has discovered the actual ask isn't "a dashboard." It's "a list." Different artifact, different scope, different work. The dashboard would have been wrong.
-
-## Interaction with Other Skills
-
-- **`idea-refine`**: downstream. If the confirmed intent is "I want X but I don't know how to scope it," hand off to `idea-refine` to generate variations against the now-explicit intent.
-- **`spec-grilling`**: downstream. If the confirmed intent is concrete ("I want X for Y users with Z success criteria"), hand off to `spec-grilling` to write it down.
-- **`plan-breakdown`**: two hops downstream of this skill (after the spec).
-- **`doubt-driven-development`**: opposite end of the timeline. Interview-me is pre-decision intent extraction; doubt-driven is post-decision artifact review. Both catch divergence, but at different moments.
-- **`source-driven-development`**: orthogonal. Interview-me clarifies what the user wants; SDD verifies framework facts. They don't compete.
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| "The ask is clear enough" | If you can't write the user's desired outcome in one sentence right now, the ask isn't clear. Run Step 1 before deciding. |
-| "Asking too many questions wastes their time" | Time wasted by 4–6 targeted questions is small. Time wasted by building the wrong thing is enormous, and the user is the one bearing that cost. |
-| "I'll figure it out as I build" | Switching costs after code exists are 10x what they are now. Discovery during implementation is rework. |
-| "They said 'whatever you think,' so I should just decide" | "Whatever you think" is delegation, not decision. Re-ask with two concrete options as a choice. |
-| "I should give them several options to pick from" | Options work when the user knows what they want and is choosing between trade-offs. They don't know what they want yet. Listing options widens the search; asking narrows it. |
-| "If I attach my guess, I'm leading them" | Leading is the point. Reacting is faster than generating from scratch. The risk is sycophancy, not leading; mitigate by being visibly willing to be wrong. |
-| "We've talked enough, I get it" | Test it: can you predict their reaction to the next three questions? If not, you don't get it yet. |
-| "The user said yes, we're done" | If the yes followed a vague restate or an open-ended "sounds good," the yes is hollow. Restate concretely and re-confirm. |
-
-## Red Flags
-
-- Three or more questions in a single message: that's batching, not interviewing
-- A question without your hypothesis attached: that's surveying, not committing
-- Accepting "whatever you think is best" as a terminal answer
-- Producing a spec, plan, or task list before the user has explicitly confirmed your restate
-- Questions framed as "what would be best practice?" instead of "what do you actually want?"
-- The user gives a sophistication-signaling answer ("scalable", "clean", "modern") and you accept it without probing whether it's what they actually want
-- Three or more rounds without your confidence visibly rising: you're asking the wrong questions, step back and reframe
-- A confidence number below ~70% with no reason attached: the user can't help close the gap if they don't know what's missing
-- Saving the intent doc before the user has confirmed (the doc itself implies a yes the user didn't give)
-- Skipping the "Out of scope" line in the restate (silent disagreement about non-goals is half of misalignment)
-- Interviewing a novel ask with zero territory scan — you're interrogating the user's map and calling it discovery
-- Spending a full round on a question a stated default would have answered
+1. **Calibrate depth, then scan the territory.** Compress where they are fluent, invest where the
+   ignorance is. On unfamiliar ground read the codebase, prior art and the domain first, then present a
+   blind-spot brief — three to five items, a line each on what it is and why it would change the ask.
+   It is context rather than questions, so it costs no round, and an interview aimed at the person's own
+   map returns only what was already on it ([finding-unknowns](../../references/finding-unknowns.md)).
+
+2. **State a one-sentence `HYPOTHESIS` and an honest `CONFIDENCE` on 0–100% before asking anything.**
+   Under ~70%, add a one-line reason naming what is missing — nobody closes a gap they cannot see.
+
+3. **With nobody there to answer, derive rather than wait.** Build the six lines from the prompt, the
+   repository and the domain, mark each line you could not read `derived` with the question that would
+   have settled it, set `status: derived`, and go to step 8. A run with no person is the ordinary case,
+   not a blocker to report.
+
+4. **Ask one question per message, each carrying your guess, then wait for the reaction.**
+
+   ```
+   Q:     <one focused question>
+   GUESS: <your hypothesis for the answer, and the reasoning behind it>
+   ```
+
+   Spend a question only where the answer changes what gets built — who it is for, what problem it
+   solves, the binding limit; an uncontested guess goes inline in a larger question instead of costing a
+   round. Guess sometimes against the grain, since agreement from a polite person is cheap. Three in one
+   message is a survey: they skim, and the third's framing was fixed by an answer that never arrived.
+
+5. **Probe an answer signalling sophistication or convention instead of want** — "scalable", "clean
+   architecture", "I should probably…": *"If you didn't have to justify this to anyone, what would you
+   actually want?"*
+
+6. **Stop when you can predict their reaction to the next three questions you would ask.** A test rather
+   than a feeling, with a floor: rounds passing and the number still flat means the questions are wrong,
+   so name what you cannot predict and offer to step back.
+
+7. **Restate in five to eight lines, in their words, then take an explicit yes.** Outcome · User ·
+   Why now · Success · Constraint · Out of scope, a line each — the restate's labels, which map onto
+   the six `intent.md` headings named in Outputs & handoff — corrected line by line; the out-of-scope
+   line stays, since silent disagreement about non-goals is half of misalignment. "Whatever you think",
+   "sounds good" and silence are delegation rather than decision — re-ask with two concrete options as a
+   choice, fold in each correction, restate. Ahead of the yes there is no spec, plan, task list or
+   `intent.md`; a saved file implies a yes nobody gave.
+
+8. **Write `intent.md` in the shape Outputs & handoff names, then hand it on.** The handoff to
+   `idea-refine` or `spec-grilling` carries what was confirmed — or, derived, what each line leaves
+   open — rather than the ask you were first handed, which is the wording this skill exists to correct.
+
+## Rationalizations
+
+- *"The ask is clear enough."* → if the outcome will not go into one sentence right now, it is not.
+- *"Questions waste their time."* → four to six cost minutes; the wrong thing built costs the project.
+- *"I'll figure it out while building."* → discovery after code exists is rework at an order of magnitude more.
+- *"They said whatever you think, so I decide."* → delegation is not decision; two options as a choice get a real answer.
+- *"Better to offer options."* → options serve someone already choosing, and widen where the interview
+  narrows (`idea-refine` owns them).
+- *"Attaching my guess leads them."* → leading is the point; the risk is a polite yes, which guessing
+  against the grain flushes out.
+
+## Red flags
+
+- Three questions in one message, or a question with no guess attached.
+- "Whatever you think is best" taken as a terminal answer.
+- A confidence number under ~70% with no reason beside it, or three rounds with the number flat.
+- A restate missing its out-of-scope line.
+- `intent.md`, a spec, a plan or a task list on disk ahead of the explicit yes.
+- A novel ask interviewed with no territory scan — the person's own map, read back to them.
 
 ## Verification
 
-After applying interview-me:
+- [ ] A blind-spot brief was presented on novel ground, and a hypothesis and its confidence number
+      were stated ahead of the first question, with a reason beneath ~70%.
+- [ ] `intent.md` carries the six headings in order, a line or two each, out-of-scope non-empty.
+- [ ] `status:` reads `signed` behind an explicit yes, or `derived` with every unread line marked and its
+      unasked question beside it.
+- [ ] Each question went out one per message with a guess attached, the last still changing what gets built.
+- [ ] A sophistication- or convention-signalling answer got the "what would you actually want?" probe.
+- [ ] With a person answering, the next three questions' reactions are predictable, or the one that is
+      not is named.
+- [ ] No spec, plan, task list or `STATE.md` row was written, `intent.md` is measured against its cap,
+      and the handoff names the confirmed or derived intent rather than the original ask.
 
-- [ ] Depth was calibrated up front; a blind-spot brief was presented for novel territory
-- [ ] An explicit hypothesis with a confidence number was stated in the first turn
-- [ ] Every confidence number below ~70% was accompanied by a one-line reason (what's still unresolved or missing)
-- [ ] Questions were asked one at a time, each with the agent's guess attached
-- [ ] At least one "what would you actually want if you didn't have to justify it?" probe ran when the user gave a sophistication-signaling OR convention-signaling answer
-- [ ] A concrete restate (Outcome / User / Why now / Success / Constraint / Out of scope) was written back to the user
-- [ ] The user confirmed the restate with an explicit yes (not "whatever you think," not "sounds good," not silence)
-- [ ] At the stop point, the agent could predict reactions to the next three questions it would ask
-- [ ] Any handoff to a downstream skill (`idea-refine`, `spec-grilling`) was framed in terms of the confirmed intent, not the original underspecified ask
+## Outputs & handoff
 
-## Outputs & handoff contract
-
-**Emits:** `intent.md`, per-feature, at `docs/features/<slug>/intent.md`. interview-me **owns** this
-artifact. Write it only after the user gives an explicit "yes" in Step 5 — never before (saving
-early implies a yes the user didn't give; see §"Red Flags").
-
-**Stable sections** (consumers read these cold — keep the heading names exactly):
-
-- **Outcome** — one line: what changes in the world.
-- **User** — one line: who benefits.
-- **Why** — one line: what changed / why now.
-- **Success** — one line: how we know it worked.
-- **Constraints** — the binding limit(s).
-- **Out-of-scope ("Not Doing")** — what is explicitly NOT being built.
-
-These are the registry stable sections for `intent.md`. The Step-4 restate's user-facing labels
-("Why now", "Constraint", "Out of scope") map onto them directly — write the saved file with the heading
-names above so downstream skills can consume it cold.
-
-**Downstream consumers:**
-- `idea-refine` (Ideate) **shares this same `intent.md`** — it refines in place (divergent/convergent +
-  the "Not Doing" list); there is no separate one-pager.
-- `spec-grilling` (Spec) consumes `intent.md` as the WHAT and designs the HOW (ADRs / CONTEXT.md); it no
-  longer owns `intent.md`. It accepts EITHER this `intent.md` OR a raw idea in the prompt when
-  interview-me was skipped.
-
-**STATE.md update:** interview-me runs in the human-owned Ideate stage, before a feature has a spec. On
-confirming intent, seed the feature row at feature state `spec`, gate `you` (the human still owns Spec).
-No slice rows yet — slices are born later from `plan-breakdown`. If `STATE.md` does not exist,
-that is `project-setup`'s job; interview-me only writes `intent.md` and notes the feature should be seeded.
-
-**Change-the-shape rule:** if you rename or restructure these stable sections, update `idea-refine` and
-`spec-grilling` in the same commit.
+- `docs/features/<slug>/intent.md` — cap 600 words. `# Intent — <slug>`, a `status:` line reading
+  `signed` or `derived`, then `## Outcome` · `## User` · `## Why` · `## Success` · `## Constraints` ·
+  `## Out-of-scope` — the "Not Doing" list, glossed here and never in the heading — in that order, a line
+  or two each. Report the count against the cap, and cut an over-cap draft rather than hand it on as
+  though it fit. `idea-refine` refines this same file in place, and `spec-grilling`, `to-prd` and
+  `spec-review` read these headings cold, so renaming one means editing those skills in the same commit.
+- No `STATE.md` row and no feature block: `plan-breakdown` opens the board
+  ([state-schema](../../references/state-schema.md)).
+- Returns in conversation: the blind-spot brief, the hypothesis and its number, the questions, the
+  restate, and `intent.md`'s measured length against its cap. No verdict.

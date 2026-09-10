@@ -1,196 +1,153 @@
 ---
 name: acceptance-criteria
-description: 'Turn a prd.md into acceptance.md — the Given/When/Then prose contract that is the human-anchored oracle for THIS feature''s behavior across the entire autonomous run — the only human-anchored oracle the run has. Reach for this the MOMENT a prd.md exists (on a UI feature, once frontend-design has explored the interface) and BEFORE any planning, TDD, or QA — test-driven-development and quality-verification REFUSE to run without a signed acceptance.md. If you are about to write "acceptance criteria", "definition of done", test scenarios, or Given/When/Then for a feature, you need this first. Behavioral-only: keep ALL design floors out (those belong to frontend-design''s contract).'
+description: Draft acceptance.md in the Spec sitting — the Given/When/Then scenarios and definition of done for one feature, an id per behaviour across the happy, error/edge and security-observable classes. The look is the design reference's; grading a built slice against them, `quality-verification`'s.
 ---
+
+# Acceptance criteria
 
 ## Purpose
 
-**Stage: Spec (human-led — the agent drafts, the human signs).** `acceptance-criteria` authors one feature's
-`acceptance.md`: its observable behavior, written as Given/When/Then scenarios in plain prose.
+**Stage: Spec.** Principles 1, 5, 6, 10.
 
-This is the highest-leverage artifact in the whole suite. Because the agent runs Implement → Verify →
-Review → Ship **fully autonomously with no mid-run human halt**, `acceptance.md` is the
-**human-anchored oracle for this feature's behavior** — the one place a human pins down "what *done*
-means" for it before going AFK. It is the run's only human-anchored oracle, which is why a
-behavior missing from it is a behavior nothing checks. `test-driven-development`
-realizes each scenario as a RED test; `quality-verification` grades the running app against these scenarios and keeps an
-exercised/not-reachable ledger by id; `pull-request` forces a human-ack line for any scenario the run could not
-reach. **A behavior you forget to write here is a behavior no gate will ever check.** Completeness is the
-job.
-
-It is a **prose contract, not a test framework**: no Cucumber, no step-defs, no `.feature` engine.
-Rigid frameworks are anti-boring-tech and brittle on UI; the agent realizes each scenario as a test
-through `test-driven-development` **by judgment**. Drift control is the intelligent Verify gate reading
-`acceptance.md`, not a mechanical scenario↔test mapping.
+Writes one feature's `acceptance.md`: what *works* means for it, as Given/When/Then prose, one id per
+behaviour. The plan cuts slices against those ids, a test is written red off them, Verify grades the
+running app by them. A behaviour absent from this file is a behaviour nothing checks, so completeness
+is the job and wording is not.
 
 ## When to use / when to skip
 
-**Use** after `to-prd` lands `prd.md`, for every feature, before `plan-breakdown`/`test-driven-development`/`quality-verification`. On a UI
-feature one skill sits in between: `frontend-design` runs in Spec after `to-prd` and **before
-`acceptance-criteria` and `environment-manifest` run** — not merely before they are signed. Exploring an
-interface surfaces behaviour a `prd.md` omits (the empty state, the failed save), and that has to reach
-`acceptance.md` while it is being written rather than after it exists. If you are reaching
-for the words "acceptance criteria", "definition of done", or "let me write some test scenarios", you are
-in this skill's territory — use it.
-
-**Skip / don't** when:
-- the change is a **pure refactor** with zero product-observable behavior change — there is no new
-  behavior to pin. (Refactors are still covered by existing scenarios + regression tests.)
-- you are tempted to write a **design** scenario ("the button is blue", "the modal slides in", "the focus
-  ring is visible"). **STOP** — design floors, rubric, and prototype-fidelity live in
-  `frontend-design`'s signed design contract, never here. Zero design content enters `acceptance.md`. The two
-  signed artifacts must never be able to contradict each other.
-
-**Escape hatch — `depth: lite`:** a one-story feature still writes the happy path **plus at least one
-error/edge scenario**. Never zero error coverage; "the happy path is obvious" is the failure mode this
-skill exists to prevent.
+- A feature has a `prd.md` — or an intent standing in for one — and nothing says what *done* means:
+  inside the sitting, after `to-prd`, before `architecture-design` traces the ids.
+- Someone reaches for "acceptance criteria", "definition of done", "test scenarios" or Given/When/Then.
+- A behaviour that has to hold — an expiry, a refusal, an empty state, a failed save — has nothing
+  anywhere that would catch its absence.
+- Skip a pure refactor with no product-observable change; the scenarios already written cover it.
+- A scenario becomes a failing test in `test-driven-development`, and grades a built slice in
+  `quality-verification`.
+- The look belongs to the design reference `prd.md` points at, whose named states Verify grades.
 
 ## Inputs
 
-Refuse-to-run unless these resolve:
+- `docs/features/<slug>/prd.md` — helps: its user stories are the ids scenarios back-reference; Problem
+  and Solution frame the happy paths, Out of Scope draws the boundary · without it: read the behaviours
+  off `intent.md` or the prompt, number them in place of stories, and mark the set `derived`
+- `docs/features/<slug>/intent.md` — helps: Success and the Not-Doing list mark which behaviours are
+  load-bearing · without it: take them from `prd.md`'s Problem, marked `derived`
+- `CONTEXT.md` and `docs/adr/` — helps: the domain's own words, and no re-argued decision · without it:
+  use the words the codebase uses
+- the **design reference** `prd.md` points at — helps: its named states (empty · loading · error · a
+  failed save) carry behaviour a PRD omits · without it: write those states from the stories and note
+  that none exists
 
-- **REQUIRED — `docs/features/<slug>/prd.md`** (from `to-prd`) with a populated **`## User Stories`**
-  section (numbered list, `As an <actor>, I want <feature>, so that <benefit>`). The story numbers are the
-  ids your scenarios back-reference. If `prd.md` is **absent** or has **no `## User Stories`** → **STOP**
-  and send the user to `to-prd`. There is nothing to derive scenarios from.
-- Also read (context, not back-referenced): `## Problem` / `## Solution` (to frame the happy paths) and
-  `## Out of Scope` (the not-doing boundary — these are **never** scenarios; an out-of-scope item that
-  needs a guarantee is a *security-observable* scenario stated as a behavior the system must refuse).
-
-If `STATE.md` / `docs/features/` do not exist, the repo was never set up → run `project-setup` first.
+With a person there, ask at most three questions, where the answer changes which scenarios exist.
 
 ## Process
 
-1. **Read `prd.md` fully.** Note every numbered story id under `## User Stories`. Frame the user-observable
-   happy paths from `## Problem` / `## Solution`. Read `## Out of Scope` to know the boundary.
+1. **Read `prd.md` end to end and list every story id first.** Problem and Solution frame the happy
+   paths; Out of Scope is the boundary, and none of its items becomes a scenario — one that still needs
+   a guarantee belongs here as an observable refusal.
 
-2. **Enumerate behaviors per story — three classes (see below).** For each story, ask: what does the user
-   observe when it works? when input/state is wrong? what must the system refuse or protect? Do **not**
-   stop at the happy path — error/edge and security-observable are *required classes*, not extras.
+2. **Enumerate the behaviours story by story across the three classes below** — what the user observes
+   when it works, what they see when input or state is wrong, what the system has to refuse.
 
-3. **Write each behavior as a Given/When/Then scenario, behavioral-only.** Assert *outcomes the user or
-   system can observe* — never a file path, signature, table name, library, or design token. Plain prose.
+3. **Write each as Given/When/Then prose asserting an outcome someone can observe**, inside the
+   boundary below.
 
-4. **Id every scenario.** Use the feature's PRD namespace + `A` + number: `PWR-A1`, `PWR-A2`, …
-   (matching the STATE.md PRD-namespacing). Tag each scenario with the **story id it realizes**
-   (`realizes: story 3`). Multiple scenarios may realize one story; every story must have ≥1 scenario.
+4. **Id every scenario — PRD namespace, `A`, a number — then leave that id alone.** `qa.md`'s ledger and
+   the PR's human-ack line cite ids, so a renumber re-points them at other behaviours; append under a
+   new id.
 
-5. **Set frontmatter `status: draft`. Do NOT sign.** Only the human signs at the Spec gate (`status:
-   signed`). If you set `signed` yourself you have forged the oracle (Red flags).
+5. **Write `status: draft` and hand the file on inside the sitting.** `architecture-design` traces each
+   id while both are drafts, `spec-review` fixes the bundle code-cold, and the person signs all of it in
+   one act — an agent writing `signed` forges the run's only human-anchored oracle.
 
-6. **Self-check coverage + the behavioral-only boundary** (Verification below). Every story id → ≥1
-   scenario; three classes present where applicable; zero design/impl/engine content.
+6. **Measure and report** — `wc -w` against the 1,200-word cap. Over cap, cut wording and never a
+   scenario, then report the overrun: a thinned list reads exactly like a full one.
 
-7. **Present for sign-off.** Hand the human a complete draft as soon as it lands — this is the one Spec
-   artifact that presents on its own, because everything downstream depends on it as the oracle. Signing
-   waits: `architecture-design` runs against a **draft** `acceptance.md` — present, not signed — and the
-   two are signed together in one act at the Spec gate, so the scenarios cannot move between the trace and
-   the signature. A scenario that traces through nothing goes back to `acceptance-criteria` while it is
-   still editable. The round trip is bounded at one: anything still unresolved becomes an open question
-   the person answers at the gate. What a later `prd.md` edit un-signs is stated once, in
-   `using-agent-skills`'s *What an edit un-signs*.
+7. **Change a scenario when the plan has moved, and disclose it where the person reviews.** Nothing is
+   frozen: the before and the after go in the PR body and one `docs/session-log.md` entry
+   ([`state-schema.md`](../../references/state-schema.md)), which `code-review` reads code-cold.
 
 ## The three required scenario classes
 
-Every feature covers these classes (a story may not touch all three, but the feature must):
+| Class | What it pins down |
+|---|---|
+| `happy` | the story's goal reached, as the user observes it |
+| `error/edge` | invalid input, wrong state, a boundary, expiry, concurrency, an empty or limit case — what the user sees and what survives it |
+| `security-observable` | a boundary holding where someone can watch it: an expired token refused, an unauthorized actor turned away, a secret absent from a response |
 
-- **Happy path** — the feature working as intended, the user's main goal achieved. (≥1 per story.)
-- **Error / edge** — invalid input, wrong state, boundary values, expiry, concurrency, empty/limit cases.
-  The behavior the user observes when things go wrong (clear failure, no data loss, safe state).
-- **Security-observable** — behavior a user/attacker can observe that proves a boundary holds: an expired
-  token is rejected, an unauthorized actor is refused, a secret never appears in a response, rate limits
-  trip. **Observable** only — not "the code uses bcrypt" (that is implementation, and design/threat
-  rationale lives in ADRs/`security-and-hardening`, not here).
+Every story id gets a scenario, the feature at least one `error/edge`, and any feature with a boundary
+at least one `security-observable` — a one-story feature included.
 
 ## Behavioral-only boundary
 
-`acceptance.md` asserts **what is observable**, and nothing else:
-
-- **NO design content** — no color, typography, spacing, layout, motion, focus-ring, pixel, breakpoint.
-  All of that is `frontend-design`'s signed design contract (a Spec artifact UI features add to the
-  bundle) and, for an axis that contract marks inherited, `docs/design.md`. `quality-verification`'s
-  design gate grades those; `acceptance.md` grades behavior. Neither ever carries the other's content.
-- **NO implementation content** — no file path, function/type signature, schema-as-code, table/column
-  name, driver or library internal. Scenarios survive a rewrite of the implementation.
-- **NO engine** — no `.feature` files, no `@given`/`@when` step definitions, no Cucumber/Behave/SpecFlow.
-  Prose only; `test-driven-development` turns prose into tests by judgment.
-
-## Scenario anatomy
-
-```
-### PWR-A2 — reset link rejected after expiry        realizes: story 3   class: error/edge
-Given a password-reset link issued more than 1 hour ago
-When the user opens that link and submits a new password
-Then the system refuses the reset and tells the user the link has expired
-And the user's existing password is unchanged
-```
-
-Keep ids stable once written (downstream `qa.md` ledgers reference them). Append new scenarios with new
-ids rather than renumbering.
+- **No implementation** — a file path, a signature, a schema, a table or column name, a library
+  internal — so a scenario survives a rewrite of the code beneath it.
+- **No look** — colour, type, spacing, layout, motion, focus ring, pixel, breakpoint: the design
+  reference holds those, and two oracles able to contradict each other are worse than one.
+- **No engine** — prose only, no `.feature` file and no step definitions. `test-driven-development`
+  realizes a scenario as a test by judgment.
 
 ## Rationalizations
 
-Stop signals disguised as good reasons:
-
-- "I'll just cover the happy path; the errors are obvious." → No. Error/edge is a **required class**, and
-  "obvious" failures are exactly where the autonomous run ships silent defects. Enumerate them.
-- "This UI scenario needs the button colour / the modal animation." → No. Design lives in
-  `frontend-design`'s contract, not here. Behavioral-only here — assert what the user *does*, not how it looks.
-- "I'll name the function / endpoint path so the test is precise." → No. Outcomes only. Signatures and
-  paths go stale and turn the oracle into an implementation mirror; `test-driven-development`/`plan-breakdown` own those.
-- "It looks right — I'll mark it `signed`." → No. The **human signs**; `signed` set by the agent forges a
-  human-anchored oracle. Leave it `draft` and present for sign-off.
-- "Cucumber would make this executable." → No engine. Executability comes from `test-driven-development` realizing the
-  prose, not from a brittle step-def framework.
-- "The PRD has 8 stories but 3 are similar — I'll write 3 scenarios total." → Every **story id** needs
-  ≥1 scenario. Coverage is the load-bearing property; thin it and a gate goes blind.
+- "The errors are obvious." → An unattended run ships its silent defects exactly where the failure
+  looked too obvious to write down.
+- "Naming the endpoint makes it precise." → A path or a signature in a scenario is an implementation
+  mirror, stale the first time the code moves.
+- "This one needs the pill's colour." → The design reference names that state, and Verify grades it
+  there.
+- "`.feature` files make it executable." → Executability comes from a test written red off the prose.
+- "It reads right, so `signed`." → A signature is the person's act; the agent's own is a forged oracle.
+- "Three of these stories are alike, so three scenarios covers it." → A story id no scenario names is a
+  gate reading nothing.
 
 ## Red flags
 
-Stop and fix before presenting if any are true:
+- A scenario naming a file path, a signature, a table or a column.
+- A scenario describing colour, spacing, motion or a focus ring.
+- A `.feature` file or a step-definition file in the tree.
+- A story id that no `realizes:` names.
+- A feature with no `error/edge` scenario, or one with a boundary and no `security-observable`.
+- `status: signed` on a file no person signed.
 
-- A scenario mentions a `/` file path, a `function`/`def`/type signature, a table/column name, or a
-  library/driver name. → Strip it; restate as an observable outcome.
-- A scenario describes colour, font, pixel, spacing, layout, motion, or focus styling. → Move the intent
-  to `frontend-design`'s design contract; delete it here.
-- A `.feature` file or step-definition code was generated. → Delete; this is a prose contract.
-- Any `## User Stories` id has **zero** scenarios. → The oracle has a hole; add scenarios.
-- A feature with risky paths has **only** happy-path scenarios (no error/edge, no security-observable).
-- Frontmatter says `status: signed` and no human signed it. → Revert to `draft`; present for sign-off.
+## Verification
 
-## Verification (ending criteria)
+- [ ] `docs/features/<slug>/acceptance.md` exists at `status: draft`, signed by no agent.
+- [ ] Every story id — or every behaviour marked `derived` in its place — is named by a `realizes:`.
+- [ ] Each scenario carries a unique namespaced id, a `realizes:` and a `class:`, and no earlier id moved.
+- [ ] At least one `error/edge` scenario is present, and a `security-observable` one wherever the
+      feature has a boundary.
+- [ ] A grep finds no path, signature, schema, table or column name, library internal or design token,
+      and no `.feature` file or step definition exists.
+- [ ] The measured `wc -w` is reported against the 1,200-word cap.
 
-Done when ALL hold:
+## Outputs & handoff
 
-- `docs/features/<slug>/acceptance.md` exists, frontmatter `status: draft` (never `signed` by the agent).
-- **Coverage:** every numbered id in `prd.md`'s `## User Stories` is named by ≥1 scenario's `realizes:`
-  tag. (This is the completeness invariant `spec-review` re-checks: every story id → ≥1 reachable
-  exercised scenario.)
-- Every scenario has a feature-namespaced id matching `^### [A-Z]{2,}-A[0-9]+` and a `realizes: story <n>`
-  back-reference and a `class:` of happy / error/edge / security-observable.
-- The three classes are represented across the feature (happy + ≥1 error/edge + ≥1 security-observable
-  where the feature has any boundary to protect).
-- **Behavioral-only grep is clean:** no file paths, signatures, schemas-as-code, library internals, or
-  design tokens (colour/font/px/layout/motion). No `.feature`/step-def artifacts exist.
-- Presented to the human for sign-off; the gate stays `you` until the human flips `status: signed`.
+`docs/features/<slug>/acceptance.md` — cap **1,200 words**, measured with `wc -w` and reported; an
+over-cap draft is handed on as over-cap, never as one that fit.
 
-## Outputs & handoff contract
+```markdown
+---
+status: draft
+---
 
-- **Emits:** `docs/features/<slug>/acceptance.md` — per-scenario `id` · `realizes: story <n>` · `class:` ·
-  Given/When/Then prose; frontmatter `status: draft → signed`. Change the shape of a scenario id or the
-  status field → update its consumers (`architecture-design`, `test-driven-development`, `quality-verification`, `spec-review`, `pull-request`) in the same commit.
-- **STATE.md update:** add `acceptance.md` to the feature's `origin:` line; feature state stays `spec`;
-  gate stays `you` (the human signs at the Spec gate). No slice rows yet (slices are born in Plan).
-- **Downstream consumers:** `architecture-design` (traces every scenario through the structure while this
-  file is still `draft`) · `test-driven-development` (realizes each scenario as a RED test, test-first; refuses an
-  unsigned/absent contract) · `quality-verification` (grades the running app per scenario, keeps an exercised/not-reachable
-  ledger by id in `qa.md`; refuses an unsigned contract) · `spec-review` (checks every story id → ≥1
-  reachable scenario before the human reviews) · `pull-request` (any "not-reachable" classification at run time
-  → a required human-ack line in the PR body, never silently absorbed).
-- **Frozen-under-retry invariant** — safety rail 4, `references/safety-rails.md`. What this skill owns
-  is the way out: the contract changes only by a **fresh human re-sign**, never by an agent's edit.
-- **Boundary with `frontend-design`:** design floors/rubric/prototype-fidelity live in its signed design
-  contract and, for an axis that contract marks inherited, in `docs/design.md`; `acceptance.md` carries
-  zero design content. No two signed artifacts can contradict. `frontend-design` running *before* this
-  skill makes the boundary matter more, not less: what the exploration surfaces about **behaviour** (the
-  empty state, the failed save) belongs here, and what it decides about **look** never does.
+### PWR-A2 — reset link rejected after expiry        realizes: story 3   class: error/edge
+Given a password-reset link issued more than an hour ago
+When the user opens it and submits a new password
+Then the reset is refused and the user is told the link has expired
+And the existing password still works
+```
+
+One `###` per scenario, ided with the feature's PRD namespace, then `A`, then a number — the namespace
+the board gives that feature's slices. `class:` is one of `happy` · `error/edge` ·
+`security-observable`; `realizes:` names the story id the scenario backs, or the behaviour standing in
+for one, marked `derived` there. Change the id form, the `class:` vocabulary or the `status` field
+and every reader that cites them changes in the same commit — `architecture-design`, `plan-breakdown`,
+`test-driven-development`, `quality-verification`, `spec-review`, `orchestrator`, `pull-request`.
+
+`docs/session-log.md` — one appended entry, cap 60 words, when a scenario changes after the bundle was
+signed. No `STATE.md` row: a board block and its slices are born from a sliced plan
+([`state-schema.md`](../../references/state-schema.md)).
+
+Returns the path, the scenario count by class, the measured words against the cap, and every behaviour
+marked `derived`. No verdict — it drafts the oracle the later gates grade against.

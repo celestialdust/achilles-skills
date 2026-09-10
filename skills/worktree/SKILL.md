@@ -1,216 +1,128 @@
 ---
 name: worktree
-description: Use the instant a slice is about to be implemented and needs its own isolated, clean-baseline workspace — BEFORE any code is written. Detects existing isolation first (never double-nests, never fights the harness), prefers a native worktree tool over raw `git worktree add`, installs deps, and proves the test baseline is green so new failures are distinguishable from old ones. If you are about to run `git worktree add` without checking whether you are already isolated or a native tool exists, or about to start implementing without a verified-clean baseline — STOP and use this.
+description: Set up the isolated, clean-baseline workspace a slice gets built in — detect the isolation already there, prefer the host's worktree primitive over `git worktree add`, install what the manifest names, record the test baseline. Not what gets built in it (`incremental-implementation`), commits (`git-workflow`), or the wave (`orchestrator`).
 ---
 
-# worktree — per-slice isolation mechanism (Implement stage, orchestrator-owned)
+# Worktree — per-slice isolation mechanism
 
 ## Purpose
 
-**Stage: Implement — the isolation MECHANISM the `orchestrator` owns.** Before a
-slice is implemented it needs a workspace that (1) cannot corrupt the human's current branch and
-(2) starts from a *known-clean* baseline. Without (1), two parallel slices in a wave clobber each
-other's working tree; without (2), the agent cannot tell a bug it just introduced from one that was
-already there — and silently ships on a red baseline. This skill establishes both, then hands the
-workspace to `incremental-implementation`. **Core principle (from superpowers): detect existing isolation first, then
-use native tools, then fall back to git — never fight the harness.**
+**Stage: Implement.** Principles 6, 7, 9.
 
-**Announce at start:** "Using the worktree skill to set up an isolated, clean-baseline workspace."
+The workspace a slice gets built in: isolated from the checkout the person has open, and starting from
+a test baseline somebody measured rather than assumed. It emits the workspace itself and no artifact of
+its own. Two slices sharing one working tree overwrite each other's work, and an unrecorded baseline
+leaves every later failure unattributable.
 
 ## When to use / when to skip
 
-**Use when** the orchestrator is about to dispatch a slice into `incremental-implementation` and hands you a branch
-name (per safety rail 1, `references/safety-rails.md`), or a human asks for "an isolated workspace / a worktree / a clean
-branch to work on" before starting feature work.
-
-**Skip when:** Step 0 detects you are ALREADY in a linked worktree on the intended branch (do not
-nest a second one — skip to setup); you are doing a trivial read-only investigation with no commits;
-or the user has explicitly declined isolation (then work in place and just run setup + baseline).
-
-**Escape hatch (`depth: lite`):** even a single-slice wave gets its own worktree and a verified
-baseline — do not "just edit in the main checkout because it's one small slice." The isolation and
-the clean baseline are the point even for a wave of one (consistent with safety rail 5:
-worktree-level parallelism; same-wave slices are isolated by construction).
+- A slice about to be implemented needs a workspace that cannot disturb the person's checkout — a wave
+  of one included; isolation and a known baseline are the point at any size.
+- Two pieces of work would otherwise share one working tree.
+- Someone asks for a clean branch, an isolated workspace, or a worktree before feature work starts.
+- Near-miss: a read-only investigation that commits nothing, or isolation the person declined — work in
+  place, and still take the baseline.
+- Not here: what gets built inside (`incremental-implementation`), branch naming and history
+  (`git-workflow`), sorting slices into waves and dispatching them (`orchestrator`).
 
 ## Inputs
 
-Foundation-only — no upstream *artifact* is consumed. Resolve these before creating anything; refuse
-only on the one hard-missing case noted:
+- **the branch name handed at dispatch** — helps: it is the branch the caller will look for · without
+  it: build one from the slice id and title (`git-workflow` owns the shape) and mark it `derived`,
+  rather than invent one in silence.
+- **the slice id**, e.g. `OFD-2` — helps: names the branch, the directory and the hand-back · without
+  it: read it off `STATE.md`, `docs/features/<slug>/plan.md` or the prompt, marked `derived`.
+- **a worktree-directory preference** — helps: an explicit instruction outranks whatever the filesystem
+  shows · without it: the priority in Process 2.
+- **the repository** — `git status`, `git rev-parse` — helps: every step below reads it · without it,
+  the directory being no repository: there is no worktree to cut, so say so, work in place, and leave
+  `git init` to `git-workflow`.
 
-- **Branch name** (REQUIRED) — per safety rail 1 (`cluster/C-<NNN>`, `feat/<slug>`, …), handed
-  by the orchestrator at dispatch, or derivable from the slice's row in `STATE.md`. If none is
-  supplied AND none is derivable → **ask; never invent a branch name** (a wrong branch is
-  hard-to-reverse). This is the refuse-to-run guard.
-- **Slice identity** (PRD-namespaced id, e.g. `PWR-2`) — for the report/handoff line; optional for a
-  bare human invocation.
-- **Worktree-directory preference** (OPTIONAL) — an explicit instruction beats observed filesystem
-  state (Step 1b priority order).
+In a person's own checkout, where no branch or directory was handed over, ask once before creating
+anything in it; with a branch handed, or with nobody there, create it and log the call.
 
 ## Process
 
-### Step 0: Detect existing isolation (run this FIRST, always)
+1. **Detect the isolation you already have before making any.** Compare `--git-dir` against
+   `--git-common-dir` as absolute physical paths (`git rev-parse --path-format=absolute --git-dir
+   --git-common-dir`, or `cd "$(git rev-parse --git-dir)" && pwd -P` on each): raw, they differ in any
+   subdirectory of a plain checkout, so every checkout reads as isolated. Differing means you are
+   already in a linked worktree — create nothing, go to step 3; detached there, the branch is the
+   caller's to create at finish time, so say so and carry on. They also differ inside a submodule, which
+   `git rev-parse --show-superproject-working-tree` answers with a path — a submodule is a plain
+   checkout here.
 
-```bash
-GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
-GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
-BRANCH=$(git branch --show-current)
-```
+2. **Prefer the host's own worktree primitive** — a worktree tool such as `EnterWorktree`, a
+   `/worktree` command, a workflow already running `isolation: 'worktree'` — since it owns placement,
+   branch creation and retirement together, and `git worktree add` on top of one makes state it cannot
+   manage. Only where there is none, cut one with git:
 
-**Submodule guard:** `GIT_DIR != GIT_COMMON` is ALSO true inside a git submodule. Before concluding
-"already in a worktree," verify you are not in a submodule:
+   - Directory, in priority order: an explicit instruction, an existing project-local `.worktrees/` or
+     `worktrees/` (`.worktrees` wins when both are there), else `.worktrees/` at the repository root.
+   - `git check-ignore -q .worktrees` before creating a project-local one; not ignored, add the line to
+     `.gitignore` and commit that first.
+   - `git worktree add "$dir/$branch" -b "$branch"`, then work from that path.
+   - A permission or sandbox denial ends nothing: say the sandbox refused, work in the current
+     directory, carry on to setup.
 
-```bash
-# If this returns a path, you're in a submodule, not a worktree — treat as a normal repo.
-git rev-parse --show-superproject-working-tree 2>/dev/null
-```
+3. **Install what the manifest names** — `package.json` → `npm install`, `Cargo.toml` → `cargo build`,
+   `requirements.txt` → `pip install -r`, `pyproject.toml` → the installer its lock file names
+   (`poetry.lock`, `uv.lock`, `pdm.lock`), else `pip install -e .`, `go.mod` → `go mod download`. No
+   manifest: skip it and name the skip.
 
-- **`GIT_DIR != GIT_COMMON` (and not a submodule):** you are already in a linked worktree → skip to
-  Step 2. Do NOT create another. Report: "Already in isolated workspace at `<path>` on branch
-  `<name>`" (or, if detached HEAD, "externally managed; branch creation needed at finish time").
-- **`GIT_DIR == GIT_COMMON` (or in a submodule):** normal checkout. If the orchestrator handed a
-  branch (or the user declared a preference), honor it without asking. Otherwise ask consent: "Set up
-  an isolated worktree? It protects your current branch from changes." Declined → work in place,
-  skip to Step 2.
+4. **Run the suite before a line is written, and record what it said.** Green is a clean baseline; red
+   is a baseline too — name the failing tests as the known-before set, so a later failure is
+   attributable to the slice. Nobody waits on that: a default with a reason, one `docs/session-log.md`
+   entry, a Decided-for-you row; only the stop list
+   ([`safety-rails.md`](../../references/safety-rails.md)) ends a slice.
 
-### Step 1: Create the isolated workspace (native → git, in that order)
-
-**1a. Native worktree tool (preferred).** Do you have a tool to create a worktree — e.g.
-`EnterWorktree`, a `/worktree` command, or the **Claude Code Workflow feature** running with
-`isolation: 'worktree'`? If so, USE IT and skip to Step 2. Native tools handle placement, branch
-creation, and cleanup; running `git worktree add` on top of one creates phantom state the harness
-can't see or manage. (When the orchestrator drives a wave via the Workflow `isolation:'worktree'`
-substrate, isolation is already provisioned — Step 0 will detect it; on Codex / manual runs, use the
-native tool or fall through to 1b.)
-
-**1b. Git worktree fallback (only if 1a is unavailable).**
-
-*Directory selection* — explicit instruction beats observed state:
-1. A declared worktree-directory preference → use it without asking.
-2. An existing project-local dir: `ls -d .worktrees 2>/dev/null` (preferred, hidden) /
-   `ls -d worktrees 2>/dev/null`. Both exist → `.worktrees` wins.
-3. Otherwise default to `.worktrees/` at the project root.
-
-*Safety — MUST verify the directory is git-ignored before creating (project-local dirs):*
-```bash
-git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/dev/null
-```
-**If NOT ignored:** add it to `.gitignore`, commit that change, THEN proceed. (Prevents committing
-worktree contents into the repo.)
-
-*Create:*
-```bash
-path="$LOCATION/$BRANCH_NAME"
-git worktree add "$path" -b "$BRANCH_NAME"
-cd "$path"
-```
-
-**Sandbox fallback:** if `git worktree add` fails with a permission/sandbox-denial error, tell the
-user the sandbox blocked worktree creation and you're working in the current directory instead, then
-run setup + baseline in place.
-
-### Step 2: Project setup
-
-Auto-detect and install:
-```bash
-[ -f package.json ]      && npm install
-[ -f Cargo.toml ]        && cargo build
-[ -f requirements.txt ]  && pip install -r requirements.txt
-[ -f pyproject.toml ]    && poetry install
-[ -f go.mod ]            && go mod download
-```
-No manifest → skip dependency install.
-
-### Step 3: Verify a clean baseline (the load-bearing guarantee)
-
-Run the project-appropriate suite (`npm test` / `cargo test` / `pytest` / `go test ./...`) to prove
-the workspace starts green:
-- **Tests pass →** report ready (below); hand off to `incremental-implementation`.
-- **Tests fail →** report the failures and ask whether to proceed or investigate. Do NOT start
-  implementing on a red baseline — you would not be able to attribute later failures.
-
-**Report:**
-```
-Worktree ready at <full-path> on <branch>
-Baseline: <N> tests passing, 0 failures
-Ready to implement <slice-id>
-```
-
-## Quick reference
-
-| Situation | Action |
-|---|---|
-| Already in a linked worktree (Step 0) | Skip creation → Step 2 |
-| In a submodule | Treat as normal repo (Step 0 guard) |
-| Native tool / Workflow `isolation:'worktree'` available | Use it (Step 1a) |
-| No native tool | Git fallback (Step 1b) |
-| `.worktrees/` and `worktrees/` both exist | Use `.worktrees/` |
-| Neither exists | Explicit pref → else default `.worktrees/` |
-| Directory not git-ignored | Add to `.gitignore` + commit first |
-| `git worktree add` permission error | Sandbox fallback: work in place |
-| Baseline tests fail | Report + ask; do NOT implement |
-| No `package.json`/`Cargo.toml`/… | Skip dependency install |
-
-## Platform adaptivity
-
-The mechanism is substrate-agnostic; only the *create* primitive changes — the detect/setup/baseline
-discipline is identical:
-- **Claude Code → the Workflow feature** with `isolation: 'worktree'` — the orchestrator provisions a
-  worktree per slice automatically; Step 0 detects it, so this skill verifies + sets up baseline.
-- **Codex / manual → native `EnterWorktree`** (Step 1a) or the **git fallback** (Step 1b).
-Teardown is NOT this skill's job: after a slice reaches a terminal state the orchestrator retires the
-worktree via `superpowers:finishing-a-development-branch` (verify tests → base branch → cleanup).
+5. **Hand back the workspace itself, not a summary of it** — the shape Outputs & handoff states, every
+   `derived` value marked with its source.
 
 ## Rationalizations
 
-| You catch yourself thinking… | Reality |
+| Rationalization | Reality |
 |---|---|
-| "I'll just `git worktree add` to be safe." | If you're already isolated (Step 0) or a native tool / Workflow isolation exists, that creates phantom nested state the harness can't manage. Detect first; prefer native. |
-| "Setup's done, I'll start coding — baseline tests can wait." | Then you can't tell a bug you introduce from one already there, and may ship on red. Verify the baseline FIRST. |
-| "`worktrees/` is obviously ignored, skip the check." | Assumption, not fact. One un-ignored worktree pollutes `git status` and can get committed. Always `git check-ignore`. |
-| "I'll drop the worktree under `~/tmp` to keep the repo clean." | Directory priority is explicit-instruction > existing project-local dir > default `.worktrees/`. Don't improvise placement. |
-| "Baseline's red but unrelated to my slice — I'll proceed." | A red baseline is unattributable. Report + ask; do not silently build on it. |
+| "I'll just `git worktree add`, it's the safe move" | A worktree cut inside one already there is state the harness can neither see nor retire. |
+| "The baseline can wait — the suite's red anyway" | A suite first run after the slice exists cannot separate its failures from the ones already there. |
+| "`.worktrees/` is obviously ignored already" | An un-ignored worktree directory is the repository committed into itself. |
+| "I'll drop it under `~/tmp` to keep the repo clean" | Placement improvised per run is placement the caller cannot find afterwards. |
+| "Nobody handed me a branch name, so I'll choose a good one" | An unmarked invented name reads downstream as a name somebody signed. |
 
-## Red flags — STOP
+## Red flags
 
-**Never:**
-- Run `git worktree add` when Step 0 detected existing isolation, or when a native tool / Workflow
-  `isolation:'worktree'` is available — this is the #1 mistake.
-- Jump straight to Step 1b's git commands, skipping the Step 0 detection and Step 1a native check.
-- Create a project-local worktree without `git check-ignore` confirming it's ignored.
-- Start `incremental-implementation` without a verified-clean baseline.
-- Proceed past a failing baseline without explicit permission.
-- Invent a branch name when none was handed and none is derivable (ask instead).
+- A second worktree cut inside one that was already there.
+- A project-local worktree directory that `git check-ignore` was never run against.
+- A hand-back with no baseline in it, or a baseline reported from a suite nobody ran.
+- A red suite repaired rather than recorded, or a slice held while somebody is asked about it.
+- An invented branch name travelling without its `derived` mark.
+- A `STATE.md` row or a gate flip written by this pass.
 
-**Always:**
-- Run Step 0 detection (incl. the submodule guard) first.
-- Prefer native tools / Workflow isolation over the git fallback.
-- Follow directory priority: explicit instruction > existing project-local dir > default.
-- Verify a project-local directory is ignored before creating.
-- Auto-detect + run project setup; verify a clean test baseline before handing off.
+## Verification
 
-## Verification (ending criteria)
+- [ ] One isolated workspace — found there, host-provisioned, or cut with git — sits on the intended
+      branch, or a detached one is reported as externally managed, and nothing is nested inside a
+      worktree.
+- [ ] A project-local worktree directory is git-ignored, and `git check-ignore` is what says so.
+- [ ] Dependencies are installed, or the skip is named with its reason.
+- [ ] The suite ran, and its result — the failing set included, where there is one — is in the
+      hand-back by name.
+- [ ] Every value the report carries that was reconstructed rather than handed over reads `derived`.
 
-Done when ALL hold:
-- An isolated workspace exists on the intended branch (detected pre-existing, OR created via native
-  tool / Workflow isolation, OR via the git fallback) — never a second nested worktree.
-- For a git-fallback project-local directory: it is git-ignored (confirmed by `git check-ignore`).
-- Project setup ran (or was correctly skipped — no manifest).
-- The **baseline test suite was executed**; it is GREEN, or its failure was reported and explicit
-  permission to proceed was obtained.
-- The ready-report (path · branch · baseline result · slice id) was emitted to the orchestrator.
+## Outputs & handoff
 
-## Outputs & handoff contract
-
-- **Emits → `worktree`** (registry artifact): a live isolated workspace = `{absolute path, branch,
-  baseline: pass|fail}`. It is infrastructure, not a markdown file.
-- **Consumers:** the **`orchestrator`** (owns the mechanism — receives the ready-report and
-  dispatches the slice into it) and **`incremental-implementation`** (runs *inside* the handed worktree; never creates
-  its own).
-- **STATE.md:** worktree provisioning adds **no new state token** — it is a sub-step of a slice
-  entering `impl` (registry slice states: `impl·verify·review·ship·done·blocked·halted`). The slice
-  sits at `impl` / gate `agent` while the worktree is live; record nothing extra. If the baseline is
-  red and the human is asked, that is an escalation the orchestrator may reflect by flipping
-  `gate: agent → you`.
-- **Teardown** is out of scope here: deferred to `superpowers:finishing-a-development-branch` once the
-  slice is terminal. **If you change the ready-report shape, update the `orchestrator` in the same
-  commit** (it parses path/branch/baseline).
+- **The workspace, returned in conversation** — absolute path · branch · baseline with its counts and
+  any failing test names · slice id · each `derived` value and its source. Live infrastructure is no
+  file to open later, so this report is the whole hand-off: `orchestrator` dispatches the slice into it,
+  and `incremental-implementation` builds inside it rather than cutting isolation of its own. The run
+  parses this shape, so a change to it changes `orchestrator` in the same commit.
+- **`.gitignore`** — one line naming the worktree directory, committed before the worktree exists; only
+  on the git fallback into a project-local directory.
+- **`docs/session-log.md`** — one appended entry per decided-for-you call (a red baseline carried
+  forward, isolation the sandbox refused, a derived branch name), cap 60 words, shaped as
+  [`state-schema.md`](../../references/state-schema.md) states; report each entry's measured length
+  against that cap, and trim an over-cap entry rather than hand it on.
+- **No `STATE.md` row and no gate flip** — provisioning is a sub-step of a slice entering `impl`, and
+  the caller owns the transition ([`state-schema.md`](../../references/state-schema.md)).
+- **Retirement belongs to the caller**, once the slice is terminal: the tests verified, the work on its
+  base branch, then the worktree removed and the branch deleted.

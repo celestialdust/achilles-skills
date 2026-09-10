@@ -37,8 +37,10 @@
 //     linked. Accepting any kebab-case word in a bullet would turn prose under a stage heading into
 //     phantom rows, and a check that cries wolf on correct files is one people stop reading.
 //     Reading all three forms took coverage from 40 rows in 1 file to 198 in 6.
-//   · Each named skill's own declaration: the first line matching `Stage:` / `**Stage:**` /
-//     `**Stage tag:**`. Three spellings are in use across the tree and all three are read.
+//   · Each named skill's own declaration: the `Stage:` line that sits under the H1 (v2's
+//     envelope, `Stage: Spec · Principles: 4, 6`). The older `**Stage:**` / `**Stage tag:**`
+//     spellings are still read, so this keeps working while the tree is being rewritten;
+//     `check-envelope.mjs`, not this, is what holds the line to the exact grammar.
 //
 // HOW A DECLARATION IS PARSED, and this is the fiddly half. The line is cut at its first em-dash and
 // stage keywords are collected from what precedes it, because everything after the dash is commentary
@@ -49,8 +51,8 @@
 // `Spec`. A line with two bolded stages and no dash yields both: `Stage: **Spec** (pass 1) + **Plan**
 // (pass 2)` is a genuine two-stage declaration and is meant to pass under either.
 //
-// A skill declaring `cross-cutting` satisfies any registry stage. That is not laxity — a cross-cutting
-// skill is one deliberately not owned by a stage, so a registry filing it under one is not a
+// A skill declaring `Cross-cutting` or `Standalone` satisfies any registry stage. That is not laxity —
+// both are deliberately not owned by a stage, so a registry filing one under a stage is not a
 // contradiction. Narrowing that would make the check fire on skills that are correct.
 //
 // WHAT IT DELIBERATELY DOES NOT CHECK, which is the honest half.
@@ -70,6 +72,8 @@
 //     beneath it are compared to it; a heading that names the wrong stage for its whole table is
 //     internally consistent and passes.
 //
+// `agents/` is gone, so no persona file is walked and no persona declares a stage.
+//
 // EXERCISE IT BEFORE YOU TRUST IT, AND PLANT MORE THAN ONE SHAPE. Planting a single wrong stage on a
 // skill with a clean declaration is the ritual that certified this script while two false PASSes sat in
 // the tree: a declaration with no em-dash had its trailing prose harvested as extra stages, and a cell
@@ -86,11 +90,15 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-const STAGES = ['Ideate', 'Spec', 'Plan', 'Implement', 'Verify', 'Review', 'Ship', 'cross-cutting'];
+const STAGES = ['Ideate', 'Spec', 'Plan', 'Implement', 'Verify', 'Review', 'Ship', 'Cross-cutting', 'Standalone'];
+
+// The two that belong to no stage. A skill declaring either satisfies any registry filing, and a
+// grouping label naming either constrains nothing.
+const unbound = (list) => list.some((s) => /^(?:cross-cutting|standalone)$/i.test(s));
 
 // Files this walks. `.claude/` holds registered git worktrees — full copies of the tree whose rows are
 // not this checkout's rows.
-const MD_ROOTS = ['skills', 'commands', 'agents', 'docs', 'references'];
+const MD_ROOTS = ['skills', 'commands', 'docs', 'references'];
 const ROOT_FILES = ['README.md', 'CONTRIBUTING.md', 'CLAUDE.md', 'CONTEXT.md', 'AGENTS.md'];
 
 function walk(dir, out = []) {
@@ -187,7 +195,7 @@ for (const file of files) {
       // word in a bullet would turn ordinary prose under a stage heading into phantom rows, and a check
       // that cries wolf on correct files is one people stop reading.
       const bullet = line.match(/^\s*[-*]\s+(?:`([a-z][a-z0-9-]*)`|\[([a-z][a-z0-9-]*)\])/);
-      if (bullet && groupStages && !groupStages.includes('cross-cutting')) {
+      if (bullet && groupStages && !unbound(groupStages)) {
         const name = bullet[1] || bullet[2];
         if (/^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$/.test(name))
           rows.push({ file, line: i + 1, stage: groupStages.join(' · '), skill: name });
@@ -198,7 +206,7 @@ for (const file of files) {
       const inline = line.match(/^\*\*([^*]+)\*\*\s*[—–]\s*(.+)$/);
       if (inline) {
         const st = labelStages(inline[1]);
-        if (st.length && !st.includes('cross-cutting')) {
+        if (st.length && !unbound(st)) {
           for (const part of inline[2].split('·')) {
             const name = skillName(part).replace(/\(.*$/, '').trim();
             // Emit a row for anything shaped like a skill name, not only for names that resolve.
@@ -220,9 +228,9 @@ for (const file of files) {
       if (s >= 0 && k >= 0) {
         stageCol = s;
         skillCol = k;
-      } else if (k >= 0 && groupStages && !groupStages.includes('cross-cutting')) {
+      } else if (k >= 0 && groupStages && !unbound(groupStages)) {
         // No Stage column, but a grouping label above it says which stage these rows are filed under.
-        // A `cross-cutting` label constrains nothing, the same way a cross-cutting declaration does.
+        // A `Cross-cutting` or `Standalone` label constrains nothing, the same way such a declaration does.
         useGroup = true;
         skillCol = k;
       }
@@ -251,7 +259,7 @@ for (const r of rows) {
     if (!unchecked.has(r.skill)) unchecked.set(r.skill, r);
     continue;
   }
-  if (declared.includes('cross-cutting')) continue;
+  if (unbound(declared)) continue;
   // A cell may name more than one stage — a skill applied during both Plan and Implement is filed as
   // `Plan · Implement`, and splitting is what lets the registry say that instead of picking one and
   // being wrong about the other. EVERY stage the cell names has to be declared, not merely one of

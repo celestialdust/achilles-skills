@@ -1,215 +1,154 @@
 ---
 name: codebase-design
-description: Shared vocabulary and method for designing deep modules — a lot of behaviour behind a small interface, at a clean seam, testable through it. Use when spec-grilling needs a structural variant for a load-bearing question during Spec, when planning a module's interface during plan-breakdown, when the user wants to design or improve an interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary. Reach for it BEFORE you write interface signatures into plan.md — designing the seam after the code exists is too late.
+description: Shape a module before the code exists — a lot of behaviour behind a small interface, at a seam something actually varies across. Use it for a Spec variant, to land a module's contract in `plan.md`, on a split-or-merge refactor, or code-cold over a written structure. Consumer-facing surfaces stay with `api-design`, components and edges with `architecture-design`.
 ---
+
+# Codebase and module design
 
 ## Purpose
 
-**Stage: Spec · Plan — a referenced discipline, not a sequential stage.** `spec-grilling` dispatches it
-in Spec to propose a variant for a load-bearing structural question; `architecture-design` dispatches it in
-Spec as a code-cold lens over a structure already written, where it grades rather than proposes and returns
-findings it may not apply; `plan-breakdown` reaches for it in Plan to shape a module's interface into
-`plan.md`. It owns no artifact of its own.
+**Stage: Spec · Plan.** Principles 1, 5, 6, 7, 8.
 
-Design **deep modules**: a lot of behaviour behind a small interface, placed at a clean seam, testable
-through that interface. Depth buys three things — **leverage** for callers (more capability per unit of
-interface they must learn), **locality** for maintainers (change/bugs/knowledge concentrate in one place),
-and **testability** for everyone (callers and tests cross the same seam). The exact, shared vocabulary
-below *is* the point: inconsistent words ("component", "service", "boundary") are how design conversations
-quietly go wrong.
+Shapes a **deep module** — a lot of behaviour behind a small interface, at a seam something actually varies
+across, testable through that interface. Depth buys leverage for callers and locality for maintainers. The
+Glossary is half the method: two people saying "boundary" agree to different things. It owns no artifact.
 
 ## When to use / when to skip
 
-Use in Spec when `spec-grilling` asks for a structural variant or when `architecture-design` dispatches the
-depth sweep over a structure it has written, in Plan when `plan-breakdown` is deciding a module's interface
-or where a seam goes, or standalone for a pure refactor (deepening a cluster of shallow modules). Use it
-whenever another skill needs the deep-module vocabulary so everyone names things the same way.
-
-Skip when there's no real module to shape — a one-line config change, a pure data migration, trivial
-glue. Escape hatch: do **not** introduce a seam for a single adapter ("one adapter = hypothetical seam;
-two = real") — that's just indirection, and this skill will tell you so.
+- A module is about to exist or change shape — planned, merged out of shallow ones, split for a second
+  reason to change, or about to be built against.
+- The Spec sitting, as a variant for a load-bearing structural question — what earns its existence, what
+  has to be swappable, where the seam falls (`spec-grilling`).
+- Plan, where `plan-breakdown` needs the interface pinned before a slice builds to it.
+- Code-cold over a written `architecture.md` (`architecture-design`), or by hand on a refactor.
+- Skip — what a consumer may depend on, the error envelope, pagination: `api-design`.
+- Skip — which components exist and the edges between them: `architecture-design`.
+- Skip — code that reads heavy but keeps its seam: `code-simplification`.
+- Skip — nothing to shape: a config change, a data migration, glue.
 
 ## Inputs
 
-- **The deepening candidate** — a named module, a cluster of shallow modules, or the interface you're
-  about to write into `plan.md`, plus a sketch of the behaviour that sits behind it.
-- **Its dependencies** — so you can classify them (in-process / local-substitutable / remote-but-owned /
-  true-external) per `references/DEEPENING.md`.
-- **`research.md`'s `## Structural facts`** — seams and their adapter counts, module boundaries,
-  conventions in use; `_none_` where there are none. It is what a proposed candidate stands on.
-- **`CONTEXT.md`** (repo-root glossary — its **`## Glossary`** section) for ubiquitous-language names, and
-  **`docs/adr/`** for prior boundary decisions, so the interface you name is consistent with the project.
+- The candidate — helps: the module to shape and what it calls, so each dependency can be classified ·
+  without it: name one from the prompt and the code in front of you, marked `derived`
+- `docs/features/<slug>/research.md` — helps: `## Structural facts` has the seams, their adapter counts,
+  the conventions in use · without it: read the candidate's imports and one caller, marked `derived`
+- `CONTEXT.md` — helps: the `## Glossary` terms this module is named from, verbatim · without it: reuse
+  the names the code uses, coining nothing, marked `derived`
+- `docs/adr/` — helps: boundary decisions already taken, cited by id and built to · without it: treat this
+  one as new, ADR-worthy if hard to reverse
+- `docs/features/<slug>/prd.md` — helps: `## Solution` and `## Implementation Decisions` say what sits
+  behind the seam · without it: take it from `intent.md`, marked `derived`
 
-**Refuse to run if** no candidate can be named at all — not even one you propose. The refusal exists to
-stop design in a vacuum, and a surveyed repository is not a vacuum: with `research.md` and the intent in
-hand, name the module and what sits behind it yourself.
+A present person is worth at most three questions, where the answer changes the module's shape: what
+varies across the seam, which caller the interface is for, what may never be exposed.
 
 ## Process
 
-1. **Name it in the vocabulary.** Write the module and its candidate interface using the Glossary terms
-   below. The **interface** is everything a caller must know — signature *plus* invariants, ordering
-   constraints, error modes, required config, performance characteristics — not just the type.
-2. **Apply the deletion test.** Imagine deleting the module. If complexity vanishes, it was a pass-through;
-   don't build it. If complexity reappears across N callers, it earns its keep. Write down what reappears.
-3. **Push for depth.** Can I cut methods? Simplify params? Hide more behind the seam? (See *Deep vs
-   shallow*.)
-4. **Place the seam, classify dependencies.** Decide where the seam lives, then classify each dependency
-   (in-process / local-substitutable / remote-but-owned / true-external) — `references/DEEPENING.md` gives
-   the testing approach for each. Only define a port when **two** adapters are justified (prod + test).
-5. **Design it twice for load-bearing interfaces.** For a high-stakes interface, spin up parallel
-   sub-agents to produce radically different designs, then compare on depth / locality / seam placement —
-   see `references/DESIGN-IT-TWICE.md`. Your first idea is unlikely to be the best.
-6. **Land it in plan.md; promote durable boundaries to ADRs.** Write the resulting interface into
-   `plan.md` under the slice that owns the module. If the boundary is **hard-to-reverse ∧ surprising ∧ a
-   real trade-off**, record it as an ADR via `documentation-and-adrs` and reference it by id from
-   `plan.md` — don't bury a durable decision in plan prose where the gate rubber-stamps it unseen.
+[`references/seams-and-adapters.md`](references/seams-and-adapters.md) has the four dependency categories
+and how a module is tested across each; [`references/design-it-twice.md`](references/design-it-twice.md)
+has the variant fan-out.
+
+1. **Name the structure in this file's Glossary terms and the domain in `CONTEXT.md`'s `## Glossary`
+   verbatim, coining nothing** — no component, service, API or boundary. The interface is everything a
+   caller must know, as the Glossary's Interface row lists it.
+
+2. **Apply the deletion test and record what reappears.** Delete the module on paper: vanishing complexity
+   was a pass-through, so do not build it; reappearing complexity is written down with the callers it lands
+   on, since "it earns its keep" alone is a preference.
+
+3. **Push for depth at the interface, not the implementation.** Cut methods, simplify parameters, move
+   more behind the seam. An interface nearly as complex as what it hides is shallow at any size.
+
+4. **Place the seam, then classify each dependency** — in-process, local-substitutable, remote-but-owned,
+   true-external — since the category decides how it is tested across that seam. Two justified adapters,
+   production and test, earn a port; one is indirection.
+
+5. **Design a load-bearing interface more than once.** Where the shape is hard to reverse, produce
+   genuinely different interfaces under different constraints, compare them on depth, locality and seam
+   placement, and close with a recommendation or a hybrid — never a menu.
+
+6. **Keep the interface the test surface, and cheap to test through.** A test asserting observable
+   outcomes through the seam survives a refactor behind it; one reaching into internal state says the
+   module is the wrong shape — move the seam rather than widen the interface for a test. Take dependencies
+   rather than construct them; return results rather than mutate.
+
+7. **Hand a hard-to-reverse boundary over rather than settling it.** All three of hard-to-reverse,
+   surprising and a real trade-off: name it ADR-worthy with its alternative and its cost, for the caller
+   to record (`documentation-and-adrs`); reversible detail stays inline. With nobody there — the default,
+   its reason, one log entry, one Decided-for-you row.
+
+8. **Land the contract where the builder reads it cold** — a Spec variant carrying your recommendation,
+   or `plan.md`'s `## File Structure` and the owning slice's `plan/<slice-id>.md` step snippet
+   (`plan-breakdown` owns both), exact enough that `incremental-implementation` builds to it and
+   `test-driven-development` asserts through it.
+
+9. **Grade a written structure code-cold, editing nothing**
+   ([`safety-rails.md`](../../references/safety-rails.md)) — the deletion test and one-reason-to-change
+   applied to a structure somebody already wrote, its checks catalogued in
+   [`lens-passes.md`](../architecture-design/references/lens-passes.md). Each finding is a fact plus a
+   recommended answer. By hand, close with `pass · concerns · block` (`block` a stop-list item);
+   dispatched by `architecture-design`, hand back findings only — an empty list where you found none.
 
 ## Glossary
 
-Use these terms exactly — don't substitute "component," "service," "API," or "boundary." Consistent language is the whole point.
-
-**Module** — anything with an interface and an implementation. Deliberately scale-agnostic: a function, class, package, or tier-spanning slice. _Avoid_: unit, component, service.
-
-**Interface** — everything a caller must know to use the module correctly: the type signature, but also invariants, ordering constraints, error modes, required configuration, and performance characteristics. _Avoid_: API, signature (too narrow — they refer only to the type-level surface).
-
-**Implementation** — what's inside a module, its body of code. Distinct from **Adapter**: a thing can be a small adapter with a large implementation (a Postgres repo) or a large adapter with a small implementation (an in-memory fake). Reach for "adapter" when the seam is the topic; "implementation" otherwise.
-
-**Depth** — leverage at the interface: the amount of behaviour a caller (or test) can exercise per unit of interface they have to learn. A module is **deep** when a large amount of behaviour sits behind a small interface, **shallow** when the interface is nearly as complex as the implementation.
-
-**Seam** _(Michael Feathers)_ — a place where you can alter behaviour without editing in that place; the *location* at which a module's interface lives. Where to put the seam is its own design decision, distinct from what goes behind it. _Avoid_: boundary (overloaded with DDD's bounded context).
-
-**Adapter** — a concrete thing that satisfies an interface at a seam. Describes *role* (what slot it fills), not substance (what's inside).
-
-**Leverage** — what callers get from depth: more capability per unit of interface they learn. One implementation pays back across N call sites and M tests.
-
-**Locality** — what maintainers get from depth: change, bugs, knowledge, and verification concentrate in one place rather than spreading across callers. Fix once, fixed everywhere.
-
-## Deep vs shallow
-
-**Deep module** = small interface + lots of implementation:
-
-```
-┌─────────────────────┐
-│   Small Interface   │  ← Few methods, simple params
-├─────────────────────┤
-│                     │
-│  Deep Implementation│  ← Complex logic hidden
-│                     │
-└─────────────────────┘
-```
-
-**Shallow module** = large interface + little implementation (avoid):
-
-```
-┌─────────────────────────────────┐
-│       Large Interface           │  ← Many methods, complex params
-├─────────────────────────────────┤
-│  Thin Implementation            │  ← Just passes through
-└─────────────────────────────────┘
-```
-
-When designing an interface, ask:
-
-- Can I reduce the number of methods?
-- Can I simplify the parameters?
-- Can I hide more complexity inside?
-
-## Principles
-
-- **Depth is a property of the interface, not the implementation.** A deep module can be internally composed of small, mockable, swappable parts — they just aren't part of the interface. A module can have **internal seams** (private to its implementation, used by its own tests) as well as the **external seam** at its interface.
-- **The deletion test.** Imagine deleting the module. If complexity vanishes, it was a pass-through. If complexity reappears across N callers, it was earning its keep.
-- **The interface is the test surface.** Callers and tests cross the same seam. If you want to test *past* the interface, the module is probably the wrong shape.
-- **One adapter means a hypothetical seam. Two adapters means a real one.** Don't introduce a seam unless something actually varies across it.
-
-## Designing for testability
-
-Good interfaces make testing natural:
-
-1. **Accept dependencies, don't create them.**
-
-   ```typescript
-   // Testable
-   function processOrder(order, paymentGateway) {}
-
-   // Hard to test
-   function processOrder(order) {
-     const gateway = new StripeGateway();
-   }
-   ```
-
-2. **Return results, don't produce side effects.**
-
-   ```typescript
-   // Testable
-   function calculateDiscount(cart): Discount {}
-
-   // Hard to test
-   function applyDiscount(cart): void {
-     cart.total -= discount;
-   }
-   ```
-
-3. **Small surface area.** Fewer methods = fewer tests needed. Fewer params = simpler test setup.
-
-## Relationships
-
-- A **Module** has exactly one **Interface** (the surface it presents to callers and tests).
-- **Depth** is a property of a **Module**, measured against its **Interface**.
-- A **Seam** is where a **Module**'s **Interface** lives.
-- An **Adapter** sits at a **Seam** and satisfies the **Interface**.
-- **Depth** produces **Leverage** for callers and **Locality** for maintainers.
-
-## Rejected framings
-
-- **Depth as ratio of implementation-lines to interface-lines** (Ousterhout): rewards padding the implementation. We use depth-as-leverage instead.
-- **"Interface" as the TypeScript `interface` keyword or a class's public methods**: too narrow — interface here includes every fact a caller must know.
-- **"Boundary"**: overloaded with DDD's bounded context. Say **seam** or **interface**.
+| Term | What it means here | Not |
+|---|---|---|
+| **Module** | anything with an interface and an implementation — a function, a package, a tier-spanning slice | unit, component, service |
+| **Interface** | everything a caller must know: signature, invariants, ordering, error modes, required configuration, performance | API, signature — both stop at the type |
+| **Implementation** | what sits inside; a small adapter can hold a large one | internals, guts |
+| **Seam** | where behaviour can be altered without editing in that place; where an interface lives (Feathers) | boundary — DDD has it |
+| **Adapter** | a concrete thing satisfying an interface at a seam — a role, not a substance | implementation, driver |
+| **Depth** | behaviour a caller or a test reaches per unit of interface it has to learn | implementation lines ÷ interface lines, which rewards padding |
+| **Leverage** | what callers get — one implementation paying back across N call sites and M tests | reuse |
+| **Locality** | what maintainers get — change, bugs and verification in one place | cohesion |
 
 ## Rationalizations
 
-- *"I'll design the interface once the code exists."* → The interface **is** the test surface. Designing
-  it after the code means the tests already cross the wrong seam.
-- *"Add the port now, we might need a second adapter later."* → One adapter = hypothetical seam =
-  indirection. Wait for the second to actually exist.
-- *"It's a small module, depth doesn't matter."* → Depth is leverage per unit of interface, independent of
-  size. A small module with a needlessly large interface is still shallow.
-- *"This boundary decision is fine left in plan.md prose."* → If it's hard-to-reverse, it belongs in an
-  ADR, or it gets rubber-stamped unseen at the single Spec/Plan gate.
-- *"I'll just call it a component / service / boundary."* → Inconsistent vocabulary is the exact failure
-  mode this skill exists to prevent. Use the Glossary words.
+- "I'll design the interface once the code exists" → by then the tests already cross the wrong seam.
+- "Add the port now, we might need a second adapter later" → one adapter is a hypothetical seam, and
+  every reader pays a hop for it.
+- "Small module, depth doesn't matter" → depth is leverage per unit of interface, independent of size.
+- "The tests need to see inside" → a test past the interface pins the implementation in place.
+- "Fine to leave this boundary in plan prose" → a decision nobody was shown is one nobody agreed to.
+- "Component, service, boundary — same thing" → inconsistent vocabulary is the failure this skill prevents.
 
-## Red flags — STOP
+## Red flags
 
-- You're **testing past the interface** (reaching into internal state) → the module is the wrong shape;
-  reshape the seam, don't add a back door.
-- The **interface is nearly as complex as the implementation** → shallow module. Deepen it or delete it.
-- You introduced a **seam/port with exactly one adapter** → remove the indirection until a second adapter
-  is real.
-- You're measuring **depth as impl-lines ÷ interface-lines** → rejected framing (rewards padding the
-  implementation); use depth-as-leverage.
-- A **hard-to-reverse boundary** is sitting only in `plan.md` prose → promote it to an ADR before the gate.
+- A test reaching into internal state, or an interface widened to let one in.
+- An interface nearly as complex as the implementation behind it.
+- A port or seam with one adapter and no second one named.
+- Depth argued as implementation lines over interface lines.
+- A hard-to-reverse boundary sitting only in `plan.md` prose.
+- A deletion-test answer that is a verdict, not the complexity that reappears.
 
-## Verification (ending criteria)
+## Verification
 
-- Each module's interface is written into `plan.md` in the suite vocabulary, as the **full contract**
-  (signature + invariants + ordering + error modes + performance), not just a type signature.
-- Every candidate passed the **deletion test**, with the reappearing complexity documented.
-- Every seam has **≥2 justified adapters**, or it isn't a seam (the indirection was removed).
-- Dependencies are **classified** and the cross-seam testing approach is stated (replace, don't layer).
-- **Hard-to-reverse boundaries** are captured as ADRs via `documentation-and-adrs` and referenced by id
-  from `plan.md`.
+- [ ] The module is named in this file's Glossary terms and the domain in `CONTEXT.md`'s, verbatim.
+- [ ] The interface is written where Process 8 lands it — `plan.md`'s `## File Structure`, the owning
+      slice's `plan/<slice-id>.md`, or the Spec variant — as the full contract, not a type signature alone.
+- [ ] Every candidate has a deletion-test answer on record: what reappears, across which callers.
+- [ ] Every seam has two justified adapters or the port is gone; each dependency is named by category
+      and the testing approach across that seam is stated.
+- [ ] The tests named for the module assert through its interface, and none reaches past it.
+- [ ] Each hard-to-reverse boundary is cited by ADR id, named ADR-worthy with its alternative, or settled
+      with a logged reason and a Decided-for-you row.
+- [ ] Every value reconstructed from a missing input is marked `derived` where written.
+- [ ] A code-cold pass left every file as it was and closed as its caller reads it: `pass · concerns ·
+      block` by hand, findings only — empty where there were none — when dispatched.
 
-## Outputs & handoff contract
+## Outputs & handoff
 
-- **Emits:** deep-module **interfaces in `plan.md`** (under `## File Structure`, or beside the steps of
-  the slice that owns the module) — the
-  registry artifact for this discipline. There is **no standalone artifact** and **no `STATE.md` row
-  transition**: this is a referenced discipline, not a slice.
-- **Stable surface `plan-breakdown` consumes:** for each module, the interface description (signature +
-  invariants + ordering + error modes + performance) and its seam/adapter plan (dependency category +
-  prod/test adapters).
-- **Hard-to-reverse decisions** → `docs/adr/ADR-<NNN>-<slug>.md` via `documentation-and-adrs`; `plan.md`
-  references them by id. "Change the shape → update the referrer in the same commit" extends to ADRs.
-- **Going deeper (carried references):** deepening a cluster given its dependencies →
-  `references/DEEPENING.md`; exploring alternative interfaces with parallel sub-agents →
-  `references/DESIGN-IT-TWICE.md`. `SKILL.md` points to both.
+**No artifact of its own, and no `STATE.md` row.** The interface lands in the caller's file —
+`plan.md`'s `## File Structure` or the owning slice's `plan/<slice-id>.md` step snippet, a §6 finding for
+`architecture-design`, a record for `spec-grilling` — so one fact keeps one writer and the caller owns the
+transition ([`state-schema.md`](../../references/state-schema.md)). When the shape changes its referrers
+move in the same change — the plan section, the tests asserting through the interface, the ADR (superseded
+by link) — and every Decided-for-you row citing that section is confirmed or reversed, logged.
+
+**`docs/session-log.md`** — one appended entry per boundary settled alone, cap 60 words, matching its
+Decided-for-you row ([`state-schema.md`](../../references/state-schema.md)). Report the measured length
+against that cap; an over-cap entry is trimmed, not handed on.
+
+**Returned in conversation** — the module and its full interface, the deletion-test answer, the seam with
+each dependency's category and its adapters, any boundary named ADR-worthy with its alternative, and what
+each `derived` input came from. Dispatched code-cold, the findings alone; by hand, those and the verdict.

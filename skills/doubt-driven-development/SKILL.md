@@ -1,294 +1,162 @@
 ---
 name: doubt-driven-development
-description: In-flight adversarial review — subjects every non-trivial decision to a fresh-context reviewer biased to disprove, not approve, BEFORE it stands. Use during Plan and Implement (not at the merge gate) when correctness outweighs speed, when working in unfamiliar code, when stakes are high (production, security-sensitive logic, irreversible operations), or any time a confident output would be cheaper to disprove now than to debug later. If you feel certain, that is exactly when to reach for it.
+description: Cross-examine one non-trivial in-flight decision before it stands — name the claim, hand a fresh code-cold agent the artifact and its contract with your reasoning stripped, classify what comes back, stop at three cycles. Not the merge-gate diff pass (code-review) or a failure already in hand (debugging-and-error-recovery).
 ---
 
 # Doubt-Driven Development
 
 ## Purpose
 
-A confident answer is not a correct one. Long sessions accumulate context that quietly turns assumptions into "facts" without anyone noticing. Doubt-driven development is the discipline of materializing a fresh-context reviewer — biased to **disprove**, not approve — before any non-trivial output stands.
+**Stage: cross-cutting.** Principles 6, 7, 8.
 
-This is not `/review`. `/review` is a verdict on a finished artifact. This is an in-flight posture: non-trivial decisions get cross-examined while course-correction is still cheap.
-
-Stage: **in-flight**, applied during **Plan** and **Implement**. doubt is NOT a merge gate and is
-NOT one of the three agent-internal SHIP gates (quality-verification · Review fan-out · evaluator floors) — its whole
-value is firing *before* a decision reaches a gate, while reversing it is still cheap.
+Cross-examines one non-trivial decision while it is still in flight: a fresh code-cold agent tries to
+disprove it, and you classify what comes back. It writes no chain artifact — the findings are working data
+the caller folds into its own artifact. A confident answer is not a correct one, and a long session
+turns assumptions into facts quietly.
 
 ## When to use / when to skip
 
-A decision is **non-trivial** when at least one of these is true:
-
-- It introduces or modifies branching logic
-- It crosses a module or service boundary
-- It asserts a property the type system or compiler cannot verify (thread safety, idempotence, ordering, invariants)
-- Its correctness depends on context the future reader cannot see
-- Its blast radius is irreversible (production deploy, data migration, public API change)
-
-Apply the skill when:
-
-- About to make an architectural decision under uncertainty
-- About to commit non-trivial code
-- About to claim a non-obvious fact ("this is safe", "this scales", "this matches the spec")
-- Working in code you don't fully understand
-
-**When NOT to use:**
-
-- Mechanical operations (renaming, formatting, file moves)
-- Following a clear, unambiguous user instruction
-- Reading or summarizing existing code
-- One-line changes with obvious correctness
-- Pure tooling operations (running tests, listing files)
-- The user has explicitly asked for speed over verification
-
-If you doubt every keystroke, you ship nothing. The skill applies only to non-trivial decisions as defined above.
+- About to commit non-trivial code, settle an architectural decision under uncertainty, or assert a
+  non-obvious fact — "this is safe", "this scales", "this matches the spec".
+- Non-trivial means it branches, crosses a module or service boundary, asserts a property no compiler
+  checks (thread safety, idempotence, ordering), rests on context the next reader cannot see, or is
+  irreversible.
+- In flight during Plan and Implement, while reversing still costs little — not at the merge gate, and
+  not one of the gates a slice passes on its way to a pull request.
+- Working in code you do not fully understand, or feeling certain.
+- Skip a mechanical edit, an unambiguous instruction, read-only work or a plainly correct one-liner:
+  say which it is and hand it back.
+- Near-miss — a finished diff at the merge gate: `code-review`. A failure already in hand:
+  `debugging-and-error-recovery`. A framework fact against its docs: `source-driven-development`.
+  Rerunning a throwaway until it wins: `gauntlet-loop`.
 
 ## Inputs
 
-doubt runs IN-FLIGHT during Plan or Implement — it is not a chain stage and consumes no upstream artifact
-file. The orchestrator (or the in-flight author — `plan-breakdown` or `incremental-implementation`) hands it exactly two
-things, the smallest reviewable unit (Step 2 EXTRACT):
+Two things come from the caller, no upstream artifact is owed, and one fact is about where you run:
 
-- **ARTIFACT** — the in-flight decision under scrutiny: the diff/function, or the proposal in 3–5 sentences,
-  or the claim plus the evidence that supposedly supports it.
-- **CONTRACT** — the properties the artifact must satisfy: the constraints, invariants, or the relevant
-  `acceptance.md` scenario the decision is meant to honor.
+- **the artifact** — helps: the diff, the function, the proposal in three to five sentences, or the
+  claim plus its evidence · without it: take the smallest unit in flight and name which, marked
+  `derived`
+- **the contract** — helps: the invariants or the `acceptance.md` scenario the decision has to honour ·
+  without it: rebuild it from `docs/features/<slug>/prd.md`, the ADRs and the surrounding conventions,
+  marked `derived`
+- **whether a person is present** — helps: a second model is theirs to authorise · without it: assume
+  nobody is and stay single-model
 
-Refuse-to-run when there is **no non-trivial decision** to examine (see *When to use / when to skip*):
-mechanical edits, clear user instructions, read-only/summarize work, and obviously-correct one-liners get
-no doubt cycle. `depth: lite` — the refuse-to-run test is the **triviality test**, not a missing-file test
-(there is no chain artifact to be absent).
-
-**Depends on (contract):** foundation only — doubt has no upstream house-skill dependency.
+With a person present, ask at most three questions, and only where the gap changes what gets examined.
 
 ## Loading Constraints
 
-This skill is designed for the **main-session orchestrator**, where Step 3 (DOUBT, detailed below) can spawn a fresh-context reviewer.
-
-- doubt runs from the **main-session orchestrator** — the context that can spawn a fresh subagent for Step 3. Do not bury doubt inside a subagent: a subagent that reaches Step 3 cannot spawn a nested subagent (Claude Code blocks nested spawn), so its "fresh-context" review silently degrades to self-questioning. That is what the composition rule in `../../CLAUDE.md` protects: a slash command or the user is the orchestrator, and nothing it dispatches dispatches further.
-- **If you find yourself applying this skill from inside a subagent context** (where Claude Code prevents nested subagent spawn): the preferred path is to surface to the user that doubt-driven cannot run nested and let the main session handle it. As a last resort only, a degraded self-questioning fallback exists — rewrite ARTIFACT + CONTRACT as a fresh self-prompt with a hard mental separator from your prior reasoning, and walk Steps 1–5. This is **not fresh-context review** (you carry your own context with you), so flag the result as degraded and prefer escalation whenever the user is reachable.
+Run the cycle where a subagent can still be spawned. Nested spawn is blocked, so a cycle buried inside
+one degrades quietly into self-questioning: surface that to the caller rather than press on. Going on
+alone, re-read the artifact against the Step 3 prompt below from a clean slate and label the result
+degraded — your own context travels with you.
 
 ## The Process
 
-Copy this checklist when applying the skill:
+1. **Name the claim in two or three lines** — what stands, and what it costs if it is wrong. Where it
+   will not compress that far you hold a vibe rather than a decision; surface it before scrutinising it.
 
-```
-Doubt cycle:
-- [ ] Step 1: CLAIM — wrote the claim + why-it-matters
-- [ ] Step 2: EXTRACT — isolated artifact + contract, stripped reasoning
-- [ ] Step 3: DOUBT — invoked fresh-context reviewer with adversarial prompt
-- [ ] Step 4: RECONCILE — classified every finding against the artifact text
-- [ ] Step 5: STOP — met stop condition (trivial findings, 3 cycles, or user override)
-```
+2. **Extract the smallest reviewable unit** — the artifact and the contract, your reasoning taken out.
+   Hand over conclusions and you get your conclusions validated back. An artifact too large to hold in
+   one read is decomposed here; the bound in Step 6 does not move for it.
 
-### Step 1: CLAIM — Surface what stands
+3. **Dispatch a fresh subagent that never saw your context** (maker ≠ checker — principle 8), carrying
+   this, verbatim, and nothing else:
 
-Name the decision in two or three lines:
+   ```
+   Find what is wrong with this artifact. Assume the author is overconfident.
+   Look for unstated assumptions, unhandled edge cases, hidden coupling or shared
+   state, ways the contract could be violated, conventions this breaks, and
+   failure modes under unexpected input. Do not validate, do not summarise:
+   report issues, or state that you can find none after thorough examination.
 
-```
-CLAIM: "The new caching layer is thread-safe under the
-        read-heavy workload described in the spec."
-WHY THIS MATTERS: a race here corrupts user data and is
-                  hard to detect in QA.
-```
+   ARTIFACT: <the artifact>
+   CONTRACT: <the contract>
+   ```
 
-If you can't write the claim that compactly, you have a vibe, not a decision. Surface it before scrutinizing it.
+   The artifact and the contract only — never the claim, never your reasoning, never the session: your
+   conclusion pulls the reader toward agreement, and its untended instinct is a balanced verdict where
+   this needs issues. Re-dispatching on an unchanged artifact returns the same findings, so change
+   something or stop.
 
-### Step 2: EXTRACT — Smallest reviewable unit
+4. **A second model is the person's call.** With one present, offer it — Gemini CLI, Codex CLI, or a
+   paste into whatever they use — and record the answer; skipping is fine, skipping in silence is not.
+   Alone in a run, say "cross-model skipped, nobody present".
 
-A fresh-context reviewer needs the **artifact** and the **contract**, not the journey.
+   - Each invocation is its own authorisation: confirm command, flags and auth every time, and check the
+     binary runs — one that passes `which` can still fail on real input.
+   - Pipe the prompt from a file on stdin; a backtick or `$(…)` in a quoted argument truncates it or
+     executes inside it.
+   - Run the tool read-only (`codex exec --sandbox read-only`, `gemini --approval-mode plan -p ""`,
+     where the empty `-p` is what makes it read stdin) — an artifact can carry instructions of its own.
+   - Name a missing or failing tool and offer manual or skip, rather than a cross-model pass nobody got.
 
-- Code: the diff or the function — not the whole file
-- Decision: the proposal in 3–5 sentences plus the constraints it has to satisfy
-- Assertion: the claim plus the evidence that supposedly supports it (kept distinct from the Step 1 CLAIM block, which is the orchestrator's hypothesis under scrutiny)
+5. **Classify every finding against the artifact text**, first match winning — you are still the one
+   deciding.
 
-Strip your reasoning. If you hand over conclusions, you'll get back validation of your conclusions. The unit must be small enough that a reviewer can hold it in mind in one read — if it's a 500-line PR, decompose first.
+   | Class | What it is | What you do |
+   |---|---|---|
+   | Contract misread | the contract you sent was unclear or incomplete | repair it, re-classify next cycle |
+   | Valid + actionable | a real issue the artifact has to change for | change it, re-loop |
+   | Valid trade-off | real, and costlier to fix than to accept | log it where the person reviews |
+   | Noise | correct under context the reader lacked | note it, and ask whether the contract should have carried it |
 
-### Step 3: DOUBT — Invoke the fresh-context reviewer
+6. **Stop on one of four conditions** — only trivial or already-considered findings come back, three
+   cycles are done, the person says ship it, or two cycles of substantive findings have gone by with
+   nothing classified actionable. That last one is doubt theater, and it goes back to the caller the
+   same way a fourth cycle would. Three unresolved cycles is information about the artifact rather than
+   an argument for a fourth: hand it back saying so.
 
-The reviewer's prompt **must be adversarial**. Framing decides the answer.
-
-```
-Adversarial review. Find what is wrong with this artifact.
-Assume the author is overconfident. Look for:
-- Unstated assumptions
-- Edge cases not handled
-- Hidden coupling or shared state
-- Ways the contract could be violated
-- Existing conventions this might break
-- Failure modes under unexpected input
-
-Do NOT validate. Do NOT summarize. Find issues, or state
-explicitly that you cannot find any after thorough examination.
-
-ARTIFACT: <paste artifact>
-CONTRACT: <paste contract>
-```
-
-**Pass ARTIFACT + CONTRACT only. Do NOT pass the CLAIM.** Handing the reviewer your conclusion biases it toward agreement. The reviewer must independently determine whether the artifact satisfies the contract.
-
-Dispatch the reviewer as a **fresh, code-cold subagent** — the same fresh-context-per-subagent isolation the Review fan-out uses (see `../../CLAUDE.md`). The house has no personas to reuse; the reviewer is a generic fresh-context subagent that starts with isolated context by design, handed the adversarial prompt below.
-
-The subagent's default instinct is a balanced verdict (strengths + weaknesses); doubt needs **issues-only** output. Paste the adversarial prompt verbatim so it governs the response shape — the subagent finds issues, or states it cannot after thorough examination, and nothing else.
-
-#### Cross-model escalation
-
-A single-model reviewer shares blind spots with the original author — a colder, different-architecture model catches them. Doubt-driven is already opt-in for non-trivial decisions, so within that scope offering cross-model is part of the skill's value, not optional friction.
-
-**Interactive sessions: always offer. Never silently skip.**
-
-**Step 1: Ask the user**
-
-After the single-model review in Step 3 above, but before RECONCILE, pause and ask:
-
-> *"Single-model review complete. Want a cross-model second opinion? Options: Gemini CLI, Codex CLI, manual external review (you paste it elsewhere), or skip."*
-
-This question is mandatory in every interactive doubt cycle — even on artifacts that feel low-stakes. The user — not the agent — decides whether the cost is worth it. The agent's job is to surface the choice.
-
-**Step 2: If the user picks a CLI — verify, then invoke**
-
-1. Check the tool is in PATH (`which gemini`, `which codex`).
-2. Test it works (`gemini --version` or equivalent) before passing the full prompt — a stale or broken binary may pass `which` but fail on real input.
-3. Confirm the exact invocation with the user, including required flags, auth, and env vars (e.g., API keys). Implementations vary; never assume.
-4. Pass ARTIFACT + CONTRACT + the adversarial prompt **only**. No session context, no CLAIM.
-5. Mind shell escaping. If the artifact contains quotes, `$(...)`, or backticks, prefer stdin (`echo … | gemini`) or a heredoc over inline `-p "…"`. When in doubt, ask the user to confirm the invocation before running it.
-6. Take the output into Step 4 (RECONCILE).
-
-**Never interpolate the artifact into a shell-quoted argument.** Code, markdown, and review prompts routinely contain backticks, `$(...)`, and quote characters that will either truncate the prompt or execute embedded shell. Write the full prompt to a file and pipe it through stdin.
-
-Example shapes (verify flags against your installed tool — syntax differs across implementations and versions):
-
-```bash
-# Write the adversarial prompt + ARTIFACT + CONTRACT to a temp file first.
-# Then pipe via stdin so shell metacharacters in the artifact stay inert.
-
-# Codex (read-only sandbox keeps the CLI from writing to your workspace):
-codex exec --sandbox read-only -C <repo-path> - < /tmp/doubt-prompt.md
-
-# Gemini ('--approval-mode plan' is read-only; '-p ""' triggers non-interactive
-# mode and the prompt is read from stdin):
-gemini --approval-mode plan -p "" < /tmp/doubt-prompt.md
-```
-
-A read-only sandbox is the load-bearing detail: a doubt artifact may itself contain instructions (intentional or accidental prompt injection) that the cross-model CLI would otherwise execute against your workspace.
-
-**Step 3: If the CLI is unavailable or fails**
-
-Surface the failure explicitly. Offer: run it manually, try a different tool, or skip. Do not silently fall back to single-model — the user should know cross-model didn't happen.
-
-**Step 4: If the user skips**
-
-Acknowledge the skip in the output (*"Proceeding with single-model findings only"*) and continue to RECONCILE. Skipping is fine; silent skipping is not.
-
-**Non-interactive contexts** (CI, `/loop`, autonomous-loop, scheduled runs):
-
-- Cross-model is **skipped**, and the skip must be **announced** in the output: *"Cross-model skipped: non-interactive context."*
-- **Never invoke an external CLI without explicit user authorization** — this is a load-bearing safety property.
-
-Cross-model adds cost, latency, and tool fragility. The agent surfaces the choice every cycle; the user decides whether this artifact warrants it.
-
-### Step 4: RECONCILE — Fold findings back
-
-The reviewer's output is data, not verdict. **You are still the orchestrator.** Re-read the artifact text against each finding before classifying — rubber-stamping the reviewer is the same failure mode as ignoring it.
-
-For each finding, classify in this **precedence order** (first matching class wins):
-
-1. **Contract misread** — reviewer flagged something specifically because the CONTRACT you provided was unclear or incomplete. Fix the contract first, re-classify on the next cycle.
-2. **Valid + actionable** — real issue requiring a change to the artifact. Change it, re-loop.
-3. **Valid trade-off** — issue is real but cost of fixing exceeds cost of accepting. Document the trade-off explicitly so the user sees it.
-4. **Noise** — reviewer flagged something that's actually correct under context the reviewer didn't have. Note it, move on, and ask: would adding that context to the contract have prevented the false flag?
-
-A fresh reviewer can be wrong because it lacks context. Don't defer just because it's "fresh."
-
-### Step 5: STOP — Bounded loop, not recursion
-
-Stop when:
-
-- Next iteration returns only trivial or already-considered findings, **or**
-- 3 cycles completed (escalate to user, don't grind a fourth alone), **or**
-- User explicitly says "ship it"
-
-If after 3 cycles the reviewer still surfaces substantive issues, the artifact may not be ready. Surface this to the user — three unresolved cycles is information about the artifact, not a reason to keep looping.
-
-If 3 cycles is "obviously insufficient" because the artifact is large: the artifact is too big — return to Step 2 and decompose. Do not lift the bound.
+7. **Fold the result back into the caller's work.** Every actionable finding is resolved before the
+   slice reaches a gate — firing here rather than at the merge gate is the whole point. Route a real
+   failure mode to `debugging-and-error-recovery`. A behavioural claim already has its cycle in the
+   failing test `test-driven-development` writes first. Append an accepted trade-off yourself as one
+   `docs/session-log.md` entry, matching the Decided-for-you row in the pull request.
 
 ## Rationalizations
 
 | Rationalization | Reality |
 |---|---|
-| "I'm confident, skip the doubt step" | Confidence correlates poorly with correctness on novel problems. Moments of certainty are exactly when blind spots hide. |
-| "Spawning a reviewer is expensive" | Debugging a wrong commit in production is more expensive. The check is bounded; the bug isn't. |
-| "The reviewer will just nitpick" | Only if unscoped. Constrain the prompt to "issues that would make this fail under the contract." |
-| "I'll do doubt at the end with `/review`" | `/review` is a final gate. Doubt-driven catches wrong directions early when course-correction is cheap. By PR time it's too late. |
-| "If I doubt every step I'll never ship" | The skill applies to non-trivial decisions, not every keystroke. Re-read "When NOT to Use." |
-| "Two opinions are always better than one" | Not when the second has less context and produces noise. Reconcile, don't defer. |
-| "The reviewer disagreed so I was wrong" | The reviewer lacks your context — disagreement is information, not verdict. Re-read the artifact, classify, then decide. |
-| "Cross-model is always better" | Cross-model catches blind spots a single model shares with itself, but it adds cost and tool fragility. Offer it every interactive doubt cycle — the user decides whether the artifact warrants it. The agent's job is to surface the choice, not to gate it. |
-| "User said yes once, so I can keep invoking the CLI" | Each invocation is its own authorization. The artifact, the prompt, and the flags change between calls — re-confirm the exact command with the user before every run. |
+| "I am confident — skip the cycle" | On a novel problem confidence tracks familiarity, not correctness. |
+| "I will doubt it at the end, in review" | By pull-request time the wrong direction is built, tested and defended. |
+| "Doubt every step and I never ship" | The scope is the non-trivial decision; a rename goes straight back. |
+| "It disagreed, so I was wrong" | A fresh reader lacks your context: disagreement is data, and the classification is yours. |
+| "They said yes to the CLI last time" | Each run carries a different artifact, prompt and flags; that yes covered none of them. |
 
 ## Red flags
 
-- Spawning a fresh-context reviewer for a one-line rename or formatting change
-- Treating reviewer output as authoritative without re-reading the artifact text
-- Looping >3 cycles without escalating to the user
-- Prompting the reviewer with "is this good?" instead of "find issues"
-- Skipping doubt under time pressure on a high-stakes decision
-- Re-spawning fresh-context on an unchanged artifact (you'll get the same findings; you're stalling)
-- **Doubt theater (checkable signal)**: across 2 or more cycles where the reviewer surfaced substantive findings, zero findings were classified as actionable. You are validating, not doubting. Stop and escalate.
-- Doubting only after committing — that's `/review`, not doubt-driven development
-- Hardcoding an external CLI invocation without confirming with the user that the tool exists, is configured, and accepts that exact syntax
-- **Silently skipping cross-model in an interactive doubt cycle.** Even when not recommending it, the offer must be visible. Skipping is fine; silent skipping is not.
-- Falling back silently when an external CLI errors or is missing — surface the failure and let the user redirect
-- Stripping the contract from the reviewer's input
-- Passing the CLAIM to the reviewer (biases toward agreement)
+- A cycle spent on a rename, a format run or an unambiguous instruction.
+- The claim, or the author's reasoning, sitting inside the reviewer's prompt.
+- A fresh pass re-dispatched on an artifact nothing changed in.
+- Findings adopted or waved off wholesale, with no class decided against the artifact text.
+- Doubt theater: two or more cycles of substantive findings, nothing classified actionable.
+- A fourth cycle; an external CLI run on last cycle's yes; a failed CLI absorbed in silence.
 
-## Interaction with Other Skills
+## Verification
 
-- **`code-review`**: complementary. The merge-time Review fan-out is post-hoc PR verdict; doubt-driven is in-flight per-decision. Use both.
-- **`source-driven-development`**: SDD verifies *facts about frameworks* against official docs. Doubt-driven verifies *your reasoning about the artifact*. SDD checks the API exists; doubt-driven checks you used it correctly under the contract.
-- **`test-driven-development`**: TDD's RED step is doubt made concrete — a failing test is a disproof attempt. When TDD applies, that failing test *is* the doubt step for behavioral claims.
-- **`debugging-and-error-recovery`**: when the reviewer surfaces a real failure mode, drop into the debugging skill to localize and fix.
-- **The repo's composition rule** (`../../CLAUDE.md`): this skill orchestrates from the main session. A slash command or the user is the orchestrator; a persona does not invoke another persona — see Loading Constraints above.
+- [ ] The claim was named in two or three lines before anything was handed over.
+- [ ] A code-cold pass read the artifact and the contract, and neither the claim nor your reasoning.
+- [ ] Every finding carries one class from the precedence table, decided against the artifact text.
+- [ ] A stop condition is named with the cycle count beside it, and no fourth cycle ran.
+- [ ] A second model is accounted for: authorised and run, declined, or skipped with its reason.
+- [ ] Every derived input is marked `derived` wherever it was written or handed back.
+- [ ] Actionable findings are resolved in the caller's artifact before the slice reaches a gate, and an
+      accepted trade-off is logged.
 
-## Verification (ending criteria)
+## Outputs & handoff
 
-After applying doubt-driven development:
-
-- [ ] Every non-trivial decision (per the definition above) was named explicitly as a CLAIM before standing
-- [ ] At least one fresh-context review per non-trivial artifact (a failing test produced by TDD's RED step satisfies this for behavioral claims, per Interaction with Other Skills)
-- [ ] The reviewer received ARTIFACT + CONTRACT — NOT the CLAIM, NOT your reasoning
-- [ ] The reviewer's prompt was adversarial ("find issues"), not validating ("is it good")
-- [ ] Findings were classified against the artifact text (not rubber-stamped) using the precedence: contract misread / actionable / trade-off / noise
-- [ ] A stop condition was met (trivial findings, 3 cycles, or user override)
-- [ ] In interactive mode, cross-model was **explicitly offered** to the user (regardless of artifact stakes) and the response was acknowledged in the output
-- [ ] In non-interactive mode, cross-model was skipped and the skip was announced
-- [ ] Any external CLI invocation was preceded by a PATH check, a working-binary test, syntax confirmation with the user, and explicit authorization to run
-
-## Outputs & handoff contract
-
-**Emits: `issues`** — the reviewer's adversarial findings, each CLASSIFIED by the Step 4 RECONCILE
-precedence (contract-misread → actionable → trade-off → noise) and folded back into the artifact under
-construction. `issues` are in-flight working data, **not** a chain artifact: doubt writes no `*.md` to the
-resume spine and `docs/features/<slug>/` gains no file.
-
-**Stable sections a consumer reads:** none — `issues` are consumed immediately by the in-flight author
-(`plan-breakdown` re-loops the plan; `incremental-implementation` re-loops the diff). Anything that must outlive the cycle
-is recorded by that author in its own artifact (plan.md / the diff / a documented trade-off), never by doubt.
-
-**STATE.md:** doubt drives **NO** gate transition. It is the in-flight adversarial posture during
-Plan/Implement, deliberately distinct in timing from the merge-time Review fan-out (`code-review` ·
-`code-simplification` · `security-and-hardening` · `performance-optimization`) and from the three agent-internal SHIP gates (quality-verification · Review fan-out ·
-evaluator floors). doubt sets neither `slice state` nor `gate`. A *valid + actionable* finding it
-surfaces is resolved **before** the slice ever reaches a gate — that is the point.
-
-**Handoff:** the bounded loop ends on a Step 5 STOP condition (only trivial/already-considered findings,
-3 cycles completed, or user override). On 3 unresolved cycles, **escalate to the user** rather than grind a
-fourth — three unresolved cycles is information about the artifact, not a reason to keep looping.
-
-## Subagents
-
-For a fresh-context, code-cold pass, dispatch the **`adversarial-reviewer`** agent (`agents/adversarial-reviewer.md`) as an
-independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a person wants an independent skeptic on a confident,
-high-stakes, or irreversible call **outside a run**, or on a platform with no skill tool. Inside a run this
-skill is dispatched as itself — there is no role to play on top of it.
+- **No file under `docs/features/<slug>/` and no `STATE.md` row.** Findings are working data the caller
+  consumes at once, and the caller owns the slice's transition
+  ([`state-schema.md`](../../references/state-schema.md)). Anything about the artifact that must outlive
+  the cycle goes into the caller's own work — the plan section, the diff, the test. The log entry below
+  is the one file this pass writes.
+- **`docs/session-log.md`** — one appended entry per accepted trade-off, cap 60 words, shape and append
+  rules in [`state-schema.md`](../../references/state-schema.md), matching the pull request's
+  Decided-for-you row. Report the entry's measured word count against that cap; an over-cap entry is
+  trimmed, never handed on as if it fit.
+- **Returned in conversation** — the claim, the classified findings, the cycle count and the stop
+  condition that ended the loop, whether a second model ran, and what each `derived` input came from.
+- **Verdict** — only a finding landing on the stop list
+  ([`safety-rails.md`](../../references/safety-rails.md)) returns `block`, and the caller ends the slice
+  on it. This pass grades nothing, so it returns no `pass` and no `concerns`.

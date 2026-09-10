@@ -1,349 +1,138 @@
 ---
 name: api-design
-description: 'Designs stable, hard-to-misuse interface contracts BEFORE implementation — the types ARE the spec. Reach for this the moment spec-grilling needs a structural variant for a load-bearing interface question, or plan-breakdown needs to pin a module boundary, a REST or GraphQL endpoint, a component prop interface, or a cross-module type contract: define the contract first, validate only at boundaries, prefer addition over modification, and treat every observable behavior as a commitment (Hyrum''s Law) under one version (the One-Version Rule). Land the contract in plan.md; escalate any hard-to-reverse interface decision to an ADR.'
+description: Pin an interface contract before anything builds against it — typed input and output, one error envelope, what a consumer may depend on. Use it for a Spec variant, to land signatures in `plan.md`, or code-cold over a diff that moves a surface. Module internals stay with `codebase-design`, components and edges with `architecture-design`.
 ---
 
 # API and Interface Design
 
-## Overview
+## Purpose
 
-**Stage: Spec · Plan — a referenced discipline, not a sequential stage.** `spec-grilling` dispatches it
-in Spec to propose a variant for a load-bearing structural question; `architecture-design` dispatches it in
-Spec as a code-cold lens over a structure already written, grading the consumer surface that structure
-records; `plan-breakdown` reaches for it in Plan to pin the interface contract into `plan.md`; the Review
-fan-out applies it as a lens when a diff changes a surface a file outside the diff calls. It owns no
-artifact of its own. It is also invokable standalone for a pure interface refactor.
+**Stage: Spec · Plan.** Principles 1, 5, 6, 7, 8.
 
-Design stable, well-documented interfaces that are hard to misuse. Good interfaces make the right thing easy and the wrong thing hard. This applies to REST APIs, GraphQL schemas, module boundaries, component props, and any surface where one piece of code talks to another.
+Pins the contract of a surface one piece of code offers another — endpoint, exported type, module
+boundary, component props — before anything builds against it. It writes no artifact of its own; the
+contract lands in the caller's file. The types are the documentation, so a surface pinned after its
+implementation documents whatever that implementation happened to do.
 
-## When to Use
+## When to use / when to skip
 
-- Designing new API endpoints
-- Defining module boundaries or contracts between teams
-- Creating component prop interfaces
-- Establishing database schema that informs API shape
-- Changing existing public interfaces
+- A surface something else calls is about to exist or change.
+- The Spec sitting, as a variant for a load-bearing "what may a consumer depend on here" (`spec-grilling`).
+- Plan, where two slices build against one surface and `plan-breakdown` needs its signatures and error
+  envelope pinned first.
+- Code-cold over a written `architecture.md` (`architecture-design`), or a diff moving a symbol, route or
+  schema something outside it calls (`orchestrator`).
+- A pure interface refactor by hand, the exported signatures and their callers as substrate.
+- Skip — a module's internals and where its seam falls: `codebase-design`.
+- Skip — which components exist and the edges between them: `architecture-design`.
+- Skip — retiring a surface consumers still call: `deprecation-and-migration`.
 
 ## Inputs
 
-**Consumes:**
-- `prd.md` — sections `## Solution` and `## Implementation Decisions`: the product-altitude statement
-  of what surfaces/endpoints/boundaries exist (product altitude only — `prd.md` carries no
-  file paths or signatures; api-design is where those get pinned).
-- `research.md` — the codebase/DB as-is, so new interfaces match existing conventions instead of
-  forking a second style. What a proposed surface stands on is its `## Structural facts` — seams and
-  their adapter counts, module boundaries, conventions in use; `_none_` where there are none.
-- `CONTEXT.md`'s `## Glossary` (repo-root) — use its ubiquitous-language terms **verbatim** in names so
-  the interface speaks the project's vocabulary.
-- Existing `docs/adr/ADR-<NNN>-*.md` — prior interface decisions you MUST NOT contradict (e.g. a
-  committed REST-vs-GraphQL or error-envelope choice).
+- `docs/features/<slug>/research.md` — helps: `## Structural facts`, the seams and the conventions in use
+  · without it: read the exported types and one caller, `derived`
+- `docs/features/<slug>/prd.md` — helps: `## Solution` and `## Implementation Decisions` name the surfaces
+  · without it: take them from `intent.md` or the prompt, `derived`
+- `CONTEXT.md` — helps: `## Glossary` terms, used verbatim · without it: reuse the names the exported types
+  already use, coining nothing, `derived`
+- `docs/adr/` — helps: surface decisions already taken, cited by id · without it: treat this choice as new
+- `docs/features/<slug>/architecture.md` — helps: the components this surface sits between · without it:
+  `research.md`'s boundaries, `derived`
 
-**Refuse-to-run condition:** if there is nothing to design against — no `research.md`, no `prd.md`, no
-explicit standalone ask — STOP and ask for the missing input rather than invent a contract in a vacuum.
-A surface you propose from `research.md` and the intent is not a vacuum: in Spec the PRD does not exist
-yet, so those two are the whole substrate. For a standalone refactor, the existing code under change is
-the required input.
+A present person is worth at most three questions, where the answer changes the surface's shape: the
+resource model, the error envelope, the versioning posture.
 
-## Core Principles
+## Process
 
-### Hyrum's Law
+[`references/surface-conventions.md`](references/surface-conventions.md) draws what this body only names:
+the error body and status map, the naming table, the REST and pagination forms, the typed-interface patterns.
 
-> With a sufficient number of users of an API, all observable behaviors of your system will be depended on by somebody, regardless of what you promise in the contract.
+1. **Match the conventions already there, or say what the fork buys.** Read `## Structural facts` and one
+   existing caller first: a second error envelope, pagination style or name for one thing is paid for by
+   every consumer and invisible from inside the feature adding it.
 
-This means: every public behavior — including undocumented quirks, error message text, timing, and ordering — becomes a de facto contract once users depend on it. Design implications:
+2. **Write the contract before the implementation.** Input and output are separate types with
+   server-generated fields absent from every input; variants are discriminated unions; ids are branded.
 
-- **Be intentional about what you expose.** Every observable behavior is a potential commitment.
-- **Don't leak implementation details.** If users can observe it, they will depend on it.
-- **Plan for deprecation at design time.** See `deprecation-and-migration` for how to safely remove things users depend on.
-- **Tests are not enough.** Even with perfect contract tests, Hyrum's Law means "safe" changes can break real users who depend on undocumented behavior.
+3. **One error strategy at every point on the surface** — the reference's structured body and status map,
+   never a mix of throwing, `null` and `{ error }`, never two shapes from one endpoint by outcome.
 
-### The One-Version Rule
+4. **Validate at the boundary, trust the types inside it** — route handlers, form submissions, environment
+   loading, and every third-party response, untrusted whatever its documentation promises.
 
-Avoid forcing consumers to choose between multiple versions of the same dependency or API. Diamond dependency problems arise when different consumers need different versions of the same thing. Design for a world where only one version exists at a time — extend rather than fork.
+5. **Paginate every list from the first version; extend rather than modify** — a new field arrives
+   optional, an existing field's type holds, a field is not removed.
 
-### 1. Contract First
+6. **Name every observable behaviour and mark which are committed** — ordering, error text, timing, a
+   field's presence. Given enough consumers each is depended on whatever the contract promises (Hyrum's
+   Law), so design the removal path while the surface is on paper (`deprecation-and-migration`).
 
-Define the interface before implementing it. The contract is the spec — implementation follows.
+7. **Hand a hard-to-reverse choice to the person** — REST against GraphQL, a public surface's shape, a
+   versioning posture, the error envelope: name it ADR-worthy with the alternative and its cost, for the
+   caller to record (`documentation-and-adrs`); reversible detail stays inline. With nobody there: the
+   default, its reason, a log entry, a Decided-for-you row.
 
-```typescript
-// Define the contract first
-interface TaskAPI {
-  // Creates a task and returns the created task with server-generated fields
-  createTask(input: CreateTaskInput): Promise<Task>;
+8. **Land the contract where the builder reads it cold** — a Spec variant carrying your recommendation, or
+   `plan.md`'s `## File Structure` and step snippets, exact enough that `incremental-implementation` builds
+   to the signature and `test-driven-development` asserts the observable behaviour.
 
-  // Returns paginated tasks matching filters
-  listTasks(params: ListTasksParams): Promise<PaginatedResult<Task>>;
+9. **Grade a written surface code-cold, changing nothing**
+   ([`safety-rails.md`](../../references/safety-rails.md)) — the interface lens over a surface somebody
+   already wrote, its checks catalogued in
+   [`lens-passes.md`](../architecture-design/references/lens-passes.md) · Sweep 2. Each finding is the fact
+   plus a recommended answer the person can disagree with. By hand, close with `pass · concerns · block`
+   (`block` a stop-list item); dispatched by `architecture-design`, hand back findings only — an empty list
+   where you found none.
 
-  // Returns a single task or throws NotFoundError
-  getTask(id: string): Promise<Task>;
+## Rationalizations
 
-  // Partial update — only provided fields change
-  updateTask(id: string, input: UpdateTaskInput): Promise<Task>;
+- "We'll document the API later" → the first consumer reads the implementation and depends on what it finds.
+- "Pagination can wait" → the need arrives at a hundred items, by which time the contract has consumers.
+- "PATCH is fiddly, take the whole object" → two clients that read, edit and send it all back lose one edit.
+- "Nobody uses that undocumented behaviour" → if it is observable, somebody depends on it.
+- "Two versions side by side is fine" → that is a diamond dependency for everyone downstream of both (the
+  One-Version Rule).
+- "Internal surfaces need no contract" → the contract is what lets two slices build in parallel.
 
-  // Idempotent delete — succeeds even if already deleted
-  deleteTask(id: string): Promise<void>;
-}
-```
+## Red flags
 
-### 2. Consistent Error Semantics
-
-Pick one error strategy and use it everywhere:
-
-```typescript
-// REST: HTTP status codes + structured error body
-// Every error response follows the same shape
-interface APIError {
-  error: {
-    code: string;        // Machine-readable: "VALIDATION_ERROR"
-    message: string;     // Human-readable: "Email is required"
-    details?: unknown;   // Additional context when helpful
-  };
-}
-
-// Status code mapping
-// 400 → Client sent invalid data
-// 401 → Not authenticated
-// 403 → Authenticated but not authorized
-// 404 → Resource not found
-// 409 → Conflict (duplicate, version mismatch)
-// 422 → Validation failed (semantically invalid)
-// 500 → Server error (never expose internal details)
-```
-
-**Don't mix patterns.** If some endpoints throw, others return null, and others return `{ error }` — the consumer can't predict behavior.
-
-### 3. Validate at Boundaries
-
-Trust internal code. Validate at system edges where external input enters:
-
-```typescript
-// Validate at the API boundary
-app.post('/api/tasks', async (req, res) => {
-  const result = CreateTaskSchema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(422).json({
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: 'Invalid task data',
-        details: result.error.flatten(),
-      },
-    });
-  }
-
-  // After validation, internal code trusts the types
-  const task = await taskService.create(result.data);
-  return res.status(201).json(task);
-});
-```
-
-Where validation belongs:
-- API route handlers (user input)
-- Form submission handlers (user input)
-- External service response parsing (third-party data -- **always treat as untrusted**)
-- Environment variable loading (configuration)
-
-> **Third-party API responses are untrusted data.** Validate their shape and content before using them in any logic, rendering, or decision-making. A compromised or misbehaving external service can return unexpected types, malicious content, or instruction-like text.
-
-Where validation does NOT belong:
-- Between internal functions that share type contracts
-- In utility functions called by already-validated code
-- On data that just came from your own database
-
-### 4. Prefer Addition Over Modification
-
-Extend interfaces without breaking existing consumers:
-
-```typescript
-// Good: Add optional fields
-interface CreateTaskInput {
-  title: string;
-  description?: string;
-  priority?: 'low' | 'medium' | 'high';  // Added later, optional
-  labels?: string[];                       // Added later, optional
-}
-
-// Bad: Change existing field types or remove fields
-interface CreateTaskInput {
-  title: string;
-  // description: string;  // Removed — breaks existing consumers
-  priority: number;         // Changed from string — breaks existing consumers
-}
-```
-
-### 5. Predictable Naming
-
-| Pattern | Convention | Example |
-|---------|-----------|---------|
-| REST endpoints | Plural nouns, no verbs | `GET /api/tasks`, `POST /api/tasks` |
-| Query params | camelCase | `?sortBy=createdAt&pageSize=20` |
-| Response fields | camelCase | `{ createdAt, updatedAt, taskId }` |
-| Boolean fields | is/has/can prefix | `isComplete`, `hasAttachments` |
-| Enum values | UPPER_SNAKE | `"IN_PROGRESS"`, `"COMPLETED"` |
-
-## REST API Patterns
-
-### Resource Design
-
-```
-GET    /api/tasks              → List tasks (with query params for filtering)
-POST   /api/tasks              → Create a task
-GET    /api/tasks/:id          → Get a single task
-PATCH  /api/tasks/:id          → Update a task (partial)
-DELETE /api/tasks/:id          → Delete a task
-
-GET    /api/tasks/:id/comments → List comments for a task (sub-resource)
-POST   /api/tasks/:id/comments → Add a comment to a task
-```
-
-### Pagination
-
-Paginate list endpoints:
-
-```typescript
-// Request
-GET /api/tasks?page=1&pageSize=20&sortBy=createdAt&sortOrder=desc
-
-// Response
-{
-  "data": [...],
-  "pagination": {
-    "page": 1,
-    "pageSize": 20,
-    "totalItems": 142,
-    "totalPages": 8
-  }
-}
-```
-
-### Filtering
-
-Use query parameters for filters:
-
-```
-GET /api/tasks?status=in_progress&assignee=user123&createdAfter=2025-01-01
-```
-
-### Partial Updates (PATCH)
-
-Accept partial objects — only update what's provided:
-
-```typescript
-// Only title changes, everything else preserved
-PATCH /api/tasks/123
-{ "title": "Updated title" }
-```
-
-## TypeScript Interface Patterns
-
-### Use Discriminated Unions for Variants
-
-```typescript
-// Good: Each variant is explicit
-type TaskStatus =
-  | { type: 'pending' }
-  | { type: 'in_progress'; assignee: string; startedAt: Date }
-  | { type: 'completed'; completedAt: Date; completedBy: string }
-  | { type: 'cancelled'; reason: string; cancelledAt: Date };
-
-// Consumer gets type narrowing
-function getStatusLabel(status: TaskStatus): string {
-  switch (status.type) {
-    case 'pending': return 'Pending';
-    case 'in_progress': return `In progress (${status.assignee})`;
-    case 'completed': return `Done on ${status.completedAt}`;
-    case 'cancelled': return `Cancelled: ${status.reason}`;
-  }
-}
-```
-
-### Input/Output Separation
-
-```typescript
-// Input: what the caller provides
-interface CreateTaskInput {
-  title: string;
-  description?: string;
-}
-
-// Output: what the system returns (includes server-generated fields)
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: string;
-}
-```
-
-### Use Branded Types for IDs
-
-```typescript
-type TaskId = string & { readonly __brand: 'TaskId' };
-type UserId = string & { readonly __brand: 'UserId' };
-
-// Prevents accidentally passing a UserId where a TaskId is expected
-function getTask(id: TaskId): Promise<Task> { ... }
-```
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|---|---|
-| "We'll document the API later" | The types ARE the documentation. Define them first. |
-| "We don't need pagination for now" | You will the moment someone has 100+ items. Add it from the start. |
-| "PATCH is complicated, let's just use PUT" | PUT requires the full object every time. PATCH is what clients actually want. |
-| "We'll version the API when we need to" | Breaking changes without versioning break consumers. Design for extension from the start. |
-| "Nobody uses that undocumented behavior" | Hyrum's Law: if it's observable, somebody depends on it. Treat every public behavior as a commitment. |
-| "We can just maintain two versions" | Multiple versions multiply maintenance cost and create diamond dependency problems. Prefer the One-Version Rule. |
-| "Internal APIs don't need contracts" | Internal consumers are still consumers. Contracts prevent coupling and enable parallel work. |
-
-## Red Flags
-
-- Endpoints that return different shapes depending on conditions
-- Inconsistent error formats across endpoints
-- Validation scattered throughout internal code instead of at boundaries
-- Breaking changes to existing fields (type changes, removals)
-- List endpoints without pagination
-- Verbs in REST URLs (`/api/createTask`, `/api/getUsers`)
-- Third-party API responses used without validation or sanitization
+- One endpoint returning different shapes depending on the outcome.
+- Error formats that differ from one endpoint to the next.
+- Validation between two internal functions that already share a type.
+- A field whose type changed, or a field that went away.
+- A list endpoint with no pagination.
+- A verb in a REST path (`/api/createNote`), or a third-party response used unparsed.
 
 ## Verification
 
-After designing an API:
+- [ ] Every surface in scope has a typed input, a typed output, and one shared error shape.
+- [ ] Every list carries pagination, and every added field is optional.
+- [ ] Names are `CONTEXT.md`'s verbatim where the term exists there, and the naming table's otherwise.
+- [ ] The observable behaviours are listed, each marked committed or not.
+- [ ] No decision contradicts an ADR; each hard-to-reverse one is cited by id or named ADR-worthy.
+- [ ] Each decision settled with nobody to ask has a logged reason and a Decided-for-you row.
+- [ ] The types ship in the same change as the implementation they describe.
+- [ ] Every value reconstructed from a missing input is marked `derived` where written.
+- [ ] A code-cold pass left every file as it was and closed as its caller reads it: `pass · concerns ·
+      block` by hand, findings only — empty where there were none — when dispatched.
 
-- [ ] Every endpoint has typed input and output schemas
-- [ ] Error responses follow a single consistent format
-- [ ] Validation happens at system boundaries only
-- [ ] List endpoints support pagination
-- [ ] New fields are additive and optional (backward compatible)
-- [ ] Naming follows consistent conventions across all endpoints
-- [ ] API documentation or types are committed alongside the implementation
+## Outputs & handoff
 
-## Outputs & handoff contract
+**No artifact of its own, and no `STATE.md` row.** The contract lands in the caller's file — `plan.md` for
+`plan-breakdown`, a §6 row for `architecture-design`, a record for `spec-grilling` — so one fact has one
+writer, and the caller owns the slice's transition
+([`state-schema.md`](../../references/state-schema.md)).
 
-**Emits:** the interface **contract written into `plan.md`** — typed input/output schemas, the single
-error envelope, resource/endpoint shapes, discriminated unions, and branded IDs — placed where the
-slices that build to them can read the exact signatures cold. api-design owns **no standalone artifact
-file**; `plan-breakdown` owns `plan.md` and the slice DAG.
+**`docs/session-log.md`** — one appended entry per surface decision taken with nobody to ask, cap 60 words,
+matching its Decided-for-you row ([`state-schema.md`](../../references/state-schema.md)). Report the
+measured count against that cap; an over-cap entry is trimmed, not handed on.
 
-**ADR escalation:** any **hard-to-reverse** interface decision — REST vs GraphQL vs tRPC, the
-shape of a public API surface, a versioning strategy, the product-wide error-envelope standard — is
-written as an ADR at `docs/adr/ADR-<NNN>-*.md` using the `documentation-and-adrs` standard and
-**referenced by id** from `plan.md`. Reversible interface detail stays inline in `plan.md`. This is the
-single load-bearing dependency on `documentation-and-adrs`.
+**Returned in conversation** — the contract (typed signatures, error shape, resource and pagination forms),
+the observable behaviours and which are committed, any decision named ADR-worthy with its alternative, and
+what each `derived` input came from. Dispatched code-cold, the findings alone; by hand, those and the
+verdict.
 
-**Stable sections consumers read cold** (the contract block in `plan.md`):
-- `incremental-implementation` builds to the exact typed signatures and the single error envelope.
-- `test-driven-development` realizes the contract's observable behavior as tests (asserting outcomes, not internals).
-- `pull-request` anchors its design summary to the interface decisions (and any ADR ids) when the slice ships.
-
-**STATE.md update:** none directly. api-design runs inside the human-owned Spec and Plan stages as a
-referenced discipline; `plan-breakdown` seeds the feature's slice rows + DAG into `STATE.md`. api-design
-only contributes contract content into `plan.md` (and, when warranted, one ADR).
-
-**Change-the-shape rule:** if a published interface contract later changes shape, update its
-consumers (`incremental-implementation` + `test-driven-development` + the `pull-request` design anchor) in the **same commit**. If the decision was
-promoted to an ADR, **supersede** the ADR via a link and update its referrers in the same commit —
-never delete it (ADR cross-ref rule). This is the artifact-level expression of the skill's own
-"Prefer Addition Over Modification" principle.
+**When a published contract's shape changes**, its consumers move in the same change — the plan section,
+the tests asserting it, the pull request's design anchor; the caller supersedes the promoted ADR by link
+rather than deleting it (`documentation-and-adrs`), and re-reads every Decided-for-you decision citing the
+moved section, confirming or reversing each one in the log.

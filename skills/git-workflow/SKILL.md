@@ -1,352 +1,158 @@
 ---
 name: git-workflow
-description: 'Trunk-based git discipline — atomic save-point commits (~100 lines, one logical change), short-lived branches, descriptive why-not-what messages, and a hard secret scan before every commit. Use this BEFORE every commit, branch, merge, or revert. Git is always on: if you are about to write code or type `git commit`, you are already in this skill''s scope. Skipping it means giant unreviewable commits, secrets baked into history, and lost save-points.'
+description: Reach for this before a commit, a branch, a revert or a history question — a repository to initialise, a working tree to cut into atomic commits, a staged diff to scan for credentials. Never merges, never commits to `main`. The pull request body is `pull-request`; per-slice isolation `worktree`; grading a diff `code-review`.
 ---
 
 # Git Workflow and Versioning
 
 ## Purpose
 
-Git is your safety net. Treat commits as save points, branches as sandboxes, and history as documentation. With AI agents generating code at high speed, disciplined version control is the mechanism that keeps changes manageable, reviewable, and reversible.
+**Stage: cross-cutting.** Principles 1, 7, 9.
 
-**Stage:** Ship — cross-cutting, always on. Git is the save-point substrate every other stage commits through.
+The save-point substrate every other stage commits through: a repository to initialise, a working tree
+cut into atomic commits, a staged diff scanned for credentials before any of it becomes history. It
+writes no artifact-chain file of its own. History is the one account of a change that outlives the conversation
+that produced it.
 
 ## When to use / when to skip
 
-Always. Every code change flows through git.
-
-There is effectively no skip — the only "skip" is when no files changed. Git is the one discipline with no escape hatch.
+- Any commit, branch, revert or history question: every code change lands through git, and the only
+  pass with nothing to do is one where no file changed.
+- A directory that is not a repository yet; a failure mid-slice asking which save point to return to or
+  which commit turned a test red; a tree of unrelated edits that has to become reviewable history.
+- Near-miss — the pull request body and its risk band: `pull-request`. Per-slice isolation: `worktree`.
+  Grading a diff: `code-review`. The release after a merge: `shipping-and-launch`. Server-side gates:
+  `ci-cd`.
+- Not here: merging. A person merges ([`safety-rails.md`](../../references/safety-rails.md)).
 
 ## Inputs
 
-Git is a **referenced, always-on discipline** (Ship stage) — it consumes no upstream chain
-artifact and has no refuse-to-run on the artifact chain. What it needs to run:
+- **the working tree** (`git status`, `git diff --staged`) — helps: what every step below reads ·
+  without it: the directory is no repository — `git init` first and mark the baseline `derived`,
+  rather than commit into a non-repo.
+- **`docs/features/<slug>/plan/<slice-id>.md` and `STATE.md`** — helps: the slice id the branch carries and the why its
+  messages state · without them: take both from the prompt and the diff, marked `derived`.
+- **the repository's conventions** (recent `git log`, `.gitignore`, the hooks there) — helps: match the
+  house style rather than impose one · without them: use the shapes below, marked `derived`.
 
-- A **git repository** with a working tree (created once by `project-setup`). If none exists and the
-  task does not forbid it, `git init` first — never commit into a non-repo.
-- The **changes to be committed** (staged or unstaged) plus the slice/feature context that
-  produced them, so the message can explain the *why*, not just the *what*.
-- When invoked inside an autonomous slice loop: safety rail 4 (`references/safety-rails.md`) applies,
-  and git is where it is easiest to break by accident. Never amend, rebase, force-push, or re-stage in
-  a way that widens a surface or weakens a test under retry, and never stage or commit an edit to
-  `docs/design.md` to clear a design gate. Git's job is to record the change, not to edit the oracle —
-  and a history rewrite erodes a frozen artifact just as effectively as an editor does.
-
-Refuse-to-run only if there is no repository and the task forbids creating one. Otherwise git
-always applies.
+With a person present, ask at most three questions, only where the gap changes the history's shape.
 
 ## Core Principles
 
-### Trunk-Based Development (Recommended)
+1. **Commit each green increment as its own save point** — one logical, self-contained change, roughly
+   100 lines, its test in the same commit or already committed earlier on the branch, which is what keeps
+   the test-first order legible in the history.
 
-Keep `main` always deployable. Work in short-lived feature branches that merge back within 1-3 days. Long-lived development branches are hidden costs — they diverge, create merge conflicts, and delay integration. DORA research consistently shows trunk-based development correlates with high-performing engineering teams.
+2. **Keep concerns apart.** A reflow, a refactor and a behaviour change are three commits — stage per
+   commit by path, and `git add -p` where a reflow and a behaviour change share a file. Split anything
+   past ~1,000 lines before review (`code-review` has the strategies).
 
-```
-main ──●──●──●──●──●──●──●──●──●──  (always deployable)
-        ╲      ╱  ╲    ╱
-         ●──●─╱    ●──╱    ← short-lived feature branches (1-3 days)
-```
+3. **Give the message the why, since the diff carries the what**: `<type>: <summary>` — `feat` `fix`
+   `refactor` `test` `docs` `chore` — plus a body stating the reason, since the log is what
+   reconstructs a decision or a changed oracle when the session log is thin, and what `git log -S`
+   searches.
 
-This is the recommended default. Teams using gitflow or long-lived branches can adapt the principles (atomic commits, small changes, descriptive messages) to their branching model — the commit discipline matters more than the specific branching strategy.
+4. **Rewrite no pushed history** — no amend, rebase or force-push on a branch anyone else may hold.
+   Nothing is frozen: a test the plan moved past may change, disclosed in the pull request body and the
+   log (`pull-request`), never folded quietly into a rewritten commit.
 
-- **Dev branches are costs.** Every day a branch lives, it accumulates merge risk.
-- **Release branches are acceptable.** When you need to stabilize a release while main moves forward.
-- **Feature flags > long branches.** Prefer deploying incomplete work behind flags rather than keeping it on a branch for weeks.
-
-### 1. Commit Early, Commit Often
-
-Each successful increment gets its own commit. Don't accumulate large uncommitted changes.
-
-```
-Work pattern:
-  Implement slice → Test → Verify → Commit → Next slice
-
-Not this:
-  Implement everything → Hope it works → Giant commit
-```
-
-Commits are save points. If the next change breaks something, you can revert to the last known-good state instantly.
-
-### 2. Atomic Commits
-
-Each commit does one logical thing:
-
-```
-# Good: Each commit is self-contained
-git log --oneline
-a1b2c3d Add task creation endpoint with validation
-d4e5f6g Add task creation form component
-h7i8j9k Connect form to API and add loading state
-m1n2o3p Add task creation tests (unit + integration)
-
-# Bad: Everything mixed together
-git log --oneline
-x1y2z3a Add task feature, fix sidebar, update deps, refactor utils
-```
-
-### 3. Descriptive Messages
-
-Commit messages explain the *why*, not just the *what*:
-
-```
-# Good: Explains intent
-feat: add email validation to registration endpoint
-
-Prevents invalid email formats from reaching the database.
-Uses Zod schema validation at the route handler level,
-consistent with existing validation patterns in auth.ts.
-
-# Bad: Describes what's obvious from the diff
-update auth.ts
-```
-
-**Format:**
-```
-<type>: <short description>
-
-<optional body explaining why, not what>
-```
-
-**Types:**
-- `feat` — New feature
-- `fix` — Bug fix
-- `refactor` — Code change that neither fixes a bug nor adds a feature
-- `test` — Adding or updating tests
-- `docs` — Documentation only
-- `chore` — Tooling, dependencies, config
-
-### 4. Keep Concerns Separate
-
-Don't combine formatting changes with behavior changes. Don't combine refactors with features. Each type of change should be a separate commit — and ideally a separate PR:
-
-```
-# Good: Separate concerns
-git commit -m "refactor: extract validation logic to shared utility"
-git commit -m "feat: add phone number validation to registration"
-
-# Bad: Mixed concerns
-git commit -m "refactor validation and add phone number field"
-```
-
-**Separate refactoring from feature work.** A refactoring change and a feature change are two different changes — submit them separately. This makes each change easier to review, revert, and understand in history. Small cleanups (renaming a variable) can be included in a feature commit at reviewer discretion.
-
-### 5. Size Your Changes
-
-Target ~100 lines per commit/PR. Changes over ~1000 lines should be split. See the splitting strategies in `code-review` for how to break down large changes.
-
-```
-~100 lines  → Easy to review, easy to revert
-~300 lines  → Acceptable for a single logical change
-~1000 lines → Split into smaller changes
-```
+5. **Hand over on a clean tree** — every increment committed, nothing staged or stray — with the change
+   summary Outputs & handoff shapes.
 
 ## Branching Strategy
 
-### Feature Branches
-
-```
-main (always deployable)
-  │
-  ├── feature/task-creation    ← One feature per branch
-  ├── feature/user-settings    ← Parallel work
-  └── fix/duplicate-tasks      ← Bug fixes
-```
-
-- Branch from `main` (or the team's default branch)
-- Keep branches short-lived (merge within 1-3 days) — long-lived branches are hidden costs
-- Delete branches after merge
-- Prefer feature flags over long-lived branches for incomplete features
-
-### Branch Naming
-
-```
-feature/<short-description>   → feature/task-creation
-fix/<short-description>       → fix/duplicate-tasks
-chore/<short-description>     → chore/update-deps
-refactor/<short-description>  → refactor/auth-module
-```
-
-## Working with Worktrees
-
-For parallel AI agent work, use git worktrees to run multiple branches simultaneously:
-
-```bash
-# Create a worktree for a feature branch
-git worktree add ../project-feature-a feature/task-creation
-git worktree add ../project-feature-b feature/user-settings
-
-# Each worktree is a separate directory with its own branch
-# Agents can work in parallel without interfering
-ls ../
-  project/              ← main branch
-  project-feature-a/    ← task-creation branch
-  project-feature-b/    ← user-settings branch
-
-# When done, merge and clean up
-git worktree remove ../project-feature-a
-```
-
-> NOTE: in achilles, NEVER auto-merge — the terminal state is an open, risk-banded PR for async human
-> merge. See ## Outputs & handoff contract.
-
-Benefits:
-- Multiple agents can work on different features simultaneously
-- No branch switching needed (each directory has its own branch)
-- If one experiment fails, delete the worktree — nothing is lost
-- Changes are isolated until explicitly merged
+Branch before the first commit and commit to `main` never: the run ends at an open pull request
+([`safety-rails.md`](../../references/safety-rails.md)), and the default branch stays deployable. Name
+it `feat/<slug>` · `fix/<slug>` · `refactor/<slug>` · `chore/<slug>`, lowercase and hyphenated, a slice
+branch carrying its id (`feat/OFD-2-draft-buffer`). Merge inside a couple of days and delete it after —
+a branch outliving the week compounds merge risk daily, and unfinished work belongs behind an
+off-by-default flag. Two agents at once take a worktree each, one branch per directory (`worktree`).
 
 ## The Save Point Pattern
 
-```
-Agent starts work
-    │
-    ├── Makes a change
-    │   ├── Test passes? → Commit → Continue
-    │   └── Test fails? → Revert to last commit → Investigate
-    │
-    ├── Makes another change
-    │   ├── Test passes? → Commit → Continue
-    │   └── Test fails? → Revert to last commit → Investigate
-    │
-    └── Feature complete → All commits form a clean history
-```
-
-This pattern means you never lose more than one increment of work. If an agent goes off the rails, `git reset --hard HEAD` takes you back to the last successful state.
-
-## Change Summaries
-
-After any modification, provide a structured summary. This makes review easier, documents scope discipline, and surfaces unintended changes:
-
-```
-CHANGES MADE:
-- src/routes/tasks.ts: Added validation middleware to POST endpoint
-- src/lib/validation.ts: Added TaskCreateSchema using Zod
-
-THINGS I DIDN'T TOUCH (intentionally):
-- src/routes/auth.ts: Has similar validation gap but out of scope
-- src/middleware/error.ts: Error format could be improved (separate task)
-
-POTENTIAL CONCERNS:
-- The Zod schema is strict — rejects extra fields. Confirm this is desired.
-- Added zod as a dependency (72KB gzipped) — already in package.json
-```
-
-This pattern catches wrong assumptions early and gives reviewers a clear map of the change. The "DIDN'T TOUCH" section is especially important — it shows you exercised scope discipline and didn't go on an unsolicited renovation.
+On a failing test or a broken build, reset to the last green commit and diagnose from there rather than
+build on top of it (`debugging-and-error-recovery`) — `git reset --hard HEAD` then costs one increment.
+That holds only where each save point left a clean tree, so nothing a neighbouring slice owns rides on
+the reset.
 
 ## Pre-Commit Hygiene
 
-Before every commit:
+Run the pass every time, in order — read the staged diff, scan it for a credential, then tests, lint,
+type check:
 
 ```bash
-# 1. Check what you're about to commit
 git diff --staged
-
-# 2. Ensure no secrets
-git diff --staged | grep -i "password\|secret\|api_key\|token"
-
-# 3. Run tests
-npm test
-
-# 4. Run linting
-npm run lint
-
-# 5. Run type checking
-npx tsc --noEmit
+git diff --staged | grep -inE 'password|secret|api[_-]?key|token|BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}'
 ```
 
-Automate this with git hooks:
-
-```json
-// package.json (using lint-staged + husky)
-{
-  "lint-staged": {
-    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
-    "*.{json,md}": ["prettier --write"]
-  }
-}
-```
+A hit is a stop-list item ([`safety-rails.md`](../../references/safety-rails.md)): the commit does not
+happen, and the report says a credential is present without echoing its value. Move the pass into a
+hook (`lint-staged` + `husky`, or `.git/hooks/pre-commit`) so it runs whether anyone remembers or not;
+`ci-cd` owns the same gates server-side.
 
 ## Handling Generated Files
 
-- **Commit generated files** only if the project expects them (e.g., `package-lock.json`, Prisma migrations)
-- **Don't commit** build output (`dist/`, `.next/`), environment files (`.env`), or IDE config (`.vscode/settings.json` unless shared)
-- **Have a `.gitignore`** that covers: `node_modules/`, `dist/`, `.env`, `.env.local`, `*.pem`
+Write the `.gitignore` before the first commit — build output, `.env*`, `node_modules/`, keys, private
+editor state; afterwards the remedy is a rotation, not a revert. Commit a generated file only where the
+project expects one: a lockfile, a migration.
 
 ## Using Git for Debugging
 
-```bash
-# Find which commit introduced a bug
-git bisect start
-git bisect bad HEAD
-git bisect good <known-good-commit>
-# Git checkouts midpoints; run your test at each to narrow down
-
-# View what changed recently
-git log --oneline -20
-git diff HEAD~5..HEAD -- src/
-
-# Find who last changed a specific line
-git blame src/services/task.ts
-
-# Search commit messages for a keyword
-git log --grep="validation" --oneline
-```
+`git bisect` for the commit that turned a test red, `git log -S` or `--grep` for when a line arrived,
+`git blame` for what carried it. A root-caused defect cites its commit in `docs/lessons.md`
+(`debugging-and-error-recovery`).
 
 ## Rationalizations
 
-| Rationalization | Reality |
-|---|---|
-| "I'll commit when the feature is done" | One giant commit is impossible to review, debug, or revert. Commit each slice. |
-| "The message doesn't matter" | Messages are documentation. Future you (and future agents) will need to understand what changed and why. |
-| "I'll squash it all later" | Squashing destroys the development narrative. Prefer clean incremental commits from the start. |
-| "Branches add overhead" | Short-lived branches are free and prevent conflicting work from colliding. Long-lived branches are the problem — merge within 1-3 days. |
-| "I'll split this change later" | Large changes are harder to review, riskier to deploy, and harder to revert. Split before submitting, not after. |
-| "I don't need a .gitignore" | Until `.env` with production secrets gets committed. Set it up immediately. |
+- "I'll commit once the feature is done" → one commit for an afternoon is one nobody can bisect or revert.
+- "The message doesn't matter, the diff is there" → the diff carries the what; later the why exists
+  only in the message.
+- "It's really all one change" → a reflow and a behaviour change in one diff hide each other.
+- "I'll squash and force-push to tidy it up" → a rewrite of pushed history hides a changed test from
+  the review reading the diff.
+- "It's only a dev token" → history keeps a credential long after the file holding it is deleted.
+- "I'll add the `.gitignore` later" → between now and then is where `.env` and `dist/` enter history.
 
 ## Red flags
 
-- Large uncommitted changes accumulating
-- Commit messages like "fix", "update", "misc"
-- Formatting changes mixed with behavior changes
-- No `.gitignore` in the project
-- Committing `node_modules/`, `.env`, or build artifacts
-- Long-lived branches that diverge significantly from main
-- Force-pushing to shared branches
+- A working tree carrying an afternoon of unrelated edits, uncommitted.
+- Subjects reading `wip`, `updates`, `fix stuff`, `misc`.
+- A reflow sitting in the same commit as a behaviour change.
+- `.env`, `dist/` or `node_modules/` staged, or a repository with no `.gitignore`.
+- A branch alive for weeks, or a commit landing on `main` itself.
+- An amend, rebase or force-push proposed on a branch already pushed.
 
-## Verification (ending criteria)
+## Verification
 
-For every commit:
+- [ ] The work sits on a named branch off the default one, `main` neither committed to nor pushed.
+- [ ] One logical change per commit, each with its test, and `git status --porcelain` is empty.
+- [ ] Every message carries a type and its why; no commit mixes a reflow with behaviour.
+- [ ] The staged-diff scan ran clean before each commit — or a hit ended the pass as a stop-list item,
+      naming where the credential was and printing no value.
+- [ ] The `.gitignore` was in place before the first commit.
+- [ ] The change summary came back, naming what was left alone on purpose.
+- [ ] Every derived value — slice id, base branch, initialised repository — reads `derived`.
 
-- [ ] Commit does one logical thing
-- [ ] Message explains the why, follows type conventions
-- [ ] Tests pass before committing
-- [ ] No secrets in the diff
-- [ ] No formatting-only changes mixed with behavior changes
-- [ ] `.gitignore` covers standard exclusions
+## Outputs & handoff
 
-## Outputs & handoff contract
+- **Commits on the feature or slice branch**, shaped as Core Principles states — the range
+  `pull-request` bands and `code-review` grades.
+- **`.gitignore`** at the repository root when there is none, covering what Handling Generated Files lists.
+- **`docs/session-log.md`** — one appended entry, cap 60 words, where this pass settled something
+  itself: an initialised repository, a chosen base branch, a split nobody asked for. Shape in
+  [`state-schema.md`](../../references/state-schema.md).
+- **No `STATE.md` row** — the caller owns the slice's transition
+  ([`state-schema.md`](../../references/state-schema.md)).
+- **Returned in conversation rather than written** — the change summary, cap 200 words:
 
-**Emits:** no artifact-chain file — git is a *referenced* discipline. What it produces is **state
-the rest of the suite anchors to**:
+  ```
+  CHANGES MADE   <file>: what changed there
+  NOT TOUCHED    <file or area>: why it was left alone, deliberately
+  CONCERNS       what a reviewer should look at first, or "none"
+  ```
 
-- **Atomic commits on the cluster branch** (`cluster/<id>` per safety rail 1,
-  `references/safety-rails.md`), each a
-  save-point doing one logical thing, ~100 lines, message in `<type>: <why>` form. **Never** a
-  commit to `main`/`master` — the autonomous run terminates at an open PR for async human merge,
-  not a direct push (fail-safe).
-- **A clean working tree at each save-point**, so a failed slice can revert to the last green
-  commit (`git reset --hard HEAD`) without disturbing any other slice's work.
-- **A secret-free diff** — the pre-commit scan (`git diff --staged | grep -i
-  "password\|secret\|api_key\|token"`) is clean before every commit. A hit is a hard STOP +
-  PushNotification and is **never** committed (safety rail 2 / secret circuit-breaker).
+  NOT TOUCHED is the block that earns its keep — where an unsolicited renovation would have shown.
+- **Nothing else** — no merge, no pull request, no `qa.md`, no release.
 
-**Stable handles downstream skills depend on:**
-- `pull-request` reads the commit history (`git log`, `git diff <base>...HEAD`) to anchor the PR summary to
-  the real change set — so descriptive messages keep that anchor honest.
-- The `orchestrator` reads branch + commit state to drive the slice `ship` transition in
-  `STATE.md`. Git does **not** write `STATE.md` (the orchestrator owns the board).
-
-**Handoff:** leave the branch named per safety rail 1, every increment committed (no dirty
-tree), and emit the **CHANGES MADE / DIDN'T TOUCH / POTENTIAL CONCERNS** summary (see §Change
-Summaries) so the next agent — or the human reviewer at the open-PR gate — inherits a clear,
-scope-disciplined map of the change.
+Report each capped write — the change summary, the log entry — at its measured size against its cap;
+an over-cap draft is reported at that size, never handed on as though it fit.

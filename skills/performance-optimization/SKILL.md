@@ -1,385 +1,169 @@
 ---
 name: performance-optimization
-description: 'Measure-first performance review of a code change. Use the moment a slice''s diff touches data fetching, rendering, bundle size, or any hot path, or when Core Web Vitals / load-time budgets are in play. Do NOT eyeball performance: profile the running app, cite before/after numbers, and flag N+1 queries, unbounded fetches, oversized bundles, and needless re-renders before the PR opens.'
+description: Judge a diff's cost on measurements — profile the changed path, cite before/after numbers, and name N+1 queries, unbounded fetches, oversized bundles and needless re-renders. Reach for it code-cold on a slice touching data fetching, rendering or bundle size, or a load-time budget. Complexity alone is `code-simplification`; the five-axis grade is `code-review`.
 ---
 
 # Performance Optimization
 
 ## Purpose
 
-**Stage: Review (fan-out lens — the measure-first performance axis).** This skill is the performance lens of the Review fan-out the orchestrator dispatches as fresh, code-cold subagents in parallel on independent axes. Its job here is not to apply fixes but to *judge a diff on evidence*: profile, then report findings.
+**Stage: Review.** Principles 6, 7, 8, 9.
 
-Measure before optimizing. Performance work without measurement is guessing — and guessing leads to premature optimization that adds complexity without improving what matters. Profile first, identify the actual bottleneck, fix it, measure again. Optimize only what measurements prove matters.
+The measure-first performance lens of the Review fan-out, dispatched code-cold over a slice's diff. It
+profiles the changed path, holds the numbers against the feature's budget, and writes
+`reviews/<SLICE-ID>-perf.md`: findings that each carry a measurement, and one verdict. It judges on
+evidence and applies nothing.
 
 ## When to use / when to skip
 
-- Performance requirements exist in the spec (load time budgets, response time SLAs)
-- Users or monitoring report slow behavior
-- Core Web Vitals scores are below thresholds
-- You suspect a change introduced a regression
-- Building features that handle large datasets or high traffic
-
-**When NOT to use:** Don't optimize before you have evidence of a problem. Premature optimization adds complexity that costs more than the performance it gains.
+- The Review fan-out dispatches you code-cold over a wave's diffs, beside `code-review`,
+  `code-simplification` and `security-and-hardening`
+  ([`safety-rails.md`](../../references/safety-rails.md), *Code-cold dispatch*).
+- The diff touches data fetching, a query, rendering, an image, a font or the initial bundle, or an
+  acceptance scenario names LCP, INP, CLS, a p95 or a bundle ceiling.
+- The app is reported slow, a vital dropped a band, or a feature is about to meet a dataset nothing here
+  was measured against.
+- **Skip** a diff nothing has slowed and no budget covers: optimizing with no evidence of a problem costs
+  more than the performance it gains.
+- **Near-miss.** Five-axis grade: `code-review`. Complexity in code believed correct:
+  `code-simplification`. OWASP, secrets, dependencies: `security-and-hardening`. Driving the browser for a
+  trace: `browser-testing-with-devtools`.
 
 ## Inputs
 
-Refuse to run without both of these — measure-first is the whole point; a review with nothing to measure is theater:
+Nobody is present on a code-cold pass; what is absent gets derived and marked `derived` in the findings.
 
-- **The slice diff** (required) — the change under review. No diff → nothing to review; stop and ask the orchestrator for the slice's diff.
-- **A way to measure** (required) — the running app, a build, or profiling access (Chrome DevTools / Lighthouse / bundle-analyzer / DB query log). No way to obtain before/after numbers → stop; report `block` with reason "unmeasurable", do not eyeball-bless.
-
-Optional, read if present:
-- `acceptance.md` performance budgets (feature-namespaced ids, e.g. `PWR-A*`) — the contractual thresholds this diff must hold.
-- `environment.md` — which services / runtimes to profile against (kind enum: service · runtime-dep · mcp).
-
-You are a **fresh, code-cold subagent**: you did not write this diff and you have no test-write access. Judge on evidence only.
+- **the diff** — helps: it is the change whose cost you measure · without it: read `git diff <base>..HEAD`
+  or the working tree and name the range, `derived`.
+- **a way to measure** — the running app, a build, a bundle report, a query log, Lighthouse, a trace —
+  helps: numbers, and a finding without one is an opinion · without it: read the changed paths for the
+  anti-patterns below, mark each finding `unmeasured` with the instrument that would settle it, and hold
+  the verdict at `concerns`. An eyeballed pass is a guess dressed as evidence; a missing instrument names
+  a gap rather than ending a slice.
+- `docs/features/<slug>/acceptance.md` — helps: the scenarios naming a threshold, the numbers this diff
+  owes · without it: take the defaults under *Performance Budget*, `derived`.
+- `docs/features/<slug>/prd.md` — helps: the constraints and the Not-Doing list a recommended fix must
+  not cross · without it: take the repo's existing conventions and say so, `derived`.
+- `docs/features/<slug>/environment.md` — helps: what to profile against · without it: read the repo's run
+  scripts and config, `derived`.
+- `STATE.md` and `docs/features/<slug>/plan/<slice-id>.md` — helps: the slice id and its owned files, so a
+  finding routes to its owner · without it: attribute by file path, `derived`.
 
 ## Core Web Vitals Targets
 
-| Metric | Good | Needs Improvement | Poor |
-|--------|------|-------------------|------|
-| **LCP** (Largest Contentful Paint) | ≤ 2.5s | ≤ 4.0s | > 4.0s |
-| **INP** (Interaction to Next Paint) | ≤ 200ms | ≤ 500ms | > 500ms |
-| **CLS** (Cumulative Layout Shift) | ≤ 0.1 | ≤ 0.25 | > 0.25 |
+The good / needs-improvement / poor bands are in
+[`performance-checklist.md`](../../references/performance-checklist.md), read on a mid-range Android or at
+4×–6× CPU throttling. A vital dropping a band on a path this diff changed is a finding with the trace
+behind it.
 
 ## The Optimization Workflow
 
-```
-1. MEASURE  → Establish baseline with real data
-2. IDENTIFY → Find the actual bottleneck (not assumed)
-3. FIX      → Address the specific bottleneck
-4. VERIFY   → Measure again, confirm improvement
-5. GUARD    → Add monitoring or tests to prevent regression
-```
+Measure, find the real bottleneck, name the fix and the guard. Only what a measurement points at is worth
+changing.
 
-### Step 1: Measure
+1. **Measure the changed path before reading it for faults** — the endpoint, the interaction, the bundle —
+   and record the number with the conditions behind it. Take both kinds: a synthetic number (Lighthouse, a
+   trace, a bundle report) catches a regression on demand; a field number (RUM, CrUX) is what says a real
+   user got faster.
 
-Two complementary approaches — use both:
+2. **Let the symptom pick the instrument.**
 
-- **Synthetic (Lighthouse, DevTools Performance tab):** Controlled conditions, reproducible. Best for CI regression detection and isolating specific issues.
-- **RUM (web-vitals library, CrUX):** Real user data in real conditions. Required to validate that a fix actually improved user experience.
+   | Symptom | What to open |
+   |---|---|
+   | First load | bundle report; Network waterfall — DNS, TCP-TLS, waiting |
+   | A lagging interaction | Performance trace; tasks over 50ms; `onINP` attribution |
+   | Content jumping | layout-shift attribution — images without dimensions, late content, a font swap |
+   | A slow page after navigation | API timings and the request list — a fetch waterfall, a client N+1 |
+   | One slow endpoint | slow-query log and query plan — N+1, a missing index, an unbounded scan |
+   | Every endpoint slow | pool metrics, heap snapshot, CPU profile — exhaustion, a leak, GC pauses |
+   | Slow only sometimes | lock waits, GC logs, external-dependency timings — contention, a pause, a dependency degrading |
 
-**Frontend:**
-```bash
-# Synthetic: Lighthouse in Chrome DevTools (or CI)
-# Chrome DevTools → Performance tab → Record
-# Chrome DevTools MCP → Performance trace
+3. **Name the anti-pattern the measurement points at, in the lines this diff changed.**
 
-# RUM: Web Vitals library in code
-import { onLCP, onINP, onCLS } from 'web-vitals';
+   | In the diff | The finding | What closes it |
+   |---|---|---|
+   | a read per row inside a loop | N+1 | one query with a join or an include |
+   | a list read with no limit or order | unbounded fetch | `take`/`skip` or a cursor, plus an order |
+   | an `<img>` with no `width`/`height`, no `srcset`, a legacy format | LCP and CLS cost | the checklist's image rules |
+   | a fresh object or closure as a prop; an unmemoized expensive component; a per-keystroke computation | needless re-render | a hoisted reference, or memoization where the profile shows the gain |
+   | a heavy or rarely-used module imported eagerly | bundle cost | `import()` at the route or the feature |
+   | the same rarely-changing read every request | missing cache | a TTL on the read; the checklist's caching rules |
 
-onLCP(console.log);
-onINP(console.log);
-onCLS(console.log);
-```
+   [`performance-checklist.md`](../../references/performance-checklist.md) holds those image and caching
+   rules in full, and fonts, critical CSS, yielding the main thread and infrastructure besides.
 
-**Backend:**
-```bash
-# Response time logging
-# Application Performance Monitoring (APM)
-# Database query logging with timing
+4. **Give every finding a number, a place, a fix and a guard** — severity `blocker · major · minor`, a
+   `path:line` in the diff, the before against the after (or a projected after and what would confirm it),
+   the change that closes it, and the check that keeps it out: `bundlesize` or `lhci autorun` in CI, a
+   query-count assertion, a threshold in the acceptance scenarios. Findings rest on a measurement or a
+   named anti-pattern, never on an adjective.
 
-# Simple timing
-console.time('db-query');
-const result = await db.query(...);
-console.timeEnd('db-query');
-```
+5. **Report, and edit nothing** — not the code, not the tests, not the build config; the slice's owner
+   applies the fix, re-runs the suite and re-measures against your before-number.
 
-### Where to Start Measuring
+6. **Decide the rest yourself and leave the trace.** An unstated budget, an anti-pattern acceptable at
+   this scale, a fix deferred to a later slice: take the default, state the reason, append one
+   `docs/session-log.md` entry, hand `pull-request` a Decided-for-you row. A regression past budget raises
+   the risk band; it is a finding, not a question.
 
-Use the symptom to decide what to measure first:
-
-```
-What is slow?
-├── First page load
-│   ├── Large bundle? --> Measure bundle size, check code splitting
-│   ├── Slow server response? --> Measure TTFB in DevTools Network waterfall
-│   │   ├── DNS long? --> Add dns-prefetch / preconnect for known origins
-│   │   ├── TCP/TLS long? --> Enable HTTP/2, check edge deployment, keep-alive
-│   │   └── Waiting (server) long? --> Profile backend, check queries and caching
-│   └── Render-blocking resources? --> Check network waterfall for CSS/JS blocking
-├── Interaction feels sluggish
-│   ├── UI freezes on click? --> Profile main thread, look for long tasks (>50ms)
-│   ├── Form input lag? --> Check re-renders, controlled component overhead
-│   └── Animation jank? --> Check layout thrashing, forced reflows
-├── Page after navigation
-│   ├── Data loading? --> Measure API response times, check for waterfalls
-│   └── Client rendering? --> Profile component render time, check for N+1 fetches
-└── Backend / API
-    ├── Single endpoint slow? --> Profile database queries, check indexes
-    ├── All endpoints slow? --> Check connection pool, memory, CPU
-    └── Intermittent slowness? --> Check for lock contention, GC pauses, external deps
-```
-
-### Step 2: Identify the Bottleneck
-
-Common bottlenecks by category:
-
-**Frontend:**
-
-| Symptom | Likely Cause | Investigation |
-|---------|-------------|---------------|
-| Slow LCP | Large images, render-blocking resources, slow server | Check network waterfall, image sizes |
-| High CLS | Images without dimensions, late-loading content, font shifts | Check layout shift attribution |
-| Poor INP | Heavy JavaScript on main thread, large DOM updates | Check long tasks in Performance trace |
-| Slow initial load | Large bundle, many network requests | Check bundle size, code splitting |
-
-**Backend:**
-
-| Symptom | Likely Cause | Investigation |
-|---------|-------------|---------------|
-| Slow API responses | N+1 queries, missing indexes, unoptimized queries | Check database query log |
-| Memory growth | Leaked references, unbounded caches, large payloads | Heap snapshot analysis |
-| CPU spikes | Synchronous heavy computation, regex backtracking | CPU profiling |
-| High latency | Missing caching, redundant computation, network hops | Trace requests through the stack |
-
-### Step 3: Fix Common Anti-Patterns
-
-#### N+1 Queries (Backend)
-
-```typescript
-// BAD: N+1 — one query per task for the owner
-const tasks = await db.tasks.findMany();
-for (const task of tasks) {
-  task.owner = await db.users.findUnique({ where: { id: task.ownerId } });
-}
-
-// GOOD: Single query with join/include
-const tasks = await db.tasks.findMany({
-  include: { owner: true },
-});
-```
-
-#### Unbounded Data Fetching
-
-```typescript
-// BAD: Fetching all records
-const allTasks = await db.tasks.findMany();
-
-// GOOD: Paginated with limits
-const tasks = await db.tasks.findMany({
-  take: 20,
-  skip: (page - 1) * 20,
-  orderBy: { createdAt: 'desc' },
-});
-```
-
-#### Missing Image Optimization (Frontend)
-
-```html
-<!-- BAD: No dimensions, no format optimization -->
-<img src="/hero.jpg" />
-
-<!-- GOOD: Hero / LCP image — art direction + resolution switching, high priority -->
-<!--
-  Two techniques combined:
-  - Art direction (media): different crop/composition per breakpoint
-  - Resolution switching (srcset + sizes): right file size per screen density
--->
-<picture>
-  <!-- Mobile: portrait crop (8:10) -->
-  <source
-    media="(max-width: 767px)"
-    srcset="/hero-mobile-400.avif 400w, /hero-mobile-800.avif 800w"
-    sizes="100vw"
-    width="800"
-    height="1000"
-    type="image/avif"
-  />
-  <source
-    media="(max-width: 767px)"
-    srcset="/hero-mobile-400.webp 400w, /hero-mobile-800.webp 800w"
-    sizes="100vw"
-    width="800"
-    height="1000"
-    type="image/webp"
-  />
-  <!-- Desktop: landscape crop (2:1) -->
-  <source
-    srcset="/hero-800.avif 800w, /hero-1200.avif 1200w, /hero-1600.avif 1600w"
-    sizes="(max-width: 1200px) 100vw, 1200px"
-    width="1200"
-    height="600"
-    type="image/avif"
-  />
-  <source
-    srcset="/hero-800.webp 800w, /hero-1200.webp 1200w, /hero-1600.webp 1600w"
-    sizes="(max-width: 1200px) 100vw, 1200px"
-    width="1200"
-    height="600"
-    type="image/webp"
-  />
-  <img
-    src="/hero-desktop.jpg"
-    width="1200"
-    height="600"
-    fetchpriority="high"
-    alt="Hero image description"
-  />
-</picture>
-
-<!-- GOOD: Below-the-fold image — lazy loaded + async decoding -->
-<img
-  src="/content.webp"
-  width="800"
-  height="400"
-  loading="lazy"
-  decoding="async"
-  alt="Content image description"
-/>
-```
-
-#### Unnecessary Re-renders (React)
-
-```tsx
-// BAD: Creates new object on every render, causing children to re-render
-function TaskList() {
-  return <TaskFilters options={{ sortBy: 'date', order: 'desc' }} />;
-}
-
-// GOOD: Stable reference
-const DEFAULT_OPTIONS = { sortBy: 'date', order: 'desc' } as const;
-function TaskList() {
-  return <TaskFilters options={DEFAULT_OPTIONS} />;
-}
-
-// Use React.memo for expensive components
-const TaskItem = React.memo(function TaskItem({ task }: Props) {
-  return <div>{/* expensive render */}</div>;
-});
-
-// Use useMemo for expensive computations
-function TaskStats({ tasks }: Props) {
-  const stats = useMemo(() => calculateStats(tasks), [tasks]);
-  return <div>{stats.completed} / {stats.total}</div>;
-}
-```
-
-#### Large Bundle Size
-
-```typescript
-// Modern bundlers (Vite, webpack 5+) handle named imports with tree-shaking automatically,
-// provided the dependency ships ESM and is marked `sideEffects: false` in package.json.
-// Profile before changing import styles — the real gains come from splitting and lazy loading.
-
-// GOOD: Dynamic import for heavy, rarely-used features
-const ChartLibrary = lazy(() => import('./ChartLibrary'));
-
-// GOOD: Route-level code splitting wrapped in Suspense
-const SettingsPage = lazy(() => import('./pages/Settings'));
-
-function App() {
-  return (
-    <Suspense fallback={<Spinner />}>
-      <SettingsPage />
-    </Suspense>
-  );
-}
-```
-
-#### Missing Caching (Backend)
-
-```typescript
-// Cache frequently-read, rarely-changed data
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-let cachedConfig: AppConfig | null = null;
-let cacheExpiry = 0;
-
-async function getAppConfig(): Promise<AppConfig> {
-  if (cachedConfig && Date.now() < cacheExpiry) {
-    return cachedConfig;
-  }
-  cachedConfig = await db.config.findFirst();
-  cacheExpiry = Date.now() + CACHE_TTL;
-  return cachedConfig;
-}
-
-// HTTP caching headers for static assets
-app.use('/static', express.static('public', {
-  maxAge: '1y',           // Cache for 1 year
-  immutable: true,        // Never revalidate (use content hashing in filenames)
-}));
-
-// Cache-Control for API responses
-res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
-```
+7. **Return one verdict — `pass · concerns · block`.** `pass` is measured, inside budget, no anti-pattern
+   in the changed paths. `concerns` carries what should move before merge, a past-budget regression and a
+   poor-band vital included. `block` is a stop-list item and nothing else
+   ([`safety-rails.md`](../../references/safety-rails.md)).
 
 ## Performance Budget
 
-Set budgets and enforce them:
-
-```
-JavaScript bundle: < 200KB gzipped (initial load)
-CSS: < 50KB gzipped
-Images: < 200KB per image (above the fold)
-Fonts: < 100KB total
-API response time: < 200ms (p95)
-Time to Interactive: < 3.5s on 4G
-Lighthouse Performance score: ≥ 90
-```
-
-**Enforce in CI:**
-```bash
-# Bundle size check
-npx bundlesize --config bundlesize.config.json
-
-# Lighthouse CI
-npx lhci autorun
-```
-
-## See Also
-
-For detailed performance checklists, optimization commands, and anti-pattern reference, see `references/performance-checklist.md`.
-
+Where the feature states thresholds they win; where it states none, these are the defaults, reported
+`derived`: initial JavaScript under 200KB gzipped · CSS under 50KB · an above-the-fold image under 200KB ·
+fonts under 100KB total · API p95 under 200ms · time-to-interactive under 3.5s on 4G · Lighthouse
+performance 90 or better.
 
 ## Rationalizations
 
 | Rationalization | Reality |
 |---|---|
-| "We'll optimize later" | Performance debt compounds. Fix obvious anti-patterns now, defer micro-optimizations. |
-| "It's fast on my machine" | Your machine isn't the user's. Profile on representative hardware and networks. |
-| "This optimization is obvious" | If you didn't measure, you don't know. Profile first. |
-| "Users won't notice 100ms" | Research shows 100ms delays impact conversion rates. Users notice more than you think. |
-| "The framework handles performance" | Frameworks prevent some issues but can't fix N+1 queries or oversized bundles. |
+| "This optimization is obvious" | An unprofiled bottleneck is a guess, and the obvious candidate is rarely where the time sits. |
+| "It's fast on my machine" | The user's machine is a mid-range phone on a worse network, where INP problems live. |
+| "We'll optimize later" | These anti-patterns are cheap now and structural later; micro-optimizations are the ones worth deferring. |
+| "Named imports are bloating the bundle" | A modern bundler tree-shakes them; the gains live in splitting and lazy loading. |
+| "I'm in the file anyway, I'll just fix it" | A checker that edits what it graded has no independent evidence left, and a sibling axis is in that file. |
 
 ## Red flags
 
-- Optimization without profiling data to justify it
-- N+1 query patterns in data fetching
-- List endpoints without pagination
-- Images without dimensions, lazy loading, or responsive sizes
-- Bundle size growing without review
-- No performance monitoring in production
-- `React.memo` and `useMemo` everywhere (overusing is as bad as underusing)
+- A recommendation with no number behind it, or a number with no conditions beside it.
+- A fix aimed where the profile never pointed.
+- `React.memo` and `useMemo` sprayed across components nobody profiled.
+- A list endpoint with no limit, or a loop issuing one read per row.
+- A finding written into the code under review instead of the findings file.
+- A bundle that grew in this diff with nobody reporting by how much.
 
-## Verification (ending criteria)
+## Verification
 
-After any performance-related change:
+- [ ] Every changed path carries a before number and its conditions, or is marked `unmeasured` with the
+      instrument that would settle it.
+- [ ] Each finding cites a `path:line` in the diff and carries a severity, a measurement or a named
+      anti-pattern, the fix, and the guard.
+- [ ] The thresholds graded against are the feature's or the defaults marked `derived`, each reported
+      cleared or not.
+- [ ] No code, test or build configuration under review moved.
+- [ ] Each call outside the stop list is a default with a reason, one log entry, and a Decided-for-you row.
+- [ ] The verdict is one of `pass · concerns · block`, and a `block` names the condition that fired.
 
-- [ ] Before and after measurements exist (specific numbers)
-- [ ] The specific bottleneck is identified and addressed
-- [ ] Core Web Vitals are within "Good" thresholds
-- [ ] Bundle size hasn't increased significantly
-- [ ] No N+1 queries in new data fetching code
-- [ ] Performance budget passes in CI (if configured)
-- [ ] Existing tests still pass (optimization didn't break behavior)
+## Outputs & handoff
 
-## Outputs & handoff contract
+`docs/features/<slug>/reviews/<SLICE-ID>-perf.md` — cap 600 words, one file per owning slice, you its sole
+writer. Called by hand with no slice and no feature, the same sections come back in conversation instead.
 
-Emit **findings** (the perf axis) to `docs/features/<slug>/reviews/<SLICE-ID>-perf.md`. Stable sections the orchestrator's Review gate depends on — change the shape → update the consumer in the same commit:
+- `## Measurements` — per changed path: instrument, conditions, the before number and the projected
+  after with what would confirm it, or `unmeasured` and what would settle it.
+- `## Findings` — severity (`blocker|major|minor`) · `path:line` · the number or the named anti-pattern ·
+  the fix · the guard, `derived` on anything reconstructed.
+- `## Budget` — each threshold, its source, and whether the measurement clears it.
+- `## Verdict` — `pass | concerns | block`; on a block, the stop-list condition that fired.
 
-- `## Verdict` — exactly one token: `pass` | `concerns` | `block`.
-  - `block` = a regression past budget or a Core Web Vitals "Poor" band, OR unmeasurable (no profiling access).
-  - `concerns` = anti-patterns that degrade at scale (N+1, unbounded query, oversized bundle) but within current budget.
-  - `pass` = measured, within budget, no anti-pattern in the changed paths.
-- `## Findings` — a list; each item carries: severity (`blocker` | `major` | `minor`), a `file:line` citation into the diff, the **before/after measurement** that justifies it (numbers, not adjectives), and a recommended fix. No finding without a measurement or a named anti-pattern.
+Measure the draft against that cap and report the count; an over-cap draft goes on as an over-run, never
+as one that fit. Where this pass settled something itself, one `docs/session-log.md` entry of at most 60
+words is appended, matching the pull request's **Decided for you** row.
 
-Handoff: you do **not** flip `STATE.md` — the orchestrator owns the board. The Review lenses do not share one verdict vocabulary (`code-simplification` names the others), so it translates each one before AND-combining them into the slice's review gate; your `block` halts the slice's PR promotion. Your contract ends at the findings file.
-
-## Subagents
-
-For a fresh-context, code-cold pass, dispatch the **`performance-auditor`** agent (`agents/performance-auditor.md`) as an
-independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a person wants a single code-cold performance pass
-over a diff **outside a run**, or on a platform with no skill tool. Inside a run this skill is dispatched
-as itself — there is no role to play on top of it.
+No `STATE.md` row is written and no gate flipped — the caller owns the slice's transition
+([`state-schema.md`](../../references/state-schema.md)).

@@ -1,158 +1,148 @@
 ---
 name: literate-explainer
-description: 'Turn a diff (the daily case) or a whole unfamiliar target repo (onboarding) into a self-contained teaching artifact so you stay a participant in code you didn''t write — background before the change, intuition before details, a literate tour in reading order, plain enough to re-teach (the Feynman test). Reach for this whenever an agent just landed a large diff you cannot yet explain, when you clone or inherit an unfamiliar repo and a skim will not build a mental model, or when someone says "explain this diff/PR/branch/codebase", "walk me through what changed", or "help me understand this code". Standalone — no lifecycle gates, nothing blocks, /orchestrate untouched. Pairs with comprehension-quiz — suggest running /quiz next. NOT code-review (which judges a diff for merge) and NOT codebase-research (the goal-blind survey written at the head of Spec and again at the head of Plan).'
+description: Use when you must understand code you did not write — a landed diff, a PR, an unfamiliar repo. Emits a teaching artifact outside the repo: background before mechanics, a tour in reading order, plain enough to re-teach. Not `code-review` (judging a diff) or `codebase-research` (surveying one).
 ---
 
-# Literate explainer — understand code you didn't write
+# Literate explainer
 
 ## Purpose
 
-**Stage: standalone · cross-cutting** — it belongs to no lifecycle stage, so no gate waits on it and `/orchestrate` is untouched; reach for it whenever you need to understand code you did not write.
+**Stage: standalone.** Principles 4, 5, 6, 8.
 
-Turn a **diff** (the daily case — an agent just landed a change to your **target repo** and "looks
-right" is not understanding) or a whole **target repo** (the onboarding case — you cloned or inherited
-it and need a real mental model) into a **teaching artifact**: background before the change, intuition
-before details in what → why → how order, a literate code tour in reading order, explained plainly
-enough to re-teach. The goal is participation — that you can pass a quiz on the code and make the next
-change yourself.
-
-It owns two of the three comprehension-workspace surfaces (the
-**explainer manifest** and the **learner glossary**); `comprehension-quiz` owns the third (the
-**learning ledger**) and is your next step.
+Turn a landed diff, or a whole unfamiliar repo, into a teaching artifact — background before mechanics,
+a tour in reading order, plain enough to re-teach with the source closed. It writes into a comprehension
+workspace outside the target repo, grows the learner glossary, and hands off to `comprehension-quiz`,
+because "looks right" is not understanding.
 
 ## When to use / when to skip
 
-**Use** the moment you need the *human* to understand code they didn't write — a landed diff, a PR, a
-branch, or an unfamiliar repo. **Skip** when your goal is to judge a diff for merge (that is
-`code-review`) or to gather goal-blind facts for the design and the plan (that is `codebase-research`,
-run at the head of Spec). The boundary is
-behavioral, not a naming rule:
-
-| You want… | Reach for | Its object | It emits |
-|---|---|---|---|
-| the **human** to *understand* code they didn't write | **literate-explainer** (this skill) | a diff, or a whole target repo | a teaching artifact you read (+ manifest & glossary growth) |
-| a **diff** *judged* for merge-worthiness — correctness, security, performance | **code-review** | one slice diff | severity-labeled findings |
-| **Spec and Plan** to get *goal-blind facts* about the code as it is today | **codebase-research** | the target codebase | `research.md`, written at the head of Spec and again at the head of Plan |
-
-Read it as: **explain = the human understands · review = the diff is judged · research = the design and
-the plan get facts**. Explanation and judgment are different jobs; do not reach for one by trigger-name
-accident.
+- An agent landed a diff you cannot yet explain, or you inherited a repo a skim will not make sense of.
+- Someone says "explain this diff/PR/branch", "walk me through what changed", "help me understand this
+  code".
+- Not this: judging a diff for merge — `code-review`; goal-blind facts for the design and the plan —
+  `codebase-research`; testing whether the understanding is real rather than building it —
+  `comprehension-quiz`, the pass after this one. The boundary is behavioural, not a naming rule.
+- Standalone: no gate waits on it, it blocks nothing, `orchestrator` is untouched, no chain artifact.
 
 ## Inputs
 
-- **A resolvable target repo** — normally the current working directory. Its **repo key** and
-  **comprehension workspace** are derived per `references/comprehension-workspace-format.md`; the
-  workspace is created on first use, so an empty workspace is a valid, first-class input.
-- **A diff in view** (uncommitted changes, a named branch, or a PR reference) for diff mode; **none**
-  for codebase mode. An explicit mode argument overrides detection.
-- **A current machine survey** for codebase mode — `codebase-research`'s output. If none is fresh,
-  invoke `codebase-research` to produce it; never survey the repo yourself.
-- **The workspace surfaces, read-only for derivation** — the learning ledger and the learner glossary,
-  joined at read time to find proven-known and worth-revisiting concepts. You write the manifest and the
-  glossary; you never write the ledger.
-- **Optional:** a request for markdown output instead of HTML.
+- **A target repo** — helps: the subject and the repo key · without it: the working directory; with no
+  `origin` the key falls back to the main working tree's path.
+- **A diff in view** — helps: picks diff mode, names the subject · without it: codebase mode, unless an
+  explicit mode argument says otherwise.
+- **`docs/features/<slug>/research.md`** — helps: codebase mode reorders a goal-blind survey's facts ·
+  without it: read the repo read-only yourself and mark those facts `derived`.
+- **The learning ledger and the learner glossary** — helps: joined, they give proven-known and
+  worth-revisiting · without them: a cold start teaches everything, with no hint history is missing.
+- **A request for markdown** — helps: swaps the output mode · without it: self-contained HTML.
 
-The artifact's internal structure is fixed by `references/teaching-artifact-format.md`; the workspace
-layout, key derivation, surface formats, and join rules by
-`references/comprehension-workspace-format.md`. This file points at both; it does not restate them.
+An empty workspace is a first-class input, not a missing one. With a person there, ask at most three
+questions, only where the answer changes the shape — subject, mode, format.
 
 ## Process
 
-1. **Resolve the workspace.** Derive the repo key and open (or create) the comprehension workspace under
-   `~/.achilles/comprehension/<repo-key>/`, appending the `key → origin` index line on first creation.
-   Origin-derived key normally; path-fallback `local__…` key when the repo has no remote.
-   All state lives here — **never write anything into the target repo**.
-2. **Detect the mode.** A diff in view → **diff mode**; no diff → **codebase mode**. An explicit
-   argument overrides detection either way.
-3. **Codebase mode: quarry, never re-survey.** Obtain facts by invoking `codebase-research` (or reusing
-   its fresh output), then **pedagogically reorder** them — load-bearing idea first, then what depends on
-   it, in the order that builds a mental model fastest. The boundary is one-way: the explainer may quarry
-   survey output; the survey never reads teaching artifacts. No second survey of the repo.
-4. **Derive personalization from the ledger.** Join the learning ledger and learner glossary at read
-   time. **Proven-known** background (latest ledger grade passes) is *not re-taught* — at most a one-line
-   pointer acknowledges it. **Worth-revisiting** durable concepts (latest grade failed/partial,
-   or a stale/absent pass) become an advisory note that names them and blocks nothing. On a
-   cold start the note is omitted whole and background teaches everything from scratch.
-5. **Emit the artifact** per the teaching-artifact format: section order (Header → Background → literate
-   tour → worth-revisiting note), what → why → how at every stop, a tour ordered by the logic of the
-   change and never by file name, the Feynman-plain bar throughout. Escalate to an
-   interactive figure only under the anti-slop refuse rule — **if a static figure teaches the same thing,
-   emit the static figure**. Primary output is **one self-contained HTML file** (all CSS/JS/
-   assets inline, renders from disk with no network and no build); markdown on request, same
-   structure contract. **No quiz answer appears anywhere in the source** — prose, comments,
-   hidden elements, `data-*`, inline JS, or embedded JSON.
-6. **Register the run.** Append **exactly one** explainer manifest line (date, mode, subject, artifact
-   filename, concepts taught). Add each newly taught **durable concept** to the learner glossary
-   with a plain definition; **existing entries are preserved verbatim**. Ephemeral diff
-   mechanics are walked but never promoted to the glossary. Store **no** counter, rate,
-   or mastery flag — every measure is derived, never stored.
-7. **Hand off.** Tell the learner where the artifact lives, then suggest **running the quiz next**
-   (`/quiz`) to make the understanding honest — the quiz records the session that later feeds step 4.
+1. **Resolve the workspace.** Derive the repo key, open or create
+   `~/.achilles/comprehension/<repo-key>/`, append its `key → origin` line to `index.md` on first
+   creation only — derivation and the `local__` fallback are in
+   [comprehension-workspace-format](../../references/comprehension-workspace-format.md). One key per
+   repo lands every clone and worktree in one workspace.
+
+2. **Write every byte there and nothing into the target repo** — not the artifact, not a scratch file,
+   not on a run that fails midway.
+
+3. **Detect the mode**: a diff in view is diff mode, none is codebase mode, an explicit argument
+   overrides either way. In diff mode take the first source in view — uncommitted changes, then a named
+   branch, then a PR reference — and name the `subject` after that branch or PR, falling back to the
+   diff's dominant path; the subject is what the manifest line and the filename carry.
+
+4. **In codebase mode quarry the survey instead of gathering facts twice**, and reorder them
+   pedagogically — load-bearing idea first, then what rests on it. The boundary is one-way: an explainer
+   reads survey output, a survey never reads an artifact. Reading the repo is fine; writing
+   `research.md` into it is not.
+
+5. **Join the ledger and the glossary at read time**
+   ([comprehension-workspace-format](../../references/comprehension-workspace-format.md)) for what is
+   proven-known — a one-line pointer at most — and what is worth revisiting. Store no counter, rate or
+   mastery flag, so no record can drift from the facts.
+
+6. **Emit the artifact in the section order
+   [teaching-artifact-format](references/teaching-artifact-format.md) fixes**, omitting an empty
+   section whole rather than stubbing it. Carry the worth-revisiting note only where the ledger surfaces
+   something; it lists rather than re-teaches and gates nothing; on a cold start omit it whole.
+
+7. **Lead every concept what → why → how**, so each layer has a hook. Order the tour by the logic of the
+   change, cause into effect and definition into use, never by filename or directory. Hold it to the
+   Feynman bar, re-teachable with the source closed — a gap in the explanation is a gap in the grasp.
+
+8. **Prose first, then a static figure, then an interactive one only where neither can teach the
+   thing.** Ship one self-contained HTML file, everything inline, rendering from disk with no network
+   and no build; markdown on request, same order and pedagogy. Keep every quiz answer out of the
+   source — prose, comments, hidden elements, `data-*`, inline JS, embedded JSON — since reading it
+   must confer no advantage on the quiz that follows.
+
+9. **Register the run and hand off.** Append exactly one manifest line; add each new durable concept to
+   the glossary, existing entries verbatim, promoting no ephemeral diff mechanic (a merged diff is stale
+   by Friday). Leave `ledger.jsonl` alone. Say where the artifact lives and what it measured, then
+   suggest `/quiz`, whose session lets the next explainer skip what is proven known.
 
 ## Rationalizations
 
-Stop signals disguised as good reasons:
-
-- *"I'll drop the artifact in the repo so it's next to the code."* No — the target repo stays
-  byte-clean; all state lives in the comprehension workspace.
-- *"I already understand this repo, I'll just survey it again quickly."* No re-survey in codebase mode —
-  quarry `codebase-research`'s facts and reorder them.
-- *"A tiny answer key in an HTML comment saves the quiz some work."* No — an artifact teaches, it never
-  quizzes; viewing source must confer no advantage.
-- *"I'll re-teach the background to be safe."* Proven-known background is skipped to a one-line pointer;
-  re-teaching it makes repeat sessions repetitive instead of denser.
-- *"An interactive widget would look impressive here."* Interactivity is earned only when prose and a
-  static figure genuinely cannot teach the idea; otherwise it is decoration — emit the figure.
-- *"I'll cache proven-known as a flag so I don't recompute it."* No stored measures — derive by join at
-  read time so a record can never drift from the facts.
+- *"I'll drop it next to the code."* → that is how an employer repo or an OSS clone stops being
+  byte-clean.
+- *"A quick re-survey is faster."* → a second survey produces a survey, not a lesson.
+- *"An answer key in a comment saves the quiz work."* → a source that answers the quiz makes the grade
+  meaningless.
+- *"I'll re-teach the background to be safe."* → re-teaching proven-known material makes a repeat
+  session repetitive, not denser.
+- *"A widget would look impressive here."* → a figure teaching the same thing has already earned the
+  place.
+- *"I'll cache proven-known, not recompute it."* → a stored measure drifts from the ledger behind it,
+  and the join is cheap.
 
 ## Red flags
 
-Stop and fix before emitting if any are true:
+- Anything written under the target repo's tree, or its git state changed.
+- Codebase mode re-surveying a repo whose survey is already on disk.
+- A tour walking the files in directory order.
+- Background re-teaching in full a concept the ledger grades `pass`.
+- A widget where a static figure would teach the same thing.
+- Quiz content drafted into the artifact, or a worth-revisiting note with nothing to surface.
 
-- Any file was written under the target repo's tree, or its working tree / git state changed.
-- Codebase mode ran a fresh survey of the repo instead of quarrying `codebase-research`.
-- A quiz question's answer is discoverable anywhere in the artifact source.
-- Background re-teaches a proven-known concept in full.
-- The tour is ordered by file name or directory order rather than the logic of the change.
-- A concept a static figure could teach was escalated to an interactive widget.
-- More than one manifest line was appended, or a counter / rate / mastery flag was written anywhere.
-- A worth-revisiting note was emitted on a cold-start workspace with nothing to surface.
+## Verification
 
-## Verification (ending criteria)
+- [ ] The artifact is in the workspace, `git status --short` in the target repo lists nothing this run
+      created, and the learner knows its path and measured size.
+- [ ] Exactly one new manifest line records the run; `ledger.jsonl` is unchanged; no counter, rate or
+      mastery flag was written.
+- [ ] Sections run in the fixed order with empty ones omitted whole, every concept leads
+      what → why → how, the explanation is re-teachable with the source closed, and the tour follows
+      the logic of the change.
+- [ ] Proven-known background is a one-line pointer at most; the note is present where the ledger
+      supports one, absent whole on a cold start.
+- [ ] The artifact opens from disk with no network and no build, or is markdown under the same
+      contract, and its source holds no quiz answer.
+- [ ] Every new durable concept is in the glossary, existing entries untouched; in codebase mode the
+      facts trace to a quarried survey, or are marked `derived`.
 
-Done when ALL hold:
+## Outputs & handoff
 
-- A teaching artifact exists **in the comprehension workspace** (never the target repo), and the target
-  repo's working tree and git state are byte-identical to before the run.
-- **Exactly one** new explainer manifest entry records the session; the learner was told where the
-  artifact lives.
-- The artifact honors the section order: background before any changed/surveyed code, what → why → how at
-  each concept, Feynman-plain throughout; the literate tour follows reading order, not file
-  order.
-- Proven-known background is reduced to at most a one-line pointer; a worth-revisiting note is
-  present when the ledger supports one and **omitted whole** on a cold start.
-- The artifact is a self-contained HTML file that renders with no network and no build step, **or** plain
-  markdown honoring the same structure contract when markdown was requested.
-- **No quiz answer** appears anywhere in the artifact source.
-- Every newly taught durable concept was added to the learner glossary; existing entries are preserved. No counter, rate, or mastery flag was stored anywhere.
-- In codebase mode, the artifact's facts trace to `codebase-research`'s findings and no second survey ran. The workspace was keyed by repo key and created if absent.
-- The when-to-use table states the boundary with `code-review` and `codebase-research` as behavior.
+`<workspace>` is `~/.achilles/comprehension/<repo-key>/`, and this skill is the sole writer of its
+manifest and glossary.
 
-## Outputs & handoff contract
+| Path | Cap | Shape |
+|---|---|---|
+| `<workspace>/<date>-<subject>.html` | 2,000 words | Header · Background · tour · worth-revisiting note, an empty one omitted whole; one file, everything inline. `.md` on request, same contract |
+| `<workspace>/manifest.jsonl` | one line per run | `date`, `mode`, `subject`, `artifact`, `concepts`; appended, never rewritten |
+| `<workspace>/glossary.md` | 60 words per term | one `## <durable concept>` and a plain definition; new terms appended, existing verbatim |
+| `~/.achilles/comprehension/index.md` | one line per repo key | `key → origin`, first creation only; shared with `comprehension-quiz` |
 
-- **Emits:** one teaching artifact (self-contained HTML, or markdown on request) in the comprehension
-  workspace; **exactly one** new line in the explainer manifest (`manifest.jsonl`); new durable-concept
-  entries appended to the learner glossary (`glossary.md`).
-- **Owns (single writer):** the explainer manifest and the learner glossary. **Never
-  writes** the learning ledger (`comprehension-quiz` is its sole writer) and never writes into the target
-  repo.
-- **Reads (for derivation only):** the learning ledger and learner glossary, joined at read time to
-  derive proven-known and worth-revisiting — never stored.
-- **Consumer:** `comprehension-quiz` reads the fresh manifest entry and the glossary to build a session,
-  then writes the ledger the next explainer's step 4 will read. Hand off by suggesting **/quiz**.
-- **References (agree with these; do not restate them):**
-  `references/teaching-artifact-format.md` (what is inside the artifact) and
-  `references/comprehension-workspace-format.md` (workspace layout, repo-key derivation, surface formats,
-  join rules).
-- **Standalone:** no lifecycle gates, nothing blocks, `/orchestrate` untouched.
+Depth for all four is in
+[comprehension-workspace-format](../../references/comprehension-workspace-format.md), the artifact's
+insides in [teaching-artifact-format](references/teaching-artifact-format.md). Report the
+artifact's measured word count against its cap, and cut an over-cap draft rather than hand it on as
+though it fits.
+
+Nothing else is written: not the target repo, not `ledger.jsonl` (`comprehension-quiz` owns it), not
+`STATE.md`, not `docs/session-log.md`. No board row and no gate flips
+([state-schema.md](../../references/state-schema.md)), and no verdict — this skill is standalone. The
+path, the measured size and the `/quiz` pointer come back in conversation.

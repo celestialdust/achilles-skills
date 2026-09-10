@@ -1,501 +1,162 @@
 ---
 name: code-review
-description: Five-axis code review — correctness, readability, architecture, security, performance — INCLUDING test quality, with severity-labeled findings (Critical/Required/Optional/Nit/FYI) and change-sizing. Reach for this BEFORE any slice's PR opens; never eyeball a diff. Use whenever you review code written by yourself, another agent, or a human, or whenever the orchestrator dispatches the Review fan-out. If you are about to approve a diff without grading all five axes, stop and load this first.
+description: Grade a diff code-cold on five axes — correctness with test quality, readability, architecture, security, performance — returning severity-labelled findings and one verdict. Reach for it before a slice's pull request opens, or on any diff handed over. Cleanup with no bug hunt is `code-simplification`; the deep audit is `security-and-hardening`.
 ---
 
 # Code Review and Quality
 
 ## Purpose
 
-**Stage: Review (agent fan-out).** Dispatched by the orchestrator as a fresh, code-cold subagent on the review axis — in parallel with code-simplification / security-and-hardening / performance-optimization. You ARE the review skill; do not role-play a "reviewer" persona. You also carry the **test-quality lens** (there is no separate test-review skill): judging whether tests assert observable behavior is part of axis 1 and Review Step 2.
+**Stage: Review.** Principles 1, 7, 8.
 
-Multi-dimensional code review with quality gates. Every change gets reviewed before merge — no exceptions. Review covers five axes: correctness, readability, architecture, security, and performance.
-
-**The approval standard:** Approve a change when it definitely improves overall code health, even if it isn't perfect. Perfect code doesn't exist — the goal is continuous improvement. Don't block a change because it isn't exactly how you would have written it. If it improves the codebase and follows the project's conventions, approve it.
+Grades a diff code-cold on the five axes below, returning severity-labelled, leverage-ordered findings
+under one verdict. Test quality is axis 1's question, not a separate skill's. The standard is overall
+code health, not perfection: a change that improves the codebase earns a `pass` even where you would
+have written it differently.
 
 ## When to use / when to skip
 
-- Before merging any PR or change
-- After completing a feature implementation
-- When another agent or model produced code you need to evaluate
-- When refactoring existing code
-- After any bug fix (review both the fix and the regression test)
-- **Skip** only for: complete file deletions and automated/mechanical refactors where you verify *intent*, not every line (still confirm the verification story). Never skip because "tests pass" — that is a rationalization, not an exemption.
+- A slice's code is green and its pull request is about to open, or a diff, branch or PR is handed
+  over — yours, another agent's, or a person's.
+- The Review fan-out dispatching you code-cold beside `code-simplification`, `security-and-hardening`
+  and `performance-optimization` ([`safety-rails.md`](../../references/safety-rails.md), *Code-cold
+  dispatch*) — on a different model from the diff's author where one is available; blind spots do not
+  overlap.
+- A re-review round, after a slice was routed back and re-passed Verify.
+- Skip the axes on a whole-file deletion or a mechanical refactor — confirm the intent, not every line.
+- Near-miss — complexity cut from code believed correct: `code-simplification`. The OWASP, secrets and
+  dependency sweep: `security-and-hardening`. A profiled hot path: `performance-optimization`. Scenarios
+  exercised in a running app: `quality-verification`.
 
 ## Inputs
 
-Refuse to run if there is **no diff** to review — with nothing changed there is nothing to grade.
+On a code-cold pass nobody is present: derive what is absent and say what you derived. With a person
+there, ask at most three questions, only where the gap changes what you grade.
 
-**Required**
-- The **slice diff** under review (the code `incremental-implementation` produced for one slice). This is the object of the review.
-- **On a re-review round: the `Critical:` findings from the round that routed this slice back.** You are code-cold, and a diff whose Critical was fixed no longer shows one — so this is the only thing that can tell you a defect existed and is owed a `docs/lessons.md` entry (Step 4). A re-review brief that arrives without them is a broken dispatch, not a clean slice: say so in the review and name whoever dispatched you, rather than concluding from a quiet diff that nothing was ever wrong.
-
-**Read-only context (FROZEN — never edit any of these during a review):**
-- `plan.md` + the slice's row (from `plan-breakdown`) — grade the **plan first, then the diff**: a diff that faithfully executes the wrong plan is still a fail.
-- `acceptance.md` (the signed behavioral contract) — a human-anchored oracle, frozen under the slice's retry loop. You are dispatched **code-cold**: you see `acceptance.md`, not the conversation that wrote the code, so the oracle never drifts.
-- `STATE.md` slice row — the PRD-namespaced id of the slice you are reviewing.
-
-**Dispatch contract:** the orchestrator runs you as a **fresh, code-cold subagent on the review axis, in parallel with `code-simplification` / `security-and-hardening` / `performance-optimization`** (maker≠checker — safety rail 4, `references/safety-rails.md`). No persona role-play.
-
-## The Five-Axis Review
-
-Every review evaluates code across these dimensions:
-
-### 1. Correctness
-
-Does the code do what it claims to do?
-
-- Does it match the spec or task requirements?
-- Are edge cases handled (null, empty, boundary values)?
-- Are error paths handled (not just the happy path)?
-- Does it pass all tests? Are the tests actually testing the right things?
-- Are there off-by-one errors, race conditions, or state inconsistencies?
-
-### 2. Readability & Simplicity
-
-Can another engineer (or agent) understand this code without the author explaining it?
-
-- Are names descriptive and consistent with project conventions? (No `temp`, `data`, `result` without context)
-- Is the control flow straightforward (avoid nested ternaries, deep callbacks)?
-- Is the code organized logically (related code grouped, clear module boundaries)?
-- Are there any "clever" tricks that should be simplified?
-- **Could this be done in fewer lines?** (1000 lines where 100 suffice is a failure)
-- **Are abstractions earning their complexity?** (Don't generalize until the third use case)
-- Would comments help clarify non-obvious intent? (But don't comment obvious code.)
-- Are there dead code artifacts: no-op variables (`_unused`), backwards-compat shims, or `// removed` comments?
-- **Is a new conditional bolted onto an unrelated flow?** That's a design smell, not a nit — push the logic into its own helper, state, or policy instead of tangling an existing path.
-- **Do repeated conditionals on the same shape appear?** They signal a missing model or dispatcher. A "temporary" branch is usually permanent debt.
-
-### 3. Architecture
-
-Does the change fit the system's design?
-
-- Does it follow existing patterns or introduce a new one? If new, is it justified?
-- Does it maintain clean module boundaries?
-- Is there code duplication that should be shared?
-- Are dependencies flowing in the right direction (no circular dependencies)?
-- Is the abstraction level appropriate (not over-engineered, not too coupled)?
-- **Does this refactor reduce complexity or just relocate it?** Count the concepts a reader must hold to follow the change. If a "cleaner" version leaves that count unchanged, it isn't cleaner — prefer the restructuring that makes whole branches, modes, or layers disappear over one that re-centralizes the same logic. Prefer deleting an abstraction to polishing it.
-- **Is feature-specific logic leaking into a shared or general-purpose module?** Keep logic in its owning layer, reuse the existing canonical helper instead of a near-duplicate, and don't normalize architectural drift.
-- **Are type boundaries explicit?** Question gratuitous `any`/`unknown`/optional/casts and silent fallbacks that paper over an unclear invariant — making the boundary explicit often makes the surrounding control flow simpler.
-
-### 4. Security
-
-For detailed security guidance, see the `security-and-hardening` skill. Does the change introduce vulnerabilities?
-
-- Is user input validated and sanitized?
-- Are secrets kept out of code, logs, and version control?
-- Is authentication/authorization checked where needed?
-- Are SQL queries parameterized (no string concatenation)?
-- Are outputs encoded to prevent XSS?
-- Are dependencies from trusted sources with no known vulnerabilities?
-- Is data from external sources (APIs, logs, user content, config files) treated as untrusted?
-- Are external data flows validated at system boundaries before use in logic or rendering?
-
-### 5. Performance
-
-For detailed profiling and optimization, see the `performance-optimization` skill. Does the change introduce performance problems?
-
-- Any N+1 query patterns?
-- Any unbounded loops or unconstrained data fetching?
-- Any synchronous operations that should be async?
-- Any unnecessary re-renders in UI components?
-- Any missing pagination on list endpoints?
-- Any large objects created in hot paths?
-
-## Structural Remedies
-
-When you flag a structural problem, propose the move — not just the problem. A review that only says "this is complex" leaves the author guessing. Reach for a named restructuring:
-
-- **Replace a chain of conditionals** with a typed model or an explicit dispatcher.
-- **Collapse duplicate branches** into a single clearer flow.
-- **Separate orchestration from business logic** so each reads on its own.
-- **Move feature-specific logic** out of a shared module into the package that owns the concept.
-- **Reuse the canonical helper** instead of a bespoke near-duplicate.
-- **Make a type boundary explicit** so downstream branching disappears.
-- **Delete a pass-through wrapper** that adds indirection without clarifying the API.
-- **Extract a helper, or split a large file** into focused modules.
-
-Prefer the remedy that removes moving pieces over one that spreads the same complexity around.
-
-## Change Sizing
-
-Small, focused changes are easier to review, faster to merge, and safer to deploy. Target these sizes:
-
-```
-~100 lines changed   → Good. Reviewable in one sitting.
-~300 lines changed   → Acceptable if it's a single logical change.
-~1000 lines changed  → Too large. Split it.
-```
-
-**Watch file size, not just diff size.** A small diff can still push a file past a healthy boundary — around 1000 *total* lines in a single file (distinct from the ~1000 *changed*-lines threshold above) is a common inspection signal, not a hard cap. When a change materially grows an already-large file, ask whether to extract helpers, subcomponents, or modules *first*, before piling more on. Decompose, then add.
-
-**What counts as "one change":** A single self-contained modification that addresses one thing, includes related tests, and keeps the system functional after submission. One part of a feature — not the whole feature.
-
-**Splitting strategies when a change is too large:**
-
-| Strategy | How | When |
-|----------|-----|------|
-| **Stack** | Submit a small change, start the next one based on it | Sequential dependencies |
-| **By file group** | Separate changes for groups needing different reviewers | Cross-cutting concerns |
-| **Horizontal** | Create shared code/stubs first, then consumers | Layered architecture |
-| **Vertical** | Break into smaller full-stack slices of the feature | Feature work |
-
-**When large changes are acceptable:** Complete file deletions and automated refactoring where the reviewer only needs to verify intent, not every line.
-
-**Separate refactoring from feature work.** A change that refactors existing code and adds new behavior is two changes — submit them separately. Small cleanups (variable renaming) can be included at reviewer discretion.
-
-## Change Descriptions
-
-Every change needs a description that stands alone in version control history.
-
-**First line:** Short, imperative, standalone. "Delete the FizzBuzz RPC" not "Deleting the FizzBuzz RPC." Must be informative enough that someone searching history can understand the change without reading the diff.
-
-**Body:** What is changing and why. Include context, decisions, and reasoning not visible in the code itself. Link to bug numbers, benchmark results, or design docs where relevant. Acknowledge approach shortcomings when they exist.
-
-**Anti-patterns:** "Fix bug," "Fix build," "Add patch," "Moving code from A to B," "Phase 1," "Add convenience functions."
+- the diff — helps: what you grade · without it: `git diff <base>..HEAD` or the working tree, the range
+  named, `derived`.
+- `docs/features/<slug>/plan.md` and the slice's file under `plan/` — helps: the plan you grade before
+  the diff · without it: intent from the diff, the branch name and `STATE.md`, `derived`.
+- `docs/features/<slug>/acceptance.md` — helps: the behaviour this diff owes · without it: `prd.md` or
+  the tests, `derived`.
+- the previous round's findings, on a re-review — helps: the `Critical:` list a fixed diff no longer
+  shows, and the lesson owed · without it: `docs/session-log.md` and the PR body, `derived`, naming
+  whoever dispatched you.
+- `docs/lessons.md` — helps: the field list and the sibling defects · without it: append nothing and
+  say so; `project-setup` creates it.
 
 ## Review Process
 
-### Step 1: Understand the Context
+1. **Read the intent first** — what the change is for, which slice, what behaviour it moves. Grade the
+   plan before the diff: one that faithfully executes the wrong plan is still a fail.
 
-Before looking at code, understand the intent:
+2. **Read the tests before the implementation** — is there one for each behaviour the diff moves, and
+   does each assert observable behaviour rather than implementation shape, cover edges and error paths,
+   carry a name saying what it proves, and fail on a regression?
 
-```
-- What is this change trying to accomplish?
-- What spec or task does it implement?
-- What is the expected behavior change?
-```
+3. **Check whether the oracle moved.** A test, fixture or scenario changed inside the diff is legitimate
+   where the plan moved and the PR body and `docs/session-log.md` disclose it; undisclosed, or weakened
+   while the implementation stood still, it is `Critical:` — never a `pass`.
 
-### Step 2: Review the Tests First
+4. **Walk every changed file through the five axes.**
 
-Tests reveal intent and coverage:
+   | Axis | What you grade |
+   |---|---|
+   | 1 · Correctness | spec match · edges (null, empty, boundary) · error paths, not the happy one alone · off-by-one, races, state inconsistency · step 2's test quality |
+   | 2 · Readability | names that carry meaning · flat control flow · no cleverness · dead-code shims · a conditional bolted onto an unrelated flow, or repeated on one shape — design smells, not nits |
+   | 3 · Architecture | pattern fit · module boundaries · dependency direction · abstraction level · feature logic in a shared module · a near-duplicate of a canonical helper · a gratuitous `any`, cast or silent fallback over an unstated invariant |
+   | 4 · Security | input validation · secrets · authn/authz · parameterised queries · output encoding · dependency trust · external data as untrusted |
+   | 5 · Performance | N+1 queries · unbounded loops and fetches · sync work that should be async · needless re-renders · missing pagination · hot-path allocation |
 
-```
-- Do tests exist for the change?
-- Do they test behavior (not implementation details)?
-- Are edge cases covered?
-- Do tests have descriptive names?
-- Would the tests catch a regression if the code changed?
-```
+   Depth for the last two: [`security-checklist.md`](../../references/security-checklist.md),
+   [`performance-checklist.md`](../../references/performance-checklist.md). A new dependency is graded
+   too — what the stack already does, size, maintenance, vulnerabilities, licence. List the code this
+   change orphans; delete none of it.
 
-### Step 3: Review the Implementation
+5. **Size the change.** ~100 changed lines reads in one sitting, ~300 suits one logical change, ~1000
+   wants a split — by stack, by file group, horizontally (shared code first) or vertically (thinner
+   slices). A file past ~1000 lines wants extracting before more is piled on. A refactor that also adds
+   behaviour is two changes, and a first line that is not a standalone imperative ("Fix bug", "Phase 1")
+   is a finding: history is read without the diff.
 
-Walk through the code with the five axes in mind:
+6. **Name the remedy, not just the problem** — a typed model or dispatcher for a conditional chain,
+   orchestration split from logic, feature logic returned to its owning package, a large file split.
+   Prefer the one that makes a branch, mode or layer disappear over one that relocates it; "this is
+   complex" alone leaves the author guessing.
 
-```
-For each file changed:
-1. Correctness: Does this code do what the test says it should?
-2. Readability: Can I understand this without help?
-3. Architecture: Does this fit the system?
-4. Security: Any vulnerabilities?
-5. Performance: Any bottlenecks?
-```
+7. **Label every finding, and order by leverage** — correctness and security first, then structural
+   regressions, then cosmetics; one structural problem buried under ten nits *is* the review. Cite
+   `path:line` on every one. A `Critical:` goes back the moment it is found rather than waiting for the
+   round to close — a fast partial beats a complete verdict that arrives late.
 
-### Step 4: Categorize Findings
+   | Prefix | Means, and what the author does |
+   |---|---|
+   | `Critical:` | a defect that would ship — broken behaviour, data loss, a vulnerability, a weakened oracle; fixed before the PR opens |
+   | *(no prefix)* | required; fixed before merge |
+   | `Optional:` / `Consider:` | worth weighing; the author decides |
+   | `Nit:` | taste; may be ignored |
+   | `FYI` | context for later; no action |
 
-Label every comment with its severity so the author knows what's required vs optional:
+   A structural presumptive blocker carries the simpler design, rising to required where the change
+   actively worsens the structure. Rank conflicting critiques by technical fact, then style guide, then
+   engineering principle, then the surrounding code.
 
-| Prefix | Meaning | Author Action |
-|--------|---------|---------------|
-| *(no prefix)* | Required change | Must address before merge |
-| **Critical:** | Blocks merge | Security vulnerability, data loss, broken functionality |
-| **Nit:** | Minor, optional | Author may ignore — formatting, style preferences |
-| **Optional:** / **Consider:** | Suggestion | Worth considering but not required |
-| **FYI** | Informational only | No action needed — context for future reference |
+8. **Check the verification story** — what was run, whether the build passed, what was exercised by
+   hand, what evidence a UI change carries. Name any claim the diff does not support: a test said to
+   cover a path nothing asserts on.
 
-This prevents authors from treating all feedback as mandatory and wasting time on optional suggestions.
+9. **Record the lesson for each `Critical:` you close** — that class alone; a lesser finding is one the
+   author is about to make anyway. Write it at the round that reads the fix, never while it is open:
+   `Fix` and `References` name a change that does not exist yet. It is yours whoever typed the fix, and
+   where no guard can be named the defect is not root-caused — say so, and the verdict stays `concerns`.
 
-**Lead with what matters.** Order findings by leverage: correctness and security first, then structural regressions and missed simplifications, then everything else. Don't bury a real issue under cosmetic nits — a few high-conviction comments beat a long list. If you have one structural problem and ten nits, the structural problem *is* the review.
+10. **Return the verdict** — `pass · concerns · block`. `block` is a stop-list item alone
+    ([`safety-rails.md`](../../references/safety-rails.md), *The stop list*): a secret in the diff, a
+    Critical or High security finding. Everything else that has to change first is `concerns`, and the
+    caller routes the slice back. Quantify what is wrong rather than softening it, comment on the code
+    and not the author, and treat "later" as a finding rather than a plan.
 
-**A `Critical:` finding may become a lesson — and only a `Critical:` one.** Where the repo keeps a
-`docs/lessons.md`, root-cause your Critical findings and record one entry each, in the shape that file's
-`## Entry shape` block holds and at the moment the next paragraph names. Review is the second writer of
-that file; whoever debugs a failure is the first. The bound is what keeps the two apart: a Critical finding is a defect that would have shipped, so
-what it teaches outlives this diff, while a Required or lesser finding is a change this author is about to
-make and is already tracked in your findings list.
-
-So an attempt to append anything below `Critical:` is **refused**, not warned about — say which class the
-finding is and that it stays in the findings list. The cost of the softer rule is not hypothetical: a
-lessons file that accepts every Required finding becomes a second copy of every review, and a file nobody
-can skim is a file nobody reads before writing a skeleton, which is the one moment it was for.
-
-**The entry is written when the finding is closed, not when it is found — which is a later review pass
-than the one that found it.** Two of the seven fields — `Fix` and `References` — name a change and a
-commit that do not exist while you are still writing findings, and an entry is a STOP to edit once
-written, so a field guessed now is a field nobody can ever correct. The round that raises a `Critical:`
-ends at `Request changes` and writes nothing: the finding routes its slice back to
-`incremental-implementation` and stays in your findings list, which is where it belongs until somebody
-closes it. The entry is owed by the **re-review round dispatched once that slice re-passes Verify** —
-the first pass that can read the fix and name the commit.
-
-**That round is code-cold, so it has to be told.** Its brief carries the `Critical:` findings from the
-round that routed the slice back (see *Inputs*), and that is the whole of how a fresh subagent knows a
-defect was ever there: the diff in front of it is the fixed one. Reaching the re-review with the finding
-in hand and the fix in the diff is the moment every field can be filled from something that exists.
-
-**Who fixed it changes nothing about who writes it down.** The zone is keyed to the finding, not to the
-party that typed the fix: the entry for a Critical review finding is yours whether the fix ran through
-`debugging-and-error-recovery` or inside `incremental-implementation`, neither of which is a second copy
-of your entry. `debugging-and-error-recovery` writes for defects *it* root-caused — a test or a build
-that broke during implementation — which is the other zone of the same file.
-
-**A guard nobody can name is not a deadlock.** The record refuses an entry whose `Automated guard` is
-blank, and every closed Critical finding has to be recorded, which reads like a trap until you see what
-an un-nameable guard means: the finding is not root-caused yet. Say that in the review, name it as the
-reason the verdict stays `Request changes`, and hand it to whoever owns the fix. What never happens is an
-entry written with the field left open.
-
-**Where the entry lands.** `docs/lessons.md` is a repository file, and a review dispatched into a slice's
-worktree is reading a branch that may never be merged — an entry appended there succeeds, reports
-success, and reaches no reader on the main line. The two cases are told apart by one fact you already
-have: were you handed a worktree? Reviewing in the repository itself → append it yourself. Handed a
-worktree → hand the finished entry back with your findings, for the **TERMINAL barrier**: that is the
-point where the orchestrator already completes each slice's `docs/progress.md` entry in the checkout it
-holds, so it is the one place a handed-back entry can reach the main line.
-
-**Say, in the same breath, that the entry is still owed.** `references/write-ownership.md` gives the
-orchestrator that append and its own skill names it, so the courier exists — but it carries what it is handed, and infers
-nothing from a handoff that stays quiet. Naming the entry as unwritten is what keeps a dropped one
-visible; handed back silently, it reads as done and is gone.
-
-The rules that govern the append — the refusal, the STOP, the second entry rather than an amendment — are
-stated in `docs/lessons.md` itself, in the prose it opens with as well as in the template under
-`## Entry shape`. Read the file, not one heading in it: the refusal is in the template, and the other two
-sit above the heading, so a reader sent to that section alone arrives with one rule of three and folds
-their entry into an existing one. A copy here is one that can fall behind the file. An absent
-`docs/lessons.md` means the repo was never set up for one — say so in the review and move on; do not
-create it.
-
-### Step 5: Verify the Verification
-
-Check the author's verification story:
-
-```
-- What tests were run?
-- Did the build pass?
-- Was the change tested manually?
-- Are there screenshots for UI changes?
-- Is there a before/after comparison?
-```
-
-## Multi-Model Review Pattern
-
-Use different models for different review perspectives:
-
-```
-Model A writes the code
-    │
-    ▼
-Model B reviews for correctness and architecture
-    │
-    ▼
-Model A addresses the feedback
-    │
-    ▼
-Human makes the final call
-```
-
-This catches issues that a single model might miss — different models have different blind spots.
-
-**Example prompt for a review agent:**
-```
-Review this code change for correctness, security, and adherence to
-our project conventions. The spec says [X]. The change should [Y].
-Flag any issues as Critical, Required, Optional, or Nit.
-```
-
-## Dead Code Hygiene
-
-After any refactoring or implementation change, check for orphaned code:
-
-1. Identify code that is now unreachable or unused
-2. List it explicitly
-3. **Ask before deleting:** "Should I remove these now-unused elements: [list]?"
-
-Don't leave dead code lying around — it confuses future readers and agents. But don't silently delete things you're not sure about. When in doubt, ask.
-
-```
-DEAD CODE IDENTIFIED:
-- formatLegacyDate() in src/utils/date.ts — replaced by formatDate()
-- OldTaskCard component in src/components/ — replaced by TaskCard
-- LEGACY_API_URL constant in src/config.ts — no remaining references
-→ Safe to remove these?
-```
-
-## Review Speed
-
-Slow reviews block entire teams. The cost of context-switching to review is less than the waiting cost imposed on others.
-
-- **Respond within one business day** — this is the maximum, not the target
-- **Ideal cadence:** Respond shortly after a review request arrives, unless deep in focused coding. A typical change should complete multiple review rounds in a single day
-- **Prioritize fast individual responses** over quick final approval. Quick feedback reduces frustration even if multiple rounds are needed
-- **Large changes:** Ask the author to split them rather than reviewing one massive changeset
-
-## Handling Disagreements
-
-When resolving review disputes, apply this hierarchy:
-
-1. **Technical facts and data** override opinions and preferences
-2. **Style guides** are the absolute authority on style matters
-3. **Software design** must be evaluated on engineering principles, not personal preference
-4. **Codebase consistency** is acceptable if it doesn't degrade overall health
-
-**Don't accept "I'll clean it up later."** Experience shows deferred cleanup rarely happens. Require cleanup before submission unless it's a genuine emergency. If surrounding issues can't be addressed in this change, require filing a bug with self-assignment.
-
-## Honesty in Review
-
-When reviewing code — whether written by you, another agent, or a human:
-
-- **Don't rubber-stamp.** "LGTM" without evidence of review helps no one.
-- **Don't soften real issues.** "This might be a minor concern" when it's a bug that will hit production is dishonest.
-- **Quantify problems when possible.** "This N+1 query will add ~50ms per item in the list" is better than "this could be slow."
-- **Push back on approaches with clear problems.** Sycophancy is a failure mode in reviews. If the implementation has issues, say so directly and propose alternatives.
-- **Accept override gracefully.** If the author has full context and disagrees, defer to their judgment. Comment on code, not people — reframe personal critiques to focus on the code itself.
-
-## Dependency Discipline
-
-Part of code review is dependency review:
-
-**Before adding any dependency:**
-1. Does the existing stack solve this? (Often it does.)
-2. How large is the dependency? (Check bundle impact.)
-3. Is it actively maintained? (Check last commit, open issues.)
-4. Does it have known vulnerabilities? (`npm audit`)
-5. What's the license? (Must be compatible with the project.)
-
-**Rule:** Prefer standard library and existing utilities over new dependencies. Every dependency is a liability.
-
-## The Review Checklist
-
-```markdown
-## Review: [PR/Change title]
-
-### Context
-- [ ] I understand what this change does and why
-
-### Correctness
-- [ ] Change matches spec/task requirements
-- [ ] Edge cases handled
-- [ ] Error paths handled
-- [ ] Tests cover the change adequately
-
-### Readability
-- [ ] Names are clear and consistent
-- [ ] Logic is straightforward
-- [ ] No unnecessary complexity
-
-### Architecture
-- [ ] Follows existing patterns
-- [ ] No unnecessary coupling or dependencies
-- [ ] Appropriate abstraction level
-- [ ] Refactors reduce complexity rather than relocate it
-- [ ] No feature logic in shared modules; file stays within a healthy size
-
-### Security
-- [ ] No secrets in code
-- [ ] Input validated at boundaries
-- [ ] No injection vulnerabilities
-- [ ] Auth checks in place
-- [ ] External data sources treated as untrusted
-
-### Performance
-- [ ] No N+1 patterns
-- [ ] No unbounded operations
-- [ ] Pagination on list endpoints
-
-### Verification
-- [ ] Tests pass
-- [ ] Build succeeds
-- [ ] Manual verification done (if applicable)
-
-### Verdict
-- [ ] **Approve** — Ready to merge
-- [ ] **Request changes** — Issues must be addressed
-```
-## See Also
-
-- For detailed security review guidance, see `references/security-checklist.md` (owned by the `security-and-hardening` skill)
-- For performance review checks, see `references/performance-checklist.md` (owned by the `performance-optimization` skill)
-
-## Common Rationalizations
+## Rationalizations
 
 | Rationalization | Reality |
 |---|---|
-| "It works, that's good enough" | Working code that's unreadable, insecure, or architecturally wrong creates debt that compounds. |
-| "I wrote it, so I know it's correct" | Authors are blind to their own assumptions. Every change benefits from another set of eyes. |
-| "We'll clean it up later" | Later never comes. The review is the quality gate — use it. Require cleanup before merge, not after. |
-| "AI-generated code is probably fine" | AI code needs more scrutiny, not less. It's confident and plausible, even when wrong. |
-| "The tests pass, so it's good" | Tests are necessary but not sufficient. They don't catch architecture problems, security issues, or readability concerns. |
-| "The refactor makes it cleaner" | Relocating complexity isn't reducing it. If the reader still holds the same number of concepts, the structure didn't improve — look for the version where branches disappear. |
-| "It's only a small addition to this file" | Small diffs still push files past a healthy size and bolt branches onto unrelated flows. Judge the resulting structure, not the diff size. |
+| "The tests pass, so it's good" | A green suite grades none of axes 2, 3 and 4. |
+| "The refactor makes it cleaner" | A reader holding the same concepts afterwards was handed relocated complexity. |
+| "It's only a small addition to this file" | A small diff still pushes a file past a healthy size and bolts a branch onto an unrelated flow. |
+| "We'll clean it up later" | Deferred cleanup has no owner and no round. |
 
-## Red Flags
+## Red flags
 
-- PRs merged without any review
-- Review that only checks if tests pass (ignoring other axes)
-- "LGTM" without evidence of actual review
-- Security-sensitive changes without security-focused review
-- Large PRs that are "too big to review properly" (split them)
-- No regression tests with bug fix PRs
-- Review comments without severity labels — makes it unclear what's required vs optional
-- Accepting "I'll fix it later" — it never happens
-- A refactor that moves code around without reducing the number of concepts a reader must hold
-- A change that grows an already-large file instead of decomposing it
-- New conditionals scattered into unrelated code paths (a missing abstraction)
-- A bespoke helper that duplicates an existing canonical one, or feature logic placed in a shared module
-- A gate-erosion finding written without naming the artifact that changed — the person reading it cannot tell which guarantee was at stake
-- A `Critical:` finding closed with no `docs/lessons.md` entry, where the repo keeps one — the finding dies with this diff and the next author meets the same defect
-- Appending a Required, Optional, Nit, or FYI finding to `docs/lessons.md` — refused; it stays in the findings list, and admitting it makes that file a second copy of every review
-- Writing the entry while the finding is still open, so `Fix` and `References` name a change and a commit that do not exist yet — the entry is a STOP to edit, so the guess is permanent
-- Appending the entry inside a worktree you were dispatched into — that write lands on a branch that may never merge and reaches no reader, while reporting success
-- Handing the entry back without saying it is still owed — nothing has yet told the orchestrator to append one, so a silent hand-back reads as done and the entry is gone
-- Reading a quiet re-reviewed diff as proof no Critical ever existed, when the brief never carried the round's findings — a broken dispatch and a clean slice look identical from here, which is why the missing input is reported instead of resolved
+- A verdict returned with no `path:line` under any finding.
+- Ten nits and no structural finding, on a diff that restructured something.
+- A `Critical:` closed with no `docs/lessons.md` entry — or an entry appended for a lesser class.
+- A re-review brief carrying no prior findings, read as proof the slice was always clean.
+- A changed assertion that no PR body and no log entry mentions, passed over in silence.
+- "LGTM" with no evidence anything was read.
 
 ## Verification
 
-After review is complete:
+- [ ] Every changed file is graded on all five axes; each finding carries a severity prefix and a
+      `path:line`, the findings run in leverage order, and each structural one names a remedy.
+- [ ] An oracle changed inside the diff is disclosed upstream, or standing as a `Critical:` finding.
+- [ ] The verdict is `pass` (nothing above `Optional:` stands), `concerns` (a `Critical:` or required
+      finding stands) or `block` (naming the stop-list item).
+- [ ] Each `Critical:` closed this round reached `docs/lessons.md` or its absence is explained, and
+      nothing below `Critical:` was appended there.
 
-- [ ] All Critical issues are resolved
-- [ ] Every Critical finding closed here was root-caused and recorded as one `docs/lessons.md` entry, all
-      seven fields filled from what exists rather than from what is planned, and nothing below Critical was
-      recorded there (skip where the repo keeps no such file)
-- [ ] All Required (no-prefix) changes are resolved or explicitly deferred with justification
-- [ ] Tests pass
-- [ ] Build succeeds
-- [ ] The verification story is documented (what changed, how it was verified)
+## Outputs & handoff
 
-**Presumptive blockers:** surface and propose the simpler design for each of these; escalate to Required only when the change actively makes structure worse: a refactor that relocates complexity instead of reducing it; a change that pushes a file past the size boundary with no decomposition; feature logic added to a shared module; a near-duplicate of an existing canonical helper; a silent fallback that hides an unclear invariant.
+**Returned in conversation**, under three stable sections the caller reads: `## Verdict`
+(`pass · concerns · block`), `## Findings` (severity-prefixed, `path:line`-cited, leverage-ordered),
+`## Verification story` (what the author ran and whether it holds up).
 
-## Outputs & handoff contract
+**Appended to `docs/lessons.md`**: one entry per closed `Critical:` finding, cap 80 words, fields and
+append rules in [`state-schema.md`](../../references/state-schema.md). Report each entry's word count
+against that cap; an over-cap entry is trimmed, not handed on as if it fit. Dispatched into a worktree,
+append nothing there — that branch may never merge — and hand the entry back with your findings, saying
+it is still owed.
 
-**Emits:** `review` — a severity-labeled, leverage-ordered findings list plus a verdict. Stable sections a consumer (the orchestrator's review-gate aggregator and the `pull-request` skill) depends on:
-
-- **`Verdict`** — exactly one of `Approve` | `Request changes`.
-- **`Findings`** — ordered by leverage (correctness & security first, then structural regressions & missed simplifications, then nits). EVERY finding carries a `path:line` citation and a severity prefix (`Critical:` | *(no prefix = Required)* | `Optional:` / `Consider:` | `Nit:` | `FYI`). A few high-conviction comments beat a long list; one structural problem buried under ten nits means the structural problem IS the review.
-- **`Verification story`** — what the author ran (tests / build / manual) and whether it holds up.
-
-**Appends**, where the repository keeps one: one `docs/lessons.md` entry per closed `Critical:` finding
-and none for any lesser class. That append is the only thing this skill puts on disk, and it lands in a
-record rather than in the code: the diff, the tests and the frozen contracts stay untouched, so
-maker≠checker holds. It is the one zone of that file review owns — the entries for a defect somebody
-debugged belong to `debugging-and-error-recovery` — which is why two writers on one file is not a
-collision here. Step 4 says when the entry is filled in and who appends it.
-
-**Gate role:** this skill is the **Review-fan-out leg** — ONE of three AND-combined agent-internal gates (quality-verification + Review fan-out + evaluator floors). It does NOT flip `STATE.md` and does NOT open or promote a PR. The orchestrator aggregates all legs; a passing slice stops at a **DRAFT PR** that a separate fresh code-cold verifier later promotes. A `Request changes` verdict routes the slice back to `incremental-implementation` (bounded rounds), not forward.
-
-**Gate-erosion circuit breaker (safety rail 4, `references/safety-rails.md`):** a diff that erodes a frozen artifact → raise `Critical:` and signal a **gate-erosion HALT**. What is specific to review is the *reward-hack qualifier* — the frozen three thaw between runs by a signed Spec change, so a diff touching one is only erosion where the implementation is materially unchanged. That test is how a reviewer tells erosion from a legitimate edit, and it is the reviewer's to apply. `docs/design.md` is the same call **without** the qualifier: nothing legitimately edits it here, whatever else the diff does.
-
-Never `Approve` a diff that moved the goalposts instead of the code (testing-strategy AP1–AP2).
-
-**Security escalation:** a CRITICAL/HIGH vuln or a secret in the diff is a hard `Critical:` + STOP — the slice gets no PR (security leg); place it at the top of `Findings`.
-
-**STATE.md:** unchanged by this skill (the orchestrator owns slice-state transitions). Return the `review` output to the orchestrator for aggregation.
-
-## Subagents
-
-For a fresh-context, code-cold pass, dispatch the **`code-reviewer`** agent (`agents/code-reviewer.md`) as an
-independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a person wants a single code-cold five-axis review
-**outside a run**, or on a platform with no skill tool. Inside a run this skill is dispatched as itself —
-there is no role to play on top of it.
+**Nothing else.** The diff, the tests and the artifacts you read stay untouched; no `STATE.md` row
+([`state-schema.md`](../../references/state-schema.md)), no pull request opened or promoted. This is one
+leg of the Review fan-out — the caller aggregates the legs, owns the slice's transition, and routes a
+`concerns` slice back to `incremental-implementation`.

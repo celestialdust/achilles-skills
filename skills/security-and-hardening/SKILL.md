@@ -1,468 +1,164 @@
 ---
 name: security-and-hardening
-description: 'Audits a code diff for security vulnerabilities before it can ship. MUST run as a fresh, code-cold reviewer on every Implement diff in the Review fan-out — and any time code touches user input, auth, sessions, secrets, data storage, external/URL fetches, file uploads, or LLM output. A CRITICAL/HIGH finding or a secret in the diff is a hard STOP: the slice is halted, never opened as a PR.'
+description: Audit a diff code-cold for vulnerabilities — trust boundaries, OWASP and the GenAI ten, secrets, dependencies — returning one verdict and the slice's findings file. Reach for it on any diff touching input, auth, sessions, secrets, uploads, server-side fetches or model output. The five-axis grade is `code-review`.
 ---
 
-# security
+# Security and Hardening
 
 ## Purpose
 
-**Stage:** Review (agent fan-out) — one of three internal gates (with `code-review`, `performance-optimization`).
+**Stage: Review.** Principles 7, 8, 9.
 
-Security-first development practices for web applications. Treat every external input as hostile, every secret as sacred, and every authorization check as mandatory. Security isn't a phase — it's a constraint on every line of code that touches user data, authentication, or external systems.
+Audits a diff code-cold against the boundaries it crosses — OWASP, the GenAI ten, secrets, dependencies —
+and writes the owning slice's `security-findings.md` under one verdict. External input is hostile until
+parsed and a committed credential is already spent, so the grade lands on the diff that introduces the
+surface.
 
 ## When to use / when to skip
 
-- Building anything that accepts user input
-- Implementing authentication or authorization
-- Storing or transmitting sensitive data
-- Integrating with external APIs or services
-- Adding file uploads, webhooks, or callbacks
-- Handling payment or PII data
-
-**Skip only when** the diff is docs/config-only with no executable surface; even then, secret-scan the diff. Never skip on a diff that touches input, auth, secrets, fetches, or LLM output.
+- The Review fan-out dispatches you code-cold over a wave's verify-green diffs
+  (`references/safety-rails.md`, *Code-cold dispatch*).
+- A diff touches user input, authentication or authorization, sessions, secrets, stored personal data,
+  server-side URL fetches, file uploads, or model output.
+- A dependency was added, bumped or replaced, or the lockfile moved.
+- A branch, pull request or release handed over with "is this safe to ship".
+- Skip a docs- or config-only diff with no executable surface. It still gets step 2.
+- Near-miss — the five-axis grade whose security axis is one of five: `code-review`. Complexity in code
+  believed correct: `code-simplification`. A profiled hot path: `performance-optimization`. Abuse cases
+  exercised against a running app: `quality-verification`.
 
 ## Inputs
 
-**Consumes (refuse-to-run if absent):**
-- The slice's implementation **diff** — the code under review. No diff ⇒ nothing to audit ⇒ refuse to run.
+Nobody is present on a code-cold pass, so derive what is absent and say in the findings what you derived.
 
-**Contextual (read-only; sharpens the audit, not refuse-to-run):**
-- The slice id and its frozen **`Regression surface`** (from `STATE.md` / `plan.md`) — lets a CRITICAL/secret be localized to this slice vs. classified repo-wide.
-- `acceptance.md` security-observable scenarios — when the feature has LLM or untrusted-input surfaces, to know which abuse cases were promised.
-
-**Dispatch contract:** you run as a **fresh, code-cold subagent in parallel** on the security axis (maker≠checker and one writer per file — safety rails 4 and 5, `references/safety-rails.md`) with **no test-write access**. You read the diff cold, without the implementer's reasoning, and the frozen artifacts are not yours to move to make a finding go away.
+- the diff — helps: the object of the audit · without it: read `git diff <base>..HEAD` or the working
+  tree and name the range you audited, `derived`.
+- `STATE.md` and `docs/features/<slug>/plan/<slice-id>.md` — helps: the slice id and the files it owns,
+  so a finding routes to the slice owning the file · without it: attribute by file path against the
+  branch, `derived`.
+- `docs/features/<slug>/acceptance.md` — helps: its `class: security-observable` scenarios, the abuse
+  cases already promised · without it: take them from step 1's boundaries, `derived`.
+- `docs/features/<slug>/prd.md` — helps: the data the feature handles, which names the assets worth
+  stealing · without it: read the routes, the schema and the storage calls in the diff, `derived`.
+- the previous round's findings, on a re-audit — helps: a repaired diff shows no vulnerability, so this
+  is what says one was there · without it: read `docs/session-log.md` and the PR body, `derived`.
 
 ## Process: Threat Model First
 
-Controls bolted on without a threat model are guesses. Before hardening, spend five minutes thinking like an attacker:
-
-1. **Map the trust boundaries.** Where does untrusted data cross into your system? HTTP requests, form fields, file uploads, webhooks, third-party APIs, message queues, and **LLM output**. Every boundary is attack surface.
-2. **Name the assets.** What's worth stealing or breaking? Credentials, PII, payment data, admin actions, money movement.
-3. **Run STRIDE over each boundary** — a quick lens, not a ceremony:
-
-| Threat | Ask | Typical mitigation |
-|---|---|---|
-| **S**poofing | Can someone impersonate a user/service? | Authentication, signature verification |
-| **T**ampering | Can data be altered in transit or at rest? | Integrity checks, parameterized queries, HTTPS |
-| **R**epudiation | Can an action be denied later? | Audit logging of security events |
-| **I**nformation disclosure | Can data leak? | Encryption, field allowlists, generic errors |
-| **D**enial of service | Can it be overwhelmed? | Rate limiting, input size caps, timeouts |
-| **E**levation of privilege | Can a user gain rights they shouldn't? | Authorization checks, least privilege |
-
-4. **Write abuse cases next to use cases.** For each feature, ask "how would I misuse this?" — then make that your first test.
-
-If you can't name the trust boundaries for a feature, you're not ready to secure it. This is OWASP **A04: Insecure Design** — most breaches begin in design, not code.
-
-## The Three-Tier Boundary System
-
-### Always Do (No Exceptions)
-
-- **Validate all external input** at the system boundary (API routes, form handlers)
-- **Parameterize all database queries** — never concatenate user input into SQL
-- **Encode output** to prevent XSS (use framework auto-escaping, don't bypass it)
-- **Use HTTPS** for all external communication
-- **Hash passwords** with bcrypt/scrypt/argon2 (never store plaintext)
-- **Set security headers** (CSP, HSTS, X-Frame-Options, X-Content-Type-Options)
-- **Use httpOnly, secure, sameSite cookies** for sessions
-- **Run `npm audit`** (or equivalent) before every release
-
-### Ask First (Requires Human Approval)
-
-- Adding new authentication flows or changing auth logic
-- Storing new categories of sensitive data (PII, payment info)
-- Adding new external service integrations
-- Changing CORS configuration
-- Adding file upload handlers
-- Modifying rate limiting or throttling
-- Granting elevated permissions or roles
-
-### Never Do
-
-- **Never commit secrets** to version control (API keys, passwords, tokens)
-- **Never log sensitive data** (passwords, tokens, full credit card numbers)
-- **Never trust client-side validation** as a security boundary
-- **Never disable security headers** for convenience
-- **Never use `eval()` or `innerHTML`** with user-provided data
-- **Never store sessions in client-accessible storage** (localStorage for auth tokens)
-- **Never expose stack traces** or internal error details to users
-
-## OWASP Top 10 Prevention Patterns
-
-These are prevention patterns, not a ranking. For the 2021 ordering, see the quick-reference table in `references/security-checklist.md`.
-
-### Injection (SQL, NoSQL, OS Command)
-
-```typescript
-// BAD: SQL injection via string concatenation
-const query = `SELECT * FROM users WHERE id = '${userId}'`;
-
-// GOOD: Parameterized query
-const user = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
-
-// GOOD: ORM with parameterized input
-const user = await prisma.user.findUnique({ where: { id: userId } });
-```
-
-### Broken Authentication
-
-```typescript
-// Password hashing
-import { hash, compare } from 'bcrypt';
-
-const SALT_ROUNDS = 12;
-const hashedPassword = await hash(plaintext, SALT_ROUNDS);
-const isValid = await compare(plaintext, hashedPassword);
-
-// Session management
-app.use(session({
-  secret: process.env.SESSION_SECRET,  // From environment, not code
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,     // Not accessible via JavaScript
-    secure: true,       // HTTPS only
-    sameSite: 'lax',    // CSRF protection
-    maxAge: 24 * 60 * 60 * 1000,  // 24 hours
-  },
-}));
-```
-
-### Cross-Site Scripting (XSS)
-
-```typescript
-// BAD: Rendering user input as HTML
-element.innerHTML = userInput;
-
-// GOOD: Use framework auto-escaping (React does this by default)
-return <div>{userInput}</div>;
-
-// If you MUST render HTML, sanitize first
-import DOMPurify from 'dompurify';
-const clean = DOMPurify.sanitize(userInput);
-```
-
-### Broken Access Control
-
-```typescript
-// Always check authorization, not just authentication
-app.patch('/api/tasks/:id', authenticate, async (req, res) => {
-  const task = await taskService.findById(req.params.id);
-
-  // Check that the authenticated user owns this resource
-  if (task.ownerId !== req.user.id) {
-    return res.status(403).json({
-      error: { code: 'FORBIDDEN', message: 'Not authorized to modify this task' }
-    });
-  }
-
-  // Proceed with update
-  const updated = await taskService.update(req.params.id, req.body);
-  return res.json(updated);
-});
-```
-
-### Security Misconfiguration
-
-```typescript
-// Security headers (use helmet for Express)
-import helmet from 'helmet';
-app.use(helmet());
-
-// Content Security Policy
-app.use(helmet.contentSecurityPolicy({
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'"],
-    styleSrc: ["'self'", "'unsafe-inline'"],  // Tighten if possible
-    imgSrc: ["'self'", 'data:', 'https:'],
-    connectSrc: ["'self'"],
-  },
-}));
-
-// CORS — restrict to known origins
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000',
-  credentials: true,
-}));
-```
-
-### Sensitive Data Exposure
-
-```typescript
-// Never return sensitive fields in API responses
-function sanitizeUser(user: UserRecord): PublicUser {
-  const { passwordHash, resetToken, ...publicFields } = user;
-  return publicFields;
-}
-
-// Use environment variables for secrets
-const API_KEY = process.env.STRIPE_API_KEY;
-if (!API_KEY) throw new Error('STRIPE_API_KEY not configured');
-```
-
-### Server-Side Request Forgery (SSRF)
-
-Any time the server fetches a URL the user influenced — webhooks, "import from URL", image proxies, link previews — an attacker can aim it at internal services (cloud metadata, `localhost`, private IPs).
-
-```typescript
-// BAD: fetch whatever the user gives you
-await fetch(req.body.webhookUrl);
-
-// GOOD: allowlist scheme + host, reject if ANY resolved IP is private, forbid redirects
-import { lookup } from 'node:dns/promises';
-import ipaddr from 'ipaddr.js';
-
-const ALLOWED_HOSTS = new Set(['hooks.example.com']);
-
-async function assertSafeUrl(raw: string): Promise<URL> {
-  const url = new URL(raw);
-  if (url.protocol !== 'https:') throw new Error('https only');
-  if (!ALLOWED_HOSTS.has(url.hostname)) throw new Error('host not allowed');
-  // Resolve ALL records; a single private/reserved address fails the check.
-  const addrs = await lookup(url.hostname, { all: true });
-  if (addrs.some((a) => ipaddr.parse(a.address).range() !== 'unicast')) {
-    throw new Error('private/reserved IP');
-  }
-  return url;
-}
-
-await fetch(await assertSafeUrl(req.body.webhookUrl), { redirect: 'error' });
-```
-
-The `range() !== 'unicast'` check covers loopback, link-local `169.254.169.254` (cloud metadata, the #1 SSRF target), private, and unique-local ranges across IPv4 and IPv6.
-
-**Caveat — this still has a TOCTOU gap.** `fetch` resolves DNS again after the check, so an attacker using a short-TTL record can rebind to an internal IP between validation and connection. For high-risk surfaces, resolve once and connect to the pinned IP, or put a filtering agent in front (`request-filtering-agent` / `ssrf-req-filter`).
-
-## Input Validation Patterns
-
-### Schema Validation at Boundaries
-
-```typescript
-import { z } from 'zod';
-
-const CreateTaskSchema = z.object({
-  title: z.string().min(1).max(200).trim(),
-  description: z.string().max(2000).optional(),
-  priority: z.enum(['low', 'medium', 'high']).default('medium'),
-  dueDate: z.string().datetime().optional(),
-});
-
-// Validate at the route handler
-app.post('/api/tasks', async (req, res) => {
-  const result = CreateTaskSchema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(422).json({
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: 'Invalid input',
-        details: result.error.flatten(),
-      },
-    });
-  }
-  // result.data is now typed and validated
-  const task = await taskService.create(result.data);
-  return res.status(201).json(task);
-});
-```
-
-### File Upload Safety
-
-```typescript
-// Restrict file types and sizes
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-
-function validateUpload(file: UploadedFile) {
-  if (!ALLOWED_TYPES.includes(file.mimetype)) {
-    throw new ValidationError('File type not allowed');
-  }
-  if (file.size > MAX_SIZE) {
-    throw new ValidationError('File too large (max 5MB)');
-  }
-  // Don't trust the file extension — check magic bytes if critical
-}
-```
-
-## Triaging npm audit Results
-
-Not all audit findings require immediate action. Use this decision tree:
-
-```
-npm audit reports a vulnerability
-├── Severity: critical or high
-│   ├── Is the vulnerable code reachable in your app?
-│   │   ├── YES --> Fix immediately (update, patch, or replace the dependency)
-│   │   └── NO (dev-only dep, unused code path) --> Fix soon, but not a blocker
-│   └── Is a fix available?
-│       ├── YES --> Update to the patched version
-│       └── NO --> Check for workarounds, consider replacing the dependency, or add to allowlist with a review date
-├── Severity: moderate
-│   ├── Reachable in production? --> Fix in the next release cycle
-│   └── Dev-only? --> Fix when convenient, track in backlog
-└── Severity: low
-    └── Track and fix during regular dependency updates
-```
-
-**Key questions:**
-- Is the vulnerable function actually called in your code path?
-- Is the dependency a runtime dependency or dev-only?
-- Is the vulnerability exploitable given your deployment context (e.g., a server-side vulnerability in a client-only app)?
-
-When you defer a fix, document the reason and set a review date.
-
-### Supply-Chain Hygiene
-
-`npm audit` catches known CVEs; it won't catch a malicious or typosquatted package. Also:
-
-- **Commit the lockfile** and install with `npm ci` (not `npm install`) in CI — reproducible builds, no silent version drift.
-- **Review new dependencies before adding them** — maintenance, download counts, and whether they truly earn their place. Every dependency is attack surface (OWASP **A06: Vulnerable Components**, **LLM03: Supply Chain**).
-- **Be wary of `postinstall` scripts** in unfamiliar packages — they run arbitrary code at install time.
-- **Watch for typosquats** — `cross-env` vs `crossenv`, `react-dom` vs `reactdom`.
-
-## Rate Limiting
-
-```typescript
-import rateLimit from 'express-rate-limit';
-
-// General API rate limit
-app.use('/api/', rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,                   // 100 requests per window
-  standardHeaders: true,
-  legacyHeaders: false,
-}));
-
-// Stricter limit for auth endpoints
-app.use('/api/auth/', rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,  // 10 attempts per 15 minutes
-}));
-```
-
-## Secrets Management
-
-```
-.env files:
-  ├── .env.example  → Committed (template with placeholder values)
-  ├── .env          → NOT committed (contains real secrets)
-  └── .env.local    → NOT committed (local overrides)
-
-.gitignore must include:
-  .env
-  .env.local
-  .env.*.local
-  *.pem
-  *.key
-```
-
-**Always check before committing:**
-```bash
-# Check for accidentally staged secrets
-git diff --cached | grep -i "password\|secret\|api_key\|token"
-```
-
-**If a secret is ever committed, rotate it.** Deleting the line or rewriting history is not enough — assume it's compromised the moment it reaches a remote. Revoke and reissue the key first, then purge it from history.
-
-## Securing AI / LLM Features
-
-If your app calls an LLM — chatbots, summarizers, agents, RAG — it inherits a new attack surface. Map it to the [OWASP Top 10 for LLM Applications (2025)](https://genai.owasp.org/llm-top-10/):
-
-- **Treat all model output as untrusted input (LLM05: Improper Output Handling).** Never pass LLM output straight into `eval`, SQL, a shell, `innerHTML`, or a file path. Validate and encode it exactly as you would raw user input.
-- **Assume prompts can be hijacked (LLM01: Prompt Injection).** Untrusted text in the context window — a user message, a fetched web page, a PDF — can carry instructions. The system prompt is not a security boundary; enforce permissions in code, not in the prompt.
-- **Keep secrets and other users' data out of prompts (LLM02 / LLM07).** Anything in the context can be echoed back. Don't put API keys, cross-tenant data, or the full system prompt where the model can repeat it.
-- **Constrain tool and agent permissions (LLM06: Excessive Agency).** Scope tools to the minimum, require confirmation for destructive or irreversible actions, and validate every tool argument.
-- **Bound consumption (LLM10: Unbounded Consumption).** Cap tokens, request rate, and loop/recursion depth so a crafted input can't run up cost or hang the system.
-- **Isolate retrieval data (LLM08: Vector and Embedding Weaknesses).** In RAG, treat the vector store as a trust boundary: partition embeddings per tenant so one user can't retrieve another's data, and validate documents before indexing so poisoned content can't steer answers.
-
-```typescript
-// BAD: trusting model output as a command or as markup
-const sql = await llm.generate(`Write SQL for: ${userQuestion}`);
-await db.query(sql);                                   // arbitrary query execution
-container.innerHTML = await llm.reply(userMessage);   // stored XSS, via the model
-
-// GOOD: model output is data — parse defensively, then validate, then encode
-let intent;
-try {
-  intent = CommandSchema.parse(JSON.parse(await llm.replyJson(userMessage)));
-} catch {
-  throw new ValidationError('unexpected model output'); // JSON.parse or schema failed
-}
-await runAllowlistedAction(intent.action, intent.params);
-container.textContent = await llm.reply(userMessage);
-```
-
-## Security Review Checklist
-
-The full Authentication / Authorization / Input / Data / Infrastructure / Supply-Chain / AI-LLM checklist lives in `references/security-checklist.md` — run it as the pre-PR pass.
-
-## See Also
-
-For detailed security checklists and pre-commit verification steps, see `references/security-checklist.md`.
+1. **Map the boundaries before you read the fix** — the checklist's *Threat modelling* section is the
+   shape: every place untrusted data crosses in, what sits behind each one worth stealing, STRIDE over
+   the pair. Write the abuse case beside each use case and audit against it.
+
+2. **Scan the diff and its history for secrets first** — keys, tokens, passwords, connection strings,
+   `.env` / `*.pem` / `*.key` in version control, a `.env.example` holding a real value, a credential in
+   a fixture. Report that one is present, never what it is, in every artifact. A committed secret is
+   rotated first, purged second.
+
+3. **Walk every changed file through [`security-checklist.md`](../../references/security-checklist.md)**
+   — threat model, pre-commit, authentication, authorization, input validation, headers and CORS, data
+   protection, dependencies, AI/LLM, error handling. That file is the pass; what the diff introduces says
+   which section to run hardest, and where that section alone is not enough:
+
+   | The diff introduces | Run hardest |
+   |---|---|
+   | an access keyed by an id from the request | Authorization — ownership, not identity alone |
+   | a fetch, webhook or redirect | Input validation, then step 4 |
+   | an upload | Input validation — an allowlisted type, a size cap, content verified, never the extension |
+   | a prompt, completion, tool call or embedding | AI / LLM, then step 4 |
+   | a dependency, lockfile or CI install line | Dependencies, then step 5 |
+
+4. **Follow the two boundaries a checklist line under-states.** A server-side fetch of a user-influenced
+   URL — a webhook, an import-from-URL, an image proxy — wants scheme and host allowlisted, every
+   resolved address rejected unless it is unicast (`169.254.169.254` first of all), and no redirect
+   followed — a 302 lands wherever it likes, past the allowlist the first request cleared. A TOCTOU gap
+   survives that check too, DNS rebinding between check and connect: a high-risk surface resolves once
+   and connects to the pinned address, or sits behind a filtering agent. Model output is untrusted input
+   whatever produced it — never into `eval`, SQL, a shell, `innerHTML` or a file path, and a permission
+   enforced in a system prompt is not enforced.
+
+5. **Triage a dependency finding by reachability, not by the severity the audit printed.** Run the
+   ecosystem's audit, then ask of each: is the vulnerable path reachable here, is the package runtime or
+   dev-only, is a fix released. Record a reason and a review date against anything deferred. A moved
+   lockfile, an `npm install` where CI wants `npm ci`, a new `postinstall`, or a name one character off a
+   popular package is its own finding.
+
+6. **Give every finding an id, a severity, a reference, a location and a remedy** — feature-namespaced
+   (`SEC-PWR-1`), one of `Critical · High · Medium · Low`, the OWASP or GenAI entry it maps to,
+   `path:line`, and the change that closes it.
+
+7. **Audit a wave's diffs as one changeset, then attribute each finding by the file it sits in.** One
+   writer per file makes that unambiguous (`references/safety-rails.md`); a finding you cannot attribute
+   goes to every slice in the wave, said plainly.
+
+8. **Return one verdict — `pass · concerns · block`.** `block` is a stop-list item and nothing else: a
+   secret in the diff or its history, or a finding you graded Critical or High
+   (`references/safety-rails.md`, *The stop list*). Name the condition that fired; the slice ends there
+   with no pull request opened on it. Everything short of that is `concerns`, and the caller routes the
+   slice back into the repair ladder.
+
+9. **Decide the rest yourself and leave the trace.** An accepted residual risk, a deferred dependency
+   fix, a control you judged adequate: take the default, state the reason, append one
+   `docs/session-log.md` entry, hand `pull-request` a Decided-for-you row. A band-raising surface — a new
+   authentication flow, a new class of personal data, a new integration, a CORS change, an upload
+   handler, a rate-limit change, an elevated permission — is named in the findings rather than asked
+   about; the band is how a person triages at merge.
 
 ## Rationalizations
 
 | Rationalization | Reality |
 |---|---|
-| "This is an internal tool, security doesn't matter" | Internal tools get compromised. Attackers target the weakest link. |
-| "We'll add security later" | Security retrofitting is 10x harder than building it in. Add it now. |
-| "No one would try to exploit this" | Automated scanners will find it. Security by obscurity is not security. |
-| "The framework handles security" | Frameworks provide tools, not guarantees. You still need to use them correctly. |
-| "It's just a prototype" | Prototypes become production. Security habits from day one. |
-| "Threat modeling is overkill here" | Five minutes of "how would I attack this?" prevents the design flaws no control can patch later. |
-| "It's just LLM output, it's only text" | That "text" can be a SQL statement, a script tag, or a shell command. Treat it like any untrusted input. |
+| "The checklist is boilerplate, I know what to look for" | The section you would have skipped is the one this diff just opened. |
+| "Threat modelling is overkill for a diff this size" | A control chosen without the boundary map is a guess that is sometimes right. |
+| "The line is gone, so the key is gone" | It was compromised the moment it reached a remote; rotation closes it, purging is bookkeeping. |
+| "It's only model output, it's just text" | That text becomes the SQL, the script tag or the shell word whenever something executes it. |
+| "`npm audit` is clean, so the dependencies are" | An audit knows published CVEs, not a typosquat, a fresh `postinstall`, or an unpinned install. |
+| "The rest of the diff is clean, so it nets out" | One Critical is the verdict; the share of lines it occupies changes nothing. |
 
 ## Red flags
 
-- User input passed directly to database queries, shell commands, or HTML rendering
-- Secrets in source code or commit history
-- API endpoints without authentication or authorization checks
-- Missing CORS configuration or wildcard (`*`) origins
-- No rate limiting on authentication endpoints
-- Stack traces or internal errors exposed to users
-- Dependencies with known critical vulnerabilities
-- Server fetches user-supplied URLs without an allowlist (SSRF)
-- LLM/model output passed into a query, the DOM, a shell, or `eval`
-- Secrets, PII, or the full system prompt placed inside an LLM context window
+- A value from the request reaching a query, a shell, a file path or the DOM unparsed.
+- A credential's value reproduced in the findings, the log or the pull request.
+- An endpoint that checks who you are and never whether the row is yours.
+- A server-side fetch of a user-supplied URL with no allowlist behind it.
+- Model output reaching `eval`, SQL, a shell or `innerHTML`, or a permission left to the system prompt.
+- A finding with no `path:line`, no remedy, or a severity copied from the audit tool rather than reach.
 
-## Verification (ending criteria)
+## Verification
 
-After implementing security-relevant code:
+- [ ] Every changed file was read against the checklist, and the findings name the boundaries and the
+      assets behind them.
+- [ ] Every finding carries step 6's five fields, in the findings file of the slice owning that file,
+      with each reconstructed input marked `derived`.
+- [ ] The verdict is one of `pass · concerns · block`, a `block` names the stop-list condition that
+      fired, and no credential's value appears in any artifact.
+- [ ] Nothing outside the stop list ended the slice: each off-list call is a default with a reason, one
+      log entry, and a Decided-for-you row.
 
-- [ ] `npm audit` shows no critical or high vulnerabilities
-- [ ] No secrets in source code or git history
-- [ ] All user input validated at system boundaries
-- [ ] Authentication and authorization checked on every protected endpoint
-- [ ] Security headers present in response (check with browser DevTools)
-- [ ] Error responses don't expose internal details
-- [ ] Rate limiting active on auth endpoints
-- [ ] Server-side URL fetches validated against an allowlist (no SSRF)
-- [ ] LLM/model output validated and encoded before use (if AI features present)
+## Outputs & handoff
 
-## Outputs & handoff contract
+**Writes** `docs/features/<slug>/<SLICE-ID>/security-findings.md` — cap 600 words, one file per owning
+slice, and you are its sole writer. With a feature but no slice id it is
+`docs/features/<slug>/security-findings.md`, naming the range you audited; called by hand with neither,
+the four sections come back in conversation instead.
 
-**Emits:** `findings` → `docs/features/<slug>/<SLICE-ID>/security-findings.md`, **one file per owning slice**. In the orchestrator's wave-scoped Review fan-out the audit runs **once over the whole wave's combined diff**, then routes each finding to the slice that owns its file (the disjoint-file guard makes this unambiguous) — so each slice still gets its own `security-findings.md` and the per-slice contract below is unchanged. **You are the sole writer** of these files (disjoint from `performance-optimization`'s findings file — the Review fan-out's disjoint-file guard, safety rail 5, `references/safety-rails.md`).
+```markdown
+---
+slice: <id> · feature: <slug> · verdict: <pass|concerns|block>
+---
+## Threat model     the boundaries, the assets behind them, the abuse cases you audited against
+## Findings         one row per finding, step 6's five fields, `derived` on anything reconstructed;
+                    an unmet checklist item is a finding, so a clean pass still reports
+## Raises the band  step 9's sensitive surfaces, with the severity counts `pull-request` bands
+## Verdict          pass | concerns | block · on a block, the stop-list condition that fired
+```
 
-**Stable sections the orchestrator + `pull-request` depend on** (change the shape → update the consumer in the same commit):
-- `## Verdict` — one token: `pass` | `block` | `STOP`.
-- `## Circuit-breaker` — one token: `none` | `slice-halt-no-PR` | `repo-wide-secret-STOP`.
-- `## Findings` — table `id · severity {CRITICAL|HIGH|MEDIUM|LOW} · OWASP/LLM ref · file:line · remediation`. Feature-namespaced ids (e.g. `SEC-PWR-1`), each mapping to a boundary in the three-tier system.
-- `## Three-tier audit` — Always-Do / Ask-First / Never-Do verdicts (the body's boundary system applied to this diff).
+Measure that draft against the cap and report the count; an over-cap draft goes on as an over-run, never
+as one that fit.
 
-**Gate wiring — security is a circuit-breaker leg of the SHIP AND-conjunction (it overrides any averaging; there is no "net pass"):**
-- A localized **CRITICAL or HIGH** finding, **or any secret in the diff** ⇒ `## Verdict: STOP` + `## Circuit-breaker: slice-halt-no-PR` ⇒ the slice goes `halted` in `STATE.md`, **no retry, never a PR**, and tops the run's risk report.
-- An **exposed/committed secret with repo-wide blast radius** ⇒ `## Circuit-breaker: repo-wide-secret-STOP` ⇒ fire a **PushNotification**, **freeze the next wave barrier**, open **no further PRs** (safety rail 2's literal STOP). Fix is **rotate-then-purge**, never delete-the-line.
-- `## Verdict: block` (MEDIUM/LOW only, no secret) ⇒ findings flow into the slice's bounded retry loop as required fixes, under safety rail 4 like any other retry.
-- Findings + severity counts feed the **inverted risk report** for every shipped slice.
+**Appends** one `docs/session-log.md` entry, cap 60 words, where this pass settled something itself,
+matching the pull request's **Decided for you** row
+([`state-schema.md`](../../references/state-schema.md)).
 
-**STATE.md update:** on STOP, flip the slice to `halted` (and, for a repo-wide secret, freeze the barrier); on `pass`, append `security-findings.md` to the slice's Artifacts column and leave the gate decision to the three-leg AND-conjunction.
-
-**References:** `references/security-checklist.md` (carried) — the pre-commit / OWASP / OWASP-LLM quick-reference this skill cites.
-
-## Subagents
-
-For a fresh-context, code-cold pass, dispatch the **`security-auditor`** agent (`agents/security-auditor.md`) as an
-independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a person wants a single code-cold security pass over
-a diff **outside a run**, or on a platform with no skill tool. Inside a run this skill is dispatched as
-itself — there is no role to play on top of it.
+**Nothing else.** No code and no test: you read a diff and report on it, and a finding is closed by
+whoever owns the slice. No row on `STATE.md`, no lessons entry and no pull request — the caller owns the
+board, the record and the branch ([`state-schema.md`](../../references/state-schema.md)).
