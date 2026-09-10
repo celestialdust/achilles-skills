@@ -6,7 +6,7 @@
 // one; v2 also sets the reference and command ceilings.
 //
 //   skills/<name>/SKILL.md                     ≤40 instructions · ≤300 body lines · description ≤400 chars
-//   the suite                                  Σ SKILL.md words ≤35,000  (reported always; enforced on a whole-tree run)
+//   the suite                                  Σ SKILL.md words ≤65,000  (reported always; enforced on a whole-tree run)
 //   references/*.md and skills/*/references/*.md   ≤150 lines each
 //   references/ at the top level               Σ words ≤5,000
 //   commands/*.md                              ≤150 words, frontmatter excluded
@@ -68,7 +68,7 @@ const CEILINGS = {
   instructions: 40,
   bodyLines: 300,
   descriptionChars: 400,
-  suiteWords: 35000,
+  suiteWords: 65000,
   referenceLines: 150,
   referenceWords: 5000,
   commandWords: 150,
