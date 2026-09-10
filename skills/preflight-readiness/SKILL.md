@@ -1,149 +1,137 @@
 ---
 name: preflight-readiness
-description: Environment-readiness gate that blocks an autonomous wave until every environment.md manifest row is provisioned — runs at the human→AFK boundary right after environment.md is signed and BEFORE the orchestrator dispatches slice one. Probes every manifest row with a read-only, value-blind prober and REFUSES to start the wave on any red or un-attested amber — never optimistically. Re-fire mid-run as a side-effect-free stall-recovery probe. Invoke whenever you are about to start, resume, or unblock an autonomous run, or whenever slices are failing in ways that smell like missing environment.
+description: Probe every environment.md row before a run goes AFK, and again when slices fail like the environment moved — value-blind, side-effect-free, a `pass · concerns · block` verdict naming what each unreachable row holds. Writing the rows is `environment-manifest`'s; installing them, `project-setup`'s.
 ---
+
+# Preflight readiness
 
 ## Purpose
 
-Stage: **cross-cutting gate** — the entry condition on the orchestrator's first wave barrier.
+**Stage: cross-cutting.** Principles 1, 6, 7, 8, 9.
 
-The autonomous run happens while the human is AFK. If the environment is not
-provisioned, every slice fails the same way and burns the entire per-slice retry budget
-(2/gate, 3 cycles/slice) on a problem no code change can fix. preflight exists to convert
-"the environment is not ready" from a silent mid-run cascade into **one up-front go/no-go
-with an actionable checklist**.
-
-It is the maker≠checker partner to `environment-manifest`: `environment-manifest` *authors* the typed manifest
-(human-collaborative); `preflight-readiness` *probes* it (independent, value-blind). It is **not**
-`project-setup` — `project-setup` provisions the repo once; preflight is a fail-safe **gate** re-run before
-every wave and safe to re-fire as a stall-recovery probe.
+Probes every row of a feature's `environment.md` against the machine that will build it — value-blind,
+side-effect-free — returning a `pass · concerns · block` verdict per row and one for the run. An
+unprovisioned environment fails every slice the same way, hours after the person left; this pass grades
+what `environment-manifest` authored, on evidence its author lacked.
 
 ## When to use / when to skip
 
-**Use** — at the human→AFK boundary, after `environment.md` is signed (Spec pass) and
-appended (Plan pass), immediately before the orchestrator dispatches the first wave. Also
-**re-fire mid-run** as a stall-recovery probe when slices fail in ways that smell like
-environment (a previously-green service went down): probers are side-effect-free, so re-firing
-is always safe (CQS).
-
-**Do not skip** — this is a discipline gate, not `depth: lite`. There is no "trust me, it's
-provisioned" path before an autonomous run. The only relief valve is the per-row
-`manual <question>` attestation (below), and even that requires a human answer before the wave.
-
-**Trivial pass** — a feature with zero external dependencies has an empty `environment.md`;
-preflight runs and returns **go** (no rows to fail). It still runs — emptiness is *probed*,
-not assumed.
+- A run is about to go AFK, someone asks whether this machine can build the thing, or a row was just
+  provisioned — nothing else has checked that what the manifest names is there.
+- Mid-run, where slices fail in ways no code change fixes — a probe changes nothing, so re-fire it freely.
+- A feature declaring no external dependency: probe the emptiness rather than assume it.
+- Skip writing or amending rows (`environment-manifest`), and skip installing, exporting, seeding or
+  scaffolding (`project-setup`, `ci-cd`) — this pass reports and provisions nothing.
+- Nothing lighter sits beside it — no lite path before an AFK run.
 
 ## Inputs
 
-Refuse-to-run (CRISPY refuse-to-run; fail-safe deny) unless ALL hold:
-- `environment.md` exists for the feature about to build.
-- Every row's `kind` is inside the closed enum `{env-var|mcp|service|runtime-dep|fixture|account}`.
-- The manifest has **no value column and no command column**. A `value:` or `verify:`/
-  `command:` cell is **structurally illegal** — do NOT run it, do NOT read it; refuse and send
-  the manifest back to `environment-manifest` to be re-authored. (A free-text command run unattended at
-  the AFK boundary is exactly the attack this manifest shape was designed to make impossible.)
-- `STATE.md` exists (so `project-setup` has scaffolded the repo) and names the feature/wave.
-
-If any precondition fails, emit a **no-go** naming the precondition; do not fabricate a manifest
-and do not partially probe.
+- `docs/features/<slug>/environment.md` — helps: the typed rows are what to probe, and `required-by` names
+  the slices each holds · without it: reconstruct the rows from the code's own environment reads, imports,
+  `scripts` block, lockfile and compose or CI files, marked `derived`
+- `STATE.md` — helps: which slices are about to dispatch, so an unreachable row can name what it holds ·
+  without it: take the feature from the prompt or the one `docs/features/<slug>/` present, ids `derived`
+- The machine itself — PATH, the process environment, connected MCP servers, the endpoints the rows name.
+- With a person there, ask a row's `manual:` question, at most three, and answer none yourself.
 
 ## Process
 
-For each row in `environment.md`, dispatch to the prober matching its `kind` and collect a
-status (`green` | `amber` | `red`). One prober per kind, **value-blind** (it checks
-presence/reachability — it never reads, prints, logs, or stores the underlying value, because
-the manifest gives it no value to read). Then apply the verdict gate.
+1. **Take the rows before probing.** Read `environment.md`, or where there is none reconstruct it as
+   Inputs says and mark every row `derived`. Derive nothing the code does not evidence — an invented row
+   holds a wave over a dependency the feature never had.
 
-**The prober registry** (index; per-kind predicate detail in `references/probers/<kind>.md`):
+2. **Read no cell as a command.** A `value`, `command` or `verify` cell is a column that does not exist:
+   leave it unread and unrun and hand the column back to `environment-manifest`. An
+   unreviewed shell line run while nobody watches is what the absent columns prevent.
 
-| kind | what it probes (value-blind) | green | red | amber |
-|---|---|---|---|---|
-| [`env-var`](references/probers/env-var.md) | named var is set & non-empty in the env (never echo it) | set, non-empty | unset/empty | — |
-| [`mcp`](references/probers/mcp.md) | named MCP server is connected & reachable | connected | absent | connected-but-unauthenticated |
-| [`service`](references/probers/service.md) | named endpoint reachable (TCP/health, no creds in probe) | reachable | unreachable | reachable-but-degraded |
-| [`runtime-dep`](references/probers/runtime-dep.md) | named tool on PATH satisfies declared version floor | present & ≥ floor | missing/too-old | — |
-| [`fixture`](references/probers/fixture.md) | named seed/fixture exists at its declared location | present | missing | — |
-| [`account`](references/probers/account.md) | external account usable WITHOUT spending paid quota or a human-only step | value-blind reachability passes | known-bad | un-probeable (needs `manual`) |
+3. **Probe each row by its kind, value-blind.** Presence and reachability answer the question; a probe
+   needing the value is mis-scoped, so narrow it back to presence
+   ([`safety-rails.md`](../../references/safety-rails.md)).
 
-**The verdict gate (fail-safe deny):**
-- **All rows green** (or `manual`-attested OK) → **GO**. The orchestrator may start the wave.
-- **Any red** → **NO-GO** + a per-row remediation checklist. The orchestrator does not dispatch.
-- **Amber** → **NO-GO** *unless* the human has resolved it via `manual <question>` (below).
-  Un-attested amber denies. Default is deny; a green start is never the default.
+| kind | value-blind probe |
+|---|---|
+| `env-var` | the name is set and non-empty |
+| `mcp` | connected, and a read-only call answers |
+| `service` | TCP connect or unauthenticated liveness path |
+| `runtime-dep` | on PATH, at or above the declared floor |
+| `fixture` | present where the row says, contents unread |
+| `account` | a free no-spend signal, else un-probeable |
 
-**OCP discipline — open for extension, closed for modification:**
-- A new external dependency = **a new ROW** in `environment.md`. preflight does not change.
-- A genuinely new *check primitive* = **a new prober FILE** (`references/probers/<kind>.md`)
-  plus a new enum member — never an `if`-branch grafted onto an existing prober, and never a
-  probe-DSL embedded in the manifest. Adding a case is a new file, not an edit to a switch.
+   Predicates, statuses, gotchas, and how a new kind is added:
+   [`references/probers.md`](references/probers.md). A row whose kind is outside the table is probed for
+   presence only, graded `concerns`, and handed back to `environment-manifest` with the misfit named. A
+   change to the manifest's shape — a new kind, a renamed column — lands in the table above and in that
+   file in the same commit as the manifest's, since a kind with no prober is a row nothing can answer.
 
-**Value-blindness invariant (safety rail 2, `../../references/safety-rails.md`):** no prober reads, prints, logs, or writes any
-secret value. A prober that *needs* the value to do its job is mis-designed — re-scope it to a
-presence/reachability check. The verdict and ledger are guaranteed secret-free.
+4. **Probe every row before grading any, and change nothing while probing** — no install, upgrade, export,
+   seed or mutating call.
 
-**Stall-recovery (command-query separation):** the **probers** are pure queries — asking does
-not change state, so re-firing preflight mid-run whenever an env regression is suspected is always
-safe. The "never mutates" claim is scoped to the probers; the **gate action** (recording the go/no-go
-verdict + ledger and flipping the gate) is preflight's only write, and it is idempotent under re-fire —
-re-deriving the same verdict re-writes the same ledger. preflight emits the verdict and the gate flip;
-the **orchestrator owns the `feature → building` transition** (registry: orchestrator drives `STATE.md`).
+5. **Grade every row `pass · concerns · block`,** naming what each non-pass row holds from its `required-by`.
+   `block` is a stop-list item and nothing else
+   ([`safety-rails.md`](../../references/safety-rails.md)). Unreachable for any other reason — a service
+   down, a tool missing, a version under its floor — is `concerns`.
 
-## The `manual <question>` escape hatch
+6. **Return the worst row's grade as the verdict** — `pass` where there are no rows to probe — with a
+   remediation line under every non-pass row. Where some slices are runnable and others held, name which are
+   which and take the default: proceed with what no held row names, logged once and carried as a
+   Decided-for-you row in the pull request.
 
-For an item that is genuinely un-probeable without spending money or taking a human-only step
-(paid quota, a SaaS account behind a human login), the row resolves to **amber** and preflight
-emits a single `manual: <question>` line, e.g. `manual: is the OpenAI paid quota available? (y/n)`.
-The human answers; a `y` flips that row to attested-OK for this run; anything else keeps it red.
-preflight **never auto-attests** — the attestation is the human's, captured before the wave.
-This is the *only* way amber becomes go.
+## The `manual: <question>` escape hatch
+
+A row nothing reaches without spending money or taking a human-only step carries `manual: <question>` from
+the manifest. Put it to a person where one is there; the attestation is theirs, never fabricated here. Where
+nobody is, grade it by what answering would cost — money or a credential is `block`, anything else
+`concerns`, the question still open. Where the row carries none — a `derived` or pasted manifest — write the
+yes/no question a person would answer, mark it `derived`, and leave it open.
 
 ## Rationalizations
 
-- "The key is probably set — let's just start the wave." → Un-probed is **red**. The human is
-  about to leave; an optimistic start burns the whole retry budget on a missing key.
-- "This amber is fine, I'll let it slide." → Un-attested amber **denies**. Only a human `manual`
-  answer flips it.
-- "Let me read the env var to check its format." → **Value-blind.** Presence only. Reading the
-  value is a security regression.
-- "This service needs a slightly different check — I'll add an if-branch to the service prober."
-  → **OCP violation.** New check primitive = new prober file + enum member.
-- "environment.md has a `verify:` command — I'll just run it to be thorough." → That column is
-  **structurally illegal**. Refuse-to-run; the manifest goes back to `environment-manifest`.
+- "The key is probably set — just start the wave." → An unprobed row is not a passing row.
+- "Reading the value would confirm its format." → Presence is the question; a wrong value surfaces in the
+  slice's own test.
+- "The manifest ships a `verify:` command, so running it is thorough." → That column does not exist.
+- "One `npm i -g` and the wave is unblocked." → A probe that provisions cannot report what it found.
+- "This service checks differently — an `if`-branch covers it." → A new primitive is a new section and kind.
+- "Nobody is here to answer the `manual:` question, so it is fine." → An unanswered question is a grade, not
+  an assumption.
 
 ## Red flags
 
-STOP if you are about to:
-- start (or resume) the wave with any **red** or **un-attested amber** row → emit no-go instead.
-- **print, log, or store an env-var value** → security stop.
-- **run a command string read from `environment.md`** → no command column exists; if one is
-  present the manifest is malformed (refuse-to-run).
-- add a **kind-specific branch** to a prober instead of a new prober file → OCP stop.
-- **fabricate or guess** a manifest because one is missing → refuse-to-run; do not invent rows.
+- A command string from the manifest in the shell history.
+- An environment variable's value in the report, the log or the terminal.
+- A package installed, a service started or a variable exported during the pass.
+- A row graded from what the manifest says rather than what the machine answered.
+- A `manual:` question the pass answered itself.
+- A missing `environment.md` treated as a reason not to run.
 
-## Verification (ending criteria)
+## Verification
 
-Done when ALL hold:
-- Every row in `environment.md` was probed by its kind's prober, or carries a resolved
-  `manual` attestation.
-- The verdict is **GO iff** every row is green or manually-attested-OK; **NO-GO** otherwise
-  (fail-safe deny).
-- The per-row ledger and verdict are written; **no secret value appears anywhere** in the output.
+- [ ] Every row was probed by its kind, or carries an open `manual:` question and why nobody answered it.
+- [ ] The verdict is one of `pass · concerns · block`, equals the worst row, and a `block` names the
+      stop-list condition behind it.
+- [ ] Every non-pass row carries a remediation line and the slice ids it holds; every reconstructed row is
+      marked `derived`.
+- [ ] No value appears in the output, nothing on the machine changed, and re-firing returns the same verdict.
+- [ ] A wave starts on `pass` or `concerns`, with every held slice named and the default logged; on
+      `block` the slices that row holds do not start, whatever else does.
 
-BDD bind: the gate predicate is *"the wave may start ⟺ go"*. The orchestrator refuses to
-dispatch the first wave on a no-go (this gate is the wave barrier's entry condition).
+## Outputs & handoff
 
-## Outputs & handoff contract
+No artifact — a verdict is cheaper to re-derive than to store, and a stored one goes stale. Returned in
+conversation: the verdict line, then one line per manifest row in its order, keyed by row name as
+`kind · name · status · holds · remediation`.
 
-- **Emits `go/no-go`** (registry artifact): a binary verdict + a per-row ledger keyed by
-  `environment.md` row name — `kind · name · status{green|amber|red} · remediation-if-not-green`
-  — written to ephemeral `docs/features/<slug>/preflight.md` (out of the resume spine; it is
-  re-derivable by re-firing) and returned to the orchestrator.
-- **Stable contract for the consumer (orchestrator):** it depends only on the binary go/no-go
-  plus the ledger ids; the prose remediation is human-facing.
-- **STATE.md update:** preflight's only write is the **gate flip** — it does **not** write the feature
-  transition. On **go**, it emits the verdict and flips `gate: agent` so the orchestrator may start the
-  wave; the **orchestrator owns the `feature → building` transition** (registry: orchestrator drives
-  `STATE.md`). On **no-go**, do NOT advance into `building`; surface the checklist and set `gate: you`
-  (the human provisions, then re-runs preflight).
-- **Guarantee:** the output contains no secret values (value-blindness is part of the contract).
+```
+verdict: block — 3 probed · 1 pass · 1 concerns · 1 block
+env-var · API_BASE · pass · — · —
+runtime-dep · tsc (derived) · concerns · holds OFD-2 · install the compiler `build` names
+account · postmark-prod · block · holds OFD-3 · the person funds the tenant — money
+```
+
+`holds` is the slice ids from `required-by`, or `—`; `remediation` is the one thing a person would do, and
+never names a value.
+
+At most one `docs/session-log.md` entry, cap 60 words, only where something was settled here rather than
+merely found. No `STATE.md` cell — the run is the board's only writer
+([`state-schema.md`](../../references/state-schema.md)), so a hand-called pass hands its verdict to whoever
+owns the transition.

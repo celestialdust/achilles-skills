@@ -1,155 +1,136 @@
 ---
 name: spec-review
-description: Use this LAST in the Spec stage, before the human signs off — a fresh code-cold agent that FIXES the spec instead of listing complaints. You MUST run it after spec-grilling/to-prd/acceptance-criteria/environment-manifest (plus frontend-design for UI and architecture-design for a structure pass) land and before the Spec gate, while the whole bundle is still draft. It auto-fixes decidable facts (stray file paths/signatures in prd.md, dangling `see ADR-NNN`, non-verbatim CONTEXT terms, placeholders, embedded secrets/commands in environment.md) and applies-then-inline-flags contestable judgment fixes (coverage gaps, ADR-worthiness, one-feature-or-two), handing back a cleaned spec, not a punch-list.
+description: Run last in Spec, after the sitting closes and before the signature — code-cold: fix the draft bundle in place rather than list complaints, facts silently, judgment applied and flagged inline to revert. Writes no report. Grilling and drafting are `spec-grilling`; a code diff is `code-review`.
 ---
+
+# Spec review
 
 ## Purpose
 
-**Stage: Spec — the last skill before the human Spec sign-off.** The run downstream is autonomous, and
-the **one oracle** it cannot out-vote is a person's act: `acceptance.md`, signed for this feature's
-behavior. A human reviewing a spec littered with stray file paths, dangling ADR refs, placeholder TODOs, and
-coverage gaps burns scarce attention on mechanical defects instead of the judgment calls only a human can
-make. `spec-review` is a **fresh, code-cold agent
-(maker≠checker)** — never the agent that authored the spec — that **fixes the spec before the human sees
-it**: decidable facts are silently corrected; contestable judgment is corrected **and flagged inline**.
-The human then reviews a clean spec and spends attention where it counts. The silent-re-authoring risk is
-resolved by making judgment changes **visible**, not by withholding the fix.
+**Stage: Spec.** Principles 6, 7, 8, 10.
+
+A code-cold pass over the drafted Spec bundle, between the sitting and the signature. It fixes the bundle
+in place — facts silently, contestable calls applied and flagged inline to revert — and emits no file.
+Attention is scarcest at design; a stray path or a dangling ADR id spends it on what a grep settles.
 
 ## When to use / when to skip
 
-**Use:** runs **last in Spec**, after `spec-grilling` (ADRs/CONTEXT.md), `to-prd` (prd.md), `acceptance-criteria`
-(acceptance.md), `environment-manifest` (environment.md), `architecture-design` (architecture.md + its page,
-on a structure pass), and — when the feature has UI — `frontend-design` (the design contract) have all
-landed; immediately before the human Spec sign-off. `architecture-design` runs against a draft
-`acceptance.md`; the two are signed together at the Spec gate — so nothing in the bundle is signed when
-you run, every artifact is still editable, and a fix you apply costs nobody a re-signature.
-
-**Skip / boundaries (depth: lite escape hatch):**
-- It is **not a third gate.** It signs nothing and blocks nothing; the human still reviews and signs.
-- For a one-artifact trivial fix with no cross-artifact relation, a single inline pass without the full
-  bundle is acceptable — but the **default is the full relational grade** anchored on `intent.md`.
+- The sitting has closed, the bundle is draft, nobody has signed — a fix now costs no re-signature.
+- Someone wants the spec read by something that did not write it.
+- Skip: grilling or drafting an artifact — `spec-grilling` runs the sitting; this pass follows it.
+- Skip: a code diff or a weakened oracle — `code-review`, in Review.
+- Skip: writing one decision up — `documentation-and-adrs`.
+- One artifact with nothing crossing to another is one inline pass; the relational grade against
+  `intent.md` is the default, and padding a trivial one out to the full bundle read manufactures nothing.
 
 ## Inputs
 
-Read the full Spec bundle **in this order — `intent.md` first** (everything is graded *relationally*
-against what the user actually asked for):
+- `docs/features/<slug>/intent.md` — helps: what everything else is graded against · without it: take it
+  from the prompt and `prd.md`'s Problem, findings marked `derived`
+- `docs/features/<slug>/prd.md` — helps: the stories, the scope, the design-reference pointer · without
+  it: grade `acceptance.md` against the intent, marked `derived`
+- `docs/features/<slug>/acceptance.md` — helps: the scenarios coverage is measured over · without it:
+  name the behaviours nothing grades, flagged in `prd.md`
+- `docs/features/<slug>/architecture.md` — helps: §2's flow a scenario traces, §6 what the person answers
+  · without it: say both checks had nothing to run against
+- `docs/features/<slug>/environment.md` — helps: the typed rows a value or a command hides in · without
+  it: nothing to strip
+- `docs/adr/` and `CONTEXT.md` — helps: each `see ADR-NNN` resolves, each term is the glossary's · without
+  it: a dangling id becomes a flag rather than a fix
 
-1. `intent.md` (interview-me / idea-refine) — Outcome · User · Why · Success · Constraints · Out-of-scope.
-   **Read first; it is the oracle of intent.**
-2. ADRs (`docs/adr/ADR-<NNN>-*.md`) + `CONTEXT.md` (spec-grilling) — referenced design substrate.
-3. `prd.md` (to-prd) — Problem · Solution · User Stories · Implementation Decisions · Testing Decisions ·
-   Out of Scope.
-4. `acceptance.md` (acceptance-criteria) — Given/When/Then scenarios, **behavioral-only**, feature-namespaced ids
-   (e.g. `PWR-A1`) back-referencing a story id.
-5. `environment.md` (environment-manifest) — typed rows, closed kind enum {env-var|mcp|service|runtime-dep|fixture|
-   account}; no value column, no command column.
-6. design contract (frontend-design) — **only if the feature has UI**. Read `docs/design.md` alongside it
-   when the repo has one: the contract records only what differs from that file, so an axis marked
-   `inherits:` or `departs:` is complete as written. The three axes that file decides nothing on are the
-   exception, and the split table below says what to do about them.
-7. `architecture.md` + `architecture.html` (architecture-design) — **only if the feature ran a structure
-   pass**. The page carries the markdown's
-   source block verbatim, so the two are one artifact in two forms. `status:` reads `unsigned` here and
-   stays that way — a person flips it at the gate after reading the page, and nothing an agent does flips it.
-
-**Refuse to run** if the minimum bundle (`intent.md` + `prd.md` + `acceptance.md`) cannot be resolved —
-without `intent.md` there is no oracle to grade against. Missing optional items (ADRs, or the design
-contract on a non-UI feature) are soft warnings; proceed. **Run as a fresh, code-cold subagent: the agent
-that authored these artifacts must NOT be the one reviewing them** (maker≠checker; cr-evaluator §"Why
-this stage exists").
+Ask nothing, even with the person there — the inline flag is the question, left where they are already
+reading.
 
 ## Process
 
-1. **Dispatch a fresh, code-cold subagent.** No author memory, no conversation history from spec-grilling/
-   to-prd. Read the bundle in the order above — `intent.md` first.
-2. **Grade relationally.** For each downstream artifact ask: does it deliver what `intent.md` asked for?
-   Walk the four classic axes (placeholders · internal consistency · scope · ambiguity) PLUS the
-   artifact-boundary rules and the coverage ledger.
-3. **Classify every issue** as **Decidable (fact)** or **Contestable (judgment)** — see the split table. A
-   few rows there are marked **outside your grant**, and those you leave exactly as written; the row says
-   why. Two buckets would otherwise force a third kind of item into one of them, and both of those end in an
-   edit.
-4. **Decidable facts → auto-fix in place**, then re-run the **deterministic re-check** (grep) until it
-   converges. Greppable, so it converges cheaply. No inline flag — it was simply wrong.
-5. **Contestable judgment → apply your best correction in place too**, but **mark each change inline**:
-   `<!-- spec-review: changed X → Y because Z — revert if you disagree -->`. **No loop** — one pass; the
-   human is the convergence point.
-6. **Hand back the cleaned spec** + write `spec-review.md` (auto-fixes, flagged judgment changes, coverage
-   ledger, "open the referenced ADRs" list). That handback and `architecture.html` are what the person
-   opens at the gate, so anything they have to see before signing has to be in one of the two. Tell the
-   human: review the fixed spec, judgment changes are flagged inline, you keep final authority — revert any.
+1. **Read `intent.md` first, then the rest**, grading each artifact relationally — does it deliver what
+   the intent asked for? — across placeholders, internal consistency, scope and ambiguity. Run code-cold
+   in a fresh subagent (`../../references/safety-rails.md`).
 
-## The fact / opinion split
+2. **Sort each issue into one of the three classes below.** Two classes would force the third kind into
+   one of them.
 
-| Issue | Class | Action |
+3. **Fix a decidable fact in place, then re-run the check that found it** until it comes back empty, with
+   no flag against it.
+
+4. **Apply your best correction to a contestable call and flag it inline**, in the shape under *Outputs &
+   handoff*. One pass, never a loop: the person is the convergence point.
+
+5. **Hand back the bundle itself, never a punch-list**, and with it every `ADR-NNN` it references, so
+   each is opened before a signature that names none.
+
+6. **Measure each edited file against its cap** and report the number; say when one is over rather than
+   cutting a table to fit.
+
+7. **Return `pass · concerns · block` and append one `docs/session-log.md` entry** naming what was fixed
+   and what was flagged. `block` means a stop-list item (`../../references/safety-rails.md`), nothing else.
+
+## The three classes
+
+| Issue | Class | What you do |
 |---|---|---|
-| File path / signature / driver-or-library internal appears in `prd.md` (prd MUST NOT contain these) | **Decidable** | Strip it; re-home to an ADR reference. Re-check: grep `prd.md` for paths/extensions/signatures. |
-| Dangling `see ADR-NNN` — referenced ADR file does not exist | **Decidable** | Fix the ref or create the missing ADR pointer. Re-check: cross every `ADR-\d+` in prd.md against `docs/adr/`. |
-| `CONTEXT.md` `## Glossary` term used non-verbatim in `prd.md` | **Decidable** | Normalize to the exact `## Glossary` term (prd uses CONTEXT terms verbatim). |
-| Placeholder / `TODO` / `TBD` / incomplete section | **Decidable** | Fill from context or remove. A design-contract axis reading `inherits: docs/design.md` or `departs: docs/design.md` is **not** incomplete — never fill either in. The first points at the decided look, the second at that axis's own `## Departure` block; restating what either already says is the second copy the format exists to prevent. Nor is `architecture.md`'s §6 (Open questions for the human) — see its own row below. |
-| Value or command embedded in `environment.md` (no value column, no command column — structurally illegal) | **Decidable** | Remove. If it is a real secret → also a security STOP (see Red flags). |
-| `acceptance.md` scenario contains a file path / signature / table (behavioral-only) | **Decidable** | Rewrite as an observable outcome. |
-| `architecture.html`'s embedded source block differs from `architecture.md` | **Decidable** | Re-splice the block from the markdown — never retype it. Compare the two byte for byte; a copy that was typed rather than spliced is already drifting while looking exactly like one that is not. This is the last stop before a person signs the page, and they read the page rather than the markdown. |
-| An `acceptance.md` scenario traces through no module or seam in `architecture.md` | **Contestable** (spotting it is mechanical; which structure absorbs it is not) | A backstop: `architecture-design` traces the draft first, so a scenario reaching here got past that. Say which of the two you believe is wrong. Where the **structure** is missing a part, draft the trace into `architecture.md` and **flag it inline** with the scenario id. Where you believe the **scenario** is the thing that does not belong, **flag it for the person and change nothing** — that judgement is contestable, and your grant on `acceptance.md` covers a decidable fact, not a call about which side is right. Deleting a scenario is the one correction that cannot be flagged inline, because a removed scenario leaves no line to carry the flag; it would leave no RED test, nothing for `quality-verification` to grade, and the story-coverage checks pass either way. Name it by id in `spec-review.md` instead. Calling it a structural gap when it is a scenario gap is how a structure gets bent around a scenario nobody wanted — and quietly cutting the scenario is how a behaviour ships unguarded. |
-| `architecture.md`'s §6 (Open questions for the human) reads like unfinished work — every row states a question **and a recommended answer** | **Neither — outside your grant** | Leave every row exactly as written, recommended answer included. That section opens with a line saying its rows are unanswered by design and that the person answers them at the gate; the recommended answer is what its format requires of each row, not an invitation to apply it. This overrides both standing rules: §6 is not a placeholder to fill, and not a contestable item to correct-and-flag. Resolve one and you hand the person a section that looks settled, which removes the only question they were being asked — and the rows raised by the code-cold sweeps are precisely the ones nobody has put to them yet. |
-| Acceptance **coverage gap**: a `prd.md` user story or `intent.md` success-criterion with no scenario (every story must map to ≥1 reachable scenario) | **Contestable** | Draft the missing scenario; **flag it inline**. |
-| **ADR-worthiness**: a hard-to-reverse ∧ surprising decision buried in prd prose instead of an ADR | **Contestable** | Propose extracting an ADR; **flag**. |
-| **One feature or two**: `intent.md` describes two independent subsystems crammed into one spec | **Contestable** | Propose the split; **flag**. |
-| Internal contradiction between `prd.md` and an ADR or `acceptance.md` | **Contestable** | Reconcile to one side; **flag the chosen side**. |
-| A design-contract `Quality floor`, `Restraint`, or `Copy-as-design-material` axis reads `inherits: docs/design.md` or `departs: docs/design.md` | **Contestable** (spotting it is mechanical; what the `delta:` says is not) | `docs/design.md` decides the other four axes and holds nothing on these three, so the line points at nothing and Verify would grade the axis against a file with no decision in it. Draft the `delta:` from what this surface decided; **flag it inline**. |
-
-## ADR-open check (risk mitigation / handoff)
-
-Design now lives in **referenced** ADRs that the single Spec gate does not name — so the gate could
-rubber-stamp design it never opened. `spec-review` closes that gap: verify every `see ADR-NNN` in `prd.md`
-(a) resolves to a real ADR file (decidable) and (b) was surfaced inline by `to-prd`; then put the full list
-of referenced ADR ids into `spec-review.md` under `## Open the referenced ADRs` so the human opens each at
-the gate. ADR cross-refs are immutable once written — rename/supersede → update referrers in the same commit.
+| A file path, signature or library internal in `prd.md` | decidable | Strip it, leaving the ADR id that holds it. Re-check: grep for extensions, `/`, `()`. |
+| `see ADR-NNN` resolving to no file in `docs/adr/` | decidable | Correct the id, or write the pointer it wanted. Re-check: cross every `ADR-\d+` against `docs/adr/`. |
+| A `CONTEXT.md` glossary term used in another word's place | decidable | Normalize to the glossary term, verbatim. Re-check: each `## Glossary` term against the bundle, term by term. |
+| A placeholder, `TODO` or `TBD` | decidable | Fill it from the bundle, or cut it. `architecture.md` §6 is not one. Re-check: grep for `TODO`, `TBD`, `<`. |
+| A value or a command in `environment.md` | decidable | Remove it. A real credential is a stop-list item: verdict `block`, never echoed. Re-check: grep the manifest for `=` and backticks. |
+| A path, signature or table name inside an `acceptance.md` scenario | decidable | Rewrite it as an observable outcome. Re-check: grep the scenarios for extensions and `()`. |
+| A story, or an `intent.md` success criterion, no scenario covers | contestable | Draft the scenario; flag it. |
+| A hard-to-reverse, surprising decision buried in prd prose | contestable | Propose the ADR; flag it. |
+| Two independent subsystems inside one `intent.md` | contestable | Propose the split; flag it. |
+| `prd.md` contradicting an ADR or `acceptance.md` | contestable | Reconcile to one side; flag the side taken. |
+| A scenario tracing through no component in `architecture.md` §2 | contestable | Structure missing: draft the trace, flag it. Scenario the intruder: flag it by id, delete nothing — a deleted scenario carries no flag and guards no behaviour. |
+| A UI `prd.md` whose design reference names no states | contestable | Name the states its scenarios need; flag it. An absent reference is Verify's `not-reachable` and stops nothing. |
+| `architecture.md` §6 rows, recommended answers included | not yours | Leave each as written; answering one removes the question being asked. |
+| A `status:` line or a `STATE.md` cell | not yours | Leave it; a person flips it. |
 
 ## Rationalizations
 
-- *"The spec looks clean, I'll skip the relational pass."* → The whole value is a fresh code-cold read;
-  the author can't see their own gaps. Do the full grade against `intent.md`.
-- *"I'll just list the issues for the human."* → No. Hand back a **cleaned spec, not a punch-list**.
-  Apply the fix.
-- *"This judgment call is too risky to change."* → Apply your best correction **and** flag it inline; the
-  human reverts if they disagree. Withholding the fix IS the failure mode.
-- *"I'll loop on the judgment fixes until they're perfect."* → No loop on contestable items — the **human**
-  is the convergence point. Only decidable facts get the deterministic re-check loop.
-- *"I wrote this spec, I can review it."* → maker≠checker. A fresh code-cold agent reviews, never the author.
+- *"It reads clean, so a skim will do."* → clean prose and a spec that delivers the intent are two
+  different readings.
+- *"A list is what they asked for."* → a punch-list moves the work back onto the person it clears the
+  way for.
+- *"That call is too contestable to change."* → a flagged change is one keystroke from reverted; a
+  withheld one is a defect the signature absorbs.
+- *"One more pass and the judgment calls come out right."* → a second pass argues with the first.
+- *"I drafted it, so I can review it."* → the context that missed a gap misses it again on the reread.
 
 ## Red flags
 
-- You are the agent that authored the spec → **STOP**; dispatch a fresh code-cold subagent.
-- You are producing a list of complaints instead of edits → **STOP**; fix in place.
-- You are looping on a judgment call → **STOP**; one pass, flag, move on.
-- You silently re-authored a contestable section with no inline flag → **STOP**; every judgment change
-  must be visible.
-- `intent.md` is absent → **refuse to run**; there is no oracle to grade against.
-- An embedded value in `environment.md` looks like a real, committed secret → remove it from the manifest
-  AND treat the exposure as a security STOP per safety rail 2 (`references/safety-rails.md`) — hard halt, surface to the human.
+- A punch-list forming in the reply instead of edits in the files.
+- A contestable section rewritten with no `<!-- spec-review: … -->` against the line.
+- A second visit to a call the first pass already flagged.
+- The agent that drafted an artifact grading it.
+- An `architecture.md` §6 row coming back answered, or a `status:` line flipped.
+- A credential in `environment.md` quoted into the handback.
 
-## Verification (ending criteria)
+## Verification
 
-Done when ALL hold:
-- Every **decidable** check greps clean: no file paths/signatures in `prd.md`; no dangling `ADR-NNN`; no
-  non-verbatim `## Glossary` terms; no placeholders/TODO/TBD; no value/command in `environment.md`; no
-  behavioral-only violations in `acceptance.md`.
-- Every **contestable** change is applied **and** carries an inline `<!-- spec-review: … -->` flag.
-- Every `acceptance.md` scenario id back-references a story id, and every story / `intent.md`
-  success-criterion maps to ≥1 scenario (coverage ledger has no orphan story).
-- `spec-review.md` written with the four stable sections, including `## Open the referenced ADRs`.
-- The bundle is handed back **cleaned** (not a punch-list); the human is told judgment changes are flagged
-  and they keep final authority.
+- [ ] Every decidable row above was re-checked and came back empty.
+- [ ] Every contestable change is applied and carries its inline flag; nothing was corrected silently.
+- [ ] Each story and each `intent.md` success criterion maps to a scenario, or the gap is flagged.
+- [ ] `architecture.md` §6 and every `status:` line read as they did before the pass.
+- [ ] The referenced ADR ids came back with the bundle.
+- [ ] Each edited file's size is reported against its cap, flags excluded.
+- [ ] The verdict is `pass`, `concerns` or `block`, and anything reconstructed from a missing input is
+      marked `derived` where it is written.
 
-## Outputs & handoff contract
+## Outputs & handoff
 
-- **Emits — fixed spec:** the bundle artifacts (`prd.md`, `acceptance.md`, `environment.md`, `CONTEXT.md`,
-  ADRs) edited in place; decidable facts silently corrected, contestable judgments corrected + inline-flagged.
-- **Emits — `spec-review.md`:** ephemeral, **OUT of the resume-spine** (not a chain link). Stable
-  sections: `## Auto-fixed (facts)` · `## Flagged (judgment — revert if you disagree)` · `## Coverage
-  ledger` (scenario↔story map + any not-reachable classification) · `## Open the referenced ADRs`.
-- **Not a gate:** `spec-review` does **not** flip STATE.md feature state. The human Spec sign-off does that
-  (feature `spec → plan`); `spec-review` runs immediately before it.
-- **Stable-section discipline:** it reads consumer artifacts' stable sections (per the registry) and edits
-  those sections in place — it never invents a new artifact or a new stable section.
+No new file — the fixes land in the bundle, inside sections that already exist: this pass invents no
+artifact and no stable section, and holds each edited file inside the cap its writer states:
+`intent.md` 600 words · `prd.md` 800 · `acceptance.md` 1,200 · `architecture.md` 2,000 ·
+`environment.md` 30 rows · `CONTEXT.md` 1,000 · each ADR 350. Measure with `wc -w`, flags excluded.
+
+Each contestable change carries one comment against the line it changed:
+
+```
+<!-- spec-review: <what changed> — <why, naming the artifact or ADR that settles it>.
+Revert if <the reading that would make this wrong>. -->
+```
+
+Appends one `docs/session-log.md` entry, cap 60 words (`../../references/state-schema.md`). Flips no
+`STATE.md` cell and no `status:` line: the feature moves `spec → plan` on the person's signature.
+
+Returns in conversation — the verdict, what was auto-fixed by file, what was flagged by file and line,
+and the ADR ids to open.

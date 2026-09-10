@@ -1,245 +1,155 @@
 ---
 name: observability-and-instrumentation
-description: Instruments code so production behavior is visible and diagnosable from the outside. Use the moment you add logging, metrics, tracing, or alerting — and as you build ANY feature that runs in production and will need evidence it works. Instrument as you build, not after the first incident becomes archaeology. Use when a production issue is reported but the telemetry can't tell you what happened. Referenced by incremental-implementation (instrument each slice), by pull-request (the telemetry evidence in the draft PR and its risk band), and by shipping-and-launch at the pre-launch gate, which is release-level and runs after the human merges.
+description: Instrument a diff so a production failure leaves evidence — on-call questions first, then structured logs, RED metrics, spans and symptom alerts, then exercise the telemetry. Reach for it on any error branch, retry, job or outbound call. Diagnosing a live failure is `debugging-and-error-recovery`; slowness, `performance-optimization`.
 ---
 
 # Observability and Instrumentation
 
-## Overview
+## Purpose
 
-**Stage: Implement · Ship — a referenced discipline, not a chain stage.** `incremental-implementation` instruments each slice as it builds it; `pull-request` and `shipping-and-launch` read that evidence out at the draft PR and the pre-launch gate.
+**Stage: cross-cutting.** Principles 6, 7, 8.
 
-Code you can't observe is code you can't operate. Observability is the ability to answer "what is the system doing and why?" from the outside, using the telemetry the code emits. Instrumentation is not a post-launch add-on — it's written alongside the feature, the same way tests are. If a feature ships without telemetry, the first user-reported bug becomes archaeology instead of a query.
+Instruments a slice's diff so a production failure leaves evidence: on-call questions first, then the
+structured logs, RED metrics, spans and symptom alerts answering them, then a pass exercising what it
+added. It emits no artifact — instrumentation ships inside the diff it observes, since code nobody can
+observe is code nobody can operate.
 
-## When to Use
+## When to use / when to skip
 
-- Building any feature that will run in production
-- Adding a new service, endpoint, background job, or external integration
-- A production incident took too long to diagnose ("we couldn't tell what happened")
-- Setting up or reviewing alerting rules
-- Reviewing a PR that adds I/O, retries, queues, or cross-service calls
-
-**NOT for:**
-- Diagnosing a failure happening right now — use the `debugging-and-error-recovery` skill (observability is what makes that skill fast next time)
-- Profiling and optimizing measured slowness — use the `performance-optimization` skill
-- Launch-day monitoring checklists and rollback triggers — see the `shipping-and-launch` skill; this skill covers the instrumentation that feeds them
+- A slice adds an error branch, retry, background job, queue or outbound call, and
+  `incremental-implementation` is about to commit it.
+- The Review fan-out dispatches you code-cold over a wave's diffs for that same fact — a
+  production-failure path emitting no log, metric or trace
+  ([`safety-rails.md`](../../references/safety-rails.md), *Code-cold dispatch*).
+- Someone asks by hand for logging, metrics or alerting, or an incident closed with "we could not tell
+  what happened".
+- The pre-launch gate `shipping-and-launch` works through before a release
+  ([`observability-checklist.md`](../../references/observability-checklist.md), *Pre-launch gate*) —
+  release-level, after a person merges: it blocks a release, not a slice's draft pull request, which is
+  `pull-request`'s.
+- Skip a diff touching no I/O, retry, queue, job or outbound call: record "no telemetry surface" with
+  that reason and add nothing — signals nobody queries cost a budget and answer no question.
+- Near-miss — a live failure is `debugging-and-error-recovery`'s, and this pass makes the next one fast;
+  measured slowness `performance-optimization`'s, the five-axis grade `code-review`'s, a secret in the
+  diff `security-and-hardening`'s.
 
 ## Inputs
 
-This skill is **referenced**, not its own pipeline stage — `incremental-implementation` invokes it as you build each
-slice; `pull-request` invokes it to put the slice's telemetry evidence in the draft PR and its risk band; and
-`shipping-and-launch` invokes it at the pre-launch gate, which is release-level and sits on the far side of the
-human's merge. The two are different moments, and collapsing them is what makes a reader think a release runbook
-gates a slice's PR. It consumes:
+- the diff, or the slice being built — helps: names the surface and which signals it needs · without it:
+  read `git diff <base>..HEAD` or the working tree and name the range, `derived`
+- `docs/features/<slug>/prd.md` — helps: what the feature is for, so the questions are product-level
+  rather than framework-level · without it: take them from the routes, jobs and calls the diff adds,
+  `derived`
+- `docs/features/<slug>/acceptance.md` — helps: its `error/edge` and `security-observable` scenarios, the
+  failure paths already promised observable · without it: derive them from the failure modes the code
+  branches on, `derived`
+- `docs/features/<slug>/plan/<slice-id>.md` — helps: the files this slice owns, so telemetry lands in its
+  own commits · without it: attribute by file path, `derived`
+- the repository's existing telemetry — helps: the logger, metrics client and tracing setup a second
+  stack beside them would fragment · without it: grep for each and say what you found, `derived`
 
-- **The slice being built** (`plan.md` slice + the diff in the worktree) — the code whose production
-  behavior must become visible. This is the load-bearing input: without code in hand there is nothing
-  to instrument. Refuse-to-run if no slice/code is in scope — this skill runs *alongside*
-  implementation, never before it.
-- **`prd.md` › Implementation Decisions** and **`acceptance.md` security-observable scenarios**
-  (PRD-namespaced ids, e.g. `PWR-A1`) — these name the on-call questions that matter and the
-  error/security paths whose telemetry the Verify gate and the PR will look for.
-
-Escape hatch: if the slice touches no I/O, retries, queues, background jobs, or external calls, record
-"no telemetry surface" and skip — do not manufacture noise to satisfy the checklist.
+With a person present, ask at most three questions, and only where the gap changes which signals the
+feature needs.
 
 ## Process
 
-### 1. Define "working" before instrumenting
+1. **Write the on-call questions before adding a signal** — two to four an on-call engineer will ask —
+   and map every log line, metric and span to one, dropping any that answers none.
 
-Telemetry without a question is noise. Before adding any instrumentation, write down 2–4 questions an on-call engineer will ask about this feature:
+2. **Match each question to its signal**: metrics say *that* something is wrong, traces *where*, logs
+   *why*. Then walk the changed files through
+   [`observability-checklist.md`](../../references/observability-checklist.md) — logging, metrics,
+   tracing, alerting, dashboards — hardest at what the diff introduced.
 
-```
-FEATURE: checkout payment retry
-QUESTIONS ON-CALL WILL ASK:
-1. What fraction of payments succeed on first attempt vs after retry?
-2. When a payment fails permanently, why? (provider error? timeout? validation?)
-3. Is the payment provider slower than usual?
-→ Every signal below must help answer one of these.
-```
+3. **Log events, not prose**: a stable event name and machine-readable fields, never interpolation. A
+   correlation ID minted or accepted at the boundary rides every line, span and outbound call, or
+   interleaved traffic buries the request. Allowlist logged fields rather than whole bodies — a
+   credential's value in a log line, span attribute or metric label is a secret in the diff, a stop-list
+   item ([`safety-rails.md`](../../references/safety-rails.md)), reported as present with the value
+   unprinted. A client error boundary and a server error middleware are the last places an unhandled
+   error becomes a correlated event; what reaches the user from either is that ID, not the stack
+   ([`security-checklist.md`](../../references/security-checklist.md), *Error handling*).
 
-If you can't name the questions, you're not ready to instrument — you'll log everything and learn nothing.
+4. **RED every endpoint and external dependency** — rate, errors, duration — and USE every resource:
+   queues, pools, hosts. Draw labels from small fixed sets, never a user id, raw URL, request id or error
+   string; that detail belongs in a log or a span. Record latency as a histogram whose p95 and p99 are
+   readable.
 
-### 2. Pick the right signal for each question
+5. **Trace across the gaps.** Start OpenTelemetry before the imports it patches, auto-instrument HTTP and
+   the DB clients, add a manual span only around work someone would filter by. Propagate context
+   outbound, extract it inbound, carry it through queue messages — a trace ends at the first boundary
+   that drops it, and the hop you lose is usually the slow one.
 
-| Signal | Answers | Cost profile | Example |
-|---|---|---|---|
-| **Structured log** | "What happened in this specific case?" | Per-event; grows with traffic | `payment_failed` with provider error code |
-| **Metric** | "How often / how fast, in aggregate?" | Fixed per series; cheap to query | p99 latency of provider calls |
-| **Trace** | "Where did time go across services?" | Per-request; usually sampled | One slow checkout, broken down by hop |
+6. **Alert on symptoms users feel** — error rate, latency, queue age — and route causes like CPU, disk
+   and restarts to a dashboard. Each alert carries a three-line runbook (meaning, first query,
+   escalation), a threshold argued from an SLO or from history rather than guessed, and one of two
+   severities: `page` now, `ticket` this week. Delete any alert whose honest answer is "ignore it, it
+   self-heals".
 
-Rule of thumb: metrics tell you **that** something is wrong, traces tell you **where**, logs tell you **why**.
+7. **Exercise the telemetry**: force the error path and find it by correlation ID with its fields intact,
+   send traffic and read the series back with the labels you expected, follow one request end to end with
+   no broken span, test-fire each alert to its real channel and runbook link. Return those commands with
+   their real output, naming what you could not reach and why.
 
-### 3. Structured logging
+8. **Commit telemetry with the code it observes**, in the files the slice names — not a follow-up file,
+   not a later slice.
 
-Log events, not prose. Every log line is a JSON object with a stable event name and machine-readable fields:
+9. **Decide the rest and leave the trace** — a signal not worth its cost, a vendor matching what the
+   repository runs, a sampling rate: default, reason, build, one `docs/session-log.md` entry, a
+   Decided-for-you row for `pull-request`. A code-cold pass returns `pass · concerns · block`: a missing
+   signal is `concerns`, `block` is a stop-list item alone, and the band is `pull-request`'s to compute.
 
-```typescript
-// BAD: string interpolation — unqueryable, inconsistent
-logger.info(`Payment ${id} failed for user ${userId} after ${n} retries`);
-
-// GOOD: stable event name + structured fields
-logger.warn({
-  event: 'payment_failed',
-  paymentId: id,
-  provider: 'stripe',
-  errorCode: err.code,
-  attempt: n,
-}, 'payment failed');
-```
-
-**Log levels — use them consistently:**
-
-| Level | Meaning | On-call action |
-|---|---|---|
-| `error` | Invariant broken; someone may need to act | Investigate |
-| `warn` | Degraded but handled (retry succeeded, fallback used) | Watch for trends |
-| `info` | Significant business event (order placed, job finished) | None |
-| `debug` | Diagnostic detail | Off in production by default |
-
-**Correlation IDs are mandatory.** Generate (or accept) a request ID at the system boundary and attach it to every log line, span, and outbound call. Without it, you cannot reconstruct a single request from interleaved logs:
-
-```typescript
-// Express: child logger per request, ID propagated downstream
-app.use((req, res, next) => {
-  req.id = req.headers['x-request-id'] ?? crypto.randomUUID();
-  req.log = logger.child({ requestId: req.id });
-  res.setHeader('x-request-id', req.id);
-  next();
-});
-```
-
-**Never log secrets, tokens, passwords, or full PII.** This is a hard rule from the `security-and-hardening` skill — telemetry pipelines are a classic data-leak path. Allowlist fields; don't log whole request bodies.
-
-### 4. Metrics
-
-For request-driven services, instrument **RED** on every endpoint and every external dependency: **R**ate (requests/sec), **E**rrors (failure rate), **D**uration (latency histogram, not average). For resources (queues, pools, hosts), use **USE**: **U**tilization, **S**aturation, **E**rrors.
-
-As with tracing, the vendor-neutral path is the OpenTelemetry metrics API (same SDK and context as step 5). The example below uses Prometheus' `prom-client` — one common backend choice, not the only one; the RED/USE and cardinality rules are identical either way.
-
-```typescript
-import { Histogram } from 'prom-client';
-
-const httpDuration = new Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'HTTP request duration',
-  labelNames: ['method', 'route', 'status_class'],  // '2xx', not '200'
-  buckets: [0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
-});
-```
-
-**Cardinality is the failure mode.** Every unique label combination is a separate time series. Labels must come from small, fixed sets (route template, status class, provider name). Never use user IDs, raw URLs, error messages, or other unbounded values as labels — that belongs in logs and traces.
-
-```
-OK as label:    route="/api/tasks/:id"   status_class="5xx"   provider="stripe"
-NEVER a label:  user_id, email, request_id, full URL, error message text
-```
-
-Track averages never, percentiles always: an average hides the 1% of users having a terrible time. Use histograms and read p50/p95/p99.
-
-### 5. Distributed tracing
-
-Use OpenTelemetry — it's the vendor-neutral standard, and auto-instrumentation covers HTTP, gRPC, and common DB clients with near-zero code:
-
-```typescript
-// tracing.ts — must be imported before anything else
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-
-const sdk = new NodeSDK({
-  serviceName: 'checkout-service',
-  instrumentations: [getNodeAutoInstrumentations()],
-});
-sdk.start();
-```
-
-Add manual spans only around meaningful internal units of work (e.g., `applyDiscounts`, `chargeProvider`) and attach the attributes on-call will filter by. Propagate context across every async boundary — HTTP headers, queue message metadata — or the trace dies at the gap. Sample head-based at a low rate by default; keep 100% of errors if your backend supports tail sampling.
-
-### 6. Alerting
-
-Alert on **symptoms users feel**, not on causes:
-
-```
-SYMPTOM (page-worthy):           CAUSE (dashboard, not a page):
-error rate > 1% for 5 min        CPU at 85%
-p99 latency > 2s                 one pod restarted
-queue age > 10 min               disk at 70%
-```
-
-Cause-based alerts fire when nothing is wrong and miss failures you didn't predict. Symptom-based alerts fire exactly when users are hurt, regardless of the cause.
-
-Rules for every alert you create:
-
-1. **It must be actionable.** If the response is "ignore it, it self-heals", delete the alert.
-2. **It links to a runbook** — even three lines: what it means, first query to run, escalation path.
-3. **It has a threshold and duration** justified by the SLO or by historical data, not by a guess.
-4. Use two severities only: **page** (user-facing, act now) and **ticket** (degradation, act this week). A third tier becomes noise that trains people to ignore everything.
-
-### 7. Verify the telemetry itself
-
-Instrumentation is code; it can be wrong. Before calling the work done, trigger the paths and look at the actual output:
-
-- Force an error in staging → find it in the logs by `requestId`, confirm fields are structured (not `[object Object]`)
-- Send test traffic → confirm metric series appear with the expected labels and sane values
-- Follow one request across services in the tracing UI → no broken spans
-- Fire each new alert once (lower the threshold temporarily) → confirm it reaches the right channel and the runbook link works
-
-## Common Rationalizations
+## Rationalizations
 
 | Rationalization | Reality |
 |---|---|
-| "I'll add logging after it works" | "After" becomes "after the first incident", which is the most expensive moment to discover you're blind. Instrument as you build. |
-| "More logs = more observability" | Unstructured noise makes incidents slower, not faster. Three queryable events beat three hundred prose lines. |
-| "console.log is fine for now" | Unstructured output can't be filtered, correlated, or alerted on. The structured logger costs five extra minutes once. |
-| "We can just look at the dashboards when something breaks" | Dashboards built without defined questions show you everything except the answer. Start from on-call questions. |
-| "Alert on everything important, we'll tune later" | A noisy pager trains people to ignore it. The tuning never happens; the missed real page does. |
-| "User ID as a metric label makes debugging easier" | It also makes your metrics backend fall over. High-cardinality lookups belong in logs and traces. |
-| "Tracing is overkill for our two services" | Two services already means cross-service latency questions logs can't answer. Auto-instrumentation makes the cost trivial. |
+| "I'll add the logging once it works" | "Once it works" arrives as "once it broke" — the hour instrumenting costs most. |
+| "`console.log` is fine for now" | Interpolated output cannot be filtered, counted or alerted on; a structured logger costs five minutes once. |
+| "We'll check the dashboard when it breaks" | A dashboard built without the on-call questions renders everything except the answer. |
+| "`user_id` as a label makes debugging easier" | It multiplies series until the metrics backend falls over, taking the backend down rather than the app. |
+| "Alert on everything, we'll tune it later" | A pager that cries wolf gets ignored, the tuning never happens, and the real page is the one missed. |
+| "The logger is wired, so the telemetry works" | Instrumentation is code with no test behind it: `[object Object]`, a dropped span and a dead runbook link all compile. |
 
-## Red Flags
+## Red flags
 
-- A feature PR with retries, queues, or external calls and zero new telemetry
-- Log lines built by string interpolation instead of structured fields
-- No correlation/request ID — each log line is an orphan
-- Metrics labeled with user IDs, raw URLs, or error message text (cardinality bomb)
-- Latency tracked as an average with no percentiles
-- Alerts that fire daily and get acknowledged without action
-- Alerts on causes (CPU, memory) paging humans while user-facing error rate is unmonitored
-- Secrets, tokens, or full request bodies appearing in logs
-- "It works on my machine" as the only evidence a production feature is healthy
+- A retry, queue or outbound call in the diff with no signal added beside it.
+- A log line assembled by interpolation, or an orphan line carrying no correlation ID.
+- A metric labelled with a user id, a raw URL or an error string.
+- Latency reported as an average, with no percentile behind it.
+- A pager firing daily and acknowledged without action, or paging on CPU while the user-facing error rate
+  goes unwatched.
+- A token, a session cookie or a whole request body in the log output.
 
 ## Verification
 
-After instrumenting a feature, confirm:
+- [ ] The on-call questions are written down and every signal answers one — or the diff is recorded "no
+      telemetry surface" with its reason.
+- [ ] Every new log line is structured, names a stable event and carries the correlation ID, and no
+      credential value or unredacted personal field reached a log, span attribute or metric label.
+- [ ] Every new endpoint and dependency carries RED with bounded labels, and latency reads as p95/p99.
+- [ ] The forced error was found by correlation ID, one request ran end to end with no broken span, and
+      each new alert reached its channel with a working runbook link.
+- [ ] An induced failure was diagnosed from telemetry alone, without reading the source — or what stopped
+      that is named.
+- [ ] Telemetry sits in the same commits as the code it observes, and each reconstructed input reads
+      `derived`.
+- [ ] On a code-cold pass the verdict is one of `pass · concerns · block`, and a `block` names the
+      stop-list condition that fired.
 
-- [ ] The on-call questions for this feature are written down, and each signal maps to one
-- [ ] All log output is structured (JSON), with stable event names and a correlation ID on every line
-- [ ] No secrets, tokens, or unredacted PII in any log line (spot-check actual output)
-- [ ] RED metrics exist for every new endpoint and every external dependency, with bounded label sets
-- [ ] Latency is a histogram; p95/p99 are queryable
-- [ ] A single request can be followed end-to-end in the tracing UI without broken spans
-- [ ] Every new alert is symptom-based, has a runbook link, and was test-fired once
-- [ ] An induced failure in staging was located via telemetry alone, without reading the source
+## Outputs & handoff
 
-For the at-a-glance version of this list, including the pre-launch instrumentation gate, see `references/observability-checklist.md`.
+**Writes instrumentation inside the slice's diff** — logger calls, metric definitions, tracing setup,
+alert rules — committed with the code they observe, scoped to the files the slice names. There is no
+telemetry artifact: the diff is the deliverable and its cap is the slice's.
 
-## Outputs & handoff contract
+**Appends** one `docs/session-log.md` entry per decided-for-you call, cap 60 words, shaped as
+[`state-schema.md`](../../references/state-schema.md) states. Report each entry's measured length against
+that cap; an over-cap draft goes on at its real size, never as one that fit.
 
-**Emits: — (referenced — no standalone chain artifact).** Instrumentation is woven *into the slice
-diff* (structured logs, RED/USE metrics, OTel spans, symptom-based alerts) in the same commit as the
-code it observes — never a separate file.
+**Returns in conversation** the on-call questions with the signal answering each, the commands that
+exercised the telemetry and their real output, anything recorded "no telemetry surface" with its reason,
+and on a code-cold pass `## Verdict` plus `## Findings` — each finding a `path:line`, the signal it wants,
+the question that signal answers.
 
-Stable hand-off surfaces other skills depend on:
-- **Into the diff** → `incremental-implementation` / `test-driven-development`: every new endpoint, external dependency, queue, and retry
-  path carries telemetry in the commit that adds it (instrument-as-you-build).
-- **Into the PR** → `pull-request`: the observability evidence (the on-call questions, the RED metrics added,
-  the alerts test-fired) feeds the design-anchored PR summary and the **risk band** — a slice
-  with retries/queues/external calls and zero new telemetry is a HIGH-risk signal in the inverted
-  risk report.
-- **Into the pre-launch gate** → `shipping-and-launch`, release-level and post-merge: the **Pre-Launch Gate**
-  section of `references/observability-checklist.md` is the release blocker this skill feeds. It blocks a
-  release, never a slice's draft PR — that gate is `pull-request`'s, one line above.
-
-`STATE.md`: this skill owns no slice-state transition of its own; it runs *within* a slice's `impl`
-and `ship` states. Do not advance a slice past `impl` until the `## Verification` checklist passes for
-any code that touches I/O.
+**Nothing on the board** — no `STATE.md` row, no gate flip; the caller owns the slice's transition
+([`state-schema.md`](../../references/state-schema.md)).

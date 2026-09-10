@@ -1,261 +1,170 @@
 ---
 name: pull-request
-description: Open a design-anchored DRAFT pull request that ENDS a slice — turn green, reviewed code into it, then STOP. Reach for this the moment a slice's three internal gates are green (qa.md pass · review fan-out clear · evaluator floors met). It anchors the Summary to prd.md + ADRs (NEVER a commit-log dump), names the 3-5 highest-risk files as a mandatory reviewer code-reading checklist, builds the test plan from qa.md's ledger with a REQUIRED human-ack line for every not-reachable scenario, attaches an inverted risk band that the diff's blast radius raises, and opens an OPEN draft PR on the slice branch for async human merge. It NEVER merges to main, marks the PR ready, or triggers a deploy — the human owns the merge. If you are tempted to skip the read-the-code checklist, open a PR without a passing verify gate, or "just merge it to move on", use this instead.
+description: Close a slice at an open draft pull request — read the diff, band its risk, and write the body a person merges from: Summary · Decided for you · Evidence · Risk band. Never merges, promotes to ready or deploys. Grading the diff is `code-review`; the release after a merge is `shipping-and-launch`.
 ---
+
+# Pull request
 
 ## Purpose
 
-Stage: **Ship — per-slice workhorse.** The autonomous span ends here.
+**Stage: Ship.** Principles 1, 7, 10.
 
-Source: QRSPI p.2/p.7 — after six months of "don't read the code," Dex's team had to rip out and
-replace large parts of their system. The PR is the enforcement point for the **read-the-code**
-principle, and — under the autonomy model — the **last thing the agent does before handing the
-slice to a human**. With the per-wave Verify gate gone, the **async human merge is the suite's sole
-independent oracle**, so the PR is not a formality: it is the curated, design-anchored, risk-banded
-brief that decides whether a human can merge safely *without re-reading the entire diff cold*.
-
-Three reasons this is its own skill, not a cleanup step inside implement/review:
-1. **The code-reading gate is skipped under pressure if it's a footnote.** A dedicated skill with
-   fresh focus makes the reviewer checklist non-optional.
-2. **The PR body's job is human communication, not step-execution.** It anchors the diff to upstream
-   design (`prd.md` + ADRs), narrates the slice end-to-end, and lists the highest-risk files to read.
-3. **The internal gates are already closed.** `quality-verification` + the Review fan-out + the evaluator floors ran
-   before this skill; `pull-request` is the handoff to humans, not a second evaluation pass.
+Ends a slice at an open, risk-banded draft pull request: read the diff, band what it touches, write the
+body a person merges from. Their merge is the run's last independent gate, and the band is how they
+triage a queue without opening every diff cold.
 
 ## When to use / when to skip
 
-**Use** to close a slice: its code is committed on the slice branch and all **three agent-internal
-gates are green** — `qa.md` `## Verdict` = pass · the Review fan-out is clear · the evaluator floors
-are met (correctness≥8, testing_strategy≥7, plan_adherence≥8, regression_surface≥9).
-
-**Skip / refuse:**
-- Any internal gate is not green → **no PR** (route back per `qa.md` / Review findings).
-- A security **CRITICAL/HIGH** or a **secret in the diff** → **hard halt, no PR ever** (safety rails 2 and 3, `references/safety-rails.md`); top the report, and for a committed secret fire **PushNotification** + freeze the
-  next barrier.
-- `depth: lite` — a docs-only or config-only slice still gets a PR, but the code-reading checklist may
-  name **fewer than 3** files: name what is actually risky, do not pad.
-
-**Never** `gh pr merge`, push to `main`, or trigger a deploy — those are fenced behind the human
-(safety rail 1, `references/safety-rails.md`).
+- A slice's code is committed on its branch and its gates have returned: the span ends here.
+- The Ship step of a run, once per shipped slice; or by hand, on any branch to be opened as a draft.
+- Skip where a stop-list condition fired
+  ([`safety-rails.md`](../../references/safety-rails.md)): the slice ends blocked and nothing opens.
+- Near-miss — five-axis grading of the diff: `code-review`. Scenarios against the running app:
+  `quality-verification`. The release after a person's merge: `shipping-and-launch`. Branch and worktree
+  lifecycle: `git-workflow`, `worktree`.
 
 ## Inputs
 
-Resolve each in order: (1) inline in the prompt, (2) a path in the prompt, (3) the canonical
-per-feature/repo path. **Refuse to run, naming the missing input**, if any required value cannot be
-resolved from any source.
+Take each from the prompt where it is given, the canonical path otherwise. A person is present only when
+this runs by hand: at most three questions, and only where the gap changes the pull request's shape.
 
-| Input | Source artifact (path) | Used for |
-|---|---|---|
-| Verify ledger | `qa.md` (`docs/features/<slug>/qa.md`): `## Behavioral ledger` · `## Verdict` | the **Test plan** + the human-ack lines; `## Verdict` = pass is a hard gate |
-| Product anchor | `prd.md` (`## Solution` / `## User Stories`) + referenced **ADRs** by id | the **Summary** "why" — never from commit messages |
-| Plan + slice | `plan.md` + the slice row (id · Story-ref · Blocked by; the human title lives in `STATE.md`, not `plan.md`) | the **Diff narration** + the slice id in the title |
-| Behavioral contract | `acceptance.md` (scenario ids, e.g. `PWR-A1`) | cross-check the ledger; each `not-reachable` id ⇒ a human-ack line |
-| The slice diff | `git diff <base>..HEAD` + `git log --oneline <base>..HEAD` (base = the slice branch's base; `--base <ref>` overrides) | highest-risk-file selection + secret scan + the **blast-radius input to the risk band** (Step 2) — what the diff touches is read off the diff itself, so no upstream skill has to hand it over |
-| Evaluator floors (a gate, **not** a `pull-request` input) | **orchestrator-enforced agent-internal gate** — there is no `evaluator` skill in the roster; the orchestrator checks correctness≥8 · testing_strategy≥7 · plan_adherence≥8 · regression_surface≥9 *before* dispatching `pull-request` | the hard refuse-to-run gate below — `pull-request` reads the verdict, it does not compute the floors |
-
-**Refuse-to-run gate (hard):** the resolved `qa.md` `## Verdict` records **pass**, the Review fan-out
-is clear, and the evaluator floors are met. Without a passing internal-gate set, `pull-request` opens no PR.
-Recovery message names the missing/failing gate and points at `qa.md` / the Review findings.
+- the slice diff, `git diff <base>..HEAD` and its log — helps: what every step reads · without it: diff
+  the working tree against the branch point, name the range, `derived`.
+- `docs/features/<slug>/qa.md` — helps: the behavioural ledger, the `not-reachable` ids, the verdict ·
+  without it: build the test plan from the diff's tests and the commands you ran, `derived`.
+- `docs/features/<slug>/acceptance.md` — helps: the signed scenario ids the `qa.md` ledger is checked
+  against · without it: take the ledger's own id set, `derived`.
+- `docs/features/<slug>/prd.md` `## Solution` and the ADRs it cites — helps: the why the Summary carries ·
+  without it: `intent.md`, the plan, or the branch's purpose, `derived`.
+- `docs/features/<slug>/plan.md` and `plan/<slice-id>.md` — helps: the slice id, and the section each
+  Decided-for-you row cites · without it: `STATE.md` or the branch name, `derived`.
+- `docs/session-log.md` — helps: what the run decided itself, and any oracle it changed · without it:
+  reconstruct both from the diff and its commits, `derived`.
 
 ## Process
 
-### Step 1 — Identify the highest-risk files
-Read the diff. Pick the **3-5 files** most likely to hide a subtle correctness defect: new
-abstractions, complex logic, side effects, or the largest line-count changes. These become the
-reviewer code-reading checklist. "All changed files" is **not** a checklist.
+1. **Read the diff first, and name the base ref you read it against.** Every judgement below is a fact
+   about the diff, never about the slice title or what the maker said it did.
 
-### Step 2 — Compute the risk band (inverted risk report)
-The load-bearing addition over cr-pr. **This skill owns the risk-band rule; the rule is stated here and
-nowhere else, and every other file points at this step rather than restating it** — a band computed one
-way in the producer and described another way in a doc is a band nobody can trust.
+2. **Check the stop list** ([`safety-rails.md`](../../references/safety-rails.md)): a secret in the diff
+   or its history, or a Critical or High security finding, ends the slice there. Open no pull request
+   and report which fired.
 
-Two independent inputs feed it: what the diff **touches**, and how the slice **passed**. The band is the
-**higher** of the two.
+3. **Band the diff, and band it here only** — every other file reproduces this band, because one computed
+   two ways is a band nobody trusts. It is the higher of two readings.
 
-**Input 1 — blast radius: what the diff touches.** Read the diff. Each row below is a fact you settle by
-reading it, exactly as the orchestrator's reviewer-trigger rows are, and **any row that fires makes the
-band HIGH**:
+   **Blast radius.** Any row that fires makes it HIGH, and a row the diff cannot settle fires: nothing
+   downstream re-reports an unraised band. Read what the diff touches before the ledger for how it passed
+   — a clean record is what makes an auth or migration diff look safe.
 
-| The fact about the diff that fires the row | Why it outranks a clean record |
-|---|---|
-| It changes authentication, authorization, session, or permission logic — the code deciding who may do a thing | the mistake grants rather than denies, and it grants to everyone at once |
-| It changes payment, billing, or pricing code — anything that moves money | the money has already moved by the time anyone reads the log |
-| It reads, writes, exports, or deletes personal or user data, or changes a schema that holds it | disclosed data cannot be un-disclosed, and deleted data is not restored by reverting the commit |
-| It handles a credential — reading, storing, rotating, or transmitting a secret, token, or key | the blast radius is the whole repo and it outlives the slice |
-| It carries a destructive or irreversible migration — a dropped column or table, a backfill that cannot be replayed, a bulk delete | reverting the merge does not undo it |
-| It changes deploy, rollout, or infrastructure configuration — anything that acts on production the moment it lands | the merge *is* the deploy, so the human's click is the last gate there is |
+   | The diff… |
+   |---|
+   | changes authentication, authorization, session or permission logic |
+   | changes payment, billing or pricing code |
+   | reads, writes, exports or deletes personal data, or moves a schema holding it |
+   | handles a credential — reads, stores, rotates or transmits a secret, token or key |
+   | carries a destructive or irreversible migration — a dropped column, an unreplayable backfill, a bulk delete |
+   | changes deploy, rollout or infrastructure configuration |
 
-**A row you cannot settle fires.** If reading the diff does not tell you whether it touches one of these,
-band it as though it does. Raising a band wrongly costs the human one closer read; leaving it low wrongly
-costs the one signal the band exists to carry, and nothing downstream re-reports it. This is the opposite
-default from the orchestrator's reviewer-trigger table, and deliberately so: an unfired trigger row still
-leaves four floor axes reading the diff, while an unraised band leaves nothing.
+   **The quiet greens** — where an unattended defect ships. Any one makes it MEDIUM, none makes it LOW: a
+   `concerns` verdict, a `not-reachable` id, coverage below the ledger's full set (exercised ÷ total —
+   `qa.md` reports no percentage), all three implement→verify→review rounds spent, an oracle the diff
+   changed or removed, a value carried into the body `derived`, a diff adding a retry, a queue or an
+   external call with no telemetry beside it — the path that goes quiet is the one nobody can debug from
+   production.
 
-**Input 2 — the quiet greens: how this slice passed.** Collect from `qa.md` `## Verdict` and the
-evaluator result:
-- which evaluator floors landed **at the line** (e.g. `regression_surface = 9` exactly);
-- qa coverage **derived from the ledger** as exercised ÷ total scenarios (`qa.md` emits no coverage %, only the `## Behavioral ledger`), plus any scenario id classified **not-reachable** there;
-- rounds consumed (of the 3 implement→verify→review cycles);
-- whether any test or `acceptance.md` line was touched during retries (must be **none** — the
-  frozen-artifact invariant);
-- whether the declared `regression_surface` narrowed (must be **none**).
+   A HIGH band never holds, hides or halts a slice — it is how a person triages. Nor is it a High security
+   *finding*: that one is the stop-list item, while correct auth work carries a clean verdict and a HIGH
+   band.
 
-None of those → **LOW**. Floors at the line / a not-reachable id / 3-of-3 rounds / a non-empty "frozen
-artifacts touched" → **MEDIUM**.
+4. **Pick the 3-5 files most likely to hide a subtle correctness defect** — a new abstraction, dense
+   logic, a side effect, the largest change — one line each on why. "All changed files" is the unfiltered
+   diff nobody reads; a docs- or config-only slice names fewer rather than padding.
 
-**Then take the higher input, and name the rows that fired.** A slice that touches auth is HIGH however
-clean its record is — that is the whole point of computing blast radius separately, since a high-blast
-slice that passed on the first round is exactly the one a floors-and-rounds band would call LOW. The body
-lists which rows fired and where, so a person triaging a queue of HIGH PRs can tell an auth change from a
-migration without opening a diff.
+5. **Write the body as the brief a person merges from without re-reading the diff cold** — the four
+   sections of *Outputs & handoff*, in order. Draw the Summary from `prd.md` `## Solution` and the ADRs by
+   id, never a commit-log dump and never their reasoning restated. Transcribe the `qa.md` ledger rather
+   than inventing a scenario↔test map, and give every `not-reachable` id a human-ack checkbox — absorbing
+   one defeats the run's only human-anchored oracle. Take Evidence's commands and their real output from
+   the slice's last checkpoint and `qa.md`, re-running only what the diff moved. Narrate the diff layer to
+   layer, never as a file list. Disclose any test, fixture or scenario the slice changed or removed —
+   before, after, why; nothing is frozen, so the undisclosed change is the failure.
 
-**A HIGH band never stops the stage and never halts a slice.** Inside a run nothing pauses for high-risk
-work — `orchestrator`, *High-risk work is not one of these*, says so — and the band is where that risk
-surfaces instead, for the person at the merge gate. Do not invent a halt here; a HIGH PR opens like any
-other. Surface narrowing and a frozen-artifact edit are the separate case
-and should already have HALTED upstream — **if seen here, HALT and open no PR** (gate-erosion).
+6. **Give every in-run default its Decided-for-you row**, matching one `docs/session-log.md` entry each.
+   Where a plan section moved under a decision citing it, re-read and confirm or reverse that decision in
+   the same pass — none lapses on its own.
 
-**A HIGH band is not a HIGH security finding, and the shared word is the trap.** `security-and-hardening`
-grades *findings* CRITICAL/HIGH/MEDIUM/LOW, and a CRITICAL/HIGH there is a hard halt with no PR ever (Red
-flags below). That is a different scale applied to a different object: a finding says something is wrong,
-a band says how much rides on it being right. Auth work done correctly carries a **clean security verdict
-and a HIGH band** — that is the normal case, not a contradiction. Read which of the two you are holding
-before you act on the word.
+7. **Push the branch, then open the draft** — against the `<body>` steps 5-6 wrote, never one still empty.
 
-### Step 3 — Push the slice branch
-```bash
-git push -u origin <slice-branch>   # e.g. cluster/C-007 or feat/<slug>; NEVER push to main
-```
+   ```bash
+   git push -u origin <slice-branch>          # never main
+   gh pr create --draft --title "<type>(<scope>): <slice-id> <description under 70 chars>" --body-file <body>
+   ```
 
-### Step 4 — Open the DRAFT PR (fail-closed)
-The terminal state of a passing slice is a **DRAFT** PR. `pull-request` itself **never** marks it ready;
-promotion to ready-to-merge is done by a separate fresh **code-cold verifier with no test-write
-access** (see *Outputs & handoff*).
-```bash
-gh pr create --draft \
-  --title "<type>(<scope>): <slice-id> <description under 70 chars>" \
-  --body "$(cat <<'EOF'
-## Summary
-- <why this slice exists — drawn from prd.md ## Solution / a referenced ADR, NOT commit messages>
-
-## Upstream artifacts
-- PRD: [prd.md](<path>)  ·  ADRs: <ADR-007, …>  ·  Structure: [architecture.md](<path>)  ·  Plan/slice: [plan.md](<path>) (<slice id>)
-- Acceptance: [acceptance.md](<path>)  ·  Verify ledger: [qa.md](<path>)
-
-## Diff narration
-**<slice-id> — <title>:** <what this slice does end-to-end, layer to layer — not a file list>
-
-## Test plan
-**Exercised (from qa.md ## Behavioral ledger):**
-- <PWR-A1>: <the behavior this test proves>
-
-**Not reachable — REQUIRED human ack, do not leave blank:**
-- [ ] <PWR-A3>: <why unreachable in this slice> — human must acknowledge before merge
-
-## Code-reading checklist
-**Reviewers: check each file before approving.**
-- [ ] `<file 1>` — <one sentence: why highest-risk>
-- [ ] `<file 2>` — <one sentence>
-
-## Risk band: <LOW|MEDIUM|HIGH>
-- blast radius: <none | auth: `src/auth/session.ts` · user data: `migrations/007_drop_email.sql`>
-- floors at the line: <none | regression_surface=9, …>
-- qa coverage (exercised/total from qa.md ## Behavioral ledger): <e>/<t>  ·  rounds consumed: <n/3>  ·  frozen artifacts touched (tests · acceptance.md): <none | …>  ·  surface narrowed: <none>
-EOF
-)"
-```
-Return the PR URL.
-
-## PR body anatomy (the design-anchored contract)
-Each section earns its place; none is decorative:
-- **Summary** = the *why*, traced to `prd.md`/ADRs. A commit-message restatement is a failure.
-- **Upstream artifacts** = the links that let a reviewer open the design behind the diff (the PR
-  references ADRs by id; it never restates their rationale).
-- **Diff narration** = end-to-end prose ("this slice wires the token endpoint and persists the 1-hour
-  TTL"), never "changed auth.ts, added test".
-- **Test plan** = the `qa.md` ledger, made human-legible — exercised behaviors + the not-reachable
-  acks. The agent does **not** invent a scenario↔test map here; it transcribes the ledger.
-- **Code-reading checklist** = the 3-5 highest-risk files with a one-line rationale each. This is the
-  proof a human read the code — the gate whose absence cost Dex's team a rip-and-replace (QRSPI p.7).
-- **Risk band** = the inverted risk report, and the only place blast radius reaches a human. It draws
-  their scarce attention two ways at once: to what the diff *touches* (the named blast-radius rows), and
-  to the *quiet greens* where unattended defects actually ship — both surfaced alongside, not buried
-  under, the halts. A band with no `blast radius:` line has not been computed, only asserted.
+   Never `gh pr merge`, push to `main`, mark it ready, enable auto-merge or trigger a deploy — a person
+   merges ([`safety-rails.md`](../../references/safety-rails.md)), and promoting the draft spends the last
+   reversible moment the work has. Return the URL; the push is yours, the worktree the caller's.
 
 ## Rationalizations
-- "The commit messages already explain it." → No. Summary bullets come from `prd.md`/ADRs (the
-  *why*), not a `git log` dump.
-- "Reviewers can just open the files tab." → The curated 3-5 highest-risk checklist *is* the
-  deliverable; an unfiltered diff is exactly what made Dex's team rip-and-replace (QRSPI p.7).
-- "`quality-verification` marked one scenario not-reachable; I'll just omit it." → Every `not-reachable` id is a
-  **REQUIRED human-ack line** in the body; silently absorbing it defeats the human-anchored oracle it came
-  from: the `acceptance.md` a person signed, and nobody else.
-- "All gates passed, I'll open it ready-to-merge to save a step." → Fail-closed: the terminal state is
-  **DRAFT**; only the fresh code-cold verifier promotes. Marking it ready yourself is gate-erosion.
-- "A retry tweaked a test to make it pass." → That is a frozen-artifact violation; **HALT**, open no PR.
-- "Every gate passed first time, so this is LOW." → Only if no blast-radius row fired. The band is the
-  higher of the two inputs, and a clean record is exactly what makes an auth or migration diff *look*
-  safe. Read the diff for what it touches before you read the ledger for how it passed.
-- "The slice is called `PWR-2 expire stale tokens`, and nothing in the title says auth." → The rows are
-  facts about the **diff**, not about the slice title or the plan's description of it. Open the diff.
-- "The diff touches auth, so I should halt and let a human decide." → No. A HIGH band opens a PR like any
-  other; inside a run nothing pauses for high-risk work. Inventing a halt here removes the slice from the
-  human's queue instead of flagging it in the queue.
 
-## Red flags (STOP)
-- A security CRITICAL/HIGH or a secret in the diff → **no PR, hard halt**, top the report; a committed
-  secret → **PushNotification** + freeze the next barrier (safety rail 2's literal STOP).
-- An internal gate (`quality-verification` / Review / an evaluator floor) is not green → **no PR**.
-- The `regression_surface` narrowed, or a frozen test / `acceptance.md` line changed during retries →
-  **HALT** (gate-erosion); do not ship. Name the artifact in the report — "gate erosion" alone tells
-  nobody which guarantee went.
-- The diff edits `docs/design.md` → **HALT** (the same gate-erosion, safety rail 4); do not ship.
-- You are about to `gh pr merge`, push to `main`, or trigger a deploy → **STOP**; the human owns the
-  merge.
-- The code-reading checklist is empty, generic, or says "all files" → rewrite before opening.
-- About to band a diff without having read it for blast radius, or to leave the `blast radius:` line off
-  or blank → **STOP**, compute it. A missing line reads as "none fired", and the person triaging the merge
-  queue has no other channel for it.
-- About to halt, hold, or refuse a PR **because** the band came out HIGH → **STOP**. High blast radius
-  raises the band; it never stops the stage.
+| Rationalization | Reality |
+|---|---|
+| "The commit messages already explain it" | Commits carry what changed; the why lives in `prd.md` and the ADRs. |
+| "Reviewers can open the files tab" | The unfiltered diff is what nobody reads; the curated 3-5 files is the deliverable. |
+| "One scenario was unreachable, so leave it out" | An absorbed id is a gap the human-anchored oracle never sees. |
+| "Everything is green, so open it ready to merge" | The draft is the last reversible moment; promoting it is the run grading itself. |
+| "It touches auth, so hold it for a human first" | The band already flags it in that person's queue; holding takes it out. |
+| "Every gate passed first time, so this is LOW" | Nothing in a slice's title or record says what its diff touches. |
 
-## Verification (ending criteria)
-Done when ALL hold:
-- [ ] A **DRAFT** PR is open on the slice branch (never on `main`); URL returned.
-- [ ] Summary bullets trace to `prd.md`/ADRs; no commit-log dump.
-- [ ] Code-reading checklist names 3-5 (or fewer, if `lite`) highest-risk files, each with a one-line
-      rationale.
-- [ ] Test plan reflects `qa.md` `## Behavioral ledger`; **every** `not-reachable` id has a REQUIRED
-      human-ack checkbox.
-- [ ] Risk band computed from **both** inputs and attached (LOW/MEDIUM/HIGH): the `blast radius:` line
-      names every row that fired and the file that fired it, or reads `none`; the quiet-green line carries
-      floors-at-line · qa % · rounds · frozen-artifacts-touched · surface-narrowed. The band is the higher
-      of the two, and no diff that fired a row is banded below HIGH.
-- [ ] Secret scan clean; build + tests green; diff ≤ 400 LOC.
+## Red flags
 
-## Outputs & handoff contract
-**Emits: PR** (open, **draft**, risk-banded) — stable body sections `## Summary` · `## Upstream
-artifacts` · `## Diff narration` · `## Test plan` (with human-ack lines) · `## Code-reading checklist`
-· `## Risk band` (`LOW|MEDIUM|HIGH`, carrying its `blast radius:` line). Anchored to `prd.md`/ADRs.
-Change a stable section's shape → update the consumer (the human merge gate + any release skill) in the
-same commit. **The band's rule lives in Step 2 above and only there** — the orchestrator's run-terminal
-risk report reproduces the bands this skill computed and does not compute its own.
+- A `blast radius:` line missing or blank, which reads downstream as "none fired".
+- A code-reading checklist saying "all changed files", or a file listed with no reason beside it.
+- A Summary assembled out of the branch's commit messages.
+- A `not-reachable` id that appears nowhere in the body.
+- A test or scenario changed inside the diff and mentioned in neither the body nor the log.
+- A slice held back, or a pull request left unopened, because the band came out HIGH.
 
-**STATE.md update:** the slice row → `State: ship` then `done`; `Gate: you` (the async human merge is
-the surviving final gate); `Artifacts:` += `PR #<n>`.
+## Verification
 
-**Handoff (fail-closed promotion):** `pull-request` stops at the DRAFT PR. A separate fresh **code-cold
-verifier with no test-write access** (a NEW checker each round, seeing only `acceptance.md`) promotes
-draft → ready-to-merge after the **integration gate** on the connected DAG component passes.
-**Cohesion:** loose feature → promoted greens become individual ready PRs (partial delivery); tight
-feature → if any sibling slice halted, hold this PR **DRAFT** (atomic; never hand a human half a
-feature).
+- [ ] One draft pull request is open on the slice branch, `main` untouched, auto-merge off, URL returned.
+- [ ] The body carries `Summary · Decided for you · Evidence · Risk band` and nothing else, its word
+      count measured against the 500-word cap.
+- [ ] The band is the higher of the two readings, its `blast radius:` line naming every fired row with the
+      file that fired it, or reading `none`.
+- [ ] The checklist names 3-5 files with the reason each is there — or fewer, with the why stated.
+- [ ] Every `not-reachable` id carries a human-ack checkbox, every changed oracle its before, after and
+      why, and every in-run default a row matching one log entry.
+- [ ] The secret scan came back clean, and Evidence quotes real build and test output.
+- [ ] Every derived value reads `derived`; nothing reconstructed is presented as signed.
+- [ ] Or: nothing opened, a stop-list condition having fired, and the report names which.
 
-**Merge is the human's** — never auto-merge to `main`; auto-deploy is OUT of v1 (safety rail 1;
-`ci-cd`/`shipping-and-launch` deploy actions are fenced behind the human merge).
+## Outputs & handoff
 
-## Neighbor skills
-- Curating the reviewer's focused context: the `code-review` Review fan-out, whose findings must be
-  clear before `pull-request` runs.
-- Branch-push / worktree-cleanup lifecycle is owned by the `orchestrator`; `pull-request` executes the
-  push, the orchestrator reclaims the worktree.
+**The pull request body** — cap 500 words, these four stable sections in this order and no others. Report
+the measured count against the cap; an over-cap body is trimmed before it opens, never handed on as if it
+fit.
+
+```markdown
+## Summary          why this slice exists — from prd.md ## Solution, ADRs by id, links to the artifacts
+## Decided for you  | # | Decision | Default taken | Why | Alternative | Plan section |
+## Evidence         the narrated diff · the transcribed qa.md ledger · [ ] a human-ack line per
+                    not-reachable id · any oracle changed · the 3-5-file checklist · the commands run
+                    with their real output · sibling slices still open or blocked
+## Risk band        LOW | MEDIUM | HIGH
+                    blast radius: <none | auth: src/auth/session.ts · data: migrations/007_drop_email.sql>
+                    quiet greens: verdict · exercised/total · not-reachable ids · rounds · oracle changed
+```
+
+Rename one of the four and its consumer changes in the same commit: a body whose shape moved silently is
+read by a person expecting the old one.
+
+**Appended to `docs/session-log.md`**: one entry, cap 60 words, where this skill settled something itself
+— the base ref, a derived slice id. Shape and append rules:
+[`state-schema.md`](../../references/state-schema.md).
+
+**Returned in conversation**: the pull request URL and its band — or the stop-list condition that fired,
+and no pull request.
+
+**Nothing else.** No `STATE.md` row, the caller owning the slice's transition
+([`state-schema.md`](../../references/state-schema.md)); no `qa.md`, no lesson, no release notes, no merge.

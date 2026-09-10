@@ -2,19 +2,16 @@
 description: Retrieval practice that makes understanding honest — about five medium-difficulty questions, one at a time, graded before the answer is revealed, recorded in the learning ledger. Never a gate.
 ---
 
-Invoke the `comprehension-quiz` skill.
+Quiz — standalone; it blocks no merge, stage or run.
 
-Standalone — not a lifecycle stage, and it blocks nothing. Two entry cases:
+Run `comprehension-quiz`. With a fresh `literate-explainer` artifact in view it quizzes that artifact
+and ties the session to its manifest entry. With none, it requizzes: weak or stale durable concepts
+drawn from that workspace's ledger and glossary, and only those.
 
-1. **Fresh explainer in view** — a `literate-explainer` artifact was emitted earlier in the session: quiz
-   that explainer, and tie the session to its manifest entry.
-2. **Standalone (no fresh explainer)** — run the **requiz**: draw weak or stale durable concepts from the
-   learning ledger and learner glossary, and test only those.
+About five medium-difficulty questions, one per message, each answer graded before the correct one is
+revealed — which is what makes the result honest rather than flattering.
 
-## Notes
+Emits one appended line in `~/.achilles/comprehension/<repo-key>/ledger.jsonl`, `completed` or
+`abandoned`, and nothing at all inside the target repo.
 
-- Honesty is structural: one question per turn, the learner's answer graded before the correct answer is
-  revealed, the session recorded as one line in the learning ledger (`completed` or `abandoned`).
-- It is an honest self-check, never a gate — it does not block any merge, stage, or `/orchestrate` wave.
-- The turn protocol, the ledger line format, and the derived measures live in the `comprehension-quiz`
-  skill and the workspace format reference — this command is a thin entry point, not a restatement.
+The turn protocol, the ledger fields and the derived measures live in the skill.

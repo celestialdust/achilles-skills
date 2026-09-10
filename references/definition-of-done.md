@@ -1,69 +1,50 @@
-# Definition of Done
+# Definition of done
 
-A standing, project-wide bar that every change must clear before it counts as done. Unlike acceptance criteria, which vary per task and answer "did we build the right thing?", the Definition of Done is the same every time and answers "is this finished to our standard?". The skills that read this file are listed once, in `docs/getting-started.md` under *Using References*. Keeping a second list here is how the two come to disagree.
+The standing bar every change clears. Give every task a verifiable goal with a named check and loop until
+that check passes; this list is the floor under it. Acceptance criteria answer "did we build the right
+thing?"; this answers "is it finished to our standard?". A slice is done only when both hold.
 
-## Definition of Done vs. Acceptance Criteria
+## Correctness
 
-| | Acceptance Criteria | Definition of Done |
-|---|---|---|
-| Scope | Specific to one task or spec | Applies to every increment |
-| Changes | Different for each item | Fixed and reused |
-| Answers | "Did we build *this thing*?" | "Is it *ready*?" |
-| Owner | Defined when planning the task | Defined once for the project |
-| Example | "User can reset password via email link" | "Tests pass, no regressions, docs updated" |
+- Every acceptance criterion for the slice is met
+- The code was run and behaved as intended — compiled and typechecked is not verified
+- New behaviour is covered by a test that fails without the change and passes with it
+- Existing tests still pass; no regression introduced
+- Edge cases and error paths handled, not just the happy path
 
-The two are complementary. A task is done only when **its** acceptance criteria are met **and** the standing Definition of Done is satisfied. Skipping either leaves work that looks finished but is not.
+## Quality
 
-## The Standing Checklist
+- Naming and structure reveal intent; no comment explains *what* the code does
+- No duplicated business logic, dead code, debug output, or commented-out blocks
+- Scoped to the slice — no unrelated refactor rides along
+- Lint and formatting pass
 
-Apply this to every change before declaring it done.
+Depth: `code-review` and `code-simplification`.
 
-### Correctness
-- [ ] All acceptance criteria for the task are met
-- [ ] Code runs and behaves as intended, verified at runtime, not just compiled or typechecked
-- [ ] New behavior is covered by tests that fail without the change and pass with it
-- [ ] Existing tests still pass; no regressions introduced
-- [ ] Edge cases and error paths are handled, not just the happy path
+## Integration
 
-### Quality
-- [ ] Code reveals intent through naming and structure; no comments needed to explain *what* it does
-- [ ] No duplicated business logic
-- [ ] No dead code, debug output, or commented-out blocks left behind
-- [ ] Changes are scoped to the task; no unrelated refactors snuck in
-- [ ] Linting and formatting pass
+- Works with the rest of the system, not only in isolation
+- Migrations, config changes and feature flags accounted for
+- Backward compatibility considered for any public interface
 
-The depth behind these items lives in `code-review` (the five-axis review) and `code-simplification` (reducing complexity without changing behavior).
+## Documentation
 
-### Integration
-- [ ] Change works with the rest of the system, not just in isolation
-- [ ] Database migrations, config changes, and feature flags are accounted for
-- [ ] Backward compatibility considered for any public interface or API change
+- Public interfaces, APIs and user-facing behaviour documented
+- A decision worth preserving recorded as an ADR (`documentation-and-adrs`)
+- Written as current state in timeless language, not as change history
 
-### Documentation
-- [ ] Public interfaces, APIs, and user-facing behavior are documented
-- [ ] Architectural decisions worth preserving are recorded (see `documentation-and-adrs`)
-- [ ] Documentation describes the current state in timeless language, not the change history
+## Ship-readiness
 
-### Ship-readiness
-- [ ] Security implications reviewed for any untrusted input, auth, or data handling (see `security-and-hardening`)
-- [ ] Observability in place for new critical paths (logs, metrics, traces) (see `observability-and-instrumentation`)
-- [ ] Anything risky is reflected in the draft pull request's **risk band** (see `pull-request`)
-- [ ] The human has reviewed and approved before merge or deploy
+- Security reviewed wherever the change touches untrusted input, auth or data
+- Observability in place on new critical paths
+- Anything risky reflected in the draft pull request's risk band
+- A person has reviewed and merged
 
-The rollback plan is not on this list, and its absence is deliberate. `shipping-and-launch` writes it, and that skill starts after a person merges — one slice's pull request is not a release. The compensating control before the merge is the risk band above; `pull-request` states what it tells the person at the merge gate. Putting the plan itself on this bar would gate every change on a document nothing writes before the merge, and the only way to tick that box would be to invent one.
+The rollback plan is deliberately absent: `shipping-and-launch` writes it and starts after a person
+merges. One slice's pull request is not a release; the risk band is the control before the merge.
 
-## How to Apply
+## Applying it
 
-- **Per task**: confirm the Correctness and Quality sections before checking the task off.
-- **Per feature**: confirm Integration and Documentation before considering the feature complete.
-- **Per release**: the full checklist is the floor; `shipping-and-launch` adds the deploy-specific gates on top.
-
-Tailor the list to the project once, then reuse it unchanged. A Definition of Done that is renegotiated every sprint is not a Definition of Done.
-
-## Red Flags
-
-- "It's done, I just haven't run it yet": unverified work is not done.
-- "Tests pass" used as a synonym for done while docs, regressions, or runtime verification are skipped.
-- A different bar applied depending on deadline pressure.
-- Acceptance criteria treated as the whole bar, with no standing quality floor.
-- "Done" declared before human review on changes that need it.
+Confirm correctness and quality before calling a slice done, integration and documentation before a
+feature is, the whole list before a release. Tailor it once, then reuse it unchanged: a bar renegotiated
+each sprint is not a bar, and it does not move under deadline pressure.

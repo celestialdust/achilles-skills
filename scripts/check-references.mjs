@@ -13,14 +13,15 @@
 //   · Same-file anchors — `[text](#some-heading)`.
 //   · Backticked paths under the plugin's own tree: `skills/`, `references/`, `agents/`, `commands/`,
 //     `scripts/`, `.claude-plugin/`. These are files that ship, so naming one that does not exist is
-//     always a defect.
+//     always a defect. `agents/` stays on that list precisely BECAUSE the directory was deleted:
+//     every leftover `agents/<persona>.md` in the prose now resolves to nothing and is reported here.
 //
 // WHAT IT DELIBERATELY DOES NOT READ, and this is the honest half.
 //   · Anything under `docs/`. Most `docs/` paths this repository names — `docs/adr/`, `docs/features/`,
-//     `docs/lessons.md`, `docs/progress.md`, `docs/design.md`, `docs/session-state.md` — are artifacts
-//     the suite scaffolds into *your* project and correctly do not exist here. Checking them would
+//     `docs/lessons.md`, `docs/session-state.md`, `docs/session-log.md` — are artifacts the suite
+//     scaffolds into *your* project and correctly do not exist here. Checking them would
 //     report a false hit on nearly every mention, and a check that only ever cries wolf is one people
-//     learn to skip. A dangling `docs/progress.md` therefore goes unreported. Read those by hand.
+//     learn to skip. A dangling `docs/session-log.md` therefore goes unreported. Read those by hand.
 //   · Any path holding `<` or `>`: `docs/features/<slug>/plan.md` is a shape, not a file.
 //   · External URLs. Whether a URL is alive is a question for the network, not for this.
 //   · The first backticked path on a `**Source:**` line inside a `VENDORED.md`, which names the
@@ -31,9 +32,8 @@
 //     citations live in `.mjs` comments. Rename a section and those go stale silently. Grep for the
 //     old section name whenever you rename one.
 //
-// NOTHING RUNS THIS FOR YOU. .github/workflows/companion-tests.yml is path-filtered to
-// skills/frontend-design/scripts/**, so this directory is covered by no job at all. It is on the pre-PR
-// list in CONTRIBUTING.md because in a prose repository the checker is a person.
+// .github/workflows/repo-checks.yml runs this on every push and pull request, unfiltered by path — a
+// link goes stale from the far side, when somebody renames the file it points at.
 //
 //   node scripts/check-references.mjs             check, and report everything that does not resolve
 //   node scripts/check-references.mjs --list      print every reference and its verdict, and stop

@@ -1,168 +1,151 @@
 ---
 name: environment-manifest
-description: Capture every external thing the autonomous run needs — API keys, MCP servers, services, runtime deps, test fixtures, accounts — as a typed-kind manifest with NO values and NO commands. Use during Spec right after the PRD lands, and again during Plan once slices exist. ALWAYS run this before an AFK/autonomous wave so preflight-readiness can refuse to start on a missing dependency. If you are about to paste a secret value or a check command into a config file, STOP and use this instead.
+description: Draft environment.md in the Spec sitting and append to it in Plan — everything a run needs from outside the repo (keys, MCP servers, services, runtime pins, fixtures, accounts) as typed rows holding identifiers, never values or check commands. Probing those rows is `preflight-readiness`'s; provisioning them, `project-setup`'s.
 ---
+
+# Environment manifest
 
 ## Purpose
 
-Stage: **Spec** (pass 1, signed) + **Plan** (pass 2, appended). The autonomous Implement→Ship wave runs
-AFK; the moment it hits a missing API key, an unprovisioned service, or a wrong runtime version, it fails
-silently in the middle of a parallel wave. `environment-manifest` captures — **declaratively, never executably** —
-every external thing the feature needs to run, so the value-blind `preflight-readiness` gate can refuse to start the
-wave until each item is provisioned.
+**Stage: Spec.** Principles 5, 6, 7, 8, 9.
 
-First principle: an environment need is *data* (a typed row), not *code* (a command). Encoding it as data
-makes two whole classes of failure structurally impossible — a secret can't leak into a committed file
-(there is nowhere to put a value), and an unreviewed shell string can't run unattended at the human→AFK
-boundary (there is nowhere to put a command). You author the manifest; `preflight-readiness` checks it. Maker ≠ checker.
+Writes one feature's `environment.md`: every external thing the run needs, as typed rows carrying an
+identifier and never a value. An unattended wave that meets a missing key fails silently mid-wave, so
+`preflight-readiness` refuses to dispatch until each row is satisfied — and a need held as data leaves
+the committed file nowhere to put a secret or a shell string.
 
-## When to use / when to skip  (depth: lite)
+## When to use / when to skip
 
-Use **twice** — two passes over one file:
-- **Pass 1 — Spec (interface-level, signed):** after `to-prd` lands `prd.md`, and on a UI feature after
-  `frontend-design` has explored the interface — it runs before this skill and `acceptance-criteria` both,
-  because an exploration turns up services a `prd.md` never named. Capture the keys / MCPs / services the
-  *product* needs. These rows are part of the single Spec gate sign-off.
-- **Pass 2 — Plan (implementation-level, appended):** after `plan-breakdown` produces slices. Append the
-  fixtures / version-pins / accounts the *implementation* needs; these re-surface at the Verify barrier.
-
-Skip only when a pure-refactor feature introduces zero external dependency — but still emit a signed
-manifest with an explicit `(no external dependencies)` note so the gate is explicit and `preflight-readiness` has
-something to read. Never leave the file absent: absence is ambiguous, an empty-signed manifest is a decision.
+- The sitting has settled what the feature talks to — a mail sender, a queue, a tenant — and nothing says
+  what has to exist first: after `to-prd`, beside `acceptance-criteria`.
+- Plan has slices: fixtures, version pins and per-slice accounts surface there and land on this file.
+- A run is about to go AFK and `preflight-readiness` has no rows to probe.
+- Someone asks what has to be switched on before this will run.
+- Skip checking whether a row *is* provisioned — `preflight-readiness` grades that, on evidence the row's
+  author lacks.
+- Skip installing or scaffolding anything (`project-setup`, `ci-cd`), and skip writing a value down: this
+  file is committed.
 
 ## Inputs
 
-- **Pass 1 consumes** `docs/features/<slug>/prd.md` — sections **Implementation Decisions** (names
-  services / MCPs / keys), **Testing Decisions** (names fixtures), **Out of Scope** (what NOT to provision).
-  **Refuse to run pass 1 if `prd.md` is absent** — without the PRD you'd be guessing at the feature's needs.
-- **Pass 2 consumes** `docs/features/<slug>/plan.md` + its slices — to pick up impl-level needs (test
-  fixtures, exact runtime versions, per-slice accounts) and tie each row to the slice id(s) that require it.
-- Never consumes a `.env`, a secret store, or any live value. This skill reads *intent*, not *secrets*.
+- `docs/features/<slug>/prd.md` — helps: Implementation Decisions names the services, MCPs and keys,
+  Testing Decisions the fixtures, Out of Scope what not to provision · without it: take the needs from
+  `intent.md`, the prompt and the code's own environment reads, imports and compose files, marked
+  `derived`
+- `docs/features/<slug>/research.md` — helps: Dependency facts and External APIs name what the code talks
+  to · without it: read `package.json`, the lockfile and any compose or CI file, marked `derived`
+- `docs/features/<slug>/plan.md` and `plan/<slice-id>.md` — helps: the second pass's needs, and the slice
+  ids `required-by` names · without it: leave `required-by` at the feature slug, marked `derived`
+- No `.env`, no secret store, no live value: this reads intent, not secrets.
+
+With a person there, ask at most three questions, and only where the answer changes which rows exist.
 
 ## Process
 
-1. **Locate the file.** `docs/features/<slug>/environment.md`. Pass 1 creates it; pass 2 appends.
-2. **Walk the source for external needs.** From `prd.md` (pass 1) / `plan.md` (pass 2), list everything the
-   run **needs** from outside the repo: keys, MCP servers, running services, language/tool versions, seed
-   data, third-party accounts. A row is a thing whose absence should stop the wave — that is what a row
-   means, because `preflight-readiness` refuses to dispatch over a missing one. Something the run merely
-   *uses when it happens to be there*, and runs unchanged without, is not a row: filing it turns an
-   optional convenience into a blocker. When in doubt ask whether you would want the wave held for it.
-3. **Classify each into exactly one kind** (closed enum — see Kind playbook). If a need doesn't fit a kind,
-   that's a signal you've mis-modeled it, not a license to invent a column.
-4. **Write one row per need:** `kind · name · purpose · required-by · pass · attest`. **No value. No command.**
-5. **Mark un-probeable items** with `manual: <yes/no question>` in `attest` — the single amber escape hatch
-   for things a value-blind prober can't check (paid quota remaining, a human-owned SaaS account). The
-   question is human-readable, never executable.
-6. **Append-only after sign.** Pass 2 never rewrites a row signed in pass 1; if a signed interface-level fact
-   genuinely changed, add a new row and flag the supersession for re-sign — don't silently mutate a signed row.
-7. **Set status.** `draft` until the Spec gate signs pass-1 rows → `signed`.
-8. **Do not probe.** You author; `preflight-readiness` checks. Running a check here would duplicate preflight-readiness and tempt
-   a command cell into existence.
+1. **Walk the sources and list what the run needs from outside the repo** — the six kinds below are the
+   prompt for that walk. A row is something whose absence should stop the wave, since
+   `preflight-readiness` refuses to dispatch over a missing one; what the run merely uses when it happens
+   to be there is not a row. The design reference `prd.md` points at is the standing example: file it and
+   a wave gets refused over a link no code reads.
+
+2. **Put each need in exactly one of the six kinds below.**
+
+3. **Write the identifier and never the value** — the variable's name, the service's name, the version
+   constraint — one row per need, in the shape under **Outputs & handoff**.
+
+4. **Leave `attest` blank wherever a prober can reach, and mark the rest `manual: <yes/no question>`** —
+   readable by a person, executable by nothing.
+
+5. **Emit the file even when the feature needs nothing external**, carrying `(no external dependencies)`
+   in place of rows.
+
+6. **Append the second pass to the same file** with `pass: plan`, each new row's `required-by` naming the
+   slice ids that need it. Where the fact behind a signed row changed, change the row and disclose it —
+   one `docs/session-log.md` entry ([`state-schema.md`](../../references/state-schema.md)) and a
+   **Decided for you** row in the pull request; the silent edit is what the code-cold pass hunts for.
+
+7. **Probe nothing and install nothing.** `preflight-readiness` grades this file with evidence its author
+   lacks, and a check run here is how a command column gets invented to hold it.
+
+8. **Grep the finished file and count its rows.** `grep -Eni 'value|command|verify|secret|cmd|sk_|AKIA|-----BEGIN|://[^ ]*:[^ @]*@' docs/features/<slug>/environment.md`
+   comes back empty. A credential sitting in the file is a stop-list item
+   ([`safety-rails.md`](../../references/safety-rails.md)): say one is there, never what it says.
 
 ## The typed-kind manifest
 
-Closed kind enum — **these six, no others**:
-
 | kind | covers |
 |---|---|
-| `env-var` | a named secret/config the process reads from the environment (e.g. `POSTMARK_API_KEY`) |
-| `mcp` | an MCP server the agent/app connects to (e.g. `supabase`) |
-| `service` | a running backing service (e.g. `postgres`, `redis`) |
-| `runtime-dep` | a language/tool/version the build needs (e.g. `node>=20`, `pnpm`) |
-| `fixture` | seed data / a test artifact (e.g. `seed-users.json`) |
-| `account` | a third-party account/tenant (e.g. `stripe-test`) |
+| `env-var` | a named secret or config read from the environment — `POSTMARK_API_KEY` |
+| `mcp` | an MCP server the agent or the app connects to — `supabase` |
+| `service` | a backing process that has to be up — `postgres`, `redis` |
+| `runtime-dep` | a language, tool or version the build assumes — `node>=20` |
+| `fixture` | seed data a test needs to mean anything — `seed-users.json` |
+| `account` | a tenant or login on a third-party platform — `stripe-test` |
 
-Row schema — exactly these columns: `| kind | name | purpose | required-by | pass | attest |`
-- `name` — the *identifier* only (the env-var name, the MCP name, the service name). **Never the value.**
-- `purpose` — one line: why the feature needs it.
-- `required-by` — the PRD-namespaced slice id(s) (e.g. `PWR-2`) or the feature slug; ties the row to `STATE.md`.
-- `pass` — `spec` or `plan` (which pass added the row).
-- `attest` — blank = auto-probed by `preflight-readiness`'s per-kind value-blind prober; `manual: <question>` =
-  un-probeable amber escape hatch.
-
-**Two columns that must never exist** (security fail-safe):
-- **No `value` column.** Secrets are structurally unrepresentable — a key can never leak into this committed
-  file because there is nowhere to put it.
-- **No `command`/`verify` column.** A free-text command cell is an unreviewed shell string that `preflight-readiness`
-  would run unattended at the AFK boundary. The reviewed prober-per-kind file in `preflight-readiness` replaces it.
-  A new service is a **new row**, never a new command.
-
-Example:
-```
-feature: password-reset
-status: signed
-
-## Manifest
-| kind        | name              | purpose                          | required-by | pass | attest |
-|-------------|-------------------|----------------------------------|-------------|------|--------|
-| env-var     | POSTMARK_API_KEY  | send reset emails                | PWR-1       | spec |        |
-| service     | redis             | store reset tokens with TTL      | PWR-2       | spec |        |
-| mcp         | supabase          | user-table reads                 | PWR-1       | spec |        |
-| runtime-dep | node>=20          | crypto.webcrypto for token gen   | PWR-1       | plan |        |
-| fixture     | seed-users.json   | known users for reset E2E        | PWR-2       | plan |        |
-| account     | stripe-test       | billing webhook on reset (paid)  | PWR-3       | plan | manual: is the stripe-test tenant funded this month? |
-```
-
-## Kind playbook
-
-- Read from `process.env` / the environment → **env-var** (name it; never paste it).
-- Talked to over MCP → **mcp**.
-- A daemon/container that must be *up* → **service**.
-- A version/tool the build assumes → **runtime-dep** (encode the constraint in `name`, e.g. `python>=3.11`).
-- Data that must *exist* for a test to be meaningful → **fixture**.
-- A tenant/login on a third-party platform → **account** (usually `manual:` attested).
-If two kinds fit, pick the one `preflight-readiness` can check value-blind. If none fit, you've mis-modeled the need —
-re-read the PRD, don't add a column.
+Six kinds, closed. Where two fit, take the one a value-blind prober can check; where none fits, the
+misfit is in the row, not in the column list.
 
 ## Rationalizations
 
-- "I'll just drop the value in so `preflight-readiness` can check it." → No. The value is structurally unrepresentable
-  on purpose; `preflight-readiness` probes value-blind. A value here is a committed secret.
-- "A quick `curl`/`psql` verify command in a cell makes it runnable." → No. That runs unattended at the AFK
-  boundary with no review. The prober-per-kind file is the reviewed replacement.
-- "This dep is weird, I'll add a `notes`/`type` column." → No. The enum is closed; a misfit is a modeling signal.
-- "It's un-probeable, so I'll skip the row." → No. Add it with `manual: <question>`; a missing row is an
-  invisible dependency that fails AFK. Un-probeable is not the same as optional: the test is whether the
-  wave should be held for it. Something the run uses when it happens to be there and runs unchanged
-  without — a design evidence source, say — is not a row at all, probeable or not.
-- "I'll just rewrite the signed Spec row during planning." → No. Append + flag for re-sign; signed facts are
-  the Spec gate's contract.
-- "Let me run the probe to be sure." → No. Maker ≠ checker; authoring and probing are separate skills.
+- "Preflight needs the value to check it." → It probes value-blind; a value here is a committed secret.
+- "A `psql -c 'select 1'` beside each row makes the file runnable." → An unattended wave would execute
+  that cell unreviewed.
+- "This dependency is odd — a `notes` column would hold it." → The enum is closed; the misfit is in the row.
+- "Nothing external, so no file." → An absent file reads as an oversight, the empty note as a decision.
+- "It cannot be probed, so it is not worth a row." → The test is whether the wave should be held for it.
+- "One quick probe to be sure." → The grader has evidence this author lacks.
 
-## Red flags — STOP
+## Red flags
 
-- A value, secret literal, token, password, or connection string appears in **any** cell.
-- A column named `value`, `command`, `verify`, `cmd`, or any shell string in a cell.
-- A `kind` outside `{env-var, mcp, service, runtime-dep, fixture, account}`.
-- You are about to **run** a command to check an item (that's `preflight-readiness`'s job).
-- Pass 2 edits/overwrites a row that pass 1 signed.
-- A row for something the run works fine without — filing an optional convenience makes
-  `preflight-readiness` refuse a wave over a thing nobody needed.
-- The manifest is absent for a feature heading into a wave.
+- A value, token, password or connection string in any cell.
+- A column headed `value`, `command`, `verify` or `cmd`, or a shell string anywhere in the table.
+- A `kind` outside the six, or a seventh column.
+- A row for something the run works unchanged without — a design link, an optional DSN.
+- A probe or an install run from inside this skill.
+- `status: signed` on a file no person signed.
 
-## Verification (ending criteria)
+## Verification
 
-- `docs/features/<slug>/environment.md` exists with a `## Manifest` table and a `status:` field.
-- Every row's `kind` is one of the six enum values.
-- **Greppable security check (load-bearing done-predicate):** no column header matches
-  `value|command|verify|secret|cmd`; no cell contains a secret-shaped literal (`sk_`, `AKIA`,
-  `-----BEGIN`, or a URL embedding credentials).
-- Every row has a non-empty `purpose` and `required-by`, and every row is something whose absence should
-  stop the wave — nothing the run merely uses when it happens to be there is filed as one.
-- Un-probeable rows carry `manual: <question>`; all others leave `attest` blank for `preflight-readiness`.
-- Pass-1 (`pass: spec`) rows are part of the Spec sign-off bundle; `status: signed` only after that gate.
+- [ ] `docs/features/<slug>/environment.md` exists at `status: draft`, signed by no agent, with a
+      `## Manifest` table holding either rows or the `(no external dependencies)` note.
+- [ ] Every `kind` is one of the six, and every row has a non-empty `purpose` and `required-by`.
+- [ ] The grep in Process 8 came back empty, and no column is headed `value`, `command` or `verify`.
+- [ ] Un-probeable rows carry `manual: <question>`, and every other `attest` cell is blank.
+- [ ] Anything reconstructed from an absent input is marked `derived` where it is written.
+- [ ] The counted rows are reported against the 30-row cap, and nothing was probed, installed or signed.
 
-## Outputs & handoff contract
+## Outputs & handoff
 
-- **Emits** `docs/features/<slug>/environment.md`.
-- **Stable sections** consumers depend on: the `status:` field and the `## Manifest` table with the fixed
-  `kind · name · purpose · required-by · pass · attest` columns. **Consumer:** `preflight-readiness` reads the Manifest,
-  runs its per-kind value-blind prober per row, honors `manual:` attestations, and refuses the wave on any
-  red / un-attested amber.
-- **Contract rule:** change the manifest's shape (a new kind, a renamed column) → update `preflight-readiness` + its
-  prober registry **in the same commit** (a new kind needs a new prober file; OCP).
-- **STATE.md update:** the feature sits in `feature: spec` while pass-1 is unsigned; the plan-pass append
-  happens while `feature: plan`. This skill creates no slice rows.
-- **Per-stage handoff:** the signed manifest is one of the 4–5 Spec-gate artifacts (intent + prd + acceptance
-  + environment [+ design contract when UI]); the next cold reader (`preflight-readiness`) needs nothing but this file.
+`docs/features/<slug>/environment.md` — cap **30 rows**, counted and reported; an over-cap draft is
+handed on as over-cap, never as one that fit.
+
+```markdown
+---
+feature: password-reset
+status: draft
+---
+
+## Manifest
+
+| kind    | name             | purpose                      | required-by | pass | attest |
+|---------|------------------|------------------------------|-------------|------|--------|
+| env-var | POSTMARK_API_KEY | send the reset mail          | PWR-1       | spec |        |
+| service | redis            | hold reset tokens with a TTL | PWR-2       | spec |        |
+| account | stripe-test      | the billing hook reset fires | PWR-3       | plan | manual: is the stripe-test tenant funded this month? |
+```
+
+Six columns, those names, that order. `name` is the identifier alone; `purpose` one line on why the
+feature needs it; `required-by` the slice ids, or the feature slug before slices exist; `pass` the pass
+that added the row; `attest` blank or `manual: <question>`.
+
+Two columns that never exist: `value`, and `command`/`verify` — a new service is a new row, never a new
+command.
+
+`status:` stays `draft` — the person signs the Spec bundle in one act, and an agent writing `signed`
+forges the only signature the stage has.
+
+`docs/session-log.md` — one appended entry, cap 60 words, when a signed row changes. No `STATE.md` row:
+the board's rows are born from a sliced plan ([`state-schema.md`](../../references/state-schema.md)).
+
+Returns the path, the row count by kind against the cap, every row marked `derived`, and anything the
+request asked for that no cell can hold.

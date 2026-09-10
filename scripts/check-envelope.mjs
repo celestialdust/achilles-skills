@@ -29,13 +29,14 @@
 // Order IS caught. A slot moved past another whose wording it does not match runs the walk out of
 // headings and fails; so does any of the other seven going missing. Slot 4 is the single exception.
 //
-// NOTHING RUNS THIS FOR YOU. .github/workflows/companion-tests.yml is path-filtered to
-// skills/frontend-design/scripts/**, so this directory is covered by no job at all. It is on the pre-PR
-// list in CONTRIBUTING.md because in a prose repository the checker is a person.
+// .github/workflows/repo-checks.yml runs this on every push and pull request, unfiltered — the drift it
+// catches is usually introduced by a file far from the claim it invalidates. It is also on the pre-PR
+// list in CONTRIBUTING.md, because in a prose repository the last checker is a person.
 //
 //   node scripts/check-envelope.mjs             check, and report every violation
 //   node scripts/check-envelope.mjs --list      print every skill's slot walk, and stop
 //   node scripts/check-envelope.mjs --root DIR  run against DIR instead of the repository root
+//   node scripts/check-envelope.mjs --only NAME  walk skills/NAME alone (repeatable)
 //
 // Exit codes:  0 nothing to report · 1 something to settle · 2 no skills/ directory to read
 
@@ -63,6 +64,9 @@ const SLOTS = [
 
 const argv = process.argv.slice(2);
 const listOnly = argv.includes('--list');
+// --only <name> (repeatable) walks those skills alone — for an author checking one file while the
+// rest of the tree is mid-rewrite. The walk itself is identical.
+const only = argv.flatMap((a, i) => (a === '--only' && argv[i + 1] ? [argv[i + 1]] : []));
 const rootFlag = argv.indexOf('--root');
 const ROOT = rootFlag !== -1 && argv[rootFlag + 1]
   ? argv[rootFlag + 1]
@@ -146,6 +150,7 @@ const reports = [];
 let scanned = 0;
 
 for (const name of readdirSync(skillsDir).sort()) {
+  if (only.length && !only.includes(name)) continue;
   const path = join(skillsDir, name, 'SKILL.md');
   if (!existsSync(path) || !statSync(path).isFile()) continue;
   scanned++;

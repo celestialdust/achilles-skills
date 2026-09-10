@@ -1,214 +1,109 @@
 ---
 name: idea-refine
-description: Refine a raw or half-formed idea into a sharp, buildable concept through structured divergent-then-convergent thinking, always surfacing hidden assumptions and an explicit "Not Doing" list. Use this in the Ideate stage BEFORE Spec whenever an idea is still vague, whenever you are tempted to jump straight to a plan without stress-testing it, or whenever you want to expand options before converging. Refines (and SHARES) intent.md — never write a separate one-pager. Triggers on "ideate", "refine this idea", "help me think through X", "stress-test my plan/idea", or "show/make me options I can react to".
+description: Open a half-formed idea into options and converge on one — variations to react to, what each bets on, an explicit Not Doing list. Run it to ideate, to stress-test an idea, or before a spec gets written off the first thing said. Refines intent.md in place. Not interview-me's extraction, not spec-grilling's how.
 ---
 
 # Idea Refine
 
 ## Purpose
 
-Stage: **Ideate (optional front door).**
+**Stage: Ideate.** Principles 1, 5, 6, 10.
 
-Refines raw ideas into sharp, actionable concepts worth building through structured divergent and convergent thinking.
-
-It works in three moves:
-
-1.  **Understand & Expand (Divergent):** Restate the idea, ask sharpening questions, and generate variations.
-2.  **Evaluate & Converge:** Cluster ideas, stress-test them, and surface hidden assumptions.
-3.  **Sharpen & Ship:** Produce a concrete artifact moving work forward.
-
-### Philosophy
-
-- Simplicity is the ultimate sophistication. Push toward the simplest version that still solves the real problem.
-- Start with the user experience, work backwards to technology.
-- Say no to 1,000 things. Focus beats breadth.
-- Challenge every assumption. "How it's usually done" is not a reason.
-- Show people the future — don't just give them better horses.
-- The parts you can't see should be as beautiful as the parts you can.
-
-You are an ideation partner. Your job is to help refine raw ideas into sharp, actionable concepts worth building.
+Widens a soft idea into options and converges on one: variations to react to, what each bets on, an
+explicit Not Doing list. Refines `docs/features/<slug>/intent.md` in place, so Spec reads one sharper
+artifact rather than two. The first direction named is rarely the best.
 
 ## When to use / when to skip
 
-Use this when an idea is still vague, when you need to stress-test assumptions before committing to a plan, or when you want to expand options before converging on one.
-
-**Trigger Phrases:**
-- "Help me refine this idea"
-- "Ideate on [concept]"
-- "Stress-test my plan"
-- "Help me think through [X]"
-
-idea-refine is **optional** — like `interview-me`, it is one of two front doors into the Ideate stage, not a mandatory gate. Reach for it when the idea needs sharpening.
-
-**Skip it when:**
-- The idea is already sharp and well-understood — open `spec-grilling` directly.
-- The change is tiny and well-understood — refining it is over-process.
+- An idea is real but still soft: one direction named, nothing ruled out, no second ever drawn.
+- The idea has a know-it-when-I-see-it surface nobody settles in prose.
+- Skip a mechanical change, where refining costs more than the change.
+- Near-miss, nobody has said who it is for or why now: `interview-me`, which writes this `intent.md` first.
+- Near-miss, the idea is already sharp and agreed, or only the how is open: `spec-grilling`.
+- Near-miss, a decision already taken, to be cross-examined rather than widened: `doubt-driven-development`.
 
 ## Inputs
 
-idea-refine is an OPTIONAL Ideate-stage front door. It accepts EITHER of:
-- An existing `docs/features/<slug>/intent.md` (originated by `interview-me`) to sharpen, OR
-- A raw idea supplied directly in the invoking prompt (when `interview-me` was skipped).
-
-**Refuse-to-run ONLY if both are absent** (there is nothing to refine). If an `intent.md` exists, read it
-FIRST and treat its `Outcome · User · Why · Success · Constraints · Out-of-scope` as the starting point —
-refine them, never silently discard them. If only a raw idea is given, you will populate a fresh
-`docs/features/<slug>/intent.md` (the SHARED artifact) as your output. You do not create any other durable
-file — the throwaway reaction probes rendered in Phase 1 are deleted before handoff.
+- `docs/features/<slug>/intent.md` — helps: sections a person already confirmed · without it: build them
+  from the raw idea and the repository, each unread section marked `derived`
+- **A person reacting to options** — helps: their pick makes a direction confirmed, not recommended ·
+  without it: grade on paper, write `status: derived`, and name under `## Success` the reaction that
+  would settle it
+- **The raw idea in the prompt** — helps: it is the material · without it: nothing to refine — say so
+  and route to `interview-me`, which extracts the idea first
+- The repository, prior art and `CONTEXT.md` — helps: variations grounded in what exists, under fixed
+  terms · without it: the domain and the person's own words
 
 ## Process
 
-This skill is primarily an interactive dialogue. When the user invokes it with an idea, guide them through three phases. Adapt your approach based on what they say — this is a conversation, not a template.
+1. **Read any existing `intent.md` first and sharpen it in place.** Gauge domain fluency — ask, or read
+   it off the prompt's vocabulary — then compress where it is fluent and invest where the ignorance is.
 
-#### Phase 1: Understand & Expand (Divergent)
+2. **Restate the idea as one "How might we…" line** that names the problem, not a solution.
 
-**Goal:** Take the raw idea and open it up.
+3. **At most three questions, and only where the answer changes the shape** — who this is for, what
+   success looks like. With nobody answering, both come off the prompt and the repository marked
+   `derived`.
 
-1. **Restate the idea** as a crisp "How Might We" problem statement. This forces clarity on what's actually being solved.
+4. **Diverge to five to eight variations, each with a reason it exists** — lenses in
+   [frameworks](references/frameworks.md); take the ones that fit. Inside a codebase, grep and read
+   before inventing.
 
-2. **Ask 3-5 sharpening questions** — no more. Focus on:
-   - Who is this for, specifically?
-   - What does success look like?
-   - What are the real constraints (time, tech, resources)?
-   - What's been tried before?
-   - Why now?
+5. **Render what taste decides; describe what argument decides.** Where the surface is one people know
+   on sight, build three or four deliberately unalike throwaway probes ([reactable
+   options](../../references/finding-unknowns.md)) and delete them before the handoff.
 
-   Use the `AskUserQuestion` tool to gather this input. Do NOT proceed until you understand who this is for and what success looks like. Also establish how familiar the user is with the domain — novel territory means investing in divergence and grounding; familiar territory means compressing. Effort follows ignorance.
+6. **Cluster, grade, and name the bet.** Fold what resonated into two or three directions differing in
+   kind, not degree, and rank them by the rubric in
+   [refinement criteria](references/refinement-criteria.md). Per direction name the bet, what would kill
+   it, and what you are ignoring; say which is weak, and why.
 
-3. **Generate 5-8 idea variations** using these lenses:
-   - **Inversion:** "What if we did the opposite?"
-   - **Constraint removal:** "What if budget/time/tech weren't factors?"
-   - **Audience shift:** "What if this were for [different user]?"
-   - **Combination:** "What if we merged this with [adjacent idea]?"
-   - **Simplification:** "What's the version that's 10x simpler?"
-   - **10x version:** "What would this look like at massive scale?"
-   - **Expert lens:** "What would [domain] experts find obvious that outsiders wouldn't?"
+7. **Scope the recommendation to one job**, riskiest assumption first, and write down what got cut and
+   why.
 
-   Push beyond what the user initially asked for. Create products people don't know they need yet.
-
-   **Make variations reactable when taste is involved.** If the idea has any "know it when I see it" surface — UI, UX flow, report format, CLI/API ergonomics — render the 3-4 strongest variations as *throwaway* artifacts (rough HTML mock-ups, sample outputs, fake-data sketches), wildly different from each other, and ask the user to react; delete them after. Why reacting beats describing: `../../references/finding-unknowns.md`, "reactable options". These probes triangulate taste for the intent only — actual UI design and the committed prototype still go through `frontend-design` at Spec.
-
-**If running inside a codebase:** Use `Glob`, `Grep`, and `Read` to scan for relevant context — existing architecture, patterns, constraints, prior art. Ground your variations in what actually exists. Reference specific files and patterns when relevant.
-
-Read `references/frameworks.md` for additional ideation frameworks you can draw from. Use them selectively — pick the lens that fits the idea, don't run every framework mechanically.
-
-#### Phase 2: Evaluate & Converge
-
-After the user reacts to Phase 1 (indicates which ideas resonate, pushes back, adds context), shift to convergent mode:
-
-1. **Cluster** the ideas that resonated into 2-3 distinct directions. Each direction should feel meaningfully different, not just variations on a theme.
-
-2. **Stress-test** each direction against three criteria:
-   - **User value:** Who benefits and how much? Is this a painkiller or a vitamin?
-   - **Feasibility:** What's the technical and resource cost? What's the hardest part?
-   - **Differentiation:** What makes this genuinely different? Would someone switch from their current solution?
-
-   Read `references/refinement-criteria.md` for the full evaluation rubric.
-
-3. **Surface hidden assumptions.** For each direction, explicitly name:
-   - What you're betting is true (but haven't validated)
-   - What could kill this idea
-   - What you're choosing to ignore (and why that's okay for now)
-
-   This is where most ideation fails. Don't skip it.
-
-**Be honest, not supportive.** If an idea is weak, say so with kindness. A good ideation partner is not a yes-machine. Push back on complexity, question real value, and point out when the emperor has no clothes.
-
-#### Phase 3: Sharpen & Ship
-
-Produce the concrete artifact — write (or refine IN PLACE) the SHARED `intent.md`. Use EXACTLY these six
-stable section headings (the contract `spec-grilling`/`to-prd` consume):
-
-```markdown
-# [Idea Name]
-
-## Outcome
-[The recommended direction — the future you're building toward. 1-2 crisp sentences, then 2-3 paragraphs of why.]
-
-## User
-[Who this is for, specifically. A nameable person or segment, not "everyone."]
-
-## Why
-[The one-sentence "How Might We" framing + why now.]
-
-## Success
-[What success looks like (an observable signal). Then the key assumptions to validate:
-- [ ] [Assumption 1 — how to test it]
-- [ ] [Assumption 2 — how to test it]]
-
-## Constraints
-[Real limits: time, tech, resources, prior art. Plus any open questions that must be answered before building.]
-
-## Out-of-scope
-[The "Not Doing (and why)" list — arguably the most valuable part. Focus is saying no to good ideas:
-- [Thing 1] — [reason]
-- [Thing 2] — [reason]]
-```
-
-**The "Out-of-scope / Not Doing" list is arguably the most valuable part.** Focus is about saying no to good
-ideas. Make the trade-offs explicit.
-
-Write to `docs/features/<slug>/intent.md` ONLY after the user confirms the converged direction. If an
-`intent.md` already exists (from `interview-me`), refine it in place — do NOT create a parallel one-pager.
-
-## Tone
-
-Direct, thoughtful, slightly provocative. You're a sharp thinking partner, not a facilitator reading from a script. Channel the energy of "that's interesting, but what if..." -- always pushing one step further without being exhausting.
-
-Read `references/examples.md` for examples of what great ideation sessions look like.
+8. **Write `intent.md` in place, then hand it to Spec** — once the person picks, or on the derived path
+   with the recommendation and `status: derived`. The handoff carries the chosen direction and its open
+   assumptions, not the options that lost.
 
 ## Rationalizations
 
-- **Don't generate 20+ ideas.** Quality over quantity. 5-8 well-considered variations beat 20 shallow ones.
-- **Don't be a yes-machine.** Push back on weak ideas with specificity and kindness.
-- **Don't skip "who is this for."** Every good idea starts with a person and their problem.
-- **Don't produce a plan without surfacing assumptions.** Untested assumptions are the #1 killer of good ideas.
-- **Don't over-engineer the process.** Three phases, each doing one thing well. Resist adding steps.
-- **Don't just list ideas — tell a story.** Each variation should have a reason it exists, not just be a bullet point.
-- **Don't describe what you can show.** A paragraph about a "clean dashboard layout" surfaces nothing; a rough mock-up the user reacts to surfaces their actual taste.
-- **Don't ignore the codebase.** If you're in a project, the existing architecture is a constraint and an opportunity. Use it.
+- *"Twenty options is more thorough."* → twenty shallow variations are one idea in twenty costumes.
+- *"I can describe the layout."* → a paragraph about a clean layout surfaces nothing a mock-up draws in one line.
+- *"They liked all three."* → a partner who likes every direction has told you nothing.
+- *"The assumptions are obvious."* → an unnamed bet is the one that kills the idea after code exists.
+- *"Who it's for is obvious."* → an idea dissolves on a user nobody named.
+- *"Nobody is here to react, so I'll wait."* → an unattended pass is the ordinary case; it ends `derived`.
 
 ## Red flags
 
-- Generating 20+ shallow variations instead of 5-8 considered ones
-- Skipping the "who is this for" question
-- No assumptions surfaced before committing to a direction
-- Yes-machining weak ideas instead of pushing back with specificity
-- Producing a plan without a "Not Doing" list
-- Ignoring existing codebase constraints when ideating inside a project
-- Describing visual/UX variations in prose when the user could have reacted to a throwaway mock-up
-- Jumping straight to Phase 3 output without running Phases 1 and 2
+- Twenty shallow variations, or a single direction.
+- A taste-bearing surface argued in prose.
+- A recommendation with no bet named.
+- An empty Not Doing list.
+- A second one-pager, or a surviving probe file.
+- "Everyone" where a nameable person belongs.
 
-## Verification (ending criteria)
+## Verification
 
-After completing an ideation session:
+- [ ] `intent.md` holds its six headings in order, sharpened rather than replaced, out-of-scope filled.
+- [ ] A "How might we" line names the problem, and the user is a nameable person or segment.
+- [ ] Five to eight variations were folded into two or more graded directions, the recommended one
+      stating its bet, its killer and what it ignores.
+- [ ] Every taste-bearing variation was rendered and reacted to, or its absence is an open question
+      under `## Constraints`; no probe file survived.
+- [ ] `status:` reads `signed` behind an explicit pick, or `derived` with each unread section marked.
+- [ ] No `STATE.md` row was written, and the measured count is reported against the cap.
 
-- [ ] A clear "How Might We" problem statement exists
-- [ ] The target user and success criteria are defined
-- [ ] Multiple directions were explored, not just the first idea
-- [ ] Variations with a "know it when I see it" surface were rendered as reactable throwaway artifacts, not prose
-- [ ] Hidden assumptions are explicitly listed with validation strategies
-- [ ] A "Not Doing" list makes trade-offs explicit
-- [ ] The output is a concrete artifact (the refined `intent.md` with its six stable sections), not just conversation
-- [ ] The user confirmed the final direction before any implementation work
+## Outputs & handoff
 
-## Outputs & handoff contract
-
-**Emits:** `docs/features/<slug>/intent.md` — the SHARED Ideate artifact. idea-refine NEVER creates a
-separate one-pager (no `docs/ideas/...`); it writes/refines `intent.md` in place so `spec-grilling` consumes a
-single, sharper artifact cold.
-
-**Stable sections** (the contract `spec-grilling` and `to-prd` depend on — write all six, exact headings):
-- `## Outcome` — the recommended direction in 1–2 crisp sentences (the future you are building toward).
-- `## User` — who this is for, specifically (a nameable person/segment, never "everyone").
-- `## Why` — the "How Might We" problem framing + why now.
-- `## Success` — what success looks like (observable signal) + the key assumptions to validate and how.
-- `## Constraints` — real limits (time, tech, resources, prior art) + any open questions to answer first.
-- `## Out-of-scope` — the "Not Doing (and why)" list; the most valuable part — make trade-offs explicit.
-
-Write to `intent.md` ONLY after the user confirms the converged direction (Phase 3). Do NOT auto-save mid-session.
-
-**Handoff:** `intent.md` IS the per-stage handoff to Spec (`spec-grilling` reads it cold). No `STATE.md` row yet
-— a feature enters `STATE.md` at the Spec stage; Ideate artifacts live under `docs/features/<slug>/` only. If you
-materially changed an existing `intent.md`, add a one-line "refined: <what moved>" note at the top so the next
-agent sees the delta.
+- `docs/features/<slug>/intent.md` — cap **600 words**. `# Intent — <slug>`, a `status:` line, then
+  `## Outcome` · `## User` · `## Why` · `## Success` · `## Constraints` · `## Out-of-scope` — the
+  "Not Doing" list, glossed here and never in the heading — in that order; `## Success` carries the
+  observable signal and the must-be-true assumptions with a test each, `## Constraints` the real limits
+  and the open questions. Refine it in place, never a second one-pager, opening a materially changed
+  file with a `refined: <what moved>` line; cut an over-cap draft rather than hand it on.
+- The step-5 probes are throwaway; `intent.md` is the only durable file this skill leaves.
+- No `STATE.md` row and no feature block — a skill called by hand opens no board
+  ([state schema](../../references/state-schema.md)).
+- Returns: the how-might-we line, the variations with their reasons, the graded directions with their
+  bets, and the measured length against the cap. No verdict — Ideate ends at a sharper intent.

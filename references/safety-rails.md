@@ -1,142 +1,58 @@
 # Safety rails
 
-The six things an agent in this suite does not decide for itself, stated once so no skill has to
-restate them. Everything else is the model's call.
+The stop list, the two dispatch rules and the verdict vocabulary, stated once. Outside them the model
+decides.
 
-That last sentence is the point of the file. A suite that writes down every stop it can imagine
-teaches an agent to look for permission, and an agent looking for permission stops in places nobody
-meant it to. So the list is short and closed: **six rails, and outside them the model decides.** A
-skill that wants a seventh is proposing a change to this file, not adding a line to its own.
+## The stop list
 
-Each rail below is here for the same reason: the cost of getting it wrong is not paid by the run that
-got it wrong. Something outside the run — a shipped `main`, a leaked credential, a compromised
-oracle — absorbs the damage, and no amount of the agent being careful afterwards puts it back.
+A slice ends for these six and no others: `State` becomes `blocked`, `Gate` flips to `you`, the report
+names which fired.
 
----
+1. **A secret in the diff or its history.** Rotation is the person's; no care afterwards undoes it.
+2. **A Critical or High security finding.** That severity is the audit's, not the pull request's risk
+   band — a HIGH band stops nothing; a HIGH finding stops the slice on contact.
+3. **A step needing a credential, money, or production data.** Supplying capability is an act of
+   authorisation only the person can perform.
+4. **An irreversible action with no rollback.** The run that gets it wrong is not what pays.
+5. **A change crossing the feature's Not-Doing list.** That line is intent, not plan.
+6. **The repair ladder exhausted** — retry-with-error, root-cause, change route, shrink, surface. When
+   the last rung is spent, the failure is not one attempt away.
 
-## 1. A human merges
+Never print, log, echo or write down a credential's value. Report that one is present, never what it is.
 
-The autonomous span ends at an **open, risk-banded draft pull request on a branch**. Never
-`gh pr merge`, never a push to `main` or `master`, never a deploy, never a release. A person merges,
-and that merge is the last gate the work passes through — the only one with somebody's judgement in
-it rather than a check's.
+## Everything else is decided and flagged
 
-Everything a run produces is reversible up to that point and much of it is not afterwards, which is
-the whole reason the line sits exactly there.
+Take a default, state the reason, build, append one `docs/session-log.md` entry, add a row to the pull
+request's **Decided for you** table. High-risk work — authentication, payments, destructive migrations,
+deletions — is not on the list: it raises the risk band, which is how a person triages. A stopped slice
+terminates and reports; it never waits.
 
-**Branch names**, since a rail about branches needs them: `cluster/C-<NNN>` for cluster work,
-`feat/<slug>` for a feature outside one, `hotfix/<slug>`, `exp/<slug>` for an experiment. A slug is
-lowercase, hyphenated, and carries no ticket id — ticket ids belong in commit messages, where they
-are searchable, rather than in a name that has to be typed. One cluster is one branch; two clusters'
-tickets never share one.
+## A human merges
 
-## 2. A secret never lands, and a value never leaves
+The autonomous span ends at an open, risk-banded draft pull request on a branch. Never `gh pr merge`,
+never a push to `main`, never a deploy or release. What a run produces is reversible up to that merge and
+little of it after; the band carries irreversibility to the person standing there.
 
-A live credential in a diff is a **hard halt of that slice**: no retry, no pull request, and the
-finding is reported as it stands. A credential already committed is worse, because its blast radius
-is the whole repository rather than one diff — that fires a notification immediately, freezes the
-next barrier, and opens no further PRs. Rotating it is the human's, and the report says where it was
-found.
+## One writer per file
 
-The narrower form of the same rail, and the one that gets broken by accident: **a value is never
-printed, logged, echoed, or written down.** A probe reports that a credential is present, never what
-it is. A run record says a credential was withheld, never which. This holds even where the value is
-already in the environment and printing it would be convenient, because a log outlives the reason
-somebody had for writing to it.
+Two agents in parallel never own the same file. Read subagents parallelize freely; a write needs an owner
+declared at dispatch. Where a wave's slices would overlap, serialize into sub-waves or merge into one —
+an unowned overlap is a race whose loser's work vanishes with no error. A barrier waits for terminal
+states, never success, so a blocked slice drains the wave.
 
-## 3. A Critical or High security finding stops the slice
+## Code-cold dispatch
 
-Not a retry, not a warning attached to a passing verdict. The slice halts, no pull request opens for
-it, and the finding tops the report.
+A code-cold pass dispatches **the skill itself** in a fresh subagent that never saw the maker's context,
+inside a run and outside one alike; there is no persona to play on top of it. On a host with no skill
+tool the `SKILL.md` is the subagent's prompt (`docs/setup.md`).
 
-Severity here is the auditor's, and it is a different scale from the risk band a pull request carries
-— the shared word `HIGH` is the trap. A HIGH **band** never stops anything: it is a label telling a
-person how hard to look before merging, and inside a run nothing pauses for high-risk work. A HIGH
-**finding** stops the slice on contact. When in doubt about which one is in front of you, the finding
-comes from an audit and names a vulnerability; the band comes from `pull-request` and names a diff.
+## Verdicts
 
-## 4. Nothing edits what judges it
-
-The signed `acceptance.md`, a failing test written before the code meant to pass it, and a slice's
-declared regression surface are **frozen while a slice is being made to pass**. An edit to any of
-them that would turn a red gate green is gate-erosion: the slice halts, and the halt **names the
-artifact that was about to change** — "gate erosion" on its own says nothing about which guarantee
-was nearly traded away, so it cannot be checked.
-
-The rail is not about honesty. It is that a check the maker can edit is not a check, and an agent
-under retry pressure has every local reason to edit one — the failure is right there, the edit is one
-line, and the run gets to be green. Making the artifact unavailable is what closes that off, rather
-than asking the agent to want it less.
-
-Two shapes of the same thing are worth naming because they do not look like edits:
-
-- **The reward-hack signature** — the failure moved, but only because a test or a scenario changed
-  while the implementation stayed materially the same. That is the same halt.
-- **maker ≠ checker** — the agent that wrote a slice never verifies or reviews it. Verify and Review
-  run as fresh, code-cold subagents that never see the implementer's reasoning, only the diff and the
-  running build. An agent grading its own work is editing what judges it by a slower route.
-
-These three thaw between runs, not during one. A person can change any of them through a signed Spec
-change, in the open, where the change is the subject rather than a step toward green.
-
-**`docs/design.md` is read-only rather than frozen, and the difference matters.** The repository's
-decided look is not a fourth frozen artifact — it is a file every skill reads and only
-`frontend-design` writes, under the sign-off of a surface that means to move the whole look. It never
-thaws for a slice, because it was never frozen *to* a slice.
-
-What makes it worth naming here anyway: Verify grades every design-contract axis marked
-`inherits: docs/design.md` against this file, and the file carries no `status:` of its own — so
-nothing else in the suite catches an edit to it. Moving the decided look so a built surface matches
-the code is weakening a check to clear a gate, and it is the same halt as any other, with no retry
-qualifier and no reward-hack test to apply first.
-
-## 5. One writer per file
-
-Two agents dispatched in parallel never own the same file. Read subagents parallelize freely — that
-is what makes a survey cheap — but a write needs an owner, declared at dispatch, and overlapping
-ownership is a race whose loser's work vanishes with no error anywhere.
-
-Where a wave's slices would overlap, **serialize them into sub-waves or merge them into one slice**.
-Do not dispatch and hope. A slice that arrives with no declared file ownership cannot be checked for
-overlap at all, which is why that is a refusal rather than a warning.
-
-Two consequences that follow from the same rule rather than being separate rules:
-
-- **Parallelize at the cluster or slice level, never inside a tightly-coupled slice.** Two slices in
-  one wave are independent by construction; two steps in one slice are not.
-- **A barrier waits for terminal states, never for success.** A halted or blocked slice satisfies the
-  barrier, so the run drains every other branch instead of stalling on one that will never pass.
-
-## 6. An unattended run does not start without its environment
-
-A wave does not begin on a red environment row, or on an amber one nobody has attested. The reason is
-narrow and worth stating: a run with no credentials does not fail cleanly at the point the credential
-was needed — it fails deep inside a slice, after work, in a way that reads like a code defect. The
-check is cheap and it runs once, at the front, where the answer is still legible.
-
-The related rail is about who is present. A skill that needs a person — an interview, a taste call, a
-confirmation before something irreversible — **checks whether one is there.** If somebody is, ask. If
-nobody is, the slice ends and its gate flips to the human, with what was needed named. It does not
-ask an empty room and wait.
-
----
-
-## What is not on this list
-
-Everything else. A run does not stop to summarize, to check in between waves, to confirm a judgement
-call it is equipped to make, or to ask permission for work the plan already authorized. Where a
-condition genuinely ends work, it **terminates and reports** rather than waiting — a stopped run is
-picked up when a person next looks, and a run that sits idle waiting for an answer is a run that has
-failed at the one thing it was for.
-
-High-risk work is the case people expect to find here and it is deliberately absent. Authentication,
-payments, destructive migrations, deletions, deploys: inside a run none of these stop anything. They
-raise the risk band on the pull request, and a person triages the merge queue by that band. Building
-one of them with somebody present is what the single-slice path is for — that path does stop before
-the risky step and ask, because there is somebody there to answer.
+Every Verify and Review output uses `pass · concerns · block`, where `block` means a stop-list item and
+nothing else.
 
 ## How a skill cites this
 
-Name the rail, do not restate it: *"a secret in the diff is a hard halt (safety rail 2)"*. The rail's
-reasoning lives here, and a copy of it in a skill is a copy that can drift from this one — at which
-point a reader has two versions of a safety rule and no way to tell which one is current.
+Name the rail; do not restate it — *"a secret in the diff is a stop-list item
+(`references/safety-rails.md`)"*. A copy in a skill body drifts from this one, leaving two versions of a
+safety rule and no way to tell which is live.

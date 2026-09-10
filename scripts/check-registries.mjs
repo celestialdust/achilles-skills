@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // check-registries.mjs — is everything that ships listed everywhere it has to be listed?
 //
-// A skill, a command and a persona are each enumerated in more than one file, and the lists are
-// maintained by hand. Adding one means remembering every list; renaming one means remembering them
-// twice. The miss is always the same shape and always the same cause — the list nobody remembered —
-// and it is invisible to a reader, because each list reads perfectly well while being incomplete.
+// A skill and a command are each enumerated in more than one file, and the lists are maintained by
+// hand. Adding one means remembering every list; renaming one means remembering them twice. The miss
+// is always the same shape and always the same cause — the list nobody remembered — and it is
+// invisible to a reader, because each list reads perfectly well while being incomplete.
 // This build spent a whole commit propagating two artifacts through the places that enumerate them,
 // and still left `skills/using-agent-skills/SKILL.md` naming one of the three.
 //
@@ -14,9 +14,13 @@
 //     behind, and it is worse than a missing row: it sends a reader to a file that is not there.
 //
 // HOW IT FINDS A REGISTRY. Not by heading text, which drifts. A registry is a markdown table whose
-// header row names the kind — a column called `Skill`, `Command` or `Persona` — and the entries are
-// the tokens in that column, backticked or bare. Both readings are deliberately loose about where the
-// list sits and strict about what counts as an entry.
+// header row names the kind — a column called `Skill` or `Command` — and the entries are the tokens in
+// that column, backticked or bare. Both readings are deliberately loose about where the list sits and
+// strict about what counts as an entry.
+//
+// THERE IS NO PERSONA LEG. `agents/` is gone, and with it the two persona tables and the
+// manifest's `agents` array. A code-cold pass dispatches the skill itself, so there is no role left to
+// enumerate.
 //
 // MEMBERSHIP IS JUDGED AGAINST THE COLUMN, NEVER AGAINST THE FILE, and the difference is the whole
 // worth of this check. Four legs used to ask whether the *file* held the name anywhere — a substring
@@ -44,11 +48,10 @@
 //     as a PHANTOM in the Quick reference table, which is a column and can be read exactly.
 //   · `.claude-plugin/plugin.json`'s `skills` key. It is the string `./skills` — a pointer at the
 //     directory, not an enumeration — so there is nothing there to be out of step with the tree. Its
-//     `commands` and `agents` arrays are enumerations and are checked.
+//     `commands` array is an enumeration and is checked.
 //
-// NOTHING RUNS THIS FOR YOU. .github/workflows/companion-tests.yml is path-filtered to
-// skills/frontend-design/scripts/**, so this directory is covered by no job at all. It is on the pre-PR
-// list in CONTRIBUTING.md because in a prose repository the checker is a person.
+// .github/workflows/repo-checks.yml runs this on every push and pull request, unfiltered by path —
+// the drift it catches is usually introduced by a file far from the claim it invalidates.
 //
 //   node scripts/check-registries.mjs             check, and report every gap
 //   node scripts/check-registries.mjs --list      print every registry and what it holds, and stop
@@ -122,8 +125,8 @@ const NAMELIKE = /^\/?[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 // The entries in a column, read two ways because the tree writes them two ways. A backticked token is
 // an entry wherever it stands — `/ideate` in a Command cell. And a cell whose whole content is one
 // bare name is an entry too: the Quick reference table in `using-agent-skills` writes its Skill column
-// unbackticked, and reading only backticks found nothing there and reported all forty skills missing.
-// A link is reduced to its text first, which is how the persona table writes its column.
+// unbackticked, and reading only backticks found nothing there and reported every skill missing.
+// A link is reduced to its text first, which is how README writes its column.
 function entriesInColumn(markdown, columnMatch) {
   const found = new Map();
   for (const table of tablesIn(markdown)) {
@@ -161,7 +164,7 @@ function routingDestinations(markdown) {
   return out.join('\n');
 }
 
-// The two enumerations in the plugin manifest. `skills` is the string `./skills` and enumerates
+// The one enumeration in the plugin manifest. `skills` is the string `./skills` and enumerates
 // nothing, so it is not read here — the header says so.
 function manifestEntries(source, key) {
   const found = new Map();
@@ -183,7 +186,6 @@ function manifestEntries(source, key) {
 
 const skills = skillNames();
 const commands = fileNames('commands');
-const personas = fileNames('agents');
 
 const dispatcher = read('skills/using-agent-skills/SKILL.md');
 const claudeMd = read('CLAUDE.md');
@@ -201,10 +203,7 @@ const quickRef = entriesInColumn(dispatcher, /^skill$/i);
 const readmeSkills = entriesInColumn(readme, /^skill$/i);
 const claudeCommands = entriesInColumn(claudeMd, /^command$/i);
 const readmeCommands = entriesInColumn(readme, /^command$/i);
-const claudePersonas = entriesInColumn(claudeMd, /^persona$/i);
-const readmePersonas = entriesInColumn(readme, /^persona$/i);
 const manifestCommands = manifestEntries(manifest, 'commands');
-const manifestAgents = manifestEntries(manifest, 'agents');
 
 const REGISTRIES = [
   {
@@ -235,18 +234,6 @@ const REGISTRIES = [
     kind: 'command', where: '.claude-plugin/plugin.json · the `commands` array',
     tree: commands, lists: holds(manifestCommands), entries: manifestCommands,
   },
-  {
-    kind: 'persona', where: 'CLAUDE.md · the persona table',
-    tree: personas, lists: holds(claudePersonas), entries: claudePersonas,
-  },
-  {
-    kind: 'persona', where: 'README.md · the persona table',
-    tree: personas, lists: holds(readmePersonas), entries: readmePersonas,
-  },
-  {
-    kind: 'persona', where: '.claude-plugin/plugin.json · the `agents` array',
-    tree: personas, lists: holds(manifestAgents), entries: manifestAgents,
-  },
 ];
 
 const gaps = [];
@@ -263,7 +250,7 @@ for (const reg of REGISTRIES) {
 }
 
 if (listOnly) {
-  console.log(`tree: ${skills.length} skills · ${commands.length} commands · ${personas.length} personas\n`);
+  console.log(`tree: ${skills.length} skills · ${commands.length} commands\n`);
   for (const reg of REGISTRIES) {
     const missing = reg.tree.filter(n => !reg.lists(n));
     console.log(`${reg.where}`);
@@ -286,9 +273,9 @@ for (const g of gaps) {
   console.log('');
 }
 
-console.log(`${skills.length} skills · ${commands.length} commands · ${personas.length} personas, against ${REGISTRIES.length} registries`);
+console.log(`${skills.length} skills · ${commands.length} commands, against ${REGISTRIES.length} registries`);
 if (!gaps.length) {
-  console.log('Every skill, command and persona is listed everywhere it has to be, and no registry lists a ghost.');
+  console.log('Every skill and command is listed everywhere it has to be, and no registry lists a ghost.');
   console.log('Membership was judged against each registry\'s own column, not against the file around it.');
   console.log('Artifacts enumerated in prose rather than in a column are out of reach here. Sweep those by hand.');
   process.exit(0);

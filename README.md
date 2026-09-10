@@ -1,46 +1,42 @@
 # achilles-skills
 
-**A self-contained skill suite that takes one idea from `Ideate` to a risk-banded draft PR — the human owns intent, the agent owns execution.**
+**A self-contained skill suite that takes one idea from `Ideate` to a risk-banded draft pull request — the human owns intent, the agent owns execution.**
 
 ```
-        ╴╴╴╴╴ HUMAN-LED ╴╴╴╴╴╴╴╴╴╴╴╴╴▶│◀╴╴╴╴╴ AGENT-AUTONOMOUS (terminates at a DRAFT PR) ╴╴╴╴╴
+        ╴╴╴╴╴ HUMAN-LED ╴╴╴╴╴╴╴╴╴╴╴╴╴▶│◀╴╴╴╴ AGENT-AUTONOMOUS (ends at a DRAFT PR) ╴╴╴╴╴
    ┌────────┐   ┌──────┐   ┌──────┐   ┌───────────┐   ┌────────┐   ┌────────┐   ┌──────┐
    │ Ideate │──▶│ Spec │──▶│ Plan │──▶│ Implement │──▶│ Verify │──▶│ Review │──▶│ Ship │
    └────────┘   └──────┘   └──────┘   └───────────┘   └────────┘   └────────┘   └──────┘
     /ideate      /spec      /plan      /implement       /verify      /review      /ship
                                   └──────────── /orchestrate ───────────────┘
-                            (one autonomous wave-parallel DAG run → open draft PRs)
-
-   /setup — one-time repo ecosystem (STATE.md · CONTEXT.md · docs/adr/ · docs/features/ ·
-            docs/session-state.md · docs/session-log.md · docs/progress.md · docs/lessons.md · the
-            "## Agent skills" block in one of CLAUDE.md / AGENTS.md + a pointer in the other)
 ```
 
-The human owns **Ideate + Spec + Plan** — the decisions only a person can make. The agent then runs **Implement → Verify → Review → Ship** fully autonomously — it never blocks waiting for input, and where a stop condition fires it terminates and reports instead of waiting ([orchestrator](./skills/orchestrator/SKILL.md), *What stops a run*, lists them) — and stops at **open, risk-banded draft PRs** for an async human merge. It never auto-merges to `main`.
+The human owns **Ideate + Spec + Plan** — the decisions only a person can make. The agent then runs
+**Implement → Verify → Review → Ship** unattended: it never blocks waiting for input, and where one of
+six named conditions fires it ends the slice and reports instead of waiting
+([safety-rails](./references/safety-rails.md)). Every run stops at **open, risk-banded draft pull
+requests** for an async human merge. It never merges to `main`.
 
 ---
 
 ## Why this exists
 
-Coding agents are fast, and that speed amplifies three failure modes. achilles-skills is built to close each one.
+Coding agents are fast, and that speed amplifies three failure modes. This suite is built to close each.
 
-- **Misalignment — "the agent built the wrong thing."** The most common failure isn't bad code; it's confidently-built code that answers the wrong question. achilles forces the disagreement *upward*, into a human-led Ideate → Spec → Plan phase that produces a signed `acceptance.md`, ADRs, and a shared `CONTEXT.md` glossary before a line is written. The agent never gets to guess what you meant.
+- **Misalignment — "the agent built the wrong thing."** The common failure is not bad code; it is
+  confidently-built code answering the wrong question. This forces the disagreement *upward*, into a
+  human-led Ideate → Spec → Plan phase that produces a signed `acceptance.md`, the decision records and
+  a shared `CONTEXT.md` glossary before a line is written. The agent never gets to guess what you meant.
 
-- **The ball of mud — entropy at machine speed.** Agents accelerate coding, which means they accelerate decay. achilles bakes design discipline into the work itself: deep-module interfaces, contract-first API boundaries, behavior-preserving simplification, and a thin-vertical-slice implementer that ships rollback-friendly increments instead of sprawling rewrites.
+- **The ball of mud — entropy at machine speed.** Agents accelerate coding, so they accelerate decay.
+  Design discipline is baked into the work itself: deep-module interfaces, contract-first boundaries,
+  behaviour-preserving simplification, and an implementer that ships thin revertible slices rather than
+  sprawling rewrites.
 
-- **The silent false-green — "all tests pass" that proves nothing.** A green run is only evidence if the tests test outcomes. achilles separates the *method* (test-driven-development) from an independent, code-cold Verify pass (quality-verification) and a fan-out Review wave (correctness, simplicity, security, performance, plus an adversarial skeptic). The maker never grades their own homework.
-
-The result is an autonomy model you can trust: you make the calls that matter, the agent does the mechanical mileage, and every run ends at a reviewable draft PR — never a surprise merge.
-
-### Finding your unknowns
-
-Misalignment starts before the first question is asked: a prompt only contains what's already on your map. The discovery-stage skills (`interview-me`, `idea-refine`, `spec-grilling`) work all four quadrants of the **unknowns matrix** — what you stated (known knowns), what you know you haven't resolved (known unknowns), what you'd only recognize on sight (unknown knowns), and what you haven't considered at all (unknown unknowns):
-
-- **Blind-spot pass** (`interview-me`, `spec-grilling`) — scan the territory *before* the first question and brief you on decisions your ask never mentions.
-- **Reactable options** (`idea-refine`) — wildly different throwaway mock-ups to react to when the answer is "I'd know it when I see it."
-- **Leverage-ordered questions** — architecture-changing questions first; uncontested defaults stated inline, not asked.
-
-The shared playbook is [`references/finding-unknowns.md`](./references/finding-unknowns.md). Discovery effort follows ignorance: novel territory gets the full treatment, familiar ground gets compressed.
+- **The silent false green — "all tests pass" proving nothing.** A green run is evidence only if the
+  tests test outcomes. The *method* (`test-driven-development`) is kept separate from an independent,
+  code-cold Verify pass (`quality-verification`) and a parallel Review fan-out. The maker never grades
+  its own work.
 
 ---
 
@@ -48,275 +44,124 @@ The shared playbook is [`references/finding-unknowns.md`](./references/finding-u
 
 | Path | What it is |
 |---|---|
-| `skills/` | The 40 skills — one discipline per `SKILL.md` |
-| `agents/` | The 5 fresh-context personas |
-| `commands/` | The 12 slash commands — thin wrappers over the skills |
-| `references/` | Shared reference material: checklists (security, performance, accessibility, …), `safety-rails.md` (the six things an agent does not decide for itself — every skill cites it rather than restating a rail), and `write-ownership.md` (the write table `scripts/check-write-table.mjs` reads) |
-| `docs/` | Reader-facing documentation: getting started + per-agent setup guides. `CONTEXT.md` at the root is a different case: the suite runs its own process, so it carries the glossary that process produces |
+| `skills/` | The 39 skills — one discipline per `SKILL.md` |
+| `commands/` | The 12 slash commands — thin entry points over the skills |
+| `references/` | What more than one skill reads: the checklists, `safety-rails.md` (the stop list, the dispatch rules, the verdict vocabulary), `state-schema.md`, `principles.md` |
+| `docs/setup.md` | Install and run, on every host — one guide, not one per tool |
 | `scripts/` | The six checks a change to this repo is measured against — see *How a change here is checked* in [CLAUDE.md](./CLAUDE.md) |
 | `.claude-plugin/` | `plugin.json` and `marketplace.json`, the install manifests. `plugin.json` is the only file that states the version, and the only path the plugin loader reads |
-| `CONTRIBUTING.md` | What a change to a skill, command, or persona has to satisfy — the `SKILL.md` envelope, the artifact-chain contract, and the list to run before opening a PR |
+| `CLAUDE.md` / `AGENTS.md` | The rules for working in this repository — written once in the first, with the second pointing at it |
+| `CONTRIBUTING.md` | What a change to a skill or a command has to satisfy |
 
-`docs/` is for readers of this repo. The pipeline artifacts the suite produces (`STATE.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`, `docs/session-log.md`, `docs/progress.md`, `docs/lessons.md`) live in **your** project once `/setup` scaffolds them there — not in this one. One is an exception, and it is here for the same reason: this repo runs the same loop, so it carries it. `/setup` scaffolds a copy of `CONTEXT.md` into your project; this repo keeps its own.
-
-`docs/design.md` — the decided look — is in neither list. Nothing scaffolds it: the first user interface built in a repo writes it. This repo builds no interface, so it has none. That absence is a look nobody has decided yet, which is the correct state here rather than a gap.
-
-Two contracts sit outside `docs/`, for different reasons. `using-agent-skills` carries **Source-of-truth order**, which ranks a repository's own documents so a reader whose files disagree knows which one governs instead of picking — it sits there because that is the file an agent already loads to route. `references/write-ownership.md` carries **Who writes what**, a write table keyed by zone — one part of a file, with one writer named for it — and **deny-by-default**: a write with no row permitting it is a write nobody may make. That one is maintainer-only and never scaffolded, because what it constrains is this suite's own integrity rather than anything about how your work ships. Between them they are why a skill can be read on its own, rather than only alongside every other file in the repo.
+The artifacts the suite produces — `STATE.md`, `docs/adr/`, `docs/features/`, `docs/session-state.md`,
+`docs/session-log.md`, `docs/lessons.md` — live in **your** project once `/setup` scaffolds them there,
+not in this one. `CONTEXT.md` is the exception and is here for the same reason: this repo runs the same
+loop, so it carries the glossary that loop produces.
 
 ---
 
 ## Commands
 
-Twelve slash commands: nine lifecycle commands — one per stage, plus the autonomous runner and the one-time setup — and three standalone commands outside the lifecycle. Each is a thin wrapper that activates the right skill(s).
+Twelve slash commands. Nine are lifecycle commands — one per stage, plus the unattended runner and the
+one-time setup — and three stand outside the lifecycle and gate nothing.
 
-| Command | What you're doing | Invokes |
+| Command | What you are doing | Runs |
 |---|---|---|
 | `/ideate` | Front-door a fresh idea → `intent.md` | interview-me, then idea-refine |
-| `/spec` | Survey the code as-is, then design the product: ADRs, PRD, UI, acceptance, environment, structure | codebase-research first, then spec-grilling (+ to-prd, frontend-design, acceptance-criteria, environment-manifest, architecture-design, spec-review) |
-| `/plan` | Survey the aspect the decisions now point at, then the concrete plan → vertical slices + dependency DAG | codebase-research (second pass), then plan-breakdown |
-| `/implement` | One thin vertical slice, skeleton-first, test-driven | incremental-implementation (applies test-driven-development) |
-| `/verify` | Fresh code-cold proof a slice meets acceptance | quality-verification |
-| `/review` | Quality gate before merge (parallel fan-out) | code-review (+ code-simplification, security-and-hardening, performance-optimization) |
-| `/ship` | Open one slice's risk-banded draft PR; the stage ends there | pull-request as the spine (shipping-and-launch follows once the human has merged) |
-| `/orchestrate` | **The autonomous wave-parallel DAG runner** — drives Implement → Ship to open draft PRs | orchestrator |
-| `/setup` | One-time repo ecosystem scaffold | project-setup |
-| `/explain` | Standalone, no stage: teaching artifact for a diff or a whole repo | literate-explainer |
-| `/quiz` | Standalone, no stage: retrieval practice, graded before reveal → learning ledger | comprehension-quiz |
-| `/gauntlet-loop` | Standalone, no stage: a throwaway proof of concept against a named outside bar, in the `.gauntlet/` scratch — offered, never auto-selected | gauntlet-loop |
+| `/spec` | Survey the code as it is, then design: decision records, PRD, acceptance, environment, structure | codebase-research, then spec-grilling, then spec-review |
+| `/plan` | Survey the aspect the decisions point at, then cut vertical slices and the DAG | codebase-research again, then plan-breakdown |
+| `/implement` | One thin vertical slice, skeleton first, test first | incremental-implementation |
+| `/verify` | A code-cold proof the slice meets its signed scenarios | quality-verification |
+| `/review` | The quality gate before a pull request opens, as a parallel fan-out | code-review, code-simplification, security-and-hardening, performance-optimization |
+| `/ship` | Open one slice's risk-banded draft pull request; the stage ends there | pull-request |
+| `/orchestrate` | **The unattended wave-parallel DAG runner** — Implement through Ship | orchestrator |
+| `/setup` | The one-time repo scaffold | project-setup |
+| `/explain` | Standalone: a teaching artifact for a diff or a whole repo | literate-explainer |
+| `/quiz` | Standalone: retrieval practice, graded before the reveal | comprehension-quiz |
+| `/gauntlet-loop` | Standalone: a throwaway proof of concept against a named outside bar | gauntlet-loop |
 
 ---
 
-## Quick Start
+## Quick start
 
-<details>
-<summary><b>Claude Code (recommended)</b></summary>
-
-**Marketplace install:**
+Install as a Claude Code plugin:
 
 ```
 /plugin marketplace add celestialdust/achilles-skills
 /plugin install achilles-skills@achilles-skills
 ```
 
-**Local / development:**
+Or work against a local clone:
 
 ```bash
 git clone https://github.com/celestialdust/achilles-skills.git
 claude --plugin-dir /path/to/achilles-skills
 ```
 
-</details>
-
-<details>
-<summary><b>Cursor</b></summary>
-
-Copy any `SKILL.md` into `.cursor/rules/`, or reference the full `skills/` directory. See [docs/cursor-setup.md](docs/cursor-setup.md).
-
-</details>
-
-<details>
-<summary><b>Antigravity CLI</b></summary>
-
-Install as a native plugin for skills, subagents, and slash commands. See [docs/antigravity-setup.md](docs/antigravity-setup.md).
-
-**Install from the repo:**
-
-```bash
-agy plugin install https://github.com/celestialdust/achilles-skills.git
-```
-
-**Install from a local clone:**
-
-```bash
-git clone https://github.com/celestialdust/achilles-skills.git
-agy plugin install ./achilles-skills
-```
-
-</details>
-
-<details>
-<summary><b>Gemini CLI</b></summary>
-
-Install as native skills for auto-discovery, or add to `GEMINI.md` for persistent context. See [docs/gemini-cli-setup.md](docs/gemini-cli-setup.md).
-
-**Install from the repo:**
-
-```bash
-gemini skills install https://github.com/celestialdust/achilles-skills.git --path skills
-```
-
-**Install from a local clone:**
-
-```bash
-gemini skills install ./achilles-skills/skills/
-```
-
-</details>
-
-<details>
-<summary><b>Windsurf</b></summary>
-
-Add skill contents to your Windsurf rules configuration. See [docs/windsurf-setup.md](docs/windsurf-setup.md).
-
-</details>
-
-<details>
-<summary><b>OpenCode</b></summary>
-
-Uses agent-driven skill execution via the `skill` tool, against the rules in `CLAUDE.md`. See [docs/opencode-setup.md](docs/opencode-setup.md).
-
-</details>
-
-<details>
-<summary><b>GitHub Copilot</b></summary>
-
-Use the definitions in `agents/` as Copilot personas and skill content in `.github/copilot-instructions.md`. See [docs/copilot-setup.md](docs/copilot-setup.md).
-
-</details>
-
-<details>
-<summary><b>Kiro IDE &amp; CLI</b></summary>
-
-Skills for Kiro live under `.kiro/skills/` and can be stored at Project or Global level. Kiro also reads `AGENTS.md`, which sends it to `CLAUDE.md`, where the rules are. Copy the `skills/` directory into `.kiro/skills/` and the personas from `agents/` alongside them. See the Kiro docs at <https://kiro.dev/docs/skills/>.
-
-</details>
-
-<details>
-<summary><b>Codex / Other Agents</b></summary>
-
-Skills are plain Markdown — they work with any agent that accepts system prompts or instruction files. Point your agent at `skills/` and `CLAUDE.md`, which holds the rules whatever the tool; an agent that reads `AGENTS.md` instead finds a pointer to the same file. There is no separate setup file for these agents, because there is no separate mechanism: see [docs/getting-started.md](docs/getting-started.md).
-
-</details>
+Nothing here is Claude-specific: every skill is one `skills/<name>/SKILL.md` with two frontmatter keys.
+On a host with a skill tool the `description` routes and the body loads; on a host without one, the body
+is written to be pasted in as the prompt. [docs/setup.md](./docs/setup.md) covers both, the per-host
+quirks, and what `/setup` scaffolds in your repository.
 
 ---
 
-## All 40 Skills
+## All 39 skills
 
-Every skill is a structured workflow — purpose, when-to-use, process, rationalizations, red flags, and verification gates — not a reference doc. The commands above are entry points; you can also reach for any skill directly.
+Each skill is a workflow with a verifiable end — purpose, triggers, inputs, method, rationalizations,
+red flags, verification, outputs — not a reference document. The commands above are entry points; you
+can also reach for any skill by name.
 
-### Cross-cutting / setup
-
-| Skill | Responsibility |
-|---|---|
-| [using-agent-skills](./skills/using-agent-skills/SKILL.md) | Meta-dispatcher: maps a task → the right skill + its place in the lifecycle |
-| [project-setup](./skills/project-setup/SKILL.md) | One-time repo ecosystem: `STATE.md` · `CONTEXT.md` · `docs/adr/` · `docs/features/` · `docs/session-state.md` · `docs/session-log.md` · `docs/progress.md` · `docs/lessons.md` · the `## Agent skills` block in one of `CLAUDE.md` / `AGENTS.md` + a short pointer to it in the other |
-| [orchestrator](./skills/orchestrator/SKILL.md) | Default wave-parallel DAG executor; platform-adaptive; autonomous to open PRs |
-| [preflight-readiness](./skills/preflight-readiness/SKILL.md) | Environment-readiness gate; blocks the wave until everything is provisioned |
-| [handoff](./skills/handoff/SKILL.md) | Per-session compaction into a fresh-agent handoff doc |
-
-### Ideate — human-led
-
-| Skill | Responsibility |
-|---|---|
-| [interview-me](./skills/interview-me/SKILL.md) | Optional front door: blind-spot scan + one-question-at-a-time interview → signed `intent.md` |
-| [idea-refine](./skills/idea-refine/SKILL.md) | Refine the idea (divergent/convergent, reactable throwaway variants, an explicit "Not Doing" list) |
-
-### Spec — human-led
-
-| Skill | Responsibility |
-|---|---|
-| [codebase-research](./skills/codebase-research/SKILL.md) | Head of Spec and again at the head of Plan: goal-blind parallel map of the codebase/DB as-is → one `research/<axis>.md` per sub-agent plus the `research.md` that compresses them. Pass 1 runs before any design decision; pass 2 surveys the aspect those decisions point at |
-| [spec-grilling](./skills/spec-grilling/SKILL.md) | Design the product from intent + the survey → ADRs + `CONTEXT.md` glossary; refuses without `research.md`; a blind-spot pass surfaces decisions you haven't considered |
-| [to-prd](./skills/to-prd/SKILL.md) | Light dual-audience PRD at product altitude; references the ADRs |
-| [frontend-design](./skills/frontend-design/SKILL.md) | Spec, **UI only** — after `to-prd` and before `acceptance-criteria` and `environment-manifest` run. The one UI skill: explore variants in a clickable browser companion → commit a reference-spec prototype + design contract; the repo's first UI surface also writes `docs/design.md` |
-| [acceptance-criteria](./skills/acceptance-criteria/SKILL.md) | BDD prose contract (Given/When/Then), behavioral-only, signed |
-| [environment-manifest](./skills/environment-manifest/SKILL.md) | Typed-kind environment manifest (no values, no commands) |
-| [architecture-design](./skills/architecture-design/SKILL.md) | Reconciles and renders — traces every scenario, records the invariants, cites the decisions taken in `spec-grilling`; takes none itself. Writes one feature's `architecture.md` + the committed `architecture.html` read at the Spec gate |
-| [spec-review](./skills/spec-review/SKILL.md) | Fresh code-cold agent fixes the spec before the user reviews it |
-
-### Plan — human-led
-
-| Skill | Responsibility |
-|---|---|
-| [plan-breakdown](./skills/plan-breakdown/SKILL.md) | THE planner: concrete plan → vertical slices + dependency DAG. Writes `plan.md` as the map and one `plan/<slice-id>.md` per slice for its steps; reads the Plan-stage `research.md` the second `codebase-research` pass writes |
-
-### Spec · Plan — referenced disciplines, not a stage
-
-| Skill | Responsibility |
-|---|---|
-| [codebase-design](./skills/codebase-design/SKILL.md) | Deep-module interfaces (the deletion test). Proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own |
-| [api-design](./skills/api-design/SKILL.md) | Contract-first interface design. Proposes a structural variant in Spec, pins the interface into `plan.md` in Plan; owns no artifact of its own |
-
-### Implement — agent
-
-| Skill | Responsibility |
-|---|---|
-| [incremental-implementation](./skills/incremental-implementation/SKILL.md) | THE implementer: one thin vertical slice; skeleton-first |
-| [test-driven-development](./skills/test-driven-development/SKILL.md) | Rigid RED-GREEN-REFACTOR core loop; realizes acceptance scenarios |
-| [source-driven-development](./skills/source-driven-development/SKILL.md) | Ground framework decisions in fetched official docs |
-| [worktree](./skills/worktree/SKILL.md) | Per-slice isolation mechanism (orchestrator-owned) |
-
-### Plan · Implement — in-flight, not a gate
-
-| Skill | Responsibility |
-|---|---|
-| [doubt-driven-development](./skills/doubt-driven-development/SKILL.md) | Independent skeptic for a confident or high-stakes in-flight call; **not** part of the Review gate |
-
-### Verify — agent
-
-| Skill | Responsibility |
-|---|---|
-| [quality-verification](./skills/quality-verification/SKILL.md) | Fresh code-cold agent: behavioral acceptance tests + design gate |
-| [browser-testing-with-devtools](./skills/browser-testing-with-devtools/SKILL.md) | The live-runtime engine quality-verification drives (Chrome DevTools MCP) |
-| [debugging-and-error-recovery](./skills/debugging-and-error-recovery/SKILL.md) | Five-step triage; stop-the-line; safe fallbacks |
-
-### Review — agent (parallel fan-out)
-
-| Skill | Responsibility |
-|---|---|
-| [code-review](./skills/code-review/SKILL.md) | Five-axis review including test quality; severity labels |
-| [code-simplification](./skills/code-simplification/SKILL.md) | Behavior-preserving reduction; Chesterton's Fence |
-| [security-and-hardening](./skills/security-and-hardening/SKILL.md) | OWASP Top 10; secrets; dependency audit |
-| [performance-optimization](./skills/performance-optimization/SKILL.md) | Measure-first; Core Web Vitals; profiling |
-
-### Ship — agent
-
-| Skill | Responsibility |
-|---|---|
-| [pull-request](./skills/pull-request/SKILL.md) | Per-slice design-anchored draft PR; read-the-code checklist; risk band |
-| [shipping-and-launch](./skills/shipping-and-launch/SKILL.md) | Release-level, on the far side of the human's merge: pre-launch checklist; staged rollout; rollback |
-| [git-workflow](./skills/git-workflow/SKILL.md) | Trunk-based; atomic commits; secret hygiene |
-| [ci-cd](./skills/ci-cd/SKILL.md) | Shift Left; quality-gate pipeline; feature flags |
-| [observability-and-instrumentation](./skills/observability-and-instrumentation/SKILL.md) | Structured logging; RED metrics; OTel tracing |
-| [deprecation-and-migration](./skills/deprecation-and-migration/SKILL.md) | Code-as-liability; migration patterns |
-| [documentation-and-adrs](./skills/documentation-and-adrs/SKILL.md) | The ADR + doc standard, referenced cross-cutting |
-
-### Comprehension — human-led, standalone
-
-Understand code you didn't write. A standalone loop — diff → explainer → quiz → record — that runs outside the lifecycle and never gates a merge, a stage, or an `/orchestrate` wave.
-
-| Skill | Responsibility |
-|---|---|
-| [literate-explainer](./skills/literate-explainer/SKILL.md) | Turn a diff or a whole unfamiliar repo into a self-contained teaching artifact — background → intuition → literate tour, Feynman-plain |
-| [comprehension-quiz](./skills/comprehension-quiz/SKILL.md) | Agent-administered retrieval practice — ~5 questions one at a time, graded before the answer, recorded in the learning ledger |
-
-### Throwaway — human-led, standalone
-
-The fast path for work that gets deleted. It runs outside the lifecycle and gates nothing, and the dispatcher never selects it: it names this path and the full loop side by side and stops until the human picks.
-
-| Skill | Responsibility |
-|---|---|
-| [gauntlet-loop](./skills/gauntlet-loop/SKILL.md) | Beat a named outside bar — a builder against a separate blind critic, per piece, until the critic picks ours; everything lands in the `.gauntlet/` scratch the repository ignores |
-
----
-
-## Personas
-
-Five specialist agents apply a Review/Verify skill with a **fresh, code-cold context** — preserving maker ≠ checker. A persona is the *role*; the skill it points to is the *method*.
-
-| Persona | Source skill(s) | Role |
+| Skill | Stage | What it does |
 |---|---|---|
-| [code-reviewer](./agents/code-reviewer.md) | code-review | Staff-engineer five-axis review before merge |
-| [security-auditor](./agents/security-auditor.md) | security-and-hardening | Fresh code-cold OWASP / secrets / dependency audit of a diff |
-| [test-engineer](./agents/test-engineer.md) | test-driven-development + quality-verification | Designs honest tests; proves a slice behaviorally |
-| [performance-auditor](./agents/performance-auditor.md) | performance-optimization | Measure-first profiler; Core Web Vitals; hot paths |
-| [adversarial-reviewer](./agents/adversarial-reviewer.md) | doubt-driven-development | Independent skeptic for confident / high-stakes in-flight decisions |
+| [interview-me](./skills/interview-me/SKILL.md) | Ideate | One question at a time until the real intent is pinned; writes `intent.md` |
+| [idea-refine](./skills/idea-refine/SKILL.md) | Ideate | Opens an idea into options, converges on one, pins the out-of-scope list |
+| [codebase-research](./skills/codebase-research/SKILL.md) | Spec · Plan | Goal-blind parallel survey of the code as it is — one axis file each, compressed into `research.md` |
+| [spec-grilling](./skills/spec-grilling/SKILL.md) | Spec | The Spec sitting: grills the design, records the decisions and glossary terms, drafts the bundle |
+| [to-prd](./skills/to-prd/SKILL.md) | Spec | `prd.md` at product altitude — problem, solution, user stories, what is out |
+| [acceptance-criteria](./skills/acceptance-criteria/SKILL.md) | Spec | Given/When/Then scenarios, an id per behaviour — the oracle the whole run is graded against |
+| [environment-manifest](./skills/environment-manifest/SKILL.md) | Spec | Everything a run needs from outside the repo, as typed rows holding identifiers and no values |
+| [architecture-design](./skills/architecture-design/SKILL.md) | Spec | `architecture.md` — six sections, every acceptance scenario traced to a path |
+| [spec-review](./skills/spec-review/SKILL.md) | Spec | Code-cold last: fixes the draft bundle in place instead of listing complaints |
+| [codebase-design](./skills/codebase-design/SKILL.md) | Spec · Plan | A lot of behaviour behind a small interface, at a seam something actually varies across |
+| [api-design](./skills/api-design/SKILL.md) | Spec · Plan | The interface contract — typed in and out, one error envelope — before anything builds against it |
+| [plan-breakdown](./skills/plan-breakdown/SKILL.md) | Plan | Vertical, demoable slices and the Blocked-by DAG a run schedules from |
+| [incremental-implementation](./skills/incremental-implementation/SKILL.md) | Implement | One slice as thin, individually-tested increments — stub, mock, wire, fill |
+| [test-driven-development](./skills/test-driven-development/SKILL.md) | Implement | The failing test before the code that passes it, named for the scenario it realizes |
+| [source-driven-development](./skills/source-driven-development/SKILL.md) | Implement | Version-sensitive code grounded in docs fetched this run, with the URL cited in the code |
+| [worktree](./skills/worktree/SKILL.md) | Implement | The isolated, clean-baseline workspace a slice gets built in |
+| [quality-verification](./skills/quality-verification/SKILL.md) | Verify | Grades a finished slice cold against the signed scenarios; writes `qa.md` and a verdict |
+| [browser-testing-with-devtools](./skills/browser-testing-with-devtools/SKILL.md) | Verify | Drives the browser MCP when only the running page can settle what renders |
+| [code-review](./skills/code-review/SKILL.md) | Review | Five axes — correctness with test quality, readability, architecture, security, performance |
+| [code-simplification](./skills/code-simplification/SKILL.md) | Review | Cuts a diff's complexity without moving behaviour; reports, edits nothing |
+| [security-and-hardening](./skills/security-and-hardening/SKILL.md) | Review | Trust boundaries, OWASP and the GenAI ten, secrets and dependencies, code-cold |
+| [performance-optimization](./skills/performance-optimization/SKILL.md) | Review | Judges a diff's cost on measurements, citing before and after |
+| [pull-request](./skills/pull-request/SKILL.md) | Ship | The open draft pull request: Summary · Decided for you · Evidence · Risk band |
+| [shipping-and-launch](./skills/shipping-and-launch/SKILL.md) | Ship | The release runbook once a person has merged — clearance, rollout, thresholds, rollback |
+| [ci-cd](./skills/ci-cd/SKILL.md) | Ship | The quality-gate pipeline: the commands the repo really runs, wired into CI |
+| [deprecation-and-migration](./skills/deprecation-and-migration/SKILL.md) | Ship | Retires a system from real usage data, before anything is deleted; writes `migration.md` |
+| [using-agent-skills](./skills/using-agent-skills/SKILL.md) | cross-cutting | The router: a task → the one skill that owns it, and the artifact it opens |
+| [project-setup](./skills/project-setup/SKILL.md) | cross-cutting | The one-time repo scaffold every other skill reads cold |
+| [orchestrator](./skills/orchestrator/SKILL.md) | cross-cutting | Runs a signed slice DAG unattended, in waves, to open draft pull requests |
+| [preflight-readiness](./skills/preflight-readiness/SKILL.md) | cross-cutting | Probes every `environment.md` row, value-blind, before a run goes unattended |
+| [handoff](./skills/handoff/SKILL.md) | cross-cutting | Compacts a session into cold-start state, and appends the decisions to the log |
+| [debugging-and-error-recovery](./skills/debugging-and-error-recovery/SKILL.md) | cross-cutting | Reproduce, localize, reduce, fix, guard — closing the cause, not the symptom |
+| [doubt-driven-development](./skills/doubt-driven-development/SKILL.md) | cross-cutting | Cross-examines one in-flight decision through a fresh code-cold agent |
+| [git-workflow](./skills/git-workflow/SKILL.md) | cross-cutting | Atomic commits, branches, secret hygiene; never merges, never commits to `main` |
+| [observability-and-instrumentation](./skills/observability-and-instrumentation/SKILL.md) | cross-cutting | Structured logs, RED metrics, spans and symptom alerts — then exercised |
+| [documentation-and-adrs](./skills/documentation-and-adrs/SKILL.md) | cross-cutting | The next decision record with what it ruled out, and the docs around it |
+| [literate-explainer](./skills/literate-explainer/SKILL.md) | standalone | Turns a diff or an unfamiliar repo into a self-contained teaching artifact |
+| [comprehension-quiz](./skills/comprehension-quiz/SKILL.md) | standalone | Retrieval practice, one question per message, graded before the answer is revealed |
+| [gauntlet-loop](./skills/gauntlet-loop/SKILL.md) | standalone | Grinds a throwaway prototype until a blind critic picks it over a named outside bar |
 
 ---
 
 ## References
 
-Shared material in [`references/`](./references/) that skills pull in on demand: the checklists (security, performance, accessibility, observability, definition-of-done), the unknowns pass, and the artifact shapes the design, teaching, and comprehension skills read. [docs/getting-started.md](./docs/getting-started.md) maps each file to the skills that use it — one list, so a new reference cannot go missing from a second one.
+Shared material in [`references/`](./references/) that skills pull in on demand: the checklists
+(security, performance, accessibility, observability, definition-of-done), the ten principles every
+skill's Purpose line indexes, the state schema, the safety rails, and the unknowns pass in
+[`finding-unknowns.md`](./references/finding-unknowns.md) that the discovery skills work from. A skill
+names the file it needs by relative link; nothing here is loaded until something asks for it.
 
 ## License
 

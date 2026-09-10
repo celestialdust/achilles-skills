@@ -1,443 +1,125 @@
 ---
 name: test-driven-development
-description: Rigid RED-GREEN-REFACTOR test-first loop. Use when implementing ANY feature or bugfix inside a slice, before writing one line of production code — turns each signed acceptance.md scenario into a test you watch fail first. If you're about to write impl, or about to "just relax a failing test so it passes," stop and load this.
+description: Write the failing test before the code that passes it — one behaviour per test, named for the scenario id it realizes, red, then green, then refactored. Reach for it inside a slice's build and ahead of every bug fix. Not increment sequencing (`incremental-implementation`) or grading a built slice (`quality-verification`).
 ---
 
 # Test-Driven Development (TDD)
 
 ## Purpose
 
-**Stage: Implement — the rigid core loop, applied inside every `incremental-implementation` slice.**
+**Stage: Implement.** Principles 1, 6, 7.
 
-Write the test first. Watch it fail. Write minimal code to pass.
-
-**Core principle:** if you didn't watch the test fail, you don't know if it tests the right thing.
-
-This is the suite's one non-negotiable loop. Everything upstream (intent → prd → `acceptance.md`)
-converges here: each signed Given/When/Then scenario becomes a *failing* test before a line of
-production code exists, realized by judgment in the project's real test framework — there is **no
-Cucumber/step-def engine**. In the autonomous run no human watches you code, so the only
-proof a test tests something real is that you saw it go RED first.
-
-**Violating the letter of the rules is violating the spirit of the rules.**
+The test-first loop, one behaviour at a time inside a slice's build: red, green, refactor. It emits
+tests and the minimal code passing them into the caller's checkout — the loop
+`incremental-implementation` turns once per behaviour a slice owes.
 
 ## When to use / when to skip
 
-**Always — structurally applied during every `incremental-implementation` slice:**
-- New features
-- Bug fixes
-- Refactoring
-- Behavior changes
-
-**Exceptions (the only ones — they mirror the test-first commit hook's allowlist):**
-- Throwaway prototypes (e.g. `frontend-design` exploration it discards)
-- Generated code
-- Configuration files
-
-Thinking "skip TDD just this once"? Stop. That's rationalization. Test-first ordering is
-**hook-enforced**: a test file must change in the same commit as impl, or earlier on the branch.
-`--no-verify` and SKIP-style bypasses are forbidden — fix the order, don't dodge the hook.
+- A slice's next behaviour, inside `incremental-implementation`'s increment loop.
+- A bug fix — the reproducer first, so something proves the fix and catches its return
+  (`debugging-and-error-recovery` root-causes; this writes the guard).
+- A behaviour change, a refactor of code with tests to hold it still, or a hand call — a scenario, a
+  ticket, "make it do X" in a repository with no scaffolding.
+- Skip a throwaway prototype, generated code and configuration — none has behaviour to pin. "Too simple
+  to test" is not on that list.
+- Not sequencing the increments (`incremental-implementation` owns the loop this drives one turn of), nor
+  re-cutting slices (`plan-breakdown`), nor grading what was built — `quality-verification` exercises the
+  scenarios cold against the running app.
 
 ## Inputs
 
-**Consumes:** `acceptance.md` — the signed BDD prose contract (from the `acceptance-criteria` skill). Sections
-this skill reads:
-- **Given/When/Then scenarios** — behavioral-only (happy + error/edge + security-observable). Each
-  becomes one test.
-- **Feature-namespaced scenario ids** (e.g. `PWR-A1`) — carry the id in each test's name/description so
-  `quality-verification` can keep its exercised / not-reachable ledger by id.
-- **`status:`** — must be `signed`.
+- `docs/features/<slug>/acceptance.md` — helps: the Given/When/Then scenarios and the feature-namespaced
+  ids your test names carry · without it: take the behaviours from `prd.md`, the prompt and the code,
+  give each a local id, `derived`
+- `docs/features/<slug>/plan/<slice-id>.md` — helps: the behaviours this slice owes and the files holding
+  them · without it: the slice row in `plan.md`, or infer it from the files the work reaches, `derived`
+- the test framework and runner command — helps: red and green are real runs · without it: read
+  `package.json`, the tests already there or the CI config, and name the command you chose, `derived`
+- the caller's checkout or worktree — helps: tests and code land where the slice's commits are · without
+  it: work in the repository and touch no board row
 
-Also handed in by `incremental-implementation` / the `orchestrator`: the slice's **plan steps** (which files, which
-tests) and the slice's declared **`Regression surface`**.
-
-**Refuse to run if:**
-- `acceptance.md` is **absent**, or
-- `acceptance.md` `status:` is `draft` (unsigned, or re-invalidated by a later `prd.md` edit).
-
-A draft/absent contract means the human-signed oracle isn't fixed — implementing against it bakes in an
-unsigned target. Stop and route back to the Spec gate.
+With a person present, ask at most three questions, and only where the gap changes which behaviours get
+tested rather than how one is worded.
 
 ## Process
 
-Each signed scenario in `acceptance.md` becomes a failing test **first**; you write the minimal code to
-turn it green; you refactor under green. You translate Given/When/Then into a real test **by judgment**,
-not via a code generator. Name each test for its scenario id (`PWR-A1`) so the realization is traceable.
+1. **One behaviour, one test, named for the scenario id it realizes** — `PWR-A3: retries a failed save
+   three times`. Realize the Given/When/Then by judgment in the project's own framework; there is no
+   step-definition engine here. A name carrying "and" is two tests. The id is what lets
+   `quality-verification` key its ledger by behaviour.
 
-### Red-Green-Refactor
+2. **Write it before the code it judges, and delete the production code you wrote for this behaviour
+   ahead of its own test** — code kept as reference, or adapted while the test is written, shapes
+   that test around its own blind spots. Explore freely, then throw the exploration away and start
+   from the test.
 
-```dot
-digraph tdd_cycle {
-    rankdir=LR;
-    red [label="RED\nWrite failing test", shape=box, style=filled, fillcolor="#ffcccc"];
-    verify_red [label="Verify fails\ncorrectly", shape=diamond];
-    green [label="GREEN\nMinimal code", shape=box, style=filled, fillcolor="#ccffcc"];
-    verify_green [label="Verify passes\nAll green", shape=diamond];
-    refactor [label="REFACTOR\nClean up", shape=box, style=filled, fillcolor="#ccccff"];
-    next [label="Next", shape=ellipse];
+3. **Run it and watch it fail for the reason you predicted.** A test that errors is broken rather than
+   red: re-run until the failure message is the missing behaviour itself. One passing first time is
+   describing something that already worked.
 
-    red -> verify_red;
-    verify_red -> green [label="yes"];
-    verify_red -> red [label="wrong\nfailure"];
-    green -> verify_green;
-    verify_green -> refactor [label="yes"];
-    verify_green -> green [label="no"];
-    refactor -> verify_green [label="stay\ngreen"];
-    verify_green -> next;
-    next -> red;
-}
-```
+4. **Write the simplest code that turns it green** — no options, no configuration, no second caller's
+   needs. Assert on what the code does, never on what a mock was called with; a test needing everything
+   mocked says the interface is too coupled, so inject the dependency or move the seam. Load
+   [`references/testing-anti-patterns.md`](references/testing-anti-patterns.md) when adding a mock, a
+   fixture or a test utility.
 
-### The Iron Law
+5. **Run it again and read the whole output** — this test green, every other still green, no warnings,
+   no stray errors. Fix the code rather than the test: a relaxed assertion buys one green run and spends
+   the only evidence downstream has.
 
-```
-NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
-```
+6. **Refactor under green** — duplication out, names better, helpers extracted, no behaviour added; re-run
+   before moving on.
 
-Write code before the test? Delete it. Start over.
+7. **Repeat until the slice's list is spent**, covering error and edge paths as well as the happy one and
+   giving every new function or method a test. Record a scenario whose Given this slice cannot construct
+   as `not-reachable` with its reason and carry past it — nothing stopped being checked, so it ends no
+   slice.
 
-**No exceptions:**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
-
-Implement fresh from tests. Period.
-
-### RED - Write Failing Test
-
-Write one minimal test showing what should happen.
-
-<Good>
-```typescript
-test('PWR-A3: retries failed operations 3 times', async () => {
-  let attempts = 0;
-  const operation = () => {
-    attempts++;
-    if (attempts < 3) throw new Error('fail');
-    return 'success';
-  };
-
-  const result = await retryOperation(operation);
-
-  expect(result).toBe('success');
-  expect(attempts).toBe(3);
-});
-```
-Clear name carrying the scenario id, tests real behavior, one thing
-</Good>
-
-<Bad>
-```typescript
-test('retry works', async () => {
-  const mock = jest.fn()
-    .mockRejectedValueOnce(new Error())
-    .mockRejectedValueOnce(new Error())
-    .mockResolvedValueOnce('success');
-  await retryOperation(mock);
-  expect(mock).toHaveBeenCalledTimes(3);
-});
-```
-Vague name, no scenario id, tests mock not code
-</Bad>
-
-**Requirements:**
-- One behavior
-- Clear name (carry the `acceptance.md` scenario id)
-- Real code (no mocks unless unavoidable)
-
-### Verify RED - Watch It Fail
-
-**MANDATORY. Never skip.**
-
-```bash
-npm test path/to/test.test.ts
-```
-
-Confirm:
-- Test fails (not errors)
-- Failure message is expected
-- Fails because feature missing (not typos)
-
-**Test passes?** You're testing existing behavior. Fix test.
-
-**Test errors?** Fix error, re-run until it fails correctly.
-
-### GREEN - Minimal Code
-
-Write simplest code to pass the test.
-
-<Good>
-```typescript
-async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
-  for (let i = 0; i < 3; i++) {
-    try {
-      return await fn();
-    } catch (e) {
-      if (i === 2) throw e;
-    }
-  }
-  throw new Error('unreachable');
-}
-```
-Just enough to pass
-</Good>
-
-<Bad>
-```typescript
-async function retryOperation<T>(
-  fn: () => Promise<T>,
-  options?: {
-    maxRetries?: number;
-    backoff?: 'linear' | 'exponential';
-    onRetry?: (attempt: number) => void;
-  }
-): Promise<T> {
-  // YAGNI
-}
-```
-Over-engineered
-</Bad>
-
-Don't add features, refactor other code, or "improve" beyond the test.
-
-### Verify GREEN - Watch It Pass
-
-**MANDATORY.**
-
-```bash
-npm test path/to/test.test.ts
-```
-
-Confirm:
-- Test passes
-- Other tests still pass
-- Output pristine (no errors, warnings)
-
-**Test fails?** Fix code, not test.
-
-**Other tests fail?** Fix now.
-
-### REFACTOR - Clean Up
-
-After green only:
-- Remove duplication
-- Improve names
-- Extract helpers
-
-Keep tests green. Don't add behavior.
-
-### Repeat
-
-Next failing test for the next scenario / feature.
-
-### Good Tests
-
-| Quality | Good | Bad |
-|---------|------|-----|
-| **Minimal** | One thing. "and" in name? Split it. | `test('validates email and domain and whitespace')` |
-| **Clear** | Name describes behavior + scenario id | `test('test1')` |
-| **Shows intent** | Demonstrates desired API | Obscures what code should do |
-
-## Frozen artifacts under retry (gate-erosion is a HALT)
-
-Safety rail 4 (`../../references/safety-rails.md`) governs this and is not restated here: the consumed
-`acceptance.md` scenarios, the RED tests you wrote for them, and the slice's declared
-`Regression surface` are frozen while the slice is being made to pass; weakening an assertion,
-deleting or skipping a RED test, narrowing the surface, or editing a scenario is **gate-erosion →
-HALT** (flip `gate: agent → you`), and the halt names the artifact. `docs/design.md` is read-only on
-the same rail.
-
-What this stage adds is the reason the rail bites hardest here. **You are the party that writes the
-oracle.** In the autonomous run nobody watches you write the test that will later judge your code, so
-the window between "this test is red" and "this test is green" is the one place a false green can be
-manufactured at zero cost — the edit is one line and it is in a file you already have open. That is
-why the freeze starts the moment the test goes red rather than at Verify.
-
-**Reporting a scenario unreachable is not weakening it.** If this slice cannot construct a scenario's
-Given — the state depends on work that does not exist yet — record the id as not reachable and carry on.
-The scenario stays in `acceptance.md`, unproven, and reaches a person through the required PR
-acknowledgement line. Nothing stopped being checked, so nothing halts. Only removing a scenario from the
-contract, or rewriting it to assert less, is the erosion.
-
-**Fix the code, never the oracle.** A frozen failing test is information; a relaxed test is a silent
-false-green.
+8. **Change a test the plan moved past rather than test a stale thing** — nothing here is frozen. Its
+   before, its after and the reason go to the pull request and one `docs/session-log.md` entry, where the
+   code-cold review meets the change inside the diff (`pull-request` shapes it). Only the stop list
+   ([`safety-rails.md`](../../references/safety-rails.md)) ends a slice; the rest is a default with a
+   reason, a log line and a Decided-for-you row.
 
 ## Rationalizations
 
-**"I'll write tests after to verify it works"** — Tests written after code pass immediately, which
-proves nothing: might test the wrong thing, might test implementation not behavior, might miss edge
-cases, you never saw it catch the bug. Test-first forces you to see it fail.
-
-**"I already manually tested all the edge cases"** — Manual testing is ad-hoc: no record, can't re-run,
-easy to forget under pressure. "It worked when I tried it" ≠ comprehensive.
-
-**"Deleting X hours of work is wasteful"** — Sunk cost. The time is gone. Keeping code you can't trust
-is technical debt.
-
-**"TDD is dogmatic, being pragmatic means adapting"** — TDD IS pragmatic: finds bugs before commit,
-prevents regressions, documents behavior, enables refactoring. "Pragmatic" shortcuts = debugging in
-production = slower.
-
-**"Tests after achieve the same goals — it's spirit not ritual"** — No. Tests-after answer "what does
-this do?"; tests-first answer "what should this do?" Tests-after are biased by your implementation.
-
-| Excuse | Reality |
-|--------|---------|
-| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll test after" | Tests passing immediately prove nothing. |
-| "Tests after achieve same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
-| "Already manually tested" | Ad-hoc ≠ systematic. No record, can't re-run. |
-| "Deleting X hours is wasteful" | Sunk cost fallacy. Keeping unverified code is technical debt. |
-| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
-| "Need to explore first" | Fine. Throw away exploration, start with TDD. |
-| "Test hard = design unclear" | Listen to the test. Hard to test = hard to use. |
-| "TDD will slow me down" | TDD faster than debugging. Pragmatic = test-first. |
-| "Existing code has no tests" | You're improving it. Add tests for existing code. |
-| "Just relax the assertion so the slice ships" | **Gate-erosion HALT.** The RED test is frozen. Fix the code or halt the slice. |
+| Rationalization | Reality |
+|---|---|
+| "I'll write the tests straight after" | A test written after its code passes first run, having shown nothing about what it catches. |
+| "It's already written — keep it as reference" | A test shaped around existing code inherits that code's blind spots. Adapting is testing after, renamed. |
+| "The feature works, the assertion is a bit off" | Then the code is wrong — or the plan moved and the test is stale, which travels in the PR body, not into the assertion. |
+| "Mocking everything keeps it fast and isolated" | A test asserting on mock calls stays green when the product breaks and red on a correct refactor. |
+| "This scenario can't be built yet, so drop it" | `not-reachable` by id leaves it in the contract, unproven and visible; removing it stops something being checked. |
 
 ## Red flags
 
-STOP and start over (or HALT the slice) on any of these:
+- Production code in the diff that no test was ever red against.
+- A new test that passed on its first run.
+- An assertion counting mock calls where the returned value or stored row was there to assert on.
+- A test loosened, skipped or deleted to reach green, with nothing in the PR body saying so.
+- A test name carrying "and", or naming no scenario id where a contract supplies them.
+- Green reported with no runner output behind it.
 
-- Code before test
-- Test after implementation
-- Test passes immediately
-- Can't explain why test failed
-- Tests added "later"
-- Rationalizing "just this once"
-- "I already manually tested it"
-- "Tests after achieve the same purpose"
-- "It's about spirit not ritual"
-- "Keep as reference" or "adapt existing code"
-- "Already spent X hours, deleting is wasteful"
-- "TDD is dogmatic, I'm being pragmatic"
-- "This is different because..."
+## Verification
 
-Gate-erosion red flags (HALT the slice, flip `gate: agent → you`):
-- Weakening/deleting/skipping a frozen RED test to make a slice pass
-- Editing an `acceptance.md` scenario mid-retry
-- Narrowing the declared `Regression surface` to dodge a failure
-- Editing `docs/design.md` so the built surface matches it — read-only at any moment, retry or not
-- Halting for gate erosion **without naming** the artifact that was about to change
+- [ ] Every behaviour this slice owes has a test that failed first for the reason predicted, passes now,
+  and carries its scenario id.
+- [ ] Every new function or method has a test; error and edge paths are covered too.
+- [ ] The suite is green and the output pristine — no warnings, no stray errors, nothing quietly skipped.
+- [ ] Scenarios this slice could not construct are handed back `not-reachable` by id, with their reasons.
+- [ ] Any changed test is handed back with its before, its after and why the plan moved.
+- [ ] Every derived input is marked `derived` where written or handed back.
 
-**The first group means: delete code, start over with TDD. The second group means: stop, do not ship.**
+## Outputs & handoff
 
-## Verification (ending criteria)
-
-This is where BDD binds: **every signed `acceptance.md` scenario reachable in this slice has a test that
-failed first and now passes, and each test names its scenario id.**
-
-Before marking the slice's implementation complete:
-
-- [ ] Every reachable `acceptance.md` scenario has a test (named with its id)
-- [ ] Every new function/method has a test
-- [ ] Watched each test fail before implementing
-- [ ] Each test failed for the expected reason (feature missing, not typo)
-- [ ] Wrote minimal code to pass each test
-- [ ] All tests pass
-- [ ] Output pristine (no errors, warnings)
-- [ ] Tests use real code (mocks only if unavoidable)
-- [ ] Edge cases and errors covered
-- [ ] No frozen test/acceptance/surface was weakened during retries
-
-Can't check all boxes? You skipped TDD. Start over.
-
-### Example: Bug Fix
-
-**Bug:** Empty email accepted.
-
-**RED**
-```typescript
-test('PWR-A2: rejects empty email', async () => {
-  const result = await submitForm({ email: '' });
-  expect(result.error).toBe('Email required');
-});
-```
-
-**Verify RED**
-```bash
-$ npm test
-FAIL: expected 'Email required', got undefined
-```
-
-**GREEN**
-```typescript
-function submitForm(data: FormData) {
-  if (!data.email?.trim()) {
-    return { error: 'Email required' };
-  }
-  // ...
-}
-```
-
-**Verify GREEN**
-```bash
-$ npm test
-PASS
-```
-
-**REFACTOR** — extract validation for multiple fields if needed.
-
-### When Stuck
-
-| Problem | Solution |
-|---------|----------|
-| Don't know how to test | Write the wished-for API. Write the assertion first. |
-| Test too complicated | Design too complicated. Simplify the interface. |
-| Must mock everything | Code too coupled. Use dependency injection. |
-| Test setup huge | Extract helpers. Still complex? Simplify design. |
-
-### Debugging Integration
-
-Bug found? Write a failing test reproducing it, then follow the TDD cycle. The test proves the fix and
-prevents regression. **Never fix bugs without a test** — this also feeds `debugging-and-error-recovery`:
-the reproducer test is the "guard" step.
-
-### Final Rule
-
-```
-Production code → test exists and failed first
-Otherwise → not TDD
-```
-
-## Outputs & handoff contract
-
-**Emits:** `tests + code` into the slice's worktree diff —
-- passing tests, one per realized `acceptance.md` scenario (named with the scenario id), each watched
-  RED before its production code existed;
-- the minimal production code that turns them green;
-- output pristine (no errors/warnings); all prior tests still green.
-
-**Stable handoff facts (what downstream consumes):**
-- Each test carries its **scenario id** (`PWR-A1`) → `quality-verification` reads these to build its exercised /
-  not-reachable ledger in `qa.md`; the evaluator's `testing_strategy` floor and the `pull-request` code-cold
-  verifier rely on the RED tests being **unweakened**.
-- The RED tests + `acceptance.md` + `Regression surface` are now the slice's **frozen oracle** (see
-  *Frozen artifacts under retry*).
-- A scenario **not reachable** in this slice is **not silently skipped** — record its id so `qa.md` and
-  the PR body carry the required not-reachable ack. Unreachable is honest reporting, and it never halts
-  a slice.
-
-**STATE.md:** `test-driven-development` does not drive the board itself (the `orchestrator` owns `STATE.md`). It runs while
-the slice is `impl`; on green-and-pristine the slice is ready for `incremental-implementation` to complete and hand to
-`quality-verification` (`verify`).
-
-## Testing Anti-Patterns
-
-When adding mocks or test utilities, read
-[references/testing-anti-patterns.md](references/testing-anti-patterns.md) to avoid common pitfalls
-(AP1–AP5):
-- Testing mock behavior instead of real behavior
-- Adding test-only methods to production classes
-- Mocking without understanding dependencies
-- Incomplete mocks (mirror the real structure)
-- Integration tests as an afterthought
-
-## Subagents
-
-For a fresh-context, code-cold pass, dispatch the **`test-engineer`** agent (`agents/test-engineer.md`) as an
-independent subagent. This skill is the *method*; the agent is the *role* that applies it with no prior
-context — preserving maker≠checker. Reach for it when a person wants a single code-cold audit of whether a
-slice's tests are honest **outside a run**, or on a platform with no skill tool. Inside a run this skill is
-dispatched as itself — there is no role to play on top of it.
+- **Tests and the code passing them, in the caller's checkout** — each named for its scenario id, each
+  watched red before its production code existed, scoped to the files the caller named. Both ride the
+  caller's commits; this pass opens no artifact of its own.
+- **`docs/session-log.md`** — one appended entry, cap 60 words, where this pass changed a test or settled
+  something itself; shape in [`state-schema.md`](../../references/state-schema.md). Where no such file
+  exists, hand the entry back rather than create one — `project-setup` owns that.
+- **No `STATE.md` row and no gate flip** — the caller owns the slice's transition
+  ([`state-schema.md`](../../references/state-schema.md)).
+- **Returned in conversation** — the red and green commands with their real output, the scenario ids
+  proved, the `not-reachable` ids with reasons, the before/after of any changed test, and the log entry's
+  measured size against its cap — an over-cap entry reported at that size, never handed on as if it fit.

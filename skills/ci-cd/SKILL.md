@@ -1,442 +1,181 @@
 ---
 name: ci-cd
-description: Stands up and hardens the quality-gate CI/CD pipeline so no change reaches production without passing lint, types, tests, build, and audit. Use when setting up or modifying build/deploy pipelines, automating quality gates, configuring test runners or branch protection in CI, debugging CI failures, or deciding a deployment/feature-flag/rollback strategy. Reach for this whenever a change should trigger automated verification.
+description: Stand up, fix or debug the quality-gate pipeline: wire the commands the repo really runs into CI, block the merge behind branch protection, keep secrets to names, build the deploy, flag and rollback paths but fire none. Also reviews a diff that changed CI or deploy config. Not the pull request (`pull-request`), nor the release past a merge (`shipping-and-launch`).
 ---
 
 # CI/CD and Automation
 
-## Overview
+## Purpose
 
-**Stage: Ship — a referenced discipline, not a chain stage.** It emits no chain artifact; `pull-request`, `git-workflow` and `shipping-and-launch` reach for it to stand up or change the quality-gate pipeline.
+**Stage: Ship.** Principles 1, 7, 9.
 
-Automate quality gates so that no change reaches production without passing tests, lint, type checking, and build. CI/CD is the enforcement mechanism for every other skill — it catches what humans and agents miss, and it does so consistently on every single change.
+Stands up and hardens the quality-gate pipeline so nothing reaches the protected branch without passing
+the gates the repo can actually run, and builds the deploy, flag and rollback paths a person fires. It
+emits no chain artifact — `pull-request`, `git-workflow` and `shipping-and-launch` reach for it. The
+pipeline is what checks every change, so a step removed here loosens what judges the work.
 
-**Shift Left:** Catch problems as early in the pipeline as possible. A bug caught in linting costs minutes; the same bug caught in production costs hours. Move checks upstream — static analysis before tests, tests before staging, staging before production.
+## When to use / when to skip
 
-**Faster is Safer:** Smaller batches and more frequent releases reduce risk, not increase it. A deployment with 3 changes is easier to debug than one with 30. Frequent releases build confidence in the release process itself.
-
-## When to Use
-
-- Setting up a new project's CI pipeline
-- Adding or modifying automated checks
-- Configuring deployment pipelines
-- When a change should trigger automated verification
-- Debugging CI failures
+- A repository has no pipeline, or a gate, protection rule or scheduled job needs changing.
+- A pipeline is red, flaky, or slow enough that people have started routing around it.
+- A diff changed CI, build or deploy configuration and the Review fan-out reached you.
+- A deploy, feature-flag or rollback shape has to be decided — you build it, a person fires it.
+- Skip where a stop-list condition fired
+  ([`safety-rails.md`](../../references/safety-rails.md)) — a secret in a workflow file is one.
+- Near-miss — the pull request itself: `pull-request`. The release past a merge: `shipping-and-launch`.
+  Branches and worktrees: `git-workflow`, `worktree`. A failing test a red pipeline surfaced:
+  `debugging-and-error-recovery`. Naming the secrets and services: `environment-manifest`.
 
 ## Inputs
 
-This skill is a **referenced Ship discipline** (cross-cutting band, not an artifact-chain stage — it emits no
-chain artifact). The orchestrator and the `pull-request` / `git-workflow` / `shipping-and-launch` skills invoke it to stand up or
-modify the quality-gate pipeline.
+Take each from the prompt where it is given, from the repository otherwise. A person is present only when
+this runs by hand: at most three questions, and only where the gap changes the pipeline's shape — the CI
+host, the protected branch, whether a deploy target exists.
 
-**Hard inputs (refuse-to-run if absent):**
-- A repository with resolvable **quality-gate commands** — the lint / type-check / test / build / audit
-  invocations the pipeline will run (`package.json` scripts, a Makefile, or the project's task runner). If no
-  quality gates are defined, **STOP and flag it**: a pipeline that gates nothing is theater. Do not invent
-  gates the project doesn't have — surface the gap to the human Plan owner first.
-
-**Optional / opportunistic inputs (read value-blind if present):**
-- `environment.md` (from the `environment-manifest` skill; **Spec+Plan**) — its `env-var · service · account` rows name
-  the secrets and services the pipeline must wire into the secrets manager. The manifest has **no value
-  column and no command column**, so you wire secret *names* to GitHub Secrets / the vault and **never** read or
-  embed a literal. A row here is the only authorization to reference a secret in CI.
-- `STATE.md` slice rows — to know which slice/feature the pipeline change accompanies (execution is otherwise
-  driven by the orchestrator, not by this skill).
+- the repo's task runner (`package.json` scripts, `Makefile`, `pyproject.toml`) — helps: the gates that can
+  actually run · without it: run each candidate command once and mark every gate you inferred `derived`.
+- the existing `.github/workflows/*.yml`, or the host's equivalent — helps: what already gates · without
+  it: you are standing one up from nothing, not reading an ungated repo as a decision.
+- the red run's log — helps: the first thing to read on a failing pipeline · without it: re-run the failing
+  job locally on the same command and versions, and name the reproduction.
+- `docs/features/<slug>/environment.md` — helps: the secrets and services to wire, by name and no value ·
+  without it: take the names from the code that reads them, `derived`; a name neither source gives is not wired.
+- `docs/features/<slug>/prd.md` and the ADRs it cites — helps: the deploy, flag or rollback shape where one
+  was decided already · without it: take the smallest reversible shape, as a Decided-for-you row.
 
 ## The Quality Gate Pipeline
 
-Every change goes through these gates before merge:
+1. **List the gates this repo can actually run, and run each one yourself before writing it into a
+   workflow.** A step invoking a script the repo does not define is a red pipeline, not a gate. Carry an
+   absent gate as a Decided-for-you row rather than inventing its command.
 
-```
-Pull Request Opened
-    │
-    ▼
-┌─────────────────┐
-│   LINT CHECK     │  eslint, prettier
-│   ↓ pass         │
-│   TYPE CHECK     │  tsc --noEmit
-│   ↓ pass         │
-│   UNIT TESTS     │  jest/vitest
-│   ↓ pass         │
-│   BUILD          │  npm run build
-│   ↓ pass         │
-│   INTEGRATION    │  API/DB tests
-│   ↓ pass         │
-│   E2E (optional) │  Playwright/Cypress
-│   ↓ pass         │
-│   SECURITY AUDIT │  npm audit
-│   ↓ pass         │
-│   BUNDLE SIZE    │  bundlesize check
-└─────────────────┘
-    │
-    ▼
-  Ready for review
-```
+2. **Order them cheapest signal first** — a bug caught in lint costs minutes, the same bug in production
+   hours: lint, types, unit tests with coverage, build, integration against a service container, e2e where
+   any exist with its report uploaded on failure, the dependency audit at high
+   (`npm audit --audit-level=high`), bundle size against the project's budget. Each on the command the repo
+   defines, never one named here.
 
-**No gate can be skipped.** If lint fails, fix lint — don't disable the rule. If a test fails, fix the code — don't skip the test.
+3. **Fire on `pull_request` into the protected branch and on `push` to it.** Gate the pull request alone and
+   the merge commit becomes the first thing nobody checked.
 
-## GitHub Actions Configuration
+4. **Wire every secret by name and never by value**, the CI-only test database's password included. Names
+   go in the host's secret store; CI's secrets stay separate from production's. Commit `.env.example` and
+   `.env.test` holding no real values, and keep `.env` out of the repository. A literal reaching a workflow
+   file is a stop-list item ([`safety-rails.md`](../../references/safety-rails.md)), not a config bug.
 
-### Basic CI Pipeline
+5. **Make the gates block the merge rather than report beside it** — required status checks naming every
+   gate job, one approving review, no force-push to the protected branch, auto-merge off
+   ([`safety-rails.md`](../../references/safety-rails.md)). A tick nobody has to satisfy is a notification.
 
-```yaml
-# .github/workflows/ci.yml
-name: CI
+6. **Fix a red pipeline at its cause: feed the real failure output back with the command that produced it,
+   and reproduce it locally before the next push.**
 
-on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+   | Red gate | The move |
+   |---|---|
+   | lint | run the fixer, commit what it changed |
+   | types or build | fix at the error site the message names |
+   | test | root-cause it through `debugging-and-error-recovery` |
+   | audit | upgrade it, or record the accepted risk with its reason and its expiry |
 
-jobs:
-  quality:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+   Never disable the rule, skip the test, or re-run until it goes green. Disclose a test you changed on
+   purpose in the pull request body, before and after; nothing is frozen, so the undisclosed change is the
+   defect.
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Test
-        run: npm test -- --coverage
-
-      - name: Build
-        run: npm run build
-
-      - name: Security audit
-        run: npm audit --audit-level=high
-```
-
-### With Database Integration Tests
-
-```yaml
-  integration:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: testdb
-          POSTGRES_USER: ci_user
-          POSTGRES_PASSWORD: ${{ secrets.CI_DB_PASSWORD }}
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-      - run: npm ci
-      - name: Run migrations
-        run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: postgresql://ci_user:${{ secrets.CI_DB_PASSWORD }}@localhost:5432/testdb
-      - name: Integration tests
-        run: npm run test:integration
-        env:
-          DATABASE_URL: postgresql://ci_user:${{ secrets.CI_DB_PASSWORD }}@localhost:5432/testdb
-```
-
-> **Note:** Even for CI-only test databases, use GitHub Secrets for credentials rather than hardcoding values. This builds good habits and prevents accidental reuse of test credentials in other contexts.
-
-### E2E Tests
-
-```yaml
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-      - run: npm ci
-      - name: Install Playwright
-        run: npx playwright install --with-deps chromium
-      - name: Build
-        run: npm run build
-      - name: Run E2E tests
-        run: npx playwright test
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-report
-          path: playwright-report/
-```
-
-## Feeding CI Failures Back to Agents
-
-The power of CI with AI agents is the feedback loop. When CI fails:
-
-```
-CI fails
-    │
-    ▼
-Copy the failure output
-    │
-    ▼
-Feed it to the agent:
-"The CI pipeline failed with this error:
-[paste specific error]
-Fix the issue and verify locally before pushing again."
-    │
-    ▼
-Agent fixes → pushes → CI runs again
-```
-
-**Key patterns:**
-
-```
-Lint failure → Agent runs `npm run lint --fix` and commits
-Type error  → Agent reads the error location and fixes the type
-Test failure → Agent follows debugging-and-error-recovery skill
-Build error → Agent checks config and dependencies
-```
+7. **Bring a pipeline over ten minutes down in this order, and stop the moment it is under**: cache
+   dependencies, split the gates into parallel jobs, path-filter the jobs a change cannot affect, shard the
+   slow suite across a matrix, prune the slowest tests or move them to a schedule, buy a larger runner.
 
 ## Deployment Strategies
 
-> **achilles:** auto-deploy is OUT of v1. The patterns below are reference scaffolding the agent
-> configures but never triggers autonomously — deploy actions are fenced behind the human PR merge.
+8. **Configure the deploy path and never fire it.** A preview deployment per pull request, a staged rollout
+   — staging, verified before anything promotes, then production, then a monitoring window whose length is
+   named in the change, ending in rollback or done — and a manual `workflow_dispatch` rollback are
+   scaffolding a person triggers. Never `gh pr merge`, never push to `main`, never run a deploy
+   ([`safety-rails.md`](../../references/safety-rails.md)). Land the rollback in the same change as the
+   deploy, while nothing yet needs rolling back.
 
-### Preview Deployments
-
-Every PR gets a preview deployment for manual testing:
-
-```yaml
-# Deploy preview on PR (Vercel/Netlify/etc.)
-deploy-preview:
-  runs-on: ubuntu-latest
-  if: github.event_name == 'pull_request'
-  steps:
-    - uses: actions/checkout@v4
-    - name: Deploy preview
-      run: npx vercel --token=${{ secrets.VERCEL_TOKEN }}
-```
-
-### Feature Flags
-
-Feature flags decouple deployment from release. Deploy incomplete or risky features behind flags so you can:
-
-- **Ship code without enabling it.** Merge to main early, enable when ready.
-- **Roll back without redeploying.** Disable the flag instead of reverting code.
-- **Canary new features.** Enable for 1% of users, then 10%, then 100%.
-- **Run A/B tests.** Compare behavior with and without the feature.
-
-```typescript
-// Simple feature flag pattern
-if (featureFlags.isEnabled('new-checkout-flow', { userId })) {
-  return renderNewCheckout();
-}
-return renderLegacyCheckout();
-```
-
-**Flag lifecycle:** Create → Enable for testing → Canary → Full rollout → Remove the flag and dead code. Flags that live forever become technical debt — set a cleanup date when you create them.
-
-### Staged Rollouts
-
-```
-PR merged to main
-    │
-    ▼
-  Staging deployment (auto)
-    │ Manual verification
-    ▼
-  Production deployment (manual trigger or auto after staging)
-    │
-    ▼
-  Monitor for errors (15-minute window)
-    │
-    ├── Errors detected → Rollback
-    └── Clean → Done
-```
-
-### Rollback Plan
-
-Every deployment should be reversible:
-
-```yaml
-# Manual rollback workflow
-name: Rollback
-on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to rollback to'
-        required: true
-
-jobs:
-  rollback:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Rollback deployment
-        run: |
-          # Deploy the specified previous version
-          npx vercel rollback ${{ inputs.version }}
-```
-
-## Environment Management
-
-```
-.env.example       → Committed (template for developers)
-.env                → NOT committed (local development)
-.env.test           → Committed (test environment, no real secrets)
-CI secrets          → Stored in GitHub Secrets / vault
-Production secrets  → Stored in deployment platform / vault
-```
-
-CI should never have production secrets. Use separate secrets for CI testing.
+9. **Give every feature flag an owner and a removal date in the change that creates it**, and delete the
+   flag with its dead branch within two weeks of full rollout — create, enable for testing, canary, full,
+   remove. A flag buys decoupling deploy from release; one with no removal date is a second code path
+   nobody reads.
 
 ## Automation Beyond CI
 
-### Dependabot / Renovate
+10. **Schedule dependency updates weekly with an open-pull-request limit, and name who owns a red default
+    branch.** That owner fixes or reverts, so a broken build stops being everybody's to assume someone else
+    has noticed.
 
-```yaml
-# .github/dependabot.yml
-version: 2
-updates:
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-```
+## Reviewing a CI diff
 
-### Build Cop Role
+11. **Read a diff that changed CI, build or deploy configuration code-cold for what stopped being checked.**
+    Return `pass · concerns · block`, where `block` is a stop-list item and nothing else. An undisclosed
+    loosening is `concerns` with its file and line — the change may be right, the silence is still a defect.
 
-Designate someone responsible for keeping CI green. When the build breaks, the Build Cop's job is to fix or revert — not the person whose change caused the break. This prevents broken builds from accumulating while everyone assumes someone else will fix it.
+    | In the diff | Reads as |
+    |---|---|
+    | a gate step deleted, or its job dropped from the required set | the oracle lost a check |
+    | `continue-on-error: true`, `if: false`, a raised `--audit-level`, `--passWithNoTests` | a gate that can no longer fail |
+    | branch protection relaxed, force-push re-enabled, auto-merge switched on | the merge stopped being gated |
+    | `pull_request_target` running a fork's code, or a secret exposed to one | privilege reaching untrusted input |
+    | a secret literal, or a value echoed into a log | the stop list |
 
-### PR Checks
-
-- **Required reviews:** At least 1 approval before merge
-- **Required status checks:** CI must pass before merge
-- **Branch protection:** No force-pushes to main
-- **Auto-merge:** If all checks pass and approved, merge automatically
-  > NOTE: in achilles, NEVER auto-merge — the terminal state is an open, risk-banded PR for async human
-  > merge. See ## Outputs & handoff contract.
-
-## CI Optimization
-
-When the pipeline exceeds 10 minutes, apply these strategies in order of impact:
-
-```
-Slow CI pipeline?
-├── Cache dependencies
-│   └── Use actions/cache or setup-node cache option for node_modules
-├── Run jobs in parallel
-│   └── Split lint, typecheck, test, build into separate parallel jobs
-├── Only run what changed
-│   └── Use path filters to skip unrelated jobs (e.g., skip e2e for docs-only PRs)
-├── Use matrix builds
-│   └── Shard test suites across multiple runners
-├── Optimize the test suite
-│   └── Remove slow tests from the critical path, run them on a schedule instead
-└── Use larger runners
-    └── GitHub-hosted larger runners or self-hosted for CPU-heavy builds
-```
-
-**Example: caching and parallelism**
-```yaml
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '22', cache: 'npm' }
-      - run: npm ci
-      - run: npm run lint
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '22', cache: 'npm' }
-      - run: npm ci
-      - run: npx tsc --noEmit
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '22', cache: 'npm' }
-      - run: npm ci
-      - run: npm test -- --coverage
-```
-
-## Common Rationalizations
+## Rationalizations
 
 | Rationalization | Reality |
 |---|---|
-| "CI is too slow" | Optimize the pipeline (see CI Optimization below), don't skip it. A 5-minute pipeline prevents hours of debugging. |
-| "This change is trivial, skip CI" | Trivial changes break builds. CI is fast for trivial changes anyway. |
-| "The test is flaky, just re-run" | Flaky tests mask real bugs and waste everyone's time. Fix the flakiness. |
-| "We'll add CI later" | Projects without CI accumulate broken states. Set it up on day one. |
-| "Manual testing is enough" | Manual testing doesn't scale and isn't repeatable. Automate what you can. |
+| "CI is too slow, skip it this once" | People route around a pipeline they wait on; step 7 is the fix. |
+| "This change is trivial" | Trivial changes break builds, and the pipeline is fast on them anyway. |
+| "The test is flaky, just re-run it" | A flaky test is a bug reporting intermittently; a green re-run leaves it in the tree. |
+| "We'll add CI once the code settles" | An ungated repo accumulates broken states nobody can date. |
+| "It's only the CI-only test database" | A test credential reused in anger is still a credential. |
+| "The PR body says no behaviour change" | A workflow diff changes what judges the work. |
 
-## Red Flags
+## Red flags
 
-- No CI pipeline in the project
-- CI failures ignored or silenced
-- Tests disabled in CI to make the pipeline pass
-- Production deploys without staging verification
-- No rollback mechanism
-- Secrets stored in code or CI config files (not secrets manager)
-- Long CI times with no optimization effort
+- A workflow step naming a script the repo does not define.
+- A green tick over `continue-on-error`, `if: false`, or a raised threshold.
+- A gate job that runs but is not in the required set.
+- A secret literal in a workflow file, or a value echoed to a log.
+- A deploy path with no rollback, or a flag with no removal date.
+- A re-run standing in for a fix on a suite everyone calls flaky.
 
 ## Verification
 
-After setting up or modifying CI:
+- [ ] Every gate ran locally on the command the workflow invokes, its real output reported — a red gate is
+      the gate working — and none names a script the repo does not define.
+- [ ] Each gate the repo lacks has a Decided-for-you row rather than an invented command.
+- [ ] The pipeline fires on `pull_request` into the protected branch and on `push` to it, and a red gate
+      blocks the merge through required status checks.
+- [ ] Every secret appears by name only, CI's separate from production's, and a scan for literals came back
+      clean.
+- [ ] A configured deploy has its rollback in the same change, and nothing was triggered: no merge, no push
+      to `main`, no deploy, no auto-merge.
+- [ ] Every flag carries an owner and a removal date; the dependency schedule carries an open-PR limit.
+- [ ] Every derived value reads `derived` where it is written, and nothing was refused.
+- [ ] Reviewing a diff: one verdict of `pass · concerns · block`, each finding citing its file and line.
 
-- [ ] All quality gates are present (lint, types, tests, build, audit)
-- [ ] Pipeline runs on every PR and push to main
-- [ ] Failures block merge (branch protection configured)
-- [ ] CI results feed back into the development loop
-- [ ] Secrets are stored in the secrets manager, not in code
-- [ ] Deployment has a rollback mechanism
-- [ ] Pipeline runs in under 10 minutes for the test suite
+## Outputs & handoff
 
-## Outputs & handoff contract
+**`.github/workflows/*.yml`**, or the host's equivalent — no artifact cap; the ceiling is the gates that
+actually run. Shape: one job per gate in step 2's order, cached dependencies, step 3's triggers, secrets
+only as `${{ secrets.NAME }}`. Report the job count and the measured wall-clock against the ten-minute
+target; a slower pipeline is handed on as slow, not done.
 
-**Emits:** no artifact-chain artifact (registry: *referenced*). This skill produces and maintains **pipeline
-configuration in the repo** — `.github/workflows/*.yml`, `.github/dependabot.yml`, branch-protection settings —
-and the **quality-gate verdict** those workflows compute on each PR/push.
+**`.github/dependabot.yml`**, or the Renovate config — weekly, with an open-pull-request limit.
 
-**How its output is consumed:**
-- The quality-gate results (lint · types · tests · build · audit · bundle-size) are the CI-side mirror of the
-  three agent-internal gates (qa · review fan-out · evaluator floors); a red gate **blocks merge** via
-  branch protection.
-- **Failure feedback loops to `debugging-and-error-recovery`**: on a red gate the failure output is fed
-  back — lint → `--fix` + commit; type/build → fix at the error site; **test failure → hand to
-  `debugging-and-error-recovery`'s five-step triage**, never silence or skip the test.
+**`.env.example` and `.env.test`** — committed, keys only and no values; `.env` stays out of the
+repository. No cap; the ceiling is the names `environment.md` or the code gives.
 
-**Autonomy fencing (load-bearing):** the achilles agent runs Implement→Ship autonomously but terminates
-at an **OPEN, risk-banded PR** for async human merge. This skill's **auto-merge and deploy actions are
-reference patterns only and are FENCED behind the human merge** — the agent configures the gates and the
-rollback/flag scaffolding but **never auto-merges to `main` (safety rail 1,
-`references/safety-rails.md`) and never auto-deploys
-(auto-deploy is OUT of v1)**. Secrets are wired by name only; a secret literal reaching a workflow file
-is a security **STOP** (safety rail 2), not a CI-config bug.
+**Branch protection**: required status checks naming every gate job, one approving review, force-push off,
+auto-merge off.
 
-**STATE.md update:** none directly (referenced discipline). Pipeline-green is recorded as part of the slice's
-`ship` gate evidence by the `pull-request` / orchestrator that invoked this skill, not by this skill.
+**Appended to `docs/session-log.md`**: one entry per gate the repo lacks, per accepted audit finding, and
+per deploy shape settled here; cap 60 words each, matching the pull request's Decided-for-you row. Shape
+and append rules: [`state-schema.md`](../../references/state-schema.md). Report each entry's measured
+length and trim rather than hand an over-cap one on.
+
+**Returned in conversation**, reviewing a diff: the verdict and its findings, and no file written — the
+workflow a finding names is the implementer's to change on the route-back.
+
+**Nothing else is handed on.** No `STATE.md` row and no gate flip, the caller owning the slice's transition
+([`state-schema.md`](../../references/state-schema.md)); no merge, no deploy, no release notes.

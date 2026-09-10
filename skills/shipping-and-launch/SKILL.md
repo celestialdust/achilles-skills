@@ -1,349 +1,179 @@
 ---
 name: shipping-and-launch
-description: Prepares production releases and authors the launch runbook. Use the moment you are preparing to ship to production, batching merged PRs into a release, or anyone asks for a pre-launch checklist, a feature-flag rollout, a staged/canary rollout plan, monitoring setup, or a rollback strategy. Starts AFTER the human merges — a slice sitting at an open draft PR belongs to `pull-request`, not here. It AUTHORS the runbook only; it never fires deploy/rollout/rollback commands itself.
+description: Write the release runbook once a person has merged — pre-launch clearance with its evidence, the flag and staged-rollout plan, the thresholds deciding advance, hold or roll back, and the rollback path. Authors it, runs none of it. A slice at a draft pull request is `pull-request`; the pipeline that deploys is `ci-cd`.
 ---
 
 # Shipping and Launch
 
 ## Purpose
 
-**Stage: Ship — the release workhorse. Runs after the human merges; release-level, so one pass may cover a single merged change or batch several.**
+**Stage: Ship.** Principles 1, 5, 6, 7.
 
-Ship with confidence. The goal is not just to deploy — it's to deploy safely, with monitoring in place, a rollback plan ready, and a clear understanding of what success looks like. Every launch should be reversible, observable, and incremental.
-
-**Written after the merge, executed at the deploy.** Two different moments, and confusing them breaks the stage. A release runbook is not an input to a pull request: one slice's draft PR is not a release, so `pull-request` neither reads this runbook nor waits for one to exist. This skill starts once the change is on the base branch. The runbook's own steps — deploy, enable the flag, advance the canary, roll back — happen later still, run by the human off the written plan.
-
-A merged change is therefore the entry condition, and that is what puts this skill outside the autonomous run. Nothing in this suite is merged by the agent: a run ends at an open draft PR and the human merges whenever they get to it. Whoever invokes this skill afterwards — the human, or an agent the human starts — is working on the far side of that merge.
-
-> **v1 autonomy fence.** This skill AUTHORS the release runbook; it does **not execute deploy, rollout, or rollback commands**, and it sits **outside the autonomous span**. The agent's run ends at the open draft PR (`pull-request` workhorse); this skill picks up on the far side of the human's merge — every `DEPLOY` / `ENABLE` / canary-advance / `ROLL BACK` step below is a runbook the **human runs**, never an action the agent fires unattended. Auto-deploy and auto-merge are out of v1 (safety rail 1, `references/safety-rails.md`: a human merges). Whoever invokes it, human or agent, its output is a written plan in `release.md`, not a side effect.
+Writes the release runbook for work a person has already merged: the pre-launch clearance and its
+evidence, the flag and rollout plan, the thresholds deciding advance, hold or roll back, the way back, and
+what the first hour watches. It emits `release.md` and fires none of it — release-level, past the end of
+the autonomous span.
 
 ## When to use / when to skip
 
-- Preparing a feature's first production deploy
-- Releasing a significant change to users
-- Migrating data or infrastructure
-- Opening a beta or early access program
-- Any deployment that carries risk (all of them)
-- **Skip** for a docs-only / config-only change with no user-visible runtime effect — there is no rollout to stage and nothing to roll back.
+- A person has merged a feature's slices and it reaches production for the first time, or several merged
+  changes are batched into one release, or a beta or early-access audience opens.
+- A deploy that moves data or infrastructure, where the way back matters more than the way forward.
+- Skip a docs- or config-only change with no user-visible runtime effect — nothing to stage, nothing to
+  roll back.
+- Near-miss — a slice still at an open draft pull request: `pull-request`. The deploy pipeline, its gates
+  and the rollback workflow: `ci-cd`. Instrumenting the code this runbook watches:
+  `observability-and-instrumentation`. Moving a schema or retiring an interface: `deprecation-and-migration`.
 
 ## Inputs
 
-Consumes (refuse to run if absent):
+Take each from the prompt where it is given, the canonical path otherwise; with a person present, at most
+three questions, and only where the gap changes the release's shape — usually whether a flag service exists.
 
-- **The change being released, with its gates green** — the slice (or the set of slices batched into one release) whose `qa.md` `## Verdict` reads **pass** and whose Review fan-out is clear, plus the diff that was merged. Green gates are what makes a change launch-ready. A change nobody has verified or reviewed has nothing to write a runbook about.
-- **`environment.md`** (typed-kind manifest; read-only, value-blind) — names the production + staging targets and the feature-flag / monitoring services as typed rows. It carries NO values and NO commands; read it for *what* exists, never for secrets or shell strings.
-- **`prd.md` + referenced ADRs** — the success definition the rollout decision thresholds bind to (which business metrics matter, what "Good" means for this feature).
+- the merged change — the commits on the base branch since the last release, and their diff — helps: what
+  ships, and what a rollback has to undo · without it: the last tag to `HEAD`, name the range you read,
+  `derived`.
+- `docs/features/<slug>/environment.md` — helps: the typed rows naming the production and staging targets
+  and the flag, monitoring and error-reporting services · without it: the repo's CI and deploy
+  configuration, `derived` — read either for *what* exists, never for a value or a command.
+- `docs/features/<slug>/prd.md` and the ADRs it cites — helps: the success measure the thresholds bind to,
+  and the Not-Doing list a rollout cannot cross · without it: `intent.md`, or what the feature changes for
+  a user, `derived`.
+- `docs/features/<slug>/qa.md` — helps: the verdict, the exercised ledger and the `not-reachable` ids,
+  which say what the first hour watches by hand · without it: the tests the merged diff carries, `derived`.
+- the merged pull request bodies — helps: each slice's risk band and Decided-for-you rows, what a person
+  already flagged · without it: the diff and `docs/session-log.md`, `derived`.
 
-Refuse-to-run if: the change has not cleared Verify and Review (`qa.md` `## Verdict` is not pass, or a Critical/Required review finding is still open) — route it back, there is nothing launch-ready to prepare; `environment.md` is missing or its rows are unprovisioned (run `preflight-readiness` first); or no rollback path is identifiable for the change.
+## Process
 
-Do gate on the merge. There is no release to plan until the change is on the base branch, and the agent never performs that merge — so this skill starts when the human hands it merged work, never mid-run. A slice still sitting at an open draft PR belongs to `pull-request`; route it back there.
+1. **Name what this release covers before writing about it** — the merged commits or slices, and their
+   diff. A change still at an open draft pull request is not in it; it goes back to `pull-request`.
 
-## The Pre-Launch Checklist
+2. **Clear each pre-launch area against its standing list, and write beside it what cleared it.**
 
-### Code Quality
+   | Area | Cleared against |
+   |---|---|
+   | correctness · quality · integration · documentation | [`definition-of-done.md`](../../references/definition-of-done.md) |
+   | security | [`security-checklist.md`](../../references/security-checklist.md) |
+   | performance | [`performance-checklist.md`](../../references/performance-checklist.md) |
+   | accessibility | [`accessibility-checklist.md`](../../references/accessibility-checklist.md) |
+   | monitoring | [`observability-checklist.md`](../../references/observability-checklist.md) · *Pre-launch gate* |
+   | infrastructure | production configuration set · migrations ready with their reverse · DNS, SSL and CDN answering · a health check that returns |
 
-- [ ] All tests pass (unit, integration, e2e)
-- [ ] Build succeeds with no warnings
-- [ ] Lint and type checking pass
-- [ ] Code reviewed and approved
-- [ ] No TODO comments that should be resolved before launch
-- [ ] No `console.log` debugging statements in production code
-- [ ] Error handling covers expected failure modes
+   An area that will not clear is written down as outstanding with what it needs; a `concerns` verdict or
+   an open Required finding tops the first hour's watch list instead of holding the release, while a
+   Critical or High security finding is a stop-list item ([`safety-rails.md`](../../references/safety-rails.md)).
 
-### Security
+3. **Plan the rollout as stages, each with an audience, a monitoring window, a named watcher and a way
+   back** — staging with the full suite and a smoke pass, production with the flag off and a health check,
+   the team, then 5% → 25% → 50% → 100%, stepping back a stage rather than forward whenever a window reads
+   unclear.
 
-- [ ] No secrets in code or version control
-- [ ] `npm audit` shows no critical or high vulnerabilities
-- [ ] Input validation on all user-facing endpoints
-- [ ] Authentication and authorization checks in place
-- [ ] Security headers configured (CSP, HSTS, etc.)
-- [ ] Rate limiting on authentication endpoints
-- [ ] CORS configured to specific origins (not wildcard)
+4. **Give the flag an owner and a removal date in the line that names it.** Its life runs off in production
+   → on for the team → canary → full → flag and dead path deleted, within two weeks of full rollout;
+   nesting flags multiplies the states to test, and both states of each belong in CI. Where no flag service
+   exists, say so and make every stage's way back a revert of the deploy — a stage with no way back is not
+   a stage.
 
-### Performance
+5. **Bind advance, hold and roll back to the measure `prd.md` calls success**, so the numbers are this
+   feature's rather than a template's, and record the baseline each is read against.
 
-- [ ] Core Web Vitals within "Good" thresholds
-- [ ] No N+1 queries in critical paths
-- [ ] Images optimized (compression, responsive sizes, lazy loading)
-- [ ] Bundle size within budget
-- [ ] Database queries have appropriate indexes
-- [ ] Caching configured for static assets and repeated queries
+   | Signal | Advance | Hold and investigate | Roll back |
+   |---|---|---|---|
+   | error rate | within 10% of baseline | 10–100% above | over 2× baseline |
+   | p95 latency | within 20% of baseline | 20–50% above | over 50% above |
+   | client-side errors | no new type | new, under 0.1% of sessions | new, over 0.1% of sessions |
+   | the feature's success measure | flat or better | down under 5% | down over 5% |
 
-### Accessibility
+   A data-integrity problem, a security finding or a spike in user reports rolls back on contact, without
+   waiting for the window to close.
 
-- [ ] Keyboard navigation works for all interactive elements
-- [ ] Screen reader can convey page content and structure
-- [ ] Color contrast meets WCAG 2.1 AA (4.5:1 for text)
-- [ ] Focus management correct for modals and dynamic content
-- [ ] Error messages are descriptive and associated with form fields
-- [ ] No accessibility warnings in axe-core or Lighthouse
+6. **Write the way back before the deploy that will need it** — triggers, steps, what becomes of data the
+   new code wrote, a time-to-rollback per route (flag, redeploy, migration). An irreversible step with no
+   rollback is a stop-list item ([`safety-rails.md`](../../references/safety-rails.md)) — name it in the
+   runbook as that, and invent no reverse for it.
 
-### Infrastructure
+7. **Name what is watched, and what the first hour checks** — the application and infrastructure metric
+   groups, depth in [`observability-checklist.md`](../../references/observability-checklist.md), and the
+   client-side group: Core Web Vitals, depth in
+   [`performance-checklist.md`](../../references/performance-checklist.md), client JS errors, client-side
+   API error rate; then the health check, the error dashboard, latency, the critical flow driven by hand,
+   logs arriving, the rollback route rehearsed.
 
-- [ ] Environment variables set in production
-- [ ] Database migrations applied (or ready to apply)
-- [ ] DNS and SSL configured
-- [ ] CDN configured for static assets
-- [ ] Logging and error reporting configured
-- [ ] Health check endpoint exists and responds
+8. **Write the runbook and run none of it.** Every deploy, flag enable, canary advance and rollback in it
+   is a step a person takes later, so its `Deploy fence` reads `Executed by: human, post-merge` and this
+   pass fires none of them, no `gh pr merge`, no push to `main`
+   ([`safety-rails.md`](../../references/safety-rails.md) — a human merges).
 
-### Documentation
-
-- [ ] README updated with any new setup requirements
-- [ ] API documentation current
-- [ ] ADRs written for any architectural decisions
-- [ ] Changelog updated
-- [ ] User-facing documentation updated (if applicable)
-
-## Feature Flag Strategy
-
-Ship behind feature flags to decouple deployment from release:
-
-```typescript
-// Feature flag check
-const flags = await getFeatureFlags(userId);
-
-if (flags.taskSharing) {
-  // New feature: task sharing
-  return <TaskSharingPanel task={task} />;
-}
-
-// Default: existing behavior
-return null;
-```
-
-**Feature flag lifecycle:**
-
-```
-1. DEPLOY with flag OFF     → Code is in production but inactive
-2. ENABLE for team/beta     → Internal testing in production environment
-3. GRADUAL ROLLOUT          → 5% → 25% → 50% → 100% of users
-4. MONITOR at each stage    → Watch error rates, performance, user feedback
-5. CLEAN UP                 → Remove flag and dead code path after full rollout
-```
-
-**Rules:**
-- Every feature flag has an owner and an expiration date
-- Clean up flags within 2 weeks of full rollout
-- Don't nest feature flags (creates exponential combinations)
-- Test both flag states (on and off) in CI
-
-## Staged Rollout
-
-### The Rollout Sequence
-
-```
-1. DEPLOY to staging
-   └── Full test suite in staging environment
-   └── Manual smoke test of critical flows
-
-2. DEPLOY to production (feature flag OFF)
-   └── Verify deployment succeeded (health check)
-   └── Check error monitoring (no new errors)
-
-3. ENABLE for team (flag ON for internal users)
-   └── Team uses the feature in production
-   └── 24-hour monitoring window
-
-4. CANARY rollout (flag ON for 5% of users)
-   └── Monitor error rates, latency, user behavior
-   └── Compare metrics: canary vs. baseline
-   └── 24-48 hour monitoring window
-   └── Advance only if all thresholds pass (see table below)
-
-5. GRADUAL increase (25% -> 50% -> 100%)
-   └── Same monitoring at each step
-   └── Ability to roll back to previous percentage at any point
-
-6. FULL rollout (flag ON for all users)
-   └── Monitor for 1 week
-   └── Clean up feature flag
-```
-
-### Rollout Decision Thresholds
-
-Use these thresholds to decide whether to advance, hold, or roll back at each stage:
-
-| Metric | Advance (green) | Hold and investigate (yellow) | Roll back (red) |
-|--------|-----------------|-------------------------------|-----------------|
-| Error rate | Within 10% of baseline | 10-100% above baseline | >2x baseline |
-| P95 latency | Within 20% of baseline | 20-50% above baseline | >50% above baseline |
-| Client JS errors | No new error types | New errors at <0.1% of sessions | New errors at >0.1% of sessions |
-| Business metrics | Neutral or positive | Decline <5% (may be noise) | Decline >5% |
-
-### When to Roll Back
-
-Roll back immediately if:
-- Error rate increases by more than 2x baseline
-- P95 latency increases by more than 50%
-- User-reported issues spike
-- Data integrity issues detected
-- Security vulnerability discovered
-
-## Monitoring and Observability
-
-### What to Monitor
-
-```
-Application metrics:
-├── Error rate (total and by endpoint)
-├── Response time (p50, p95, p99)
-├── Request volume
-├── Active users
-└── Key business metrics (conversion, engagement)
-
-Infrastructure metrics:
-├── CPU and memory utilization
-├── Database connection pool usage
-├── Disk space
-├── Network latency
-└── Queue depth (if applicable)
-
-Client metrics:
-├── Core Web Vitals (LCP, INP, CLS)
-├── JavaScript errors
-├── API error rates from client perspective
-└── Page load time
-```
-
-### Error Reporting
-
-```typescript
-// Set up error boundary with reporting
-class ErrorBoundary extends React.Component {
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    // Report to error tracking service
-    reportError(error, {
-      componentStack: info.componentStack,
-      userId: getCurrentUser()?.id,
-      page: window.location.pathname,
-    });
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <ErrorFallback onRetry={() => this.setState({ hasError: false })} />;
-    }
-    return this.props.children;
-  }
-}
-
-// Server-side error reporting
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  reportError(err, {
-    method: req.method,
-    url: req.url,
-    userId: req.user?.id,
-  });
-
-  // Don't expose internals to users
-  res.status(500).json({
-    error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' },
-  });
-});
-```
-
-### Post-Launch Verification
-
-In the first hour after launch:
-
-```
-1. Check health endpoint returns 200
-2. Check error monitoring dashboard (no new error types)
-3. Check latency dashboard (no regression)
-4. Test the critical user flow manually
-5. Verify logs are flowing and readable
-6. Confirm rollback mechanism works (dry run if possible)
-```
-
-## Rollback Strategy
-
-Every deployment needs a rollback plan before it happens:
-
-```markdown
-## Rollback Plan for [Feature/Release]
-
-### Trigger Conditions
-- Error rate > 2x baseline
-- P95 latency > [X]ms
-- User reports of [specific issue]
-
-### Rollback Steps
-1. Disable feature flag (if applicable)
-   OR
-1. Deploy previous version: `git revert <commit> && git push`
-2. Verify rollback: health check, error monitoring
-3. Communicate: notify team of rollback
-
-### Database Considerations
-- Migration [X] has a rollback: `npx prisma migrate rollback`
-- Data inserted by new feature: [preserved / cleaned up]
-
-### Time to Rollback
-- Feature flag: < 1 minute
-- Redeploy previous version: < 5 minutes
-- Database rollback: < 15 minutes
-```
-## See Also
-
-- For the project-wide Definition of Done that every change must clear before this checklist, see `references/definition-of-done.md`
-- For security pre-launch checks, see `references/security-checklist.md`
-- For performance pre-launch checklist, see `references/performance-checklist.md`
-- For accessibility verification before launch, see `references/accessibility-checklist.md`
+9. **Take a default wherever the inputs are silent** — a baseline, a window length, an environment name —
+   state the reason, mark the value `derived`, append one `docs/session-log.md` entry, so whoever deploys
+   sees the choice rather than inheriting it.
 
 ## Rationalizations
 
 | Rationalization | Reality |
 |---|---|
-| "It works in staging, it'll work in production" | Production has different data, traffic patterns, and edge cases. Monitor after deploy. |
-| "We don't need feature flags for this" | Every feature benefits from a kill switch. Even "simple" changes can break things. |
-| "Monitoring is overhead" | Not having monitoring means you discover problems from user complaints instead of dashboards. |
-| "We'll add monitoring later" | Add it before launch. You can't debug what you can't see. |
-| "Rolling back is admitting failure" | Rolling back is responsible engineering. Shipping a broken feature is the failure. |
+| "It works in staging, so it works in production" | Production carries different data, traffic and edge cases; the first hour is where that shows. |
+| "This change is too small to need a flag" | Without one the way back is a revert of the whole deploy — the stage's rollback, written down or not. |
+| "Monitoring can go in after launch" | A signal with no pre-deploy baseline cannot tell a regression from a Tuesday. |
+| "The migration is one-way, so plan around it" | An irreversible step with no rollback is a stop-list item ([`safety-rails.md`](../../references/safety-rails.md)) — a rollback written for a step that has none is fiction. |
+| "Rolling back would admit the release failed" | A rehearsed way back is what makes shipping early affordable. |
+| "Every gate came back green" | The gates graded the change; the deploy is a separate act, and nothing has graded that. |
 
 ## Red flags
 
-- Deploying without a rollback plan
-- No monitoring or error reporting in production
-- Big-bang releases (everything at once, no staging)
-- Feature flags with no expiration or owner
-- No one monitoring the deploy for the first hour
-- Production environment configuration done by memory, not code
-- "It's Friday afternoon, let's ship it"
-- Agent (not the human) executing a `DEPLOY` / canary-advance / `ROLL BACK` command unattended — the v1 fence makes deploy a human-post-merge action.
+- A ticked pre-launch box with nothing beside it saying what cleared it.
+- A rollout stage with no audience, window or named watcher.
+- A flag with no owner or removal date, or one nested inside another.
+- Thresholds copied from a template, with no baseline named beside them.
+- A runbook written around a step whose rollback nobody can describe.
+- "It's Friday afternoon, let's ship it" — or a deploy or canary-advance fired by this pass rather than by
+  the person at the console.
 
-## Verification (ending criteria)
+## Verification
 
-This skill is done when the runbook is written, not when the deploy happens. The two lists sit on opposite sides of the deploy.
+- [ ] The runbook exists at its path with the six stable sections below, its word count measured against
+      the cap.
+- [ ] Every pre-launch area reads cleared-by-this-evidence or outstanding-and-needs-this; a blank one
+      reads as cleared.
+- [ ] Every rollout stage carries an audience, a window, a watcher and a way back; every rollback route
+      its triggers, steps, data consequences and time to roll back.
+- [ ] The thresholds name the baseline and the success measure they were read against, and the flag its
+      owner and removal date — or the runbook says there is no flag service and what replaces it.
+- [ ] Every derived value reads `derived`, and every default matches one `docs/session-log.md` entry.
+- [ ] The `Deploy fence` reads `Executed by: human, post-merge`, and no deploy, rollout, canary or
+      rollback command ran here — the work ends at the written runbook, not at the deploy.
+- [ ] Any release step with no rollback reads as a stop-list item in the runbook, with no rollback
+      invented for it.
 
-Before deploying — whoever authors the release finishes these, and finishing them is what ends the skill:
+## Outputs & handoff
 
-- [ ] Pre-launch checklist completed (all sections green)
-- [ ] Feature flag configured (if applicable)
-- [ ] Rollback plan documented
-- [ ] Monitoring dashboards set up
-- [ ] Team notified of deployment
+**`docs/features/<slug>/release.md`**, or `docs/releases/<date>-<slug>.md` for a release batching several
+features — cap 600 words, `derived` from the `qa.md` cap because this file has none of its own, these six
+stable sections in this order. Report the measured count against the cap; an over-cap runbook is trimmed
+before it is handed over, never passed on as if it fit.
 
-After deploying — the runbook hands these to the human, who works them once the deploy is out; the agent never checks them off itself:
+```markdown
+# Release — <feature or date>
 
-- [ ] Health check returns 200
-- [ ] Error rate is normal
-- [ ] Latency is normal
-- [ ] Critical user flow works
-- [ ] Logs are flowing
-- [ ] Rollback tested or verified ready
+## Pre-launch checklist   area → cleared by <evidence> | outstanding: <what it needs>
+## Feature-flag plan      name · owner · removal date · off → team → canary → full → flag and dead path deleted
+## Staged-rollout plan    stage · audience · window · who watches · the way back, then
+                          | Signal | Advance | Hold | Roll back | — baseline named, bound to prd.md's success measure
+## Rollback plan          per route: triggers · steps · what happens to data · time to roll back
+## Monitoring setup       dashboards and alerts to watch · the first-hour checks
+## Deploy fence           `Executed by: human, post-merge` — every deploy, flag enable, canary advance
+                          and rollback above is a person's step
+```
 
-## Outputs & handoff contract
+No skill reads `release.md`; its consumer is the person running the deploy. No pull request waits for it.
 
-Emits the **release** artifact → `release.md` under `docs/features/<slug>/` (or `docs/releases/<date>-<slug>.md` for a batched multi-feature release). Stable sections a consumer depends on — change the shape, update the consumer in the same commit:
+**Appended to `docs/session-log.md`**: one entry per default taken, cap 60 words; shape and append rules
+in [`state-schema.md`](../../references/state-schema.md).
 
-- **Pre-launch checklist** — every section green (Code Quality · Security · Performance · Accessibility · Infrastructure · Documentation) with the gating items checked.
-- **Feature-flag plan** — flag name, owner, expiration date, and the OFF → team → canary → 100% lifecycle.
-- **Staged-rollout plan** — the rollout sequence plus the decision-threshold table (advance / hold / roll-back per metric).
-- **Rollback plan** — trigger conditions, steps, DB considerations, and the time-to-rollback budget (the `## Rollback Plan for [Feature]` template, filled).
-- **Monitoring setup** — the dashboards/alerts to watch + the first-hour post-launch verification list.
-- **Deploy fence** — an explicit `Executed by: human, post-merge` banner. In v1 the agent authors this runbook but executes no deploy/rollout/rollback command; every action is fenced behind the human's async merge (auto-deploy out of v1).
+**Returned in conversation**: the runbook's path and its measured word count, and any step the runbook
+names as a stop-list item.
 
-**Consumer:** the human running the deploy. No skill reads `release.md` — `pull-request` in particular does not, because a slice's draft PR opens well before any release exists and never waits on one.
-
-STATE.md: shipping-and-launch is **release-level and post-merge** — it does NOT own a slice row and never flips a slice `gate` to `agent` for a deploy action (`pull-request` owns the slice row). Once the feature's slices read `done` and their PRs are merged, record `release.md` under that feature's `Artifacts` cell. If a CRITICAL/HIGH security finding or a secret surfaces while preparing the release → hard STOP, fire `PushNotification`, open no release (safety rails 2 and 3).
+**Nothing else.** No `STATE.md` row — release-level work owns no slice, the caller owning any transition
+([`state-schema.md`](../../references/state-schema.md)); no code, no CI or deploy configuration (`ci-cd`),
+no merge, no command that deploys, advances a rollout or rolls one back.

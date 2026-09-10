@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 // check-enumerations.mjs — does every stated count match the tree it counts?
 //
-// "The 39 skills", "the 5 fresh-context personas", "Twelve slash commands". Each is a fact about the
-// repository written down in prose, and nothing keeps it true. This recomputes each one and diffs it
-// against every place that states it.
+// "The 39 skills", "Twelve slash commands". Each is a fact about the repository written down in prose,
+// and nothing keeps it true. This recomputes each one and diffs it against every place that states it.
 //
 // WHY IT EXISTS, and it is not a hypothetical. Every hand-priced enumeration in the v2 build measured
 // wrong — nine of them, every one short, and the shortfall was never noticed by anyone reading the
@@ -20,35 +19,36 @@
 //
 // So a total is recognised by its *frame*, not by its noun. Five frames state one in this repository,
 // and no subset claim in the tree uses any of them: a definite article with the number immediately
-// after it (`The 40 skills`), a structure-block arrow (`skills/ → 40 skills`), a universal quantifier
-// (`All 40 skills`), an existential (`There are 40 skills`), and an inventory verb (`the suite ships
-// 40 skills`, `the plugin registers 12 slash commands`). Every subset claim in the tree fails all five
-// — "eight skills carry one", "the other four personas", "two or three skills" — because English does
+// after it (`The 39 skills`), a structure-block arrow (`skills/ → 39 skills`), a universal quantifier
+// (`All 39 skills`), an existential (`There are 39 skills`), and an inventory verb (`the suite ships
+// 39 skills`, `the plugin registers 12 slash commands`). Every subset claim in the tree fails all five
+// — "eight skills carry one", "the other four commands", "two or three skills" — because English does
 // not front a subset with a bare definite article or a bare `all`.
 //
 // THE FRAME LIST IS FINITE, AND THAT IS THE HOLE. A total worded some sixth way is unchecked, and
 // nothing below reports it. The completeness assertion is *not* what closes this, whatever an earlier
 // version of this header claimed: it fires only when a registry has no claim left anywhere in the
 // tree, so while any twin still states a count, rewording one site out of the frame is silent. That
-// makes rewording the cheapest way to clear a live WRONG hit — turn "The 40 skills" into "a roster of
-// 39" and the check goes quiet without the number becoming true. If you are here because a hit
+// makes rewording the cheapest way to clear a live WRONG hit — turn "The 39 skills" into "a roster of
+// skills" and the check goes quiet without the number becoming true. If you are here because a hit
 // annoyed you, fix the number. If you are here because a wording you wrote went unchecked, add its
 // frame to FRAMES below rather than leaving the next person the same hole.
 //
 // WHAT IT DOES NOT REACH.
-//   · Only the three registries below, because only these three are countable from the tree without
-//     being told what to count. A sentence pricing something else — the sections in a block, the rows
-//     in a table, the steps in a process — is invisible here and has to be measured by hand. Those are
+//   · Only the two registries below, because only these two are countable from the tree without
+//     being told what to count. `agents/` is gone, and the persona leg with it. A sentence
+//     pricing something else — the sections in a block, the rows in a table, the steps in a process —
+//     is invisible here and has to be measured by hand. Those are
 //     exactly the ones that went wrong most often, so measure them: do not read a count in this
 //     repository without running the command that produces it.
-//   · An adjective the noun phrase has not been taught. `40 structured skills` and `5 reusable agent
-//     personas` are totals and go unread, because the adjective group is closed on purpose — opening
-//     it to anything at all is how a subset ("the eight bundled skills") walks in.
+//   · An adjective the noun phrase has not been taught. `39 structured skills` and `12 documented
+//     slash commands` are totals and go unread, because the adjective group is closed on purpose —
+//     opening it to anything at all is how a subset ("the eight bundled skills") walks in.
 //   · A total worded outside the five frames, as above.
 //
-// NOTHING RUNS THIS FOR YOU. .github/workflows/companion-tests.yml is path-filtered to
-// skills/frontend-design/scripts/**, so this directory is covered by no job at all. It is on the pre-PR
-// list in CONTRIBUTING.md because in a prose repository the checker is a person.
+// .github/workflows/repo-checks.yml runs this on every push and pull request, unfiltered by path. A
+// registry whose total nobody states is reported UNSTATED: this check can only keep true a number that
+// is written down somewhere.
 //
 //   node scripts/check-enumerations.mjs             check, and report every mismatch
 //   node scripts/check-enumerations.mjs --list      print every claim found and its verdict, and stop
@@ -103,7 +103,7 @@ function countFiles(dir, suffix) {
 }
 
 // The five frames that state a total, and nothing else. Each has to sit immediately before the number:
-// "the other four personas" is a subset and stays one, because the number does not follow the article.
+// "the other four commands" is a subset and stays one, because the number does not follow the article.
 // `MARKUP` lets a bolded count in — `ships **40 skills**` is the same claim as `ships 40 skills`, and
 // reading only the unbolded spelling left every per-agent setup guide's headline total unchecked.
 const MARKUP = `[*_\`]*`;
@@ -124,12 +124,6 @@ const REGISTRIES = [
     measure: () => countDirsWith('skills', 'SKILL.md'),
     source: 'skills/*/SKILL.md',
     rx: new RegExp(`${FRAME}${NUMBER}\\s+skills\\b`, 'gi'),
-  },
-  {
-    label: 'personas',
-    measure: () => countFiles('agents', '.md'),
-    source: 'agents/*.md',
-    rx: new RegExp(`${FRAME}${NUMBER}\\s+(?:review\\s+|fresh-context\\s+)?personas\\b`, 'gi'),
   },
   {
     label: 'commands',
@@ -242,7 +236,7 @@ const parts = [...measured].map(([label, n]) => `${n} ${label}`).join(' · ');
 console.log(`${claims.length} stated counts checked across ${new Set(claims.map(c => c.rel)).size} files · measured ${parts}`);
 if (!wrong.length && !unclaimed.length) {
   console.log('Every stated count matches the tree it counts.');
-  console.log('Counts outside these three registries are unreachable from here. Measure those by hand.');
+  console.log('Counts outside these two registries are unreachable from here. Measure those by hand.');
   console.log('So is a total worded outside the five frames — a silent count is not a checked one.');
   process.exit(0);
 }

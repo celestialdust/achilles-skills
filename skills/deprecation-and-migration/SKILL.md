@@ -1,247 +1,158 @@
 ---
 name: deprecation-and-migration
-description: 'Removes code that no longer earns its keep and migrates users off it safely. Use this the moment you''re about to delete, sunset, or replace an old system, API, feature, or duplicate implementation — and STOP before deleting anything: this skill makes you measure usage, build the replacement first, and migrate consumers so you don''t leave users stranded. Use when consolidating duplicates, when facing zombie code nobody owns but everybody depends on, or when deciding whether to maintain or kill a legacy system.'
+description: Deprecate, sunset or retire a legacy system, API, feature, duplicate, or zombie code nobody owns — before anything is deleted: inventory its consumers, size the migration from real usage, write migration.md (notice, guide, per-consumer ledger, removal checklist). A schema or data migration is not this; the post-merge release is `shipping-and-launch`'s.
 ---
 
 # Deprecation and Migration
 
-## Overview
+## Purpose
 
-**Stage: Ship — conditional.** It runs only when a sunset, replacement or migration is actually in scope, so nothing in the chain calls it by default and no artifact waits on it.
+**Stage: Ship.** Principles 5, 6, 7.
 
-Code is a liability, not an asset. Every line of code has ongoing maintenance cost — bugs to fix, dependencies to update, security patches to apply, and new engineers to onboard. Deprecation is the discipline of removing code that no longer earns its keep, and migration is the process of moving users safely from the old to the new.
+Retires a system, API, feature or duplicate without stranding what still uses it, and sequences removal
+behind a replacement that runs. Emits `migration.md`, no code. Teams build well and remove badly; the
+codebase pays rent on both.
 
-Most engineering organizations are good at building things. Few are good at removing them. This skill addresses that gap.
+## When to use / when to skip
 
-## When to Use
-
-- Replacing an old system, API, or library with a new one
-- Sunsetting a feature that's no longer needed
-- Consolidating duplicate implementations
-- Removing dead code that nobody owns but everybody depends on
-- Planning the lifecycle of a new system (deprecation planning starts at design time)
-- Deciding whether to maintain a legacy system or invest in migration
+- An old system, API, library or duplicate is being replaced, two implementations folded into one, or a
+  feature sunset.
+- Something nobody owns still has live consumers.
+- A diff deletes or renames a file, symbol, config key or persisted field that something outside names.
+- A new system is on the table: its exit is decided now, while the surface is small and a flag is cheap.
+- Nothing in the loop calls this by default: it runs when a sunset, replacement or migration is in
+  scope, and no artifact waits on it.
+- Near-miss — a dead line in a diff: `code-simplification`. A surface nothing consumes yet: `api-design`.
+  The release after merging: `shipping-and-launch`.
 
 ## Inputs
 
-This skill is **conditional** — it runs only when a deprecation, sunset, or migration is actually in scope.
-It consumes, in order of preference:
+From the prompt where given, the canonical path otherwise. At most three questions with a person
+present, only where the gap changes the retirement's shape.
 
-- **The sunset decision** — from `docs/features/<slug>/prd.md` (the *Implementation Decisions* or *Out of Scope*
-  section naming the old system AND its replacement), or an explicit user request to remove/migrate something.
-- **The codebase as-is** — `research.md` if a research pass exists, otherwise a direct dependency/usage scan to
-  inventory every consumer and touchpoint of the system being deprecated.
-- **Live usage signals** — metrics, logs, or dependency analysis that quantify *current* usage. This is what
-  lets you size the migration and later prove zero-usage before removal.
-
-**Refuse to run (fail-closed) if either holds:**
-- **No production-proven replacement exists.** Don't deprecate without an alternative (see The Deprecation
-  Decision Q3 and Step 1) — build the replacement first, then return here.
-- **Current usage was never measured.** Removing or hard-deprecating blind is a Red Flag; gather the usage
-  signal first, then proceed.
-
-## Core Principles
-
-### Code Is a Liability
-
-Every line of code has ongoing cost: it needs tests, documentation, security patches, dependency updates, and mental overhead for anyone working nearby. The value of code is the functionality it provides, not the code itself. When the same functionality can be provided with less code, less complexity, or better abstractions — the old code should go.
-
-### Hyrum's Law Makes Removal Hard
-
-With enough users, every observable behavior becomes depended on — including bugs, timing quirks, and undocumented side effects. This is why deprecation requires active migration, not just announcement. Users can't "just switch" when they depend on behaviors the replacement doesn't replicate.
-
-### Deprecation Planning Starts at Design Time
-
-When building something new, ask: "How would we remove this in 3 years?" Systems designed with clean interfaces, feature flags, and minimal surface area are easier to deprecate than systems that leak implementation details everywhere.
+- **the sunset decision** — `docs/features/<slug>/prd.md` `## Implementation Decisions`, its
+  out-of-scope half, or the prompt · without it: read it from the code, successor `derived`.
+- **`docs/features/<slug>/research.md`** — the as-is map the inventory starts from · without it: scan
+  the repository yourself, inventory `derived`.
+- **live usage signals** — metrics, logs, request or dependency counts · without them: the static scan,
+  `derived`.
+- **the replacement** — running code, or the plan section where it will exist · without it: unbuilt,
+  `derived`.
+- **`docs/features/<slug>/plan.md` and `STATE.md`** — the slices this migration's code attaches to ·
+  without them: describe the slices `plan-breakdown` needs, `derived`.
 
 ## The Deprecation Decision
 
-Before deprecating anything, answer these questions:
-
-```
-1. Does this system still provide unique value?
-   → If yes, maintain it. If no, proceed.
-
-2. How many users/consumers depend on it?
-   → Quantify the migration scope.
-
-3. Does a replacement exist?
-   → If no, build the replacement first. Don't deprecate without an alternative.
-
-4. What's the migration cost for each consumer?
-   → If trivially automated, do it. If manual and high-effort, weigh against maintenance cost.
-
-5. What's the ongoing maintenance cost of NOT deprecating?
-   → Security risk, engineer time, opportunity cost of complexity.
-```
+Answer five questions in the file before anything is declared dead: does it still provide unique value;
+how many consumers depend on it; does a replacement exist; what one consumer's migration costs; what
+*not* retiring it costs in security exposure, engineer time and carried complexity. A yes to the first
+ends the pass — maintain it, and report the answer that stopped it.
 
 ## Compulsory vs Advisory Deprecation
 
-| Type | When to Use | Mechanism |
-|------|-------------|-----------|
-| **Advisory** | Migration is optional, old system is stable | Warnings, documentation, nudges. Users migrate on their own timeline. |
-| **Compulsory** | Old system has security issues, blocks progress, or maintenance cost is unsustainable | Hard deadline. Old system will be removed by date X. Provide migration tooling. |
-
-**Default to advisory.** Use compulsory only when the maintenance cost or risk justifies forcing migration. Compulsory deprecation requires providing migration tooling, documentation, and support — you can't just announce a deadline.
+Advisory by default: warnings and docs, each consumer moving on its own timeline. Compulsory — a dated
+removal — earns its cost only when the old system carries a security problem, blocks the work or costs
+more than it returns, and only with migration tooling, documentation and support behind the date.
 
 ## The Migration Process
 
-### Step 1: Build the Replacement
+Write it into `docs/features/<slug>/migration.md` as you go; shape in Outputs & handoff.
 
-Don't deprecate without a working alternative. The replacement must:
+1. **Inventory every consumer and touchpoint before sizing the work** — imports, call sites, config and
+   cache keys, persisted data, env vars, docs, tests, dashboards, alerts. Grep the concept and its
+   vocabulary, not the filename. Past enough consumers, every observable behaviour — error text and
+   timing included — is depended on by someone.
 
-- Cover all critical use cases of the old system
-- Have documentation and migration guides
-- Be proven in production (not just "theoretically better")
+2. **Give usage a number and its source.** With no metric or log, use the static scan, mark the figure
+   `derived`, and name what that scan cannot see.
 
-### Step 2: Announce and Document
+3. **Sequence removal behind a replacement proven in production** — critical use cases covered,
+   documented, running. While it is on paper, write the notice and ledger anyway, leave the Removal
+   Checklist unticked, and put its slices first.
 
-```markdown
-## Deprecation Notice: OldService
+4. **Name the route (below) and the advisory-or-compulsory call (above) in the notice.**
 
-**Status:** Deprecated as of 2025-03-01
-**Replacement:** NewService (see migration guide below)
-**Removal date:** Advisory — no hard deadline yet
-**Reason:** OldService requires manual scaling and lacks observability.
-            NewService handles both automatically.
+5. **Migrate consumers one at a time, ticking a ledger row each:** touchpoints found, consumer moved,
+   behaviour verified, old references deleted, no regressions. The **Churn Rule** — whoever owns the
+   retired thing owns the migration off it, or ships a backward-compatible change needing none.
 
-### Migration Guide
-1. Replace `import { client } from 'old-service'` with `import { client } from 'new-service'`
-2. Update configuration (see examples below)
-3. Run the migration verification script: `npx migrate-check`
-```
+6. **Remove only once every ledger row reads migrated-and-verified and usage reads zero** — code, tests,
+   docs, config and the notices themselves, in one pass.
 
-### Step 3: Migrate Incrementally
-
-Migrate consumers one at a time, not all at once. For each consumer:
-
-```
-1. Identify all touchpoints with the deprecated system
-2. Update to use the replacement
-3. Verify behavior matches (tests, integration checks)
-4. Remove references to the old system
-5. Confirm no regressions
-```
-
-**The Churn Rule:** If you own the infrastructure being deprecated, you are responsible for migrating your users — or providing backward-compatible updates that require no migration. Don't announce deprecation and leave users to figure it out.
-
-### Step 4: Remove the Old System
-
-Only after all consumers have migrated:
-
-```
-1. Verify zero active usage (metrics, logs, dependency analysis)
-2. Remove the code
-3. Remove associated tests, documentation, and configuration
-4. Remove the deprecation notices
-5. Celebrate — removing code is an achievement
-```
+7. **Decide the rest and leave a trace.** Removal date, advisory or compulsory, the old system's data:
+   default, reason, one `docs/session-log.md` entry, a Decided-for-you row in the PR. A removal with no
+   way back, or one crossing the Not-Doing list, is a stop-list item
+   ([`safety-rails.md`](../../references/safety-rails.md)) — hand it back.
 
 ## Migration Patterns
 
-### Strangler Pattern
-
-Run old and new systems in parallel. Route traffic incrementally from old to new. When the old system handles 0% of traffic, remove it.
-
-```
-Phase 1: New system handles 0%, old handles 100%
-Phase 2: New system handles 10% (canary)
-Phase 3: New system handles 50%
-Phase 4: New system handles 100%, old system idle
-Phase 5: Remove old system
-```
-
-### Adapter Pattern
-
-Create an adapter that translates calls from the old interface to the new implementation. Consumers keep using the old interface while you migrate the backend.
-
-```typescript
-// Adapter: old interface, new implementation
-class LegacyTaskService implements OldTaskAPI {
-  constructor(private newService: NewTaskService) {}
-
-  // Old method signature, delegates to new implementation
-  getTask(id: number): OldTask {
-    const task = this.newService.findById(String(id));
-    return this.toOldFormat(task);
-  }
-}
-```
-
-### Feature Flag Migration
-
-Use feature flags to switch consumers from old to new system one at a time:
-
-```typescript
-function getTaskService(userId: string): TaskService {
-  if (featureFlags.isEnabled('new-task-service', { userId })) {
-    return new NewTaskService();
-  }
-  return new LegacyTaskService();
-}
-```
+| Route | Shape | Fits |
+|---|---|---|
+| Strangler | run both, route 0 → 10 → 50 → 100%, retire the old at 0% | traffic-bearing systems |
+| Adapter | keep the old interface, delegate to the new implementation | consumers you do not own |
+| Feature flag | move consumers across one at a time behind a flag | many consumers, one codebase |
+| In place | change every touchpoint in one commit | few consumers, all yours |
 
 ## Zombie Code
 
-Zombie code is code that nobody owns but everybody depends on. It's not actively maintained, has no clear owner, and accumulates security vulnerabilities and compatibility issues. Signs:
+No maintainer, live consumers, stale dependencies with open vulnerabilities, failing tests nobody fixes.
+It gets an owner or a dated plan out; limbo is not a third option.
 
-- No commits in 6+ months but active consumers exist
-- No assigned maintainer or team
-- Failing tests that nobody fixes
-- Dependencies with known vulnerabilities that nobody updates
-- Documentation that references systems that no longer exist
+## Rationalizations
 
-**Response:** Either assign an owner and maintain it properly, or deprecate it with a concrete migration plan. Zombie code cannot stay in limbo — it either gets investment or removal.
+- "It still works, why remove it?" → unmaintained code accrues security debt in silence.
+- "Nothing imports it, so nobody uses it" → a scan misses a persisted key already in browsers, a client
+  in the field, a cron nobody grepped.
+- "They'll migrate on their own" → they have their own backlog; the retiring owner owns the migration.
+- "A hard date will make them move" → a deadline with no tooling or guide is an announcement.
+- "Someone might need it later" → rebuilding it then costs less than carrying it until then.
+- "We'll plan the exit once the new system ships" → by then there are new priorities; the exit is
+  decided while the surface is small.
 
-## Common Rationalizations
+## Red flags
 
-| Rationalization | Reality |
-|---|---|
-| "It still works, why remove it?" | Working code that nobody maintains accumulates security debt and complexity. Maintenance cost grows silently. |
-| "Someone might need it later" | If it's needed later, it can be rebuilt. Keeping unused code "just in case" costs more than rebuilding. |
-| "The migration is too expensive" | Compare migration cost to ongoing maintenance cost over 2-3 years. Migration is usually cheaper long-term. |
-| "We'll deprecate it after we finish the new system" | Deprecation planning starts at design time. By the time the new system is done, you'll have new priorities. Plan now. |
-| "Users will migrate on their own" | They won't. Provide tooling, documentation, and incentives — or do the migration yourself (the Churn Rule). |
-| "We can maintain both systems indefinitely" | Two systems doing the same thing is double the maintenance, testing, documentation, and onboarding cost. |
-
-## Red Flags
-
-- Deprecated systems with no replacement available
-- Deprecation announcements with no migration tooling or documentation
-- "Soft" deprecation that's been advisory for years with no progress
-- Zombie code with no owner and active consumers
-- New features added to a deprecated system (invest in the replacement instead)
-- Deprecation without measuring current usage
-- Removing code without verifying zero active consumers
+- A dated deprecation notice with no tooling, guide or support behind it.
+- "Nothing imports it" standing in for a usage number, on something with persisted data or field clients.
+- A blank verification cell, or a ticked Removal Checklist box with no evidence.
+- A system advisory-deprecated for years, still taking new features.
+- Zombie code left in limbo rather than owned or dated out.
+- A removal leaving orphaned consumers, reported as a ship.
 
 ## Verification
 
-After completing a deprecation:
+- [ ] The five questions are answered in the file, or the report names the answer that stopped the pass.
+- [ ] The inventory names every touchpoint and the scan that found it; usage carries a number, its
+      source, and — where `derived` — what that scan cannot see.
+- [ ] Removal sits behind a replacement running in production, or the Removal Checklist is unticked and
+      the replacement's slices come first.
+- [ ] The notice is filled out and names the route; the guide's steps paste.
+- [ ] The ledger holds one row per consumer with no cell blank, every ticked Removal Checklist box has
+      its evidence beside it, and nothing reads removed while a ledger row is unmigrated.
 
-- [ ] Replacement is production-proven and covers all critical use cases
-- [ ] Migration guide exists with concrete steps and examples
-- [ ] All active consumers have been migrated (verified by metrics/logs)
-- [ ] Old code, tests, documentation, and configuration are fully removed
-- [ ] No references to the deprecated system remain in the codebase
-- [ ] Deprecation notices are removed (they served their purpose)
+## Outputs & handoff
 
-## Outputs & handoff contract
+**`docs/features/<slug>/migration.md`** — cap 600 words, four stable sections, written for a cold reader
+holding one consumer. An over-cap file is trimmed, not handed on as if it fit.
 
-Emits the **`migration`** artifact at `docs/features/<slug>/migration.md`. Stable sections a downstream
-consumer (and a resuming agent) may depend on — rename one → update its referrers in the same commit:
+```markdown
+# Migration — <what is being retired>
 
-- **Deprecation Notice** — `Status` · `Replacement` · `Removal date` (advisory or a hard date) · `Reason`.
-  Records the advisory-vs-compulsory classification from this skill's table.
-- **Migration Guide** — concrete, copy-pasteable steps + examples for moving a consumer off the old system.
-- **Migration Ledger** — one row per consumer: `touchpoints` · `migrated?` · `verified (tests/metrics)`.
-  The ledger is the source of truth for "all consumers migrated."
-- **Removal Checklist** — the `## Verification` boxes: zero active usage proven · code/tests/docs/config
-  removed · no lingering references · deprecation notices removed.
+## Deprecation Notice   Status · Replacement · Removal date (advisory, or a date) · Reason · route
+## Migration Guide      copy-pasteable steps and a worked example, per kind of consumer
+## Migration Ledger     | Consumer | Touchpoints | Migrated? | Verified (tests/metrics) |
+## Removal Checklist    zero usage proven with the evidence · code, tests, docs, config removed ·
+                        no reference left anywhere · the deprecation notices themselves gone
+```
 
-**STATE.md update:** a migration that spans real code changes is registered as its own PRD-namespaced
-slice rows on the board (state `impl → verify → review → ship → done`, `gate: agent`); it stays `building`
-until the Removal Checklist passes. Because deprecation is conditional, no rows appear unless a sunset is
-triggered. The actual removal/replacement commits hand off to `git-workflow` (atomic, secret-clean) and `pull-request`
-(design-anchored PR referencing this `migration.md` and any superseding ADR). Do **not** mark the slice
-`done` until the Migration Ledger shows every consumer migrated-and-verified and the Removal Checklist is
-fully green — partial removal that leaves orphaned consumers is a failure, not a ship.
+The Migration Ledger is the source of truth for "every consumer has moved".
+
+**Appended to `docs/session-log.md`**: one entry per default taken, cap 60 words; shape in
+[`state-schema.md`](../../references/state-schema.md).
+
+**Returned in conversation**: path, the measured word count against the cap, the route chosen, and what
+removal waits on.
+
+**Nothing else.** No `STATE.md` row — a code-changing migration is cut into slices by `plan-breakdown`,
+whose rows and tokens are the run's ([`state-schema.md`](../../references/state-schema.md)); no code,
+test, commit or pull request. The removal and replacement commits go out through `git-workflow` and
+`pull-request`, citing this file and any ADR it supersedes.

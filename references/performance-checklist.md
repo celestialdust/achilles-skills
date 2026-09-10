@@ -1,153 +1,73 @@
-# Performance Checklist
+# Performance checklist
 
-Quick reference checklist for web application performance. Use alongside the `performance-optimization` skill.
+The measure-first checks behind `performance-optimization`; `code-review` cites it for its performance
+axis. Profile first; cite before/after numbers.
 
-## Table of Contents
+## Targets
 
-- [Core Web Vitals Targets](#core-web-vitals-targets)
-- [TTFB Diagnosis](#ttfb-diagnosis)
-- [Frontend Checklist](#frontend-checklist)
-- [Backend Checklist](#backend-checklist)
-- [Measurement Commands](#measurement-commands)
-- [Common Anti-Patterns](#common-anti-patterns)
+LCP ≤ 2.5s · INP ≤ 200ms · CLS ≤ 0.1 are good; ≤ 4.0s / 500ms / 0.25 need work; worse is poor.
 
-## Core Web Vitals Targets
+## TTFB over 800ms — read the Network waterfall
 
-| Metric | Good | Needs Work | Poor |
-|--------|------|------------|------|
-| LCP (Largest Contentful Paint) | ≤ 2.5s | ≤ 4.0s | > 4.0s |
-| INP (Interaction to Next Paint) | ≤ 200ms | ≤ 500ms | > 500ms |
-| CLS (Cumulative Layout Shift) | ≤ 0.1 | ≤ 0.25 | > 0.25 |
+Slow DNS → `dns-prefetch` or `preconnect`. Slow TCP/TLS → HTTP/2, keep-alive, edge. Slow processing →
+profile the backend, check queries, cache.
 
-## TTFB Diagnosis
+## Frontend
 
-When TTFB is slow (> 800ms), check each component in DevTools Network waterfall:
+**Images.** WebP or AVIF; responsive `srcset`/`sizes`; explicit `width`/`height` on `<img>` and
+`<source>` to prevent CLS; `loading="lazy"` + `decoding="async"` below the fold; the LCP image
+`fetchpriority="high"`, never lazy.
 
-- [ ] **DNS resolution** slow → add `<link rel="dns-prefetch">` or `<link rel="preconnect">` for known origins
-- [ ] **TCP/TLS handshake** slow → enable HTTP/2, consider edge deployment, verify keep-alive
-- [ ] **Server processing** slow → profile backend, check slow queries, add caching
+**JavaScript.** Initial bundle under 200KB gzipped. Split routes and heavy features with `import()`.
+Verify tree shaking (dependency ships ESM, marks `sideEffects: false`). Nothing blocking in `<head>` —
+`defer` or `async`. Heavy computation to a Worker. `React.memo`, `useMemo` and `useCallback` only where
+profiling shows the benefit.
 
-## Frontend Checklist
+**INP is a main-thread problem.** Break up tasks over 50ms. Yield inside long loops —
+`scheduler.yield()` where available, else a `yieldToMain` pattern — so input events run between chunks;
+`scheduler.postTask()` for priorities, `isInputPending()` to yield only when needed,
+`requestIdleCallback` for deferrable work. Move non-critical work out of the handler. Load third-party
+scripts `async`/`defer`, audit their size, put a facade in front of heavy ones.
 
-### Images
-- [ ] Images use modern formats (WebP, AVIF)
-- [ ] Images are responsively sized (`srcset` and `sizes`)
-- [ ] Images and `<source>` elements have explicit `width` and `height` (prevents CLS in art direction)
-- [ ] Below-the-fold images use `loading="lazy"` and `decoding="async"`
-- [ ] Hero/LCP images use `fetchpriority="high"` and no lazy loading
+**CSS.** Critical CSS inlined or preloaded; nothing non-critical render-blocking; no CSS-in-JS runtime
+cost in production.
 
-### JavaScript
-- [ ] Bundle size under 200KB gzipped (initial load)
-- [ ] Code splitting with dynamic `import()` for routes and heavy features
-- [ ] Tree shaking enabled (verify dependency ships ESM and marks `sideEffects: false`)
-- [ ] No blocking JavaScript in `<head>` (use `defer` or `async`)
-- [ ] Heavy computation offloaded to Web Workers (if applicable)
-- [ ] `React.memo()` on expensive components that re-render with same props
-- [ ] `useMemo()` / `useCallback()` only where profiling shows benefit
-- [ ] Long tasks (> 50ms) broken up to keep the main thread available — main lever for INP
-- [ ] `yieldToMain` pattern used inside long-running loops so input events can run between chunks
-- [ ] Modern scheduling APIs used where available: `scheduler.yield()` (preferred), `scheduler.postTask()` with priorities, `isInputPending()` to yield only when needed
-- [ ] `requestIdleCallback` for deferrable, non-urgent work (analytics flush, prefetch, warmup)
-- [ ] Non-critical work deferred out of event handlers (e.g. analytics, logging) so the response to the interaction is not delayed
-- [ ] Third-party scripts loaded with `async` / `defer`, audited for size, and fronted by a facade when heavy (chat widgets, embeds)
+**Fonts.** 2–3 families, 2–3 weights — every extra weight is another request. WOFF2 only, self-hosted.
+Preload the LCP-critical face. `font-display: swap`, `optional` when non-critical. Subset with
+`unicode-range`. A variable font for several weights. Cut swap CLS with `size-adjust`,
+`ascent-override`, `descent-override`. Consider the system stack first.
 
-### CSS
-- [ ] Critical CSS inlined or preloaded
-- [ ] No render-blocking CSS for non-critical styles
-- [ ] No CSS-in-JS runtime cost in production (use extraction)
+**Network.** Long `max-age` plus content hashing on static assets; `Cache-Control` on API responses;
+HTTP/2 or 3; `preconnect` to known origins; `fetchpriority` on critical non-image resources; no needless
+redirects.
 
-### Fonts
-- [ ] Limited to 2–3 font families, 2–3 weights each (every additional weight is another request)
-- [ ] WOFF2 format only (smallest, universal support — skip WOFF/TTF/EOT)
-- [ ] Self-hosted when possible (third-party font CDNs add DNS + TCP + TLS round-trips)
-- [ ] LCP-critical fonts preloaded: `<link rel="preload" as="font" type="font/woff2" crossorigin>`
-- [ ] `font-display: swap` (or `optional` for non-critical) to avoid FOIT blocking render
-- [ ] Subsetted via `unicode-range` to ship only the glyphs each page needs
-- [ ] Variable fonts considered when multiple weights/styles are required (one file replaces many)
-- [ ] Fallback font metrics adjusted with `size-adjust`, `ascent-override`, `descent-override` to reduce CLS on font swap
-- [ ] System font stack considered before any custom font
+**Rendering.** No layout thrashing — batch reads, then writes. Animate `transform` and `opacity` only.
+Virtualize long lists. `content-visibility: auto` with `contain-intrinsic-size` off-screen. Keep bfcache
+eligibility: no `unload` handlers, no `Cache-Control: no-store` on HTML. Clean up listeners, intervals
+and refs — a leak grows until it crashes.
 
-### Network
-- [ ] Static assets cached with long `max-age` + content hashing
-- [ ] API responses cached where appropriate (`Cache-Control`)
-- [ ] HTTP/2 or HTTP/3 enabled
-- [ ] Resources preconnected (`<link rel="preconnect">`) for known origins
-- [ ] `fetchpriority` used on critical non-image resources (e.g., key `<link rel="preload">`, above-the-fold `<script>`) — not only on `<img>`
-- [ ] No unnecessary redirects
+## Backend
 
-### Rendering
-- [ ] No layout thrashing (forced synchronous layouts)
-- [ ] Animations use `transform` and `opacity` (GPU-accelerated)
-- [ ] Long lists use virtualization (e.g., `react-window`)
-- [ ] No unnecessary full-page re-renders
-- [ ] Off-screen sections use `content-visibility: auto` with `contain-intrinsic-size` to skip layout/paint of non-visible areas
-- [ ] No `unload` event handlers and no `Cache-Control: no-store` on HTML responses — preserves back/forward cache (bfcache) eligibility
+**Database.** No N+1 — eager-load or join. Index filtered and sorted columns. Paginate every list
+endpoint. Configure connection pooling; turn on slow-query logging.
 
-## Backend Checklist
+**API.** p95 under 200ms. No synchronous heavy computation in a handler. Bulk operations, not a loop of
+calls. Response compression; cache at the right layer.
 
-### Database
-- [ ] No N+1 query patterns (use eager loading / joins)
-- [ ] Queries have appropriate indexes
-- [ ] List endpoints paginated (never `SELECT * FROM table`)
-- [ ] Connection pooling configured
-- [ ] Slow query logging enabled
+**Infrastructure.** CDN for static assets; servers near users or at the edge; scale horizontally where
+load needs it.
 
-### API
-- [ ] Response times < 200ms (p95)
-- [ ] No synchronous heavy computation in request handlers
-- [ ] Bulk operations instead of loops of individual calls
-- [ ] Response compression (gzip/brotli)
-- [ ] Appropriate caching (in-memory, Redis, CDN)
+## Measuring
 
-### Infrastructure
-- [ ] CDN for static assets
-- [ ] Server located close to users (or edge deployment)
-- [ ] Horizontal scaling configured (if needed)
-- [ ] Health check endpoint for load balancer
-
-## Measurement Commands
-
-### INP field data and DevTools workflow
-
-1. **Field data first** — check [CrUX Vis](https://developer.chrome.com/docs/crux/vis) or your RUM tool for real-user INP before optimising
-2. **Identify slow interactions** — open DevTools → Performance panel → record while interacting; look for long tasks triggered by clicks/keystrokes
-3. **Test on mid-range Android** — INP issues often only surface on slower hardware; use a real device or DevTools CPU throttling (4×–6× slowdown)
+Start with field data — CrUX or your RUM tool. Record in the DevTools Performance panel while interacting
+and look for long tasks triggered by clicks and keystrokes. Test on a mid-range Android or at 4×–6× CPU
+throttling: INP problems often appear nowhere else.
 
 ```bash
-# Lighthouse CLI
-npx lighthouse https://localhost:3000 --output json --output-path ./report.json
-
-# Bundle analysis
-npx webpack-bundle-analyzer stats.json
-# or for Vite:
-npx vite-bundle-visualizer
-
-# Check bundle size
-npx bundlesize
-
-# Web Vitals in code
-import { onLCP, onINP, onCLS } from 'web-vitals';
-onLCP(console.log);
-onINP(console.log);
-onCLS(console.log);
-
-# INP with interaction-level detail (attribution build)
-import { onINP } from 'web-vitals/attribution';
-onINP(({ value, attribution }) => {
-  const { interactionTarget, inputDelay, processingDuration, presentationDelay } = attribution;
-  console.log({ value, interactionTarget, inputDelay, processingDuration, presentationDelay });
-});
+npx lighthouse <url> --output json --output-path ./report.json   # then: npx vite-bundle-visualizer
 ```
 
-## Common Anti-Patterns
-
-| Anti-Pattern | Impact | Fix |
-|---|---|---|
-| N+1 queries | Linear DB load growth | Use joins, includes, or batch loading |
-| Unbounded queries | Memory exhaustion, timeouts | Always paginate, add LIMIT |
-| Missing indexes | Slow reads as data grows | Add indexes for filtered/sorted columns |
-| Layout thrashing | Jank, dropped frames | Batch DOM reads, then batch writes |
-| Unoptimized images | Slow LCP, wasted bandwidth | Use WebP, responsive sizes, lazy load |
-| Large bundles | Slow Time to Interactive | Code split, tree shake, audit deps |
-| Blocking main thread | Poor INP, unresponsive UI | Chunk long tasks with `scheduler.yield()` / `yieldToMain`, offload to Web Workers |
-| Memory leaks | Growing memory, eventual crash | Clean up listeners, intervals, refs |
+```js
+import { onINP } from 'web-vitals/attribution';   // attribution names the slow interaction
+onINP(({ value, attribution }) => console.log(value, attribution));
+```
