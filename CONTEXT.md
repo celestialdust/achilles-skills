@@ -15,8 +15,8 @@ language. Every term this repository defines lives in this one section.
   `performance-optimization`, not `perf`).
 - **Command** — a slash command at `commands/<name>.md` that names the skill(s) that run it. A command is a
   thin entry point, not a restatement of the skill. Most are *lifecycle* commands, mapping one stage
-  (Ideate · Spec · Plan · Implement · Verify · Review · Ship, plus `/orchestrate` and `/setup`). Three
-  are *standalone* — `/explain`, `/quiz`, and `/gauntlet-loop` — and belong to no stage; they can run at
+  (Ideate · Spec · Plan · Implement · Verify · Review · Ship, plus `/orchestrate` and `/setup`). Four
+  are *standalone* — `/explain`, `/quiz`, `/gauntlet-loop` and `/aim-higher` — and belong to no stage; they can run at
   any time without advancing one.
 - **Artifact** — a contract file passed between stages (`intent.md`, `prd.md`, `plan.md`, `research.md`,
   `acceptance.md`, `environment.md`, `architecture.md`, `qa.md`, `STATE.md`). Artifact names are

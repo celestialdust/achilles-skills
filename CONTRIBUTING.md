@@ -68,7 +68,9 @@ Every `SKILL.md` carries the same envelope.
 
 The **Stage** is one of `Ideate · Spec · Plan · Implement · Verify · Review · Ship · cross-cutting ·
 standalone`, and the `Principles n, n` numbers beside it index the ten commitments in
-[`references/principles.md`](references/principles.md) — cite by number, never restate one.
+[`references/principles.md`](references/principles.md) — cite by number, never restate one. One skill
+carries no such line, at the owner's request: `aim-higher`, which `check-stages.mjs` therefore lists as
+unchecked. Leave it without one.
 
 **Word a section for the skill when that reads better.** `incremental-implementation` calls its Process
 `## The Increment Cycle` because that is what the process *is*. A qualifier hung off a heading still
@@ -112,9 +114,9 @@ Rationalization as a fact, not a command.
 ## Adding a command
 
 A command is a thin entry point at `commands/<name>.md` mapping **one lifecycle stage** to the skill(s)
-that run it — never a restatement of the skill. The suite ships twelve commands: nine lifecycle
+that run it — never a restatement of the skill. The suite ships thirteen commands: nine lifecycle
 (`/ideate`, `/spec`, `/plan`, `/implement`, `/verify`, `/review`, `/ship`, `/orchestrate`, `/setup`) and
-three standalone (`/explain`, `/quiz`, `/gauntlet-loop`) that belong to no stage.
+four standalone (`/explain`, `/quiz`, `/gauntlet-loop`, `/aim-higher`) that belong to no stage.
 
 The file is Markdown with one `description` key in its frontmatter, then the prompt as its body:
 

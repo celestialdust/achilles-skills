@@ -99,8 +99,10 @@ Shapes, tokens and writers are stated once, in
 | Review | `/review` | one ranked list of findings, code-cold, and a verdict |
 | Ship | `/ship` | an open, risk-banded draft pull request |
 
-`/orchestrate` runs Implement through Ship over the whole slice DAG unattended. `/explain`, `/quiz` and
-`/gauntlet-loop` sit outside the loop and gate nothing — run them whenever.
+`/orchestrate` runs Implement through Ship over the whole slice DAG unattended. `/explain`, `/quiz`,
+`/gauntlet-loop` and `/aim-higher` sit outside the loop and gate nothing — run them whenever.
+`aim-higher` also travels alone: it reads no other skill or file, so copying `skills/aim-higher/`
+into any host's skills folder — `~/.claude/skills/` for Claude Code — is the whole install.
 
 The rules for working inside this repository are in [CLAUDE.md](../CLAUDE.md); what a change to a skill
 or command has to satisfy is in [CONTRIBUTING.md](../CONTRIBUTING.md).

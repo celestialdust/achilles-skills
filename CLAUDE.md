@@ -21,8 +21,8 @@ track nothing. Finding none here is expected, not a gap; route the task to its o
 ## Project structure
 
 ```
-skills/          → 39 skills, one discipline each (skills/<name>/SKILL.md)
-commands/        → 12 slash commands (*.md) — 9 lifecycle + 3 standalone
+skills/          → 40 skills, one discipline each (skills/<name>/SKILL.md)
+commands/        → 13 slash commands (*.md) — 9 lifecycle + 4 standalone
 references/      → what more than one skill reads: the checklists, safety-rails.md (the stop list, the
                    dispatch rules, the verdict vocabulary), state-schema.md, principles.md
 docs/setup.md    → the one install-and-run guide, for every host
@@ -58,10 +58,10 @@ Shapes, tokens, caps and writers for the four state files are stated once, in
 This repository is the suite, not one the suite runs in, so most of these rows have no file here.
 [README.md](./README.md) under *Repository layout* says which ones it keeps and why.
 
-## The 12 commands → which skill they run
+## The 13 commands → which skill they run
 
 Slash commands are thin entry points. Nine map one lifecycle stage each to its skill(s); the other
-three are standalone and belong to no stage.
+four are standalone and belong to no stage.
 
 | Command | Runs | Owner |
 |---|---|---|
@@ -77,9 +77,10 @@ three are standalone and belong to no stage.
 | `/explain` | literate-explainer — **standalone**, not a lifecycle stage | human |
 | `/quiz` | comprehension-quiz — **standalone**, not a lifecycle stage | human |
 | `/gauntlet-loop` | gauntlet-loop — **standalone**, not a lifecycle stage; offered, never auto-selected | human |
+| `/aim-higher` | aim-higher — **standalone**, not a lifecycle stage | human |
 
 The **human owns Ideate + Spec + Plan**; the agent runs **Implement → Ship** unattended. `/explain`,
-`/quiz` and `/gauntlet-loop` sit outside that loop entirely — run any of them at any time without
+`/quiz`, `/gauntlet-loop` and `/aim-higher` sit outside that loop entirely — run any of them at any time without
 advancing a stage.
 
 ## Safety and autonomy (must-follow)
