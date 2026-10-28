@@ -95,7 +95,8 @@ it returns.
 
 9. **Pick, don't stack.** Keep the two or three moves that change the outcome most and drop the rest —
    a goal carrying every lens reads as a wish list nobody can check. Write it in the shape under
-   *Outputs & handoff*, at 100 words or fewer, and return it.
+   *Outputs & handoff*, as short as the task allows and never past 200 words, and return it. Most
+   goals land near 100; the room above that is for a task complex enough to need it.
 
 ## Rationalizations
 
@@ -119,7 +120,7 @@ it returns.
 
 ## Red flags
 
-- A goal block over 100 words, or an essay wrapped around it.
+- A goal block over 200 words, a simple goal padded toward the cap, or an essay wrapped around it.
 - A `Done when` the doer grades, or one with no number where a number exists.
 - A goal raised past anything an agent can own end to end.
 - A typo or rename returned as a programme.
@@ -138,12 +139,12 @@ it returns.
       new is needed.
 - [ ] Every constraint and Not-Doing the person stated survives, in the goal or under `Not`.
 - [ ] A right-sized goal kept the person's words, with one line saying why.
-- [ ] The goal block measures 100 words or fewer.
+- [ ] The goal block measures 200 words or fewer, and only a complex task's runs past 100.
 
 ## Outputs & handoff
 
-- **One goal block, in conversation** — nothing written to disk. Cap **100 words**,
-  in this shape:
+- **One goal block, in conversation** — nothing written to disk. Cap **200 words**,
+  most well under it, in this shape:
 
   ```
   Goal: <the outcome, one level up, carrying its hard number>
