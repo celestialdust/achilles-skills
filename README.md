@@ -44,8 +44,8 @@ Coding agents are fast, and that speed amplifies three failure modes. This suite
 
 | Path | What it is |
 |---|---|
-| `skills/` | The 39 skills — one discipline per `SKILL.md` |
-| `commands/` | The 12 slash commands — thin entry points over the skills |
+| `skills/` | The 40 skills — one discipline per `SKILL.md` |
+| `commands/` | The 13 slash commands — thin entry points over the skills |
 | `references/` | What more than one skill reads: the checklists, `safety-rails.md` (the stop list, the dispatch rules, the verdict vocabulary), `state-schema.md`, `principles.md` |
 | `docs/setup.md` | Install and run, on every host — one guide, not one per tool |
 | `scripts/` | The six checks a change to this repo is measured against — see *How a change here is checked* in [CLAUDE.md](./CLAUDE.md) |
@@ -62,8 +62,8 @@ loop, so it carries the glossary that loop produces.
 
 ## Commands
 
-Twelve slash commands. Nine are lifecycle commands — one per stage, plus the unattended runner and the
-one-time setup — and three stand outside the lifecycle and gate nothing.
+Thirteen slash commands. Nine are lifecycle commands — one per stage, plus the unattended runner and the
+one-time setup — and four stand outside the lifecycle and gate nothing.
 
 | Command | What you are doing | Runs |
 |---|---|---|
@@ -79,6 +79,7 @@ one-time setup — and three stand outside the lifecycle and gate nothing.
 | `/explain` | Standalone: a teaching artifact for a diff or a whole repo | literate-explainer |
 | `/quiz` | Standalone: retrieval practice, graded before the reveal | comprehension-quiz |
 | `/gauntlet-loop` | Standalone: a throwaway proof of concept against a named outside bar | gauntlet-loop |
+| `/aim-higher` | Standalone: raise a goal before an agent runs it — one short goal, checked from outside | aim-higher |
 
 ---
 
@@ -105,7 +106,7 @@ quirks, and what `/setup` scaffolds in your repository.
 
 ---
 
-## All 39 skills
+## All 40 skills
 
 Each skill is a workflow with a verifiable end — purpose, triggers, inputs, method, rationalizations,
 red flags, verification, outputs — not a reference document. The commands above are entry points; you
@@ -152,6 +153,7 @@ can also reach for any skill by name.
 | [literate-explainer](./skills/literate-explainer/SKILL.md) | standalone | Turns a diff or an unfamiliar repo into a self-contained teaching artifact |
 | [comprehension-quiz](./skills/comprehension-quiz/SKILL.md) | standalone | Retrieval practice, one question per message, graded before the answer is revealed |
 | [gauntlet-loop](./skills/gauntlet-loop/SKILL.md) | standalone | Grinds a throwaway prototype until a blind critic picks it over a named outside bar |
+| [aim-higher](./skills/aim-higher/SKILL.md) | standalone | Raises a goal to the one a top expert would set — one level up, deeper, wider — still short, checked from outside |
 
 ---
 
@@ -177,6 +179,7 @@ a real debt to — the work of:
 - **Addy Osmani — [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills)**
 - **[multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)**
 - **Matt Shumer & Jay E — [robonuggets/gauntlet-loop](https://github.com/robonuggets/gauntlet-loop)** (CC BY 4.0)
+- **Felix Rieseberg — [How to be more ambitious: a tutorial for humans with models](https://felixrieseberg.com/how-to-be-more-ambitious-a-tutorial-for-humans-with-models/)** — the altitude, depth and range moves behind `aim-higher`
 
 And a sincere thank-you to the broader **open-source community** — the authors, maintainers, and contributors
 whose tools, patterns, and hard-won lessons make work like this possible.

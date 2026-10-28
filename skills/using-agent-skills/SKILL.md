@@ -98,6 +98,7 @@ Task arrives
     ├── Context filling? ────────────→ handoff
     ├── Code you didn't write? ──────→ literate-explainer   (standalone)
     ├── Somebody's grasp of it? ─────→ comprehension-quiz   (standalone)
+    ├── Aim a goal higher? ──────────→ aim-higher           (standalone)
     └── The whole signed DAG, AFK? ──→ orchestrator         (waves → draft pull requests)
 ```
 
@@ -232,6 +233,7 @@ does.
 | standalone | literate-explainer | a teaching artifact |
 | standalone | comprehension-quiz | a ledger line |
 | standalone | gauntlet-loop | `.gauntlet/<slug>/` — offered, never selected |
+| standalone | aim-higher | one goal block, in conversation |
 
 ## Rationalizations
 
