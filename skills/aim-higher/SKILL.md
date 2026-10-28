@@ -1,6 +1,6 @@
 ---
 name: aim-higher
-description: Raise a goal before an agent runs it — strip it to the outcome that matters, aim one level up, deeper and wider, and return one short goal ready to set, with a check the doer cannot grade and the access it needs. Run on "aim higher", "be more ambitious", "sharpen this goal". Not for drafting options to choose among, or for finding out what someone wants at all.
+description: Raise a goal before an agent runs it — strip it to the outcome that matters, learn from the field's best, aim one level up, deeper and wider, and return one short goal ready to set, with a check the doer cannot grade and the access it needs. Run on "aim higher", "be more ambitious", "sharpen this goal". Not for drafting options to choose among, or for finding out what someone wants at all.
 ---
 
 # Aim higher — the goal a top expert would set
@@ -8,11 +8,11 @@ description: Raise a goal before an agent runs it — strip it to the outcome th
 ## Purpose
 
 People under-ask models: they size a goal by what they believe is possible, inside the one field they
-trust themselves in. This skill takes any goal and returns the one a top expert would set — the outcome
-behind the ask, a hard bar reached with the trade's real instruments, a method borrowed from another
-field — still short, and still checked by something other than the agent doing it. Deeper, not bigger:
-a goal already sized right comes back nearly as it went in. It writes nothing; the person sets the goal
-it returns.
+trust themselves in. This skill learns how the best in the field actually work, then returns the goal a
+top expert would set — the outcome behind the ask, a hard bar reached with the trade's real instruments,
+a method borrowed from another field — still short, and still checked by something other than the agent
+doing it. Deeper, not bigger: a goal already sized right comes back nearly as it went in. It writes
+nothing; the person sets the goal it returns.
 
 ## When to use / when to skip
 
@@ -35,6 +35,8 @@ it returns.
   crosses · without it: take only what the ask states, and write any line you assumed under `Not`.
 - **The repository, data and tools in reach** — helps: a bar grounded in what the agent can touch ·
   without it: name what the raise needs under `Needs` rather than shrink the goal silently.
+- **The web** — helps: what the best in the field have actually done, not what you remember of it ·
+  without it: raise from what you know, and write `Sources: unsourced`.
 - **Who runs the goal** — helps: a person, a session and an unattended run each want a different check
   · without it: assume an agent running unattended.
 
@@ -53,14 +55,29 @@ it returns.
    what closes a way it could pass falsely: a missing guardrail, or an outside check in place of one
    the doer controls. Leaving a right-sized goal alone is a result, not a skip.
 
-3. **Altitude — one level up.** Ask yourself "and then what?" once, sometimes twice, and stop at the
+3. **Learn from the best before setting anything.** Rather than imagine what a top expert would do,
+   find out. Each line of the goal is otherwise a guess, so work out who does this best — the people
+   and the work that set the field's bar — and search the web for what they published themselves, not
+   summaries of it, until a handful of sources answer whichever of these would change the goal:
+   - *Does it exist already, whole or in part?* Earlier work to adopt or start from.
+   - *What is the bar?* The best result anyone has reached, and what has just become possible — the
+     proof a believed limit is not real.
+   - *How do the best work?* Their methods and instruments.
+   - *How do they judge done?* The benchmarks, standards and tests the field trusts.
+   - *What went wrong for them?* Their failures, and what they changed after.
+
+   What you find raises the bar and sharpens the method; it never swaps the outcome from step 1 for
+   what a source happens to measure, and never pushes the goal past what the agent can own. Cite only
+   pages you opened, and only for what they say. A goal step 2 left alone skips this.
+
+4. **Altitude — one level up.** Ask yourself "and then what?" once, sometimes twice, and stop at the
    highest outcome the agent can still own end to end and be checked against. Fixing a crash becomes
    keeping the app crash-free; a report becomes the decisions it exists to force, argued for and
    against; a recurring process becomes a better one, tested against its own history. "Make money" is
    above the line — no agent owns it end to end — so come back down until one does.
 
-4. **Depth — work the way the best in the field work.** Name what a top practitioner would do beyond the
-   ask: the raw material they start from (all the data, not a summary of it), the trade's real
+5. **Depth — work the way the best in the field work.** From what step 3 found, name what the best do
+   beyond the ask: the raw material they start from (all the data, not a summary of it), the trade's real
    instruments (a profiler, a load test, a statistical model, a database — not a markdown table), and a
    hard number. Set the number past what feels reasonable whenever a path to it can be named — 200 ms
    where the target was 5 s. Name the assumption under the goal and make testing it part of the work.
@@ -69,33 +86,33 @@ it returns.
    Where the agent will be deep in the data, make the goal demand something nobody knows yet, validated
    on data it has not seen.
 
-5. **Range — borrow from another field.** Rewrite the goal's noun as a verb: a quarterly review is
+6. **Range — borrow from another field.** Rewrite the goal's noun as a verb: a quarterly review is
    getting busy people to believe a cause-and-effect story and act on it. Work out which fields do that
-   verb best, and borrow one method or tool from them. Where stakes are high, add the specialist who
-   would attack the result — a short seller, a forensic accountant, a red team — doing their actual
-   work, never playing their voice.
+   verb best, look up how they do it as step 3 did, and borrow one method or tool from them. Where
+   stakes are high, add the specialist who would attack the result — a short seller, a forensic
+   accountant, a red team — doing their actual work, never playing their voice.
 
-6. **Make done something the doer cannot grade.** Name the check: a test suite, a benchmark, a
+7. **Make done something the doer cannot grade.** Name the check: a test suite, a benchmark, a
    held-out dataset, a replay against history, a blind judge in a fresh context, a real user. One the
    agent can run for fast feedback is best, provided the agent did not write it to pass. Put a number
    in it wherever one exists, and name what must not get worse — correctness, error rate, existing
    behaviour — so a win on one number cannot hide a loss on another.
 
-7. **Name the access the raise needs.** A bigger goal fails on missing infrastructure before it fails
+8. **Name the access the raise needs.** A bigger goal fails on missing infrastructure before it fails
    on skill: the data, connectors, machines, test environments and credentials (by name, never a
    value) an agent needs to work without being steered. What the agent can find or generate itself —
    sample data, test queries, fixtures — is part of the work, not a precondition; list only what
    someone has to grant. Where a grant is missing, getting it becomes the goal's first step, or the
    goal comes down to what is reachable.
 
-8. **Hold the person's lines.** A raise never crosses a constraint or a Not-Doing the person stated.
+9. **Hold the person's lines.** A raise never crosses a constraint or a Not-Doing the person stated.
    Where crossing one would pay, offer it in one line after the goal; never bake it in. A line you add
    under `Not` names what this goal leaves out or guards against harm — money, live users, anything
    irreversible — and never forbids work the goal needs.
 
-9. **Pick, don't stack.** Keep the two or three moves that change the outcome most and drop the rest —
-   a goal carrying every lens reads as a wish list nobody can check. Write it in the shape under
-   *Outputs & handoff*, at 100 words or fewer, and return it.
+10. **Pick, don't stack.** Keep the two or three moves that change the outcome most and drop the rest
+    — a goal carrying every lens reads as a wish list nobody can check. Write it in the shape and
+    within the cap under *Outputs & handoff*, and return it.
 
 ## Rationalizations
 
@@ -116,10 +133,12 @@ it returns.
   confidence; the agent can read the real one.
 - *"A sharp goal still belongs in the template."* → the person's words already work; reshaping them
   only adds risk.
+- *"I already know how the experts do it."* → memory is a snapshot and the field has moved; their own
+  accounts show where the bar stands now.
 
 ## Red flags
 
-- A goal block over 100 words, or an essay wrapped around it.
+- A goal block over its cap under *Outputs & handoff*, or wrapped in an essay.
 - A `Done when` the doer grades, or one with no number where a number exists.
 - A goal raised past anything an agent can own end to end.
 - A typo or rename returned as a programme.
@@ -128,6 +147,8 @@ it returns.
 - A raise that leans on data or access no `Needs` line names.
 - A detail of the person's system stated as fact, never having been read.
 - A `Needs` line that has the person do the agent's prep before it can start.
+- A raised goal whose bar no source backs while the web was in reach — or research that came back as
+  a report instead of a goal.
 
 ## Verification
 
@@ -137,13 +158,18 @@ it returns.
 - [ ] On a raised goal, `Needs` names every piece of access the raised goal leans on, or says nothing
       new is needed.
 - [ ] Every constraint and Not-Doing the person stated survives, in the goal or under `Not`.
+- [ ] On a raised goal, the notes name the sources its bar and method came from, or say the bar is
+      unsourced.
 - [ ] A right-sized goal kept the person's words, with one line saying why.
-- [ ] The goal block measures 100 words or fewer.
+- [ ] The goal block is within its cap under *Outputs & handoff*, with its parts named in a note when
+      it runs past 100 words.
 
 ## Outputs & handoff
 
-- **One goal block, in conversation** — nothing written to disk. Cap **100 words**,
-  in this shape:
+- **One goal block, in conversation** — nothing written to disk. Cap **100 words**; **200** only for
+  work spanning several separate systems or stages, each needing its own check — three client
+  platforms, or a launch spanning product, pricing and press. A cap is a ceiling, not a target. In
+  this shape:
 
   ```
   Goal: <the outcome, one level up, carrying its hard number>
@@ -155,8 +181,10 @@ it returns.
 - A right-sized goal skips the shape: the person's words, plus any check step 2 added, and one line
   saying why it stays.
 - Below it, at most three lines, each naming a move and the lens it came from, plus any offer from
-  step 8. Nothing else.
-- Example — "write the onboarding guide for new engineers" comes back as:
+  step 9; for a goal over 100 words, one line naming its parts; and, on a raised goal, one `Sources:`
+  line naming what the bar and method came from, or `unsourced`. Nothing else. These notes are for
+  the person, not part of the goal, so the word cap does not count them.
+- Example — "write the onboarding guide for new engineers" comes back as (its notes left out):
 
   ```
   Goal: A new engineer opens a passing, reviewable pull request on day one, with no help past hello.
